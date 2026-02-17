@@ -1,1 +1,4 @@
-hello
+Projeto industrial criado com sucesso.
+Execute simulação: python3 heat_exchanger.py
+Gerar dashboard: python3 heat_exchanger.py --plot
+Banco de fluidos: fluids_db.json
