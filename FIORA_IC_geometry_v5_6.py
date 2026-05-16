@@ -70,9 +70,13 @@ R_SPH_TOP   = (R_REACTOR**2 + TOP_DEPTH**2) / (2.0 * TOP_DEPTH)
 D_BIOGAS_OUT  = 0.100                  # DN100
 
 # Saída lateral de efluente próxima ao topo (Vinícius 18:04)
+# ★ FIX v5.6.2: a "borda superior operacional" = topo do CILINDRO (14,339 m),
+#   não topo do domo (14,600 m).  Posicionar em z=14,50 m colocava o furo
+#   dentro do domo.  Corrigido para z=14,20 m: 14 cm abaixo do topo do
+#   cilindro e 33 cm acima do separador de 95% (z=13,87 m).
 D_EFFLUENT_OUT = 0.100                 # DN100, independente do DN50 do sep 95%
-Z_EFFLUENT     = 14.50                 # 10 cm abaixo da borda (memorial diz 10-15 cm)
-AZ_EFFLUENT    = 180.0                 # azimute lateral — diametralmente oposto aos DN50
+Z_EFFLUENT     = 14.20                 # 14 cm abaixo do topo do cilindro (parede)
+AZ_EFFLUENT    = 180.0                 # diametralmente oposto aos DN50
 
 # §5 Tubo de retorno DN100 (BAFFLE — arquivo separado)
 D_RETURN_OUT  = 0.100
