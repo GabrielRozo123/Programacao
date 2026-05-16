@@ -1,7 +1,23 @@
 """
 FIORA IC — Geometria CFD | STAR-CCM+
 =====================================
-Versão 5.6 — 16/Mai/2026  ★ ATUALIZAÇÃO COMPLETA — VINÍCIUS 18:04 ★
+Versão 5.6.1 — 16/Mai/2026  ★ FIX BUG DO DOMO ★
+
+CORREÇÃO v5.6.1 (sobre v5.6):
+  ✅ build_fluid_domain() — o cut do domo usava uma caixa de 4·R_REACTOR
+     (= 4,18 m) em XY, MENOR que o diâmetro da esfera (2·R_SPH = 4,44 m).
+     Resultado: a esfera EXTRAPOLAVA a caixa por 13 cm de cada lado e
+     sobravam pedaços não cortados, gerando aquela "bola esférica"
+     flutuante no topo do reator no STAR-CCM+.
+     Fix: trocar `sphere.cut(box_abaixo)` por `sphere.intersect(box_acima)`
+     com box gigante (50 m) — garante que só sobre a calota acima de
+     z_top_cyl, sem resíduos.
+
+NOTA: este script gera arquivos com o mesmo prefixo FIORA_IC_v5_6_*.step,
+      sobrescrevendo os anteriores (que estavam com bug).  Após rodar,
+      reimporte no STAR-CCM+ via File > Import > Import CAD Model.
+
+★ ATUALIZAÇÃO COMPLETA — VINÍCIUS 18:04 ★
 
 ATUALIZAÇÕES v5.6 (sobre v5.5):
   1. ✅ TOPO REVERTIDO PARA CONVEXO (domo toroesférico bulging up).
@@ -128,10 +144,13 @@ def build_fluid_domain():
     z_top_cyl = H_REACTOR/2.0 - TOP_DEPTH
     z_c       = z_top_cyl + TOP_DEPTH - R_SPH_TOP    # centro da esfera ABAIXO do topo
     sphere    = cq.Workplane("XY").sphere(R_SPH_TOP).translate((0, 0, z_c))
-    big       = 4.0 * R_REACTOR
-    cut_below = (cq.Workplane("XY").box(big, big, big)
-                 .translate((0, 0, z_top_cyl - big/2.0)))
-    cap = sphere.cut(cut_below)
+    # ★ FIX v5.6.1: usar caixa MUITO maior em XY que a esfera (R_SPH > R_REACTOR!)
+    # e fazer INTERSECT com meio-espaço acima de z_top_cyl em vez de cut abaixo.
+    # Assim garantimos que só sobra a calota acima do topo do cilindro.
+    BIG = 50.0
+    keep_above = (cq.Workplane("XY").box(BIG, BIG, BIG)
+                  .translate((0, 0, z_top_cyl + BIG/2.0)))
+    cap = sphere.intersect(keep_above)
     fluid = cyl.union(cap)
 
     # Joelho ASME (fillet na junção cilindro/calota)
