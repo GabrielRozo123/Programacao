@@ -1,0 +1,219 @@
+==============================================================
+  SIMULACAO DEM - PENEIRA VIBRATORIA HAVER & BOECKER
+  Simcenter STAR-CCM+  |  Meshfree DEM
+  Baseado nos tutoriais PDF fornecidos (excavator shovel DEM)
+==============================================================
+
+ARQUIVOS DE GEOMETRIA
+  Screen.step           -> Solid Region  (peca solida)
+  Domain.step           -> Particle Region (dominio de particulas)
+
+DIMENSOES DO MODELO
+  Deck da peneira (interno): 424 x 634 mm
+  Frame externo            : 448 x 658 mm   altura: 190 mm
+  Abertura (square mesh)   : 38 x 38 mm     barra: 4 mm   passo: 42 mm
+  Grade                    : 10 x 15 = 150 aberturas
+  Dominio (Particle Region): 458 x 640 x 668 mm (Larg x Alt x Comp)
+    - acima do deck: 400 mm
+    - abaixo do deck: 240 mm (inclui frame + 50 mm coleta)
+
+SISTEMA DE COORDENADAS
+  X : largura da peneira
+  Y : vertical (+Y para cima, gravidade = -Y)
+  Z : comprimento (alimentacao -> descarga)
+  Topo do deck em Y = 0
+
+----------------------------------------------------------------
+PASSO 1 – IMPORTAR GEOMETRIA
+----------------------------------------------------------------
+1. File > Import > CAD Model
+2. Importar Screen.step
+3. Importar Domain.step
+   (ou importar HB_VibScreen_DEM.step de uma vez)
+4. Verificar no arvore: Geometry > Parts > Screen e Domain
+
+----------------------------------------------------------------
+PASSO 2 – MODELOS FISICOS (conforme PDF "Selecting Physics Models")
+----------------------------------------------------------------
+1. Clicar com botao direito em Continua > New Physics Continuum
+2. Selecionar na ordem:
+
+   Grupo                   | Modelo
+   ------------------------|----------------------------------------
+   Optional Models         | Meshfree DEM
+   (automaticos)           | Lagrangian Multiphase
+                           | Multiphase Interaction
+                           | Discrete Element Model (DEM)
+                           | Solution Interpolation
+   Time                    | Implicit Unsteady  (automatico)
+   Optional Models         | Gravity
+
+----------------------------------------------------------------
+PASSO 3 – PARTICULAS E INTERACOES (conforme PDF "Defining DEM Particles")
+----------------------------------------------------------------
+Duas fases de particulas (oversize + undersize para classificacao):
+
+3.1 Fase 1 – Particulas Oversize (retidas na peneira)
+    - Lagrangian Multiphase > Lagrangian Phases > New > Free-stream phase
+    - Renomear: Particles_Oversize
+    - Particle Type    : DEM Particles
+    - Particle Shape   : Spherical Particles
+    - Material         : Solid -> renomear "Rubber" para "Rock"
+    - Young's Modulus  : 10.0 MPa  (Constant)
+
+3.2 Fase 2 – Particulas Undersize (passam pelas aberturas)
+    - Idem acima; renomear: Particles_Undersize
+    - Young's Modulus  : 10.0 MPa  (mesma rocha)
+
+3.3 Interacoes (Hertz Mindlin)
+    Criar as seguintes Phase Interactions:
+
+    a) Particles-Particles (entre quaisquer particulas)
+       - DEM Contact Model: Hertz Mindlin
+       - Static Friction Coefficient          : 0.9
+       - Normal Restitution Coefficient       : 0.2
+       - Tangential Restitution Coefficient   : 0.2
+       - Rolling Resistance Method            : Constant Torque
+       - Coefficient of Rolling Resistance    : 0.5
+
+    b) Particles-Wall (particulas com a peneira/frame)
+       - DEM Contact Model: Hertz Mindlin
+       - Static Friction Coefficient          : 0.61
+       - Normal Restitution Coefficient       : 0.2
+       - Tangential Restitution Coefficient   : 0.2
+       - Rolling Resistance Method            : Constant Torque
+       - Coefficient of Rolling Resistance    : 0.1
+
+----------------------------------------------------------------
+PASSO 4 – ATRIBUIR REGIOES (conforme PDF "Assigning Particle and Solid Regions")
+----------------------------------------------------------------
+1. Geometry > Parts > selecionar Screen e Domain (multi-select)
+2. Botao direito > Assign Parts to Regions
+   - Create a Region for Each Part
+   - Create a Boundary for Each Part Surface
+   - Do Not Create Interfaces From Contacts
+3. Regions > Screen > Type : Solid Region
+4. Regions > Domain > Type : Particle Region
+
+----------------------------------------------------------------
+PASSO 5 – CONDICOES DE CONTORNO DO DOMINIO
+----------------------------------------------------------------
+- Paredes laterais e superior (Domain boundaries):
+    Type : Wall  (particulas oversize quicam e ficam na peneira)
+- Parede inferior do Domain (abaixo da peneira):
+    Type : Escape  (contabiliza particulas undersize que passaram)
+
+----------------------------------------------------------------
+PASSO 6 – VOLUME DE INJECAO E INJECTOR
+(conforme PDF "Injecting the Particles")
+----------------------------------------------------------------
+6.1 Criar volume de injecao (Injection Volume):
+    - Geometry > Parts > New Shape Part > Block
+    - Corner 1 / Corner 2 (coordenadas em metros):
+
+      Variavel | Corner 1  | Corner 2
+      ---------|-----------|----------
+      X        | -0.212 m  | +0.212 m   (toda a largura interna)
+      Y        | +0.050 m  | +0.350 m   (entre 50 mm e 350 mm acima do deck)
+      Z        | -0.317 m  | -0.120 m   (primeiro terco da peneira = zona de alimentacao)
+
+    - Renomear Block para "Injection_Volume"
+
+6.2 Injector – Particles_Oversize (d = 50 mm)
+    - Injectors > New
+    - Type              : Random Injector
+    - Lagrangian Phase  : Particles_Oversize
+    - Inputs            : Parts > Injection_Volume
+    Condicoes:
+    - Particle Packing Specification > Method : Parcel Count
+    - Number of Parcels : 1000
+    - Number of Seeds   : 250
+    - Particle Diameter : 50 mm
+
+6.3 Injector – Particles_Undersize (d = 25 mm)
+    - Idem acima
+    - Lagrangian Phase  : Particles_Undersize
+    - Number of Parcels : 1000
+    - Number of Seeds   : 250
+    - Particle Diameter : 25 mm
+
+    Resultado: 2000 particulas totais (1000 oversize + 1000 undersize)
+    Particulas de 25 mm passarao pelas aberturas de 38 mm.
+    Particulas de 50 mm serao retidas na peneira.
+
+----------------------------------------------------------------
+PASSO 7 – MOVIMENTO DA PENEIRA (adaptar "Prescribing the Bucket Motion")
+----------------------------------------------------------------
+A peneira vibra com movimento linear a 15 Hz, amplitude 5 mm,
+direcao a 45 deg da horizontal (tipico peneira linear H&B).
+
+7.1 Tools > Motions > New > Translation
+    Renomear: "Screen_Motion"
+    Translation Velocity: [0.0, ${screenVy}, ${screenVz}]
+
+7.2 Superposing Motions > New > Rotation  (opcional para movimento eliptico)
+    Rotation Rate  : ${screenRotation}
+    Rotation Axis  : [1.0, 0.0, 0.0]
+    Origin         : [0.0, 0.0, 0.0] m
+
+7.3 Field Functions (criar em Tools > Field Functions):
+
+    screenVy   = 0.0   [m/s]     (sem componente vertical na vibracao linear)
+
+    screenVz   = A * (2*PI*f) * cos(2*PI*f * $Time)
+               onde A = 0.005 m (amplitude), f = 15 Hz
+               = 0.4712 * cos(94.25 * $Time)
+
+    screenRotation = 0.0  (vibracao puramente translacional)
+
+    Para inclinacao equivalente a 15 deg: usar componente em Y tambem
+    screenVy   = A * (2*PI*f) * sin(rad(15)) * cos(2*PI*f * $Time)
+    screenVz   = A * (2*PI*f) * cos(rad(15)) * cos(2*PI*f * $Time)
+
+7.4 Regions > Screen > Physics Values > Motion Specification
+    Motion: Screen_Motion -> Translation
+
+NOTA SOBRE INCLINACAO:
+    A geometria foi criada horizontal. Para simular inclinacao de 15 deg
+    da peneira Haver & Boecker, usar uma das opcoes:
+    (a) Ajustar vetor de gravidade:
+        Gravity = [0.0, -9.81*cos(15 deg), -9.81*sin(15 deg)]
+                = [0.0,  -9.479,  -2.539]  m/s^2
+    (b) Ou girar ambos Screen e Domain 15 deg em torno de X ao importar.
+
+----------------------------------------------------------------
+PASSO 8 – CONFIGURACAO DO TEMPO
+----------------------------------------------------------------
+- Stopping Criteria > Maximum Physical Time : 5.0 s
+- Time Step                                 : 1e-4 s
+  (DEM recomenda dt < 20% do tempo de contato de Hertz)
+
+ESTIMATIVA DO TIME STEP CRITICO (Hertz):
+  tc = pi * sqrt(m / k_eff) ; k_eff ~ E* * r_eff
+  Para particulas de 50 mm e E = 10 MPa:
+  dt_critico ~ 1 × 10^-4 a 5 × 10^-4 s  → usar dt = 1e-4 s (conservador)
+
+----------------------------------------------------------------
+PASSO 9 – MONITORAR / POS-PROCESSAMENTO
+----------------------------------------------------------------
+- Reports > DEM: Escape Rate (conta particulas que saem pelo fundo = undersize)
+- Scene > Particles coloridas por Diameter (distingue oversize/undersize)
+- Scene > Screen colorida por Pressure (forcas de contato)
+- Reports > Mass Flow Rate na fronteira "Escape" do Domain
+
+----------------------------------------------------------------
+RESUMO DOS PARAMETROS CHAVE
+----------------------------------------------------------------
+Modelo DEM              : Hertz Mindlin
+Fase solida             : Rock  (E = 10 MPa)
+Particulas oversize     : d = 50 mm   (retidas)
+Particulas undersize    : d = 25 mm   (passam pelas aberturas de 38 mm)
+Abertura da peneira     : 38 x 38 mm  (quadrada)
+Frequencia vibracao     : 15 Hz
+Amplitude vibracao      : 5 mm
+Inclinacao              : 15 deg (via vetor de gravidade ou geometria)
+Particulas-Particulas   : mu_s=0.9  e_n=0.2  e_t=0.2  CRR=0.5
+Particulas-Parede       : mu_s=0.61 e_n=0.2  e_t=0.2  CRR=0.1
+dt                      : 1e-4 s
+Tempo total simulacao   : 5.0 s
+==============================================================
