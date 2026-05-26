@@ -1,7 +1,7 @@
 # Digestor Kraft Kamyr — Simulação CFD
-## Simcenter STAR-CCM+ | Meio Poroso Isotrópico + Transferência de Calor
+## Simcenter STAR-CCM+ | Meio Poroso → Transferência de Calor → EMP Sólido-Líquido
 
-**Status:** Geometria pronta | Documentação CHT completa  
+**Status:** Geometria pronta | Documentação completa (Fases 1–4)  
 **Última atualização:** 2026-05-26
 
 ---
@@ -81,6 +81,45 @@ T entrada         : 155–175°C (428–448 K)
 + Segregated Species Transport
   Espécies: NaOH, Na2S, Lignina, Celulose
 + H-factor model (cinética de deslignificação)
+```
+
+### Fase 4 — Eulerian Multiphase (EMP) — cavacos + licor
+```
+Substitui o modelo poroso por duas fases reais coexistindo:
+
+Material        : Multiphase
+Multiphase Model: Eulerian Multiphase (EMP)
+EMP Turbulence  : Mixture Turbulence
+Time            : Implicit Unsteady (chips se movem ~1mm/s)
+
+Fase 0 — Contínua (Licor Branco):
+  Tipo : Liquid
+  ρ    : 1080 kg/m³  |  μ : 3.5×10⁻⁴ Pa·s
+
+Fase 1 — Dispersa (Cavacos de madeira):
+  Tipo         : Solid (Granular)
+  ρ_chips      : 600 kg/m³ (cavaco úmido)
+  dp           : 6 mm
+  Packing limit: 0.63
+
+Phase Interaction → Drag: Gidaspow
+  α_chips > 0.2 → regime Ergun (leito denso)
+  α_chips < 0.2 → regime Wen-Yu (suspensão diluída)
+
+Volume Fractions iniciais:
+  Zona Lavagem     : α_chips = 0.55  (ε=0.45)
+  Zona Cozimento   : α_chips = 0.60  (ε=0.40)
+  Zona Impregnação : α_chips = 0.50  (ε=0.50)
+  Cones (fluid)    : α_chips = 0.00
+
+Inlet chips (topo): α_chips=0.60, u_chips = −0.001 m/s (descendo)
+Inlet licor (bocais): α_chips=0.00, u_licor = 0.5 m/s
+```
+
+> Diferença do tutorial (ar-água): usar Dispersed Multiphase topology
+> e drag Gidaspow (Ergun+Wen-Yu) em vez de Multiple Flow Regimes + LSI.
+> Tutoriais recebidos: Selecting Physics Models, Defining Phases,
+> Setting Phase Interactions, Setting Inlet BCs, Mixture Settling.
 ```
 
 ---
@@ -228,6 +267,11 @@ As interfaces fluid↔porous e porous↔porous precisam ser criadas manualmente.
 | Creating Interfaces | ✅ Recebido | 1+2 |
 | Conjugate Heat Transfer (Heated Fin) | ✅ Recebido | 2 |
 | Multiphase / Species Transport | ⏳ Futuro | 3 |
+| Eulerian Mixture Settling | ✅ Recebido | 4 |
+| Selecting Physics Models (EMP) | ✅ Recebido | 4 |
+| Defining Phases + Initial Conditions | ✅ Recebido | 4 |
+| Setting up Phase Interactions (Drag) | ✅ Recebido | 4 |
+| Setting Inlet BCs (volume fractions) | ✅ Recebido | 4 |
 
 ---
 
