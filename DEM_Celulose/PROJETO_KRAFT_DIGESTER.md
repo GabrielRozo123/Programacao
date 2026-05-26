@@ -1,7 +1,7 @@
 # Digestor Kraft Kamyr — Simulação CFD
-## Simcenter STAR-CCM+ | Meio Poroso Isotrópico
+## Simcenter STAR-CCM+ | Meio Poroso Isotrópico + Transferência de Calor
 
-**Status:** Geometria pronta | Aguardando PDF Heat Transfer  
+**Status:** Geometria pronta | Documentação CHT completa  
 **Última atualização:** 2026-05-26
 
 ---
@@ -42,6 +42,15 @@ O digestor Kamyr contínuo é o coração do processo Kraft de produção de cel
 
 **Total:** D=5.5m, H=45m (escala industrial real)
 
+### Separação das zonas na geometria
+Cada zona é um **corpo independente** no arquivo STEP. As faces nos planos:
+- Z=2m → interface Cone_Inferior ↔ Zona_Lavagem
+- Z=12m → interface Zona_Lavagem ↔ Zona_Cozimento
+- Z=37m → interface Zona_Cozimento ↔ Zona_Impregn
+- Z=42m → interface Zona_Impregn ↔ Cone_Superior
+
+O STAR-CCM+ detecta automaticamente as faces coincidentes ao importar o STEP.
+
 ---
 
 ## 3. FÍSICA DO MODELO
@@ -55,13 +64,16 @@ Regime           : Steady-State
 Escoamento       : Segregated Flow
 Turbulência      : K-Epsilon Standard (High y+ Wall Treatment)
 Porosidade       : Isotropic Media (Ergun equation)
+Gravidade        : [0, 0, -9.81] m/s²
 ```
 
 ### Fase 2 — Com temperatura
 ```
-+ Segregated Fluid Temperature
-+ Heat Transfer (tutorial pendente)
-Temperatura entrada : 155–175°C
++ Segregated Fluid Temperature  ← adicionar ao physics continuum existente
+  (NÃO usar Coupled Flow — esse é para gás compressível)
+Cp (licor branco) : ~4000 J/kg·K
+k  (licor branco) : ~0.6 W/m·K
+T entrada         : 155–175°C (428–448 K)
 ```
 
 ### Fase 3 — Com reação de deslignificação
@@ -90,7 +102,93 @@ Temperatura entrada : 155–175°C
 
 ---
 
-## 5. MAPEAMENTO TUTORIAL → PROJETO
+## 5. PASSO A PASSO STAR-CCM+ COMPLETO
+
+### 5.1 — Importar geometria
+1. **File → Import → Import Surface/Volume Mesh** → selecionar `Digestor_Kraft.step`
+2. Verificar que aparecem **9 corpos** no Object Tree:
+   - Cone_Inferior, Zona_Lavagem, Zona_Cozimento, Zona_Impregn, Cone_Superior
+   - Bocal_LB1, Bocal_LB2, Bocal_LN, Bocal_LL
+
+### 5.2 — Assign Parts to Regions
+- `Cone_Inferior` + `Cone_Superior` → **Fluid Region** (tipo padrão)
+- `Zona_Lavagem` → **New Region** → Type: **Porous**
+- `Zona_Cozimento` → **New Region** → Type: **Porous**
+- `Zona_Impregn` → **New Region** → Type: **Porous**
+- Bocais → **Boundaries** dentro das regiões correspondentes
+
+### 5.3 — Physics Continuum
+1. Right-click **Continua** → New Physics Continuum
+2. Models a ativar (na ordem):
+   - **Space:** Three Dimensional
+   - **Time:** Steady
+   - **Material:** Liquid ← **MUDAR de Gas!**
+   - **Flow:** Segregated Flow
+   - **Equation of State:** Constant Density (ρ = 1080 kg/m³)
+   - **Turbulence:** K-Epsilon Turbulence
+   - **K-Epsilon:** Standard K-Epsilon
+   - **Wall Treatment:** High y+ Wall Treatment
+   - **Optional:** Gravity (para convecção natural na Fase 2)
+3. Desativar **Auto-select recommended physics** para evitar K-Epsilon Realizable
+
+### 5.4 — Configurar propriedades do licor branco
+```
+Regions → [qualquer região] → Physics Continuum → Material → Liquid
+  Density        : 1080 kg/m³
+  Dynamic Viscosity: 3.5e-4 Pa·s
+  (Fase 2) Specific Heat: 4000 J/kg·K
+  (Fase 2) Thermal Conductivity: 0.6 W/m·K
+```
+
+### 5.5 — Porosity Coefficients (para cada Porous Region)
+Caminho: `Regions → Zona_Lavagem → Physics Values → Porous Inertial Resistance`
+```
+Porous Inertial Resistance → Isotropic Tensor → valor: Pi (ver tabela §4)
+Porous Viscous Resistance  → Isotropic Tensor → valor: Pv (ver tabela §4)
+```
+Repetir para Zona_Cozimento e Zona_Impregn com seus respectivos Pi e Pv.
+
+### 5.6 — Criar Interfaces entre regiões (CRÍTICO)
+As interfaces fluid↔porous e porous↔porous precisam ser criadas manualmente.
+
+**Procedimento (do tutorial Creating Interfaces):**
+1. Multi-selecionar (Ctrl+click) as faces coincidentes dos dois lados:
+   - `Fluid Region → Boundaries → [face superior do cone_inf]`
+   - `Zona_Lavagem → Boundaries → [face inferior da lavagem]`
+2. Right-click nos nós selecionados → **Create Interface**
+3. Editar o nó **Interfaces → Interface 1**:
+   - **Type:** `Contact Interface`
+   - **Topology:** `In-place`
+4. Repetir para todas as interfaces:
+
+| Interface | Região A | Região B |
+|---|---|---|
+| Int_1 | Cone_Inferior (topo) | Zona_Lavagem (fundo) |
+| Int_2 | Zona_Lavagem (topo) | Zona_Cozimento (fundo) |
+| Int_3 | Zona_Cozimento (topo) | Zona_Impregn (fundo) |
+| Int_4 | Zona_Impregn (topo) | Cone_Superior (fundo) |
+
+> Ao inicializar o flow, estas boundaries substituem as wall boundaries originais.
+
+### 5.7 — Boundary Conditions
+
+**Turbulence Specification:** Method = **Intensity + Length Scale** (para todos os inlets)
+
+| Boundary | Tipo | Velocidade | Turb. Intensity | Length Scale |
+|---|---|---|---|---|
+| Bocal_LB1 | Velocity Inlet | 0.5 m/s | 0.07 | 0.09 m |
+| Bocal_LB2 | Velocity Inlet | 0.5 m/s | 0.07 | 0.09 m |
+| Bocal_LL  | Velocity Inlet | 0.3 m/s | 0.07 | 0.09 m |
+| Bocal_LN  | Pressure Outlet | 0 Pa (gauge) | — | — |
+| Saída polpa (fundo cone inf) | Pressure Outlet | 0 Pa (gauge) | — | — |
+| Entrada chips (topo cone sup) | Velocity Inlet | 0.001 m/s | 0.05 | 0.3 m |
+
+> Length Scale ≈ 0.3 × D_nozzle = 0.3 × 0.3m = 0.09m (bocais laterais)
+> Length Scale entrada chips ≈ 0.3 × D_digestor = 0.3 × 1.5m = 0.45m (ajustar)
+
+---
+
+## 6. MAPEAMENTO TUTORIAL → PROJETO
 
 ### Tutorial: Porous Resistance Isotropic Media
 
@@ -98,57 +196,53 @@ Temperatura entrada : 155–175°C
 |---|---|---|
 | Material: Gas (Air) | **Liquid** (White Liquor) | Mudar para Liquid |
 | ρ = 1.2 kg/m³ | **ρ = 1080 kg/m³** | Propriedades do licor |
-| Fluxo: 20 m/s | **~0.001–0.01 m/s** | Muito mais lento |
+| Fluxo: 20 m/s | **~0.001–0.5 m/s** | Muito mais lento |
 | Pi = 25 kg/m⁴ | **1.26–2.95×10⁶ kg/m⁴** | Ergun para cavacos |
 | Pv = 1500 kg/m³s | **2.9–8.2×10³ kg/m³s** | Ergun para cavacos |
 | 1 região porosa | **3 regiões** (ε diferente) | 3 porous regions |
 | K-Epsilon Standard | **K-Epsilon Standard** | Igual ✓ |
 | High y+ Wall | **High y+ Wall** | Igual ✓ |
-| Turbulence Intensity = 0.05 | **0.05–0.10** | Similar ✓ |
+| Turb. Intensity = 0.05 | **0.05–0.10** | Similar ✓ |
+| Length Scale = 0.005 m | **0.09 m** | 0.3×D_nozzle |
 
-### Passo a passo STAR-CCM+ (com base no tutorial):
+### Tutorial: Conjugate Heat Transfer (Heated Fin)
 
-1. **Importar geometria:** `Digestor_Kraft.step`
-2. **Assign Parts to Regions:**
-   - `Cone_Inferior` + `Cone_Superior` → **Fluid Region**
-   - `Zona_Lavagem` → **Porous Region** (Type: Porous)
-   - `Zona_Cozimento` → **Porous Region** (Type: Porous)
-   - `Zona_Impregn` → **Porous Region** (Type: Porous)
-3. **Physics Continuum:**
-   - Material: Liquid (mudar de Gas!)
-   - Segregated Flow + Constant Density
-   - Steady-State
-   - Turbulent: K-Epsilon Standard (desativar auto-select)
-4. **Porosity Coefficients** (para cada região):
-   - Porous Inertial Resistance → Isotropic Tensor
-   - Porous Viscous Resistance → Isotropic Tensor
-5. **Boundary Conditions:**
-   - Bocal_LB1, Bocal_LB2: Velocity Inlet
-   - Bocal_LL: Velocity Inlet  
-   - Bocal_LN: Pressure Outlet
-   - Saída polpa (base cone inf): Pressure Outlet
-   - Entrada chips (topo cone sup): Velocity Inlet
+| Tutorial CHT | Digestor Kraft (Fase 2) | Diferença |
+|---|---|---|
+| Coupled Flow (gás compressível) | **Segregated Flow** (líquido) | Não mudar para Coupled! |
+| Coupled Solid Energy | **Segregated Fluid Temperature** | Adicionar ao Segregated Flow |
+| Ideal Gas | **Constant Density** | Licor incompressível |
+| Gravidade ativa (convecção natural) | **Gravidade [0,0,-9.81]** | Igual ✓ |
+| Interface: Contact, In-place | **Contact Interface, In-place** | Igual ✓ |
+| 2 Physics Continua (Fluid + Solid) | **1 Continuum** (apenas fluido) | Sem sólido separado |
 
 ---
 
-## 6. TUTORIAIS NECESSÁRIOS
+## 7. TUTORIAIS NECESSÁRIOS
 
 | Tutorial | Status | Fase |
 |---|---|---|
 | Porous Resistance: Isotropic Media | ✅ Recebido | 1 |
-| Heat Transfer (conjugado) | ⏳ Pendente | 2 |
+| Specifying Porosity Coefficients | ✅ Recebido | 1 |
+| Setting Boundary Conditions (Porous) | ✅ Recebido | 1 |
+| Creating Interfaces | ✅ Recebido | 1+2 |
+| Conjugate Heat Transfer (Heated Fin) | ✅ Recebido | 2 |
 | Multiphase / Species Transport | ⏳ Futuro | 3 |
 
 ---
 
-## 7. PRÓXIMOS PASSOS
+## 8. PRÓXIMOS PASSOS
 
 - [x] Geometria criada (`build_kraft_digester.py`)
 - [x] Coeficientes de Ergun calculados
 - [x] Mapeamento tutorial ↔ projeto
-- [ ] Receber tutorial Heat Transfer
-- [ ] Gerar STEP files (rodar Python)
+- [x] Procedimento interfaces (Contact Interface, In-place)
+- [x] Condições de contorno documentadas
+- [ ] Gerar STEP files (rodar `python build_kraft_digester.py`)
 - [ ] Importar no STAR-CCM+ e fazer mesh
-- [ ] Configurar physics (Liquid, K-Epsilon, Porous)
-- [ ] Configurar 5 regiões com diferentes Pi, Pv
+- [ ] Configurar physics (Liquid, K-Epsilon Standard, Porous)
+- [ ] Criar 4 interfaces Contact Interface In-place
+- [ ] Configurar 3 regiões porosas com Pi/Pv diferentes
+- [ ] Configurar 5 boundary conditions (3 inlets + 2 outlets)
 - [ ] Rodar Fase 1 e validar perfil de pressão
+- [ ] Fase 2: adicionar Segregated Fluid Temperature
