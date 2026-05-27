@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Guia de Renderização – Tanque Agitado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      color: #222;
+      line-height: 1.6;
+    }
+    h1 { color: #1a3a5c; border-bottom: 2px solid #1a3a5c; padding-bottom: 8px; }
+    h2 { color: #1a3a5c; margin-top: 32px; }
+    .step {
+      background: #f4f8fc;
+      border-left: 4px solid #1a3a5c;
+      padding: 12px 16px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .step strong { color: #1a3a5c; }
+    .tag {
+      display: inline-block;
+      background: #1a3a5c;
+      color: white;
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.85em;
+      margin-right: 6px;
+    }
+    .note {
+      background: #fff8e1;
+      border-left: 4px solid #f0a500;
+      padding: 10px 16px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.95em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    th {
+      background: #1a3a5c;
+      color: white;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #ddd;
+    }
+    tr:nth-child(even) td { background: #f4f8fc; }
+    footer {
+      margin-top: 48px;
+      font-size: 0.85em;
+      color: #888;
+      border-top: 1px solid #ddd;
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Guia de Renderização<br><span style="font-size:0.7em; color:#555;">Simulação de Tanque Agitado — Simcenter STAR-CCM+</span></h1>
+
+  <p>Este documento descreve o processo utilizado para gerar a animação de pós-processamento da simulação de viscosidade dinâmica em tanque agitado, utilizando a ferramenta <strong>Screenplay</strong> do Simcenter STAR-CCM+.</p>
+
+  <h2>Visão Geral do Processo</h2>
+
+  <table>
+    <tr><th>Etapa</th><th>Descrição</th></tr>
+    <tr><td>1. Simulação</td><td>Execução da simulação transiente até ~2 s</td></tr>
+    <tr><td>2. Screenplay</td><td>Criação do efeito visual Wall Down</td></tr>
+    <tr><td>3. Gravação</td><td>Exportação dos vídeos separados</td></tr>
+    <tr><td>4. Edição</td><td>União dos vídeos em editor externo</td></tr>
+  </table>
+
+  <h2>Etapa 1 — Configuração dos Transforms</h2>
+
+  <div class="step">
+    <strong>Wall Down</strong><br>
+    Criado em <em>Tools → Transforms → New Graphics Transform → Simple Transform</em>.<br>
+    Configuração dos keyframes:
+    <ul>
+      <li><strong>0.00: Simple Transform 1</strong> → Translation [0, 0, 0] m (posição inicial)</li>
+      <li><strong>1.00: Simple Transform 2</strong> → Translation [0, 0, −3.0] m (parede desceu)</li>
+    </ul>
+    O displayer da parede escura (<em>Studio Material Per-Part 2</em>) recebeu o transform <strong>Wall Down</strong>, enquanto o displayer de <em>Dynamic Viscosity</em> manteve o transform <strong>Identity</strong>.
+  </div>
+
+  <div class="note">
+    <strong>Nota:</strong> O efeito Wall Down é puramente visual e ocorre no pós-processamento. A simulação em si não é afetada por este transform.
+  </div>
+
+  <h2>Etapa 2 — Configuração do Screenplay</h2>
+
+  <div class="step">
+    Criado em <em>Tools → Screenplays → New → Existing Scene</em>.<br><br>
+    <strong>Ação adicionada:</strong> Wall Down → Simple Transform Keyframe Sequence 1<br>
+    <strong>Duração:</strong> 2,0 s<br>
+    <strong>Director:</strong> Target Frame Rate = 30 fps
+  </div>
+
+  <div class="step">
+    <strong>Lógica da animação:</strong><br>
+    A parede escura opaca inicia cobrindo o tanque. Ao longo dos 2 segundos, ela se translada −3,0 m no eixo Z, revelando progressivamente os resultados de viscosidade dinâmica no interior do tanque.
+  </div>
+
+  <h2>Etapa 3 — Execução da Simulação</h2>
+
+  <div class="step">
+    A simulação foi executada até aproximadamente <strong>2 segundos</strong> de tempo físico.<br>
+    A cena foi configurada com <em>Update → Save To File → Movie Files (.mp4)</em>, gravando automaticamente a evolução da viscosidade dinâmica a cada timestep.
+  </div>
+
+  <h2>Etapa 4 — Gravação do Screenplay</h2>
+
+  <div class="step">
+    Com os estados da simulação disponíveis (<em>MixingTankAnimation, Import State: State 1</em>), o Screenplay foi gravado via:<br><br>
+    <em>Botão direito em Screenplay 1 → Record</em><br><br>
+    Configurações de exportação:
+    <ul>
+      <li>Resolução: Custom 854 × 480</li>
+      <li>Formato: Movie File (.mp4)</li>
+      <li>Nome do arquivo: <code>mixing_tank_wall_down</code></li>
+    </ul>
+  </div>
+
+  <h2>Etapa 5 — Edição Final</h2>
+
+  <div class="step">
+    Os dois vídeos gerados foram unidos em editor de vídeo externo:<br><br>
+    <strong>Vídeo 1</strong> → Efeito Wall Down (parede desce revelando o tanque)<br>
+    <strong>Vídeo 2</strong> → Simulação transiente (viscosidade dinâmica evoluindo no tempo)<br><br>
+    Resultado: apresentação visual completa da simulação de tanque agitado.
+  </div>
+
+  <h2>Dados da Simulação</h2>
+
+  <table>
+    <tr><th>Parâmetro</th><th>Valor</th></tr>
+    <tr><td>Software</td><td>Simcenter STAR-CCM+</td></tr>
+    <tr><td>Grandeza visualizada</td><td>Dynamic Viscosity (Pa·s)</td></tr>
+    <tr><td>Ferramenta de animação</td><td>Screenplay (pós-processamento)</td></tr>
+    <tr><td>Tempo simulado</td><td>~2 s</td></tr>
+    <tr><td>Formato de saída</td><td>.mp4</td></tr>
+  </table>
+
+  <footer>
+    Documento gerado como guia de referência do processo de renderização.<br>
+    Simulação: Tanque Agitado — Viscosidade Dinâmica.
+  </footer>
+
+</body>
+</html>
