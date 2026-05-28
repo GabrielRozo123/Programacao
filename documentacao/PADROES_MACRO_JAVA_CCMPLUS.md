@@ -10,6 +10,7 @@ Referência extraída dos tutoriais:
 - *Understanding the PostProcessor Nested Class*
 - *Understanding the Main Method in the Macro*
 - *Testing and Debugging*
+- *Running the Simulation to Convergence*
 
 ---
 
@@ -487,3 +488,30 @@ sim.println("Setting " + myStr + ": " + myInt + " " + myDbl);
 
 **Estratégia de debug**: coloque `sim.println("Passo X concluído")` antes de cada bloco
 crítico. Se o macro parar, o último println diz exatamente onde está o problema.
+
+---
+
+## 11. Workflow Final: Desenvolvimento → Produção
+
+Tutorial: *Running the Simulation to Convergence*
+
+O único passo para passar de desenvolvimento para produção é mudar o número
+de iterações em `runner.runCase(sD, N)`:
+
+```
+DEV:     runner.runCase(sD,   5);   // testa em segundos; verifica que não quebra
+PROD:    runner.runCase(sD, 400);   // ou 500, 2000 — dependendo do caso
+```
+
+O tutorial do trem usa **400 iterações** para escoamento externo k-ω SST. O residual
+plot mostra convergência atingida por volta de 200-250 iterações (resíduos abaixo de
+1e-4 para continuidade, momentum X, Y, Z, TKE, TDR).
+
+**Para o misturador estático** (escoamento interno, regime turbulento, Re > 300.000):
+- Usar **500 iterações** como ponto de partida (valor conservador)
+- Critério de convergência: resíduos < 1e-5 (já configurado em `03_ConfigurarFisica.java`)
+- Se não convergir em 500: aumentar para 1000 ou checar CFL / relaxation factors
+
+**Durante a varredura** (25 casos): o CCM+ exibe na barra de status
+`"Iterating: Running 500"` — para interromper, clicar no botão **Abort** (●)
+ao lado da barra de status.
