@@ -3,9 +3,13 @@
 Referência extraída dos tutoriais:
 - *Understanding the Initial Macro* (Simple Java Macros)
 - *Class-by-Class Breakdown* (Intermediate Java Macros: Run Multiple Simulations)
+- *Understanding the SimData Nested Class*
 - *Understanding the DataReader Nested Class*
 - *Understanding the DataWriter Nested Class*
+- *Understanding the SimRunner Nested Class*
 - *Understanding the PostProcessor Nested Class*
+- *Understanding the Main Method in the Macro*
+- *Testing and Debugging*
 
 ---
 
@@ -365,3 +369,121 @@ simples (como está no `06_VarreduraParametrica.java` atual) é aceitável.
 4. **`resolvePath()`** → converte caminho relativo ao diretório do .sim em absoluto
 5. **`getReportMonitorValue()`** → retorna `double` diretamente; `printReport()` só loga
 6. **Scanner reconhece espaço/tab/CR como separadores** → CSV com vírgulas precisa de `sc.useDelimiter(",")`
+7. **`SimRunner` e `PostProcessor` fora do loop** → instanciar UMA vez antes do loop (ver seção 10)
+8. **`run(N)` vs `runAutomation()`** → `run(N)` roda exatamente N iterações; `runAutomation()` roda até a condição de parada do CCM+
+
+---
+
+## 10. Correções ao Template (batch 3 de tutoriais)
+
+### SimRunner e PostProcessor: instanciar FORA do loop
+
+O tutorial *Understanding the SimRunner Nested Class* e *Understanding the Main Method*
+mostram claramente: **`SimRunner` e `PostProcessor` são criados UMA VEZ**, antes do loop.
+O motivo é que seus **construtores localizam objetos no CCM+** (regiões, boundaries, cenas,
+reports) — e esses objetos não mudam de posição entre os casos. Criar dentro do loop seria
+ineficiente e potencialmente problemático.
+
+```java
+// ERRADO — instanciar dentro do loop:
+for (CasoData caso : casos) {
+    SimRunner   runner = new SimRunner(sim, caso);  // localiza objetos N vezes
+    PostProcessor pp   = new PostProcessor(sim);    // localiza cenas N vezes
+    runner.run();
+}
+
+// CORRETO — instanciar fora do loop (padrão do tutorial):
+Simulation    theSim = getActiveSimulation();
+DataReader    reader = new DataReader();
+reader.readInput(inputFile);
+List<CasoData> listCases = reader.getCasos();
+
+SimRunner     runner = new SimRunner(theSim);         // uma vez
+PostProcessor postP  = new PostProcessor(theSim);     // uma vez
+
+for (CasoData sD : listCases) {
+    runner.runCase(sD, N_ITERACOES);
+    writer.writeDataLine(sD);
+    postP.salvarCenas(DIR_BASE, sD.getNome());
+    theSim.saveState(DIR_BASE + "/caso_" + sD.getNome() + ".sim");
+}
+```
+
+### run(N) — controle de iterações por caso
+
+```java
+// runAutomation() → roda até a condição de parada configurada no CCM+
+m_sim.getSimulationIterator().runAutomation();
+
+// run(N) → roda exatamente N iterações (útil durante desenvolvimento)
+m_sim.getSimulationIterator().run(iterations);
+// onde 'iterations' é passado como argumento para runCase(SimData sD, int iterations)
+```
+
+Usar `run(5)` durante o desenvolvimento (rápido), depois aumentar para o valor final.
+
+### execute() com try-catch externo
+
+O tutorial mostra que o `execute()` inteiro fica dentro de um `try-catch` com `JOptionPane`:
+
+```java
+public void execute() {
+    try {
+        // Seção 1: uma vez (getActiveSimulation, DataReader, SimRunner, PostProcessor)
+        Simulation theSim = getActiveSimulation();
+        DataReader reader  = new DataReader();
+        reader.readInput(folder + "/trainInput.txt");
+        List<SimData> listCases = reader.getFlowDetails();
+        PostProcessor postP     = new PostProcessor(theSim);
+        SimRunner     runner    = new SimRunner(theSim);
+
+        // Seção 2: loop por caso
+        for (SimData sD : listCases) {
+            runner.runCase(sD, 5);
+            writer.writeDataLine(sD);
+            postP.saveVelMagScene(folder + "/velMag" + sD.getAngle() + ".png");
+            theSim.saveState(folder + "/train" + sD.getAngle() + ".sim");
+        }
+
+    } catch (Exception e) {
+        jOptionPane.showMessageDialog(null, e.toString());  // pausa e mostra erro
+    }
+}
+```
+
+### SimData: variáveis private + getters/setters
+
+```java
+public class SimData {
+    private double m_angDeg  = 0.0;  // sempre private
+    private double m_velX    = 0.0;
+    private double m_dragC   = 0.0;
+
+    // Construtor pode calcular valores derivados
+    public SimData(double angDeg, double velWnd) {
+        m_angDeg = angDeg;
+        double angRad = Math.toRadians(angDeg);
+        m_velX = -1 * velWnd * Math.sin(angRad);  // componente X calculada aqui
+    }
+
+    public double getAngle() { return m_angDeg; }    // getter: público
+    public void setDrag(double d) { m_dragC = d; }   // setter: só para valores modificáveis
+}
+```
+
+### Debugging com sim.println()
+
+```java
+// Imprimir no Output window do CCM+ — use em cada passo chave
+sim.println("Setting " + myStr + ": " + myInt + " " + myDbl);
+// resultado no Output: "Setting initial conditions: 910 19.84"
+
+// No catch: JOptionPane pausa o macro e mostra o erro
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(null, e.toString());
+}
+// Depois de clicar OK, o macro tenta continuar; se não conseguir, para.
+```
+
+**Estratégia de debug**: coloque `sim.println("Passo X concluído")` antes de cada bloco
+crítico. Se o macro parar, o último println diz exatamente onde está o problema.

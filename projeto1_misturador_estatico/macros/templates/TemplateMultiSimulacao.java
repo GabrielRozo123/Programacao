@@ -5,8 +5,13 @@
 //   CasoData      — DTO: parâmetros de entrada + resultado por caso
 //   DataReader    — lê CSV de entrada, popula List<CasoData>
 //   DataWriter    — escreve CSV de saída (header no construtor, append por caso)
-//   SimRunner     — executa um caso no CCM+ (set → clear → run → extract)
-//   PostProcessor — hardcopy de cenas e plots; fecha cenas antes da próxima sim
+//   SimRunner     — instanciado UMA VEZ fora do loop; localiza objetos CCM+ no construtor
+//   PostProcessor — instanciado UMA VEZ fora do loop; localiza cenas no construtor
+//
+// REGRA CRÍTICA (tutorial "Understanding the Main Method"):
+//   SimRunner e PostProcessor são criados ANTES do loop, não dentro.
+//   Motivo: seus construtores localizam objetos CCM+ (regiões, cenas, reports)
+//   que não mudam de posição entre casos. Instanciar N vezes seria ineficiente.
 //
 // Para adaptar a um projeto:
 //   1. Renomear a classe principal
@@ -38,52 +43,59 @@ public class TemplateMultiSimulacao extends StarMacro {
     static final String PATH_CSV_SAIDA   = DIR_BASE + "/resultados.csv";
     // =========================================================
 
+    // Número de iterações por caso (aumentar para valor final após testar)
+    static final int N_ITERACOES = 5;   // baixo para desenvolvimento; final: 500-2000
+
     @Override
     public void execute() {
-        Simulation sim = getActiveSimulation();
-        sim.println("=== VARREDURA PARAMÉTRICA (padrão 5-classes) ===");
+        // execute() inteiro em try-catch com JOptionPane (padrão do tutorial)
+        try {
+            Simulation sim = getActiveSimulation();
+            sim.println("=== VARREDURA PARAMÉTRICA (padrão 5-classes) ===");
+            new File(DIR_BASE).mkdirs();
 
-        new File(DIR_BASE).mkdirs();
+            // ---- SEÇÃO 1: executada UMA VEZ ----
+            DataReader reader = new DataReader();
+            reader.readInput(PATH_CSV_ENTRADA);
+            List<CasoData> casos = reader.getCasos();
+            sim.println("Casos encontrados: " + casos.size());
 
-        // 1. Ler casos do CSV de entrada
-        DataReader reader = new DataReader();
-        reader.readInput(PATH_CSV_ENTRADA);
-        List<CasoData> casos = reader.getCasos();
-        sim.println("Casos encontrados: " + casos.size());
+            DataWriter    writer = new DataWriter(PATH_CSV_SAIDA);
 
-        // 2. Criar arquivo de saída (header)
-        DataWriter writer = new DataWriter(PATH_CSV_SAIDA);
+            // SimRunner e PostProcessor: criados UMA VEZ, fora do loop.
+            // Seus construtores localizam objetos CCM+ (regiões, cenas, reports).
+            // Essas localizações não mudam entre casos — instanciar no loop seria errado.
+            SimRunner     runner = new SimRunner(sim);
+            PostProcessor postP  = new PostProcessor(sim);
 
-        // 3. Iterar
-        int total = casos.size();
-        int idx   = 0;
-        for (CasoData caso : casos) {
-            idx++;
-            sim.println(String.format("\n=== CASO %d/%d: %s ===", idx, total, caso.getNome()));
+            // ---- SEÇÃO 2: loop por caso ----
+            int total = casos.size();
+            int idx   = 0;
+            for (CasoData caso : casos) {
+                idx++;
+                sim.println(String.format("\n=== CASO %d/%d: %s ===",
+                        idx, total, caso.getNome()));
 
-            try {
-                // 3a. Executar simulação
-                SimRunner runner = new SimRunner(sim, caso);
-                runner.run();
+                // runCase(DTO, iterações): set params → clear → run(N) → extract
+                runner.runCase(caso, N_ITERACOES);
+                sim.println("  → DP=" + caso.getDP() + " Pa | CoV=" + caso.getCoV());
 
-                // 3b. Exportar cenas (fecha automaticamente)
-                PostProcessor pp = new PostProcessor(sim);
-                pp.salvarCenas(DIR_BASE, caso.getNome());
+                // Exportar cenas (PostProcessor fecha cada cena automaticamente)
+                postP.salvarCenas(DIR_BASE, caso.getNome());
 
-                // 3c. Salvar .sim por caso (opcional)
-                // sim.saveState(DIR_BASE + "/" + caso.getNome() + ".sim");
+                // Registrar no CSV
+                writer.writeDataLine(caso);
 
-            } catch (Exception e) {
-                caso.setStatus("ERRO: " + e.getMessage());
-                sim.println("[ERRO] " + e.getMessage());
+                // Salvar .sim por caso
+                sim.saveState(DIR_BASE + "/" + caso.getNome() + ".sim");
             }
 
-            // 3d. Registrar no CSV (mesmo em caso de erro)
-            writer.writeDataLine(caso);
-            sim.println("  → DP=" + caso.getDP() + " Pa | CoV=" + caso.getCoV());
-        }
+            sim.println("\n=== VARREDURA CONCLUÍDA → " + PATH_CSV_SAIDA + " ===");
 
-        sim.println("\n=== VARREDURA CONCLUÍDA → " + PATH_CSV_SAIDA + " ===");
+        } catch (Exception e) {
+            // Pausa o macro e exibe janela com o erro — clique OK para continuar
+            javax.swing.JOptionPane.showMessageDialog(null, e.toString());
+        }
     }
 
     // =========================================================
@@ -193,39 +205,57 @@ public class TemplateMultiSimulacao extends StarMacro {
 
     // =========================================================
     // CLASSE 4: SimRunner — executa um caso no CCM+
+    //
+    // INSTANCIAR UMA VEZ fora do loop (padrão do tutorial).
+    // O construtor localiza objetos CCM+ que não mudam entre casos.
+    // O método runCase() é chamado uma vez por caso, recebendo o DTO.
     // =========================================================
 
     public class SimRunner {
         private Simulation m_sim;
-        private CasoData   m_caso;
 
-        public SimRunner(Simulation sim, CasoData caso) {
-            m_sim  = sim;
-            m_caso = caso;
+        // Referências a objetos CCM+ (localizados no construtor, uma vez)
+        private Report m_reportDP  = null;
+        private Report m_reportCoV = null;
+
+        // Construtor: localiza objetos CCM+ que não mudam entre casos
+        public SimRunner(Simulation sim) {
+            m_sim = sim;
+            // Localizar reports pré-configurados na simulação
+            // (equivalente a navegar no object tree: Reports > "dP_Misturador")
+            try { m_reportDP  = sim.getReportManager().getReport("dP_Misturador"); }
+            catch (Exception e) { sim.println("[AVISO] Report dP não encontrado."); }
+            try { m_reportCoV = sim.getReportManager().getReport("CoV_Outlet"); }
+            catch (Exception e) { sim.println("[AVISO] Report CoV não encontrado."); }
         }
 
-        public void run() {
-            // Passo 1: Atualizar Design Parameters (3D-CAD)
-            setDesignParameter("Angulo_Aleta",    m_caso.getAngulo());
-            setDesignParameter("N_Elementos",     (double) m_caso.getNElementos());
+        // Chamado uma vez por caso. iterations: baixo durante dev, final para produção.
+        public void runCase(CasoData caso, int iterations) {
+            // Passo 1: Atualizar Design Parameters (3D-CAD) + update
+            setDesignParameter("Angulo_Aleta", caso.getAngulo());
+            setDesignParameter("N_Elementos",  (double) caso.getNElementos());
             atualizarCad();
 
             // Passo 2: Regenerar malha
             regenerarMalha();
 
-            // Passo 3: Limpar solução (forma COMPLETA do tutorial CCM+ 2602)
-            m_sim.getSolution().clearSolution(
-                    Solution.Clear.History,
-                    Solution.Clear.Fields,
-                    Solution.Clear.LagrangianDem
-            );
+            // Passo 3: Limpar solução anterior
+            m_sim.clearSolution();
 
-            // Passo 4: Rodar
-            m_sim.getSimulationIterator().runAutomation();
+            // Passo 4: Rodar N iterações
+            // run(N) → exatamente N iterações (usar durante dev com N pequeno)
+            // runAutomation() → roda até condição de parada do CCM+ (para produção)
+            m_sim.getSimulationIterator().run(iterations);
 
-            // Passo 5: Extrair e armazenar no DTO
-            m_caso.setDP(extrairDeltaP());
-            m_caso.setCoV(extrairCoV());
+            // Passo 5: Extrair resultados e armazenar no DTO via setter
+            caso.setDP(extrairValor(m_reportDP));
+            caso.setCoV(extrairValor(m_reportCoV));
+        }
+
+        private double extrairValor(Report rep) {
+            if (rep == null) return -1.0;
+            try { return rep.getReportMonitorValue(); }
+            catch (Exception e) { return -1.0; }
         }
 
         private void setDesignParameter(String nome, double val) {
@@ -252,32 +282,11 @@ public class TemplateMultiSimulacao extends StarMacro {
         private void regenerarMalha() {
             try {
                 for (MeshOperation op : m_sim.get(MeshOperationManager.class).getObjects()) {
-                    if (op instanceof AutoMeshOperation) {
-                        op.execute();
-                        return;
-                    }
+                    if (op instanceof AutoMeshOperation) { op.execute(); return; }
                 }
             } catch (Exception e) {
                 m_sim.println("[AVISO] Malha: " + e.getMessage());
             }
-        }
-
-        private double extrairDeltaP() {
-            try {
-                // Report "dP_Misturador" deve estar pré-configurado na simulação
-                // Usar getReportMonitorValue() — retorna double direto
-                return m_sim.getReportManager()
-                        .getReport("dP_Misturador")
-                        .getReportMonitorValue();
-            } catch (Exception e) { return -1.0; }
-        }
-
-        private double extrairCoV() {
-            try {
-                return m_sim.getReportManager()
-                        .getReport("CoV_Outlet")
-                        .getReportMonitorValue();
-            } catch (Exception e) { return -1.0; }
         }
     }
 
