@@ -8,6 +8,7 @@
 // Tutorial de referencia:
 //   - Selecting the Meshers (CCM+ 2602)
 //   - Setting the Mesh Default Controls (CCM+ 2602)
+//   - Setting up Wake Refinement (CCM+ 2602) — Surface Control na saida
 //
 // Meshers selecionados para escoamento interno (misturador):
 //   Surface:  Surface Remesher
@@ -15,6 +16,12 @@
 //             complexas com aletas curvadas — Trimmed e melhor para
 //             geometrias externas/box)
 //   Boundary: Prism Layer Mesher
+//
+// Custom Controls:
+//   - Volumetric Control "Refinamento_Aletas": 25% de base na zona das aletas
+//   - Surface Control  "Refinamento_Saida_Mistura": 25% de base no plano de
+//     saida da mistura (onde o CoV e medido) — equivalente ao Wake Refinement
+//     do tutorial mas aplicado ao plano de medicao do Passive Scalar
 
 import star.common.*;
 import star.base.neo.*;
@@ -23,6 +30,7 @@ import star.prismmesher.*;
 import star.resurfacer.*;
 import star.dualmesher.*;
 import star.trimmer.*;
+import star.surfacemesh.*;
 
 import java.util.*;
 
@@ -87,6 +95,9 @@ public class ConfigurarMalha extends StarMacro {
 
         // --- 6. Criar refinamento volumetrico nas aletas ---
         criarRefinamentoAletas(sim, meshOp);
+
+        // --- 7. Surface Control na saida (equivalente ao Wake Refinement) ---
+        criarRefinamentoSaidaMistura(sim, meshOp);
 
         sim.println("\n=== CONFIGURACAO DE MALHA COMPLETA ===");
         sim.println("Para gerar: botao direito em Automated Mesh > Execute");
@@ -306,6 +317,62 @@ public class ConfigurarMalha extends StarMacro {
         }
     }
 
-    // Constante adicional para refinamento
-    static final double REFINO_ALETAS_PCT = 25.0; // 25% do BASE_SIZE
+    // Constantes adicionais
+    static final double REFINO_ALETAS_PCT = 25.0; // 25% do BASE_SIZE na zona das aletas
+    static final double REFINO_SAIDA_PCT  = 25.0; // 25% do BASE_SIZE no plano de medicao CoV
+
+    // =========================================================
+    // 7. SURFACE CONTROL NA SAIDA DA ZONA DE MISTURA
+    //    Referencia: "Setting up Wake Refinement" (CCM+ 2602)
+    //    No tutorial, aplica-se um Surface Control na face traseira
+    //    do trem para refinar as celulas na esteira (wake).
+    //    Aqui, aplicamos o mesmo conceito na face de saida da zona
+    //    de mistura — onde o Passive Scalar (polimero) e avaliado
+    //    e o CoV e calculado. Garante celulas finas o suficiente
+    //    para capturar gradientes de concentracao no plano de saida.
+    // =========================================================
+
+    private void criarRefinamentoSaidaMistura(Simulation sim,
+                                               AutoMeshOperation meshOp) {
+        // GUI equivalente (tutorial "Setting up Wake Refinement"):
+        //   Operations > Automated Mesh > Custom Controls
+        //   Botao direito > New > Surface Control
+        //   Nome: "Refinamento_Saida_Mistura"
+        //   Custom Size: Percentage of Base = 25%
+        //   Parts/Surfaces: selecionar face "Outlet_MixingZone" (plano apos ultimo elemento)
+        //
+        // Nota: Wake Refinement com direcao [axial] e distancia e especifico
+        //       do Trimmer mesher. Para Polyhedral usamos Surface Control simples
+        //       com tamanho reduzido — mesma funcao pratica: garantir resolucao
+        //       no plano de medicao do CoV.
+        try {
+            SurfaceMeshControl surfCtrl = (SurfaceMeshControl)
+                    meshOp.getCustomControls()
+                          .createCustomControl(SurfaceMeshControl.class);
+            surfCtrl.setPresentationName("Refinamento_Saida_Mistura");
+
+            // Tamanho: 25% do BASE_SIZE = ~5.5 mm
+            surfCtrl.getCustomConditions()
+                    .get(SurfaceMeshSizeCondition.class)
+                    .getSizeOption()
+                    .setSelected(SurfaceMeshSizeOption.Type.RELATIVE_TO_BASE);
+            surfCtrl.getCustomValues()
+                    .get(SurfaceMeshSizeValue.class)
+                    .getRelativeOrAbsoluteSize()
+                    .setRelativeSize(REFINO_SAIDA_PCT);
+
+            sim.println(String.format(
+                    "Surface Control (saida): %.0f%% do base (%.1fmm) — plano CoV",
+                    REFINO_SAIDA_PCT, BASE_SIZE_M * REFINO_SAIDA_PCT / 100 * 1000));
+            sim.println("[INFO] Associar manualmente a face 'Outlet' ou ao plano"
+                      + " de medicao do CoV (face apos ultimo elemento).");
+
+        } catch (Exception e) {
+            sim.println("[AVISO] Surface Control: " + e.getMessage());
+            sim.println("        Criar manualmente (GUI):");
+            sim.println("          Custom Controls > New > Surface Control");
+            sim.println("          Custom Size: 25% do base (~5.5mm)");
+            sim.println("          Associar a: face de saida da zona de mistura");
+        }
+    }
 }
