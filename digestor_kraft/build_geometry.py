@@ -63,13 +63,17 @@ import os, math
 # ================================================================
 # PARÂMETROS GEOMÉTRICOS (baseados em Agarwal 2001, Andrews 2018)
 # ================================================================
+# NOTA: build123d usa mm internamente. Multiplicamos por M=1000 para
+# converter metros → mm, garantindo que o STEP exportado esteja em mm
+# com valores corretos (STAR-CCM+ importa STEP em mm → metros corretamente).
+M = 1000  # fator metros → milímetros
 
-# Diâmetros
-D_vessel = 4.5    # m  — seção cilíndrica principal
-D_chips  = 1.2    # m  — abertura entrada cavacos (topo)
-D_pulp   = 0.8    # m  — abertura saída polpa (fundo)
-D_noz    = 0.20   # m  — diâmetro interno dos bocais laterais
-L_noz    = 0.40   # m  — comprimento externo do bocal (além da parede)
+# Diâmetros (em metros × M = mm)
+D_vessel = 4.5  * M  # mm — seção cilíndrica principal  (4500 mm = 4.5 m)
+D_chips  = 1.2  * M  # mm — abertura entrada cavacos    (1200 mm = 1.2 m)
+D_pulp   = 0.8  * M  # mm — abertura saída polpa        ( 800 mm = 0.8 m)
+D_noz    = 0.20 * M  # mm — diâmetro interno dos bocais ( 200 mm = 0.2 m)
+L_noz    = 0.40 * M  # mm — comprimento externo do bocal( 400 mm = 0.4 m)
 
 # Raios derivados
 R        = D_vessel / 2    # 2.25 m
@@ -77,12 +81,12 @@ R_chips  = D_chips  / 2    # 0.60 m
 R_pulp   = D_pulp   / 2    # 0.40 m
 R_noz    = D_noz    / 2    # 0.10 m
 
-# Alturas das zonas
-h_cb  = 3.0    # m  Cone inferior   (região fluida)
-h_was = 8.0    # m  Zona Lavagem    ε=0.45  (Gustafson 1983)
-h_cok = 22.0   # m  Zona Cozimento  ε=0.40  (Andrews 2018)
-h_imp = 5.0    # m  Zona Impregnação ε=0.50 (Sixta 2006)
-h_ct  = 3.0    # m  Cone superior   (região fluida)
+# Alturas das zonas (metros × M = mm)
+h_cb  = 3.0  * M  # mm  Cone inferior    (região fluida)
+h_was = 8.0  * M  # mm  Zona Lavagem     ε=0.45  (Gustafson 1983)
+h_cok = 22.0 * M  # mm  Zona Cozimento   ε=0.40  (Andrews 2018)
+h_imp = 5.0  * M  # mm  Zona Impregnação ε=0.50  (Sixta 2006)
+h_ct  = 3.0  * M  # mm  Cone superior    (região fluida)
 
 # Z absolutos (Z=0 na base do cone inferior = saída de polpa)
 z_wash   = h_cb                   # 3.0  m — base Zona Lavagem
