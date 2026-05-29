@@ -166,10 +166,12 @@ cilindro_zona(
 # ============================================================
 # 06 — BOCAL GÁS ENTRADA — GasInlet (horizontal, +X)
 #      Posição: meio do Sump (Z = 500 mm = 0.5 m)
-#      Direção: fluxo em -X (entra na coluna)
+#      Penetração de 80mm dentro do cilindro → permite Boolean Unite
 # ============================================================
-z_gasin = z_sump_bot + h_sump / 2   # 500 mm
-cx_gasin = R_col + L_noz_g / 2      # centro do bocal em X
+pen = 0.08 * M   # 80 mm de penetração na parede do cilindro
+
+z_gasin  = z_sump_bot + h_sump / 2          # 500 mm
+cx_gasin = R_col + (L_noz_g - pen) / 2      # centro deslocado para dentro
 
 with BuildPart() as bocal_gasin:
     with Locations((cx_gasin, 0, z_gasin)):
@@ -178,15 +180,15 @@ with BuildPart() as bocal_gasin:
 
 caminho = os.path.join(out_dir, "06_Bocal_GasInlet.step")
 export_step(bocal_gasin.part, caminho)
-print(f"  ✓ 06_Bocal_GasInlet: Z={z_gasin/M:.2f} m | D={D_noz_g/M:.2f} m → {os.path.basename(caminho)}")
+print(f"  ✓ 06_Bocal_GasInlet: Z={z_gasin/M:.2f} m | penetração={pen/M*1000:.0f}mm → {os.path.basename(caminho)}")
 
 # ============================================================
 # 07 — BOCAL GÁS SAÍDA — GasOutlet (horizontal, +X)
 #      Posição: meio da Seção Superior (Z = 10500 mm = 10.5 m)
-#      Direção: fluxo em +X (sai da coluna)
+#      Penetração de 80mm dentro do cilindro → permite Boolean Unite
 # ============================================================
-z_gasout = z_top_bot + h_top / 2    # 10500 mm
-cx_gasout = R_col + L_noz_g / 2
+z_gasout  = z_top_bot + h_top / 2           # 10500 mm
+cx_gasout = R_col + (L_noz_g - pen) / 2
 
 with BuildPart() as bocal_gasout:
     with Locations((cx_gasout, 0, z_gasout)):
@@ -195,7 +197,7 @@ with BuildPart() as bocal_gasout:
 
 caminho = os.path.join(out_dir, "07_Bocal_GasOutlet.step")
 export_step(bocal_gasout.part, caminho)
-print(f"  ✓ 07_Bocal_GasOutlet: Z={z_gasout/M:.2f} m | D={D_noz_g/M:.2f} m → {os.path.basename(caminho)}")
+print(f"  ✓ 07_Bocal_GasOutlet: Z={z_gasout/M:.2f} m | penetração={pen/M*1000:.0f}mm → {os.path.basename(caminho)}")
 
 # ============================================================
 # RESUMO FINAL
