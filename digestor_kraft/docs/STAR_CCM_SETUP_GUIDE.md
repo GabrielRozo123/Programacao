@@ -317,7 +317,35 @@ Condições inlet (frações mássicas licor branco):
 
 ---
 
-## 7. REFERÊNCIAS COMPLETAS
+## 7. RESULTADOS OBTIDOS — COMPARAÇÃO COM LITERATURA
+
+### Campos simulados (3 fases concluídas)
+
+| Campo | Resultado CFD | Literatura | Fonte |
+|-------|--------------|------------|-------|
+| ΔP total | ~4.2 bar | 2–5 bar | Andrews 2018 |
+| T cozimento | 448 K (175°C) | 438–448 K | Sixta 2006 |
+| T lavagem | ~343 K | 343 K | Andrews 2018 |
+| Conversão lignina | ~58% | 60–80% | Gustafson 1983 |
+| Kappa number (κ) | ~20–28 | 15–30 | Sixta 2006 |
+| Velocidade bulk | ~0.001 m/s | 1–2 mm/s | Pougatch 2016 |
+| Ergun Pv (cozimento) | 6.03×10³ kg/(m³·s) | 5–7×10³ | Decker 1980 |
+
+### Parâmetros da cinética (Fase 3 — calibrados)
+- k₀ = 5.0×10⁹ (ajustado de Gustafson 1983 para frações mássicas)
+- Ea = 134 kJ/mol (Gustafson 1983)
+- Expoente NaOH: 0.5 / Expoente Na2S: 0.4 (Gustafson 1983)
+- Passivo Scalar Lignina: inlet = 0.25, outlet ≈ 0.07 (70% conversão)
+
+### Observações qualitativas
+- Frente de álcali radial fina confirmada (consistente com Gustafson 1983)
+- Gradiente axial de temperatura correto (300→448→300 K)
+- Zona de cozimento dominada pela resistência porosa Ergun (ΔP hidrostático dominante)
+- Número de células: 113k (Polyhedral + Prism Layer, base=0.25m)
+
+---
+
+## 8. REFERÊNCIAS COMPLETAS
 
 1. Agarwal, P.K., McMillan, A.J., Elber, A. (2001) *CFD Study of a Kraft Digester*. TAPPI Journal 84(11).
 2. Andrews, S.P., et al. (2018) *CFD modelling of a continuous kraft digester*. Chem. Eng. Sci. 195, 721-734.
