@@ -314,6 +314,6 @@ for i, (color, label) in enumerate(steps):
 
 # ─── Salvar ───────────────────────────────────────────────────────────────────
 out = '/home/user/Programacao/boiler_convective_pass/results/linkedin_infographic.png'
-plt.savefig(out, dpi=180, bbox_inches='tight', facecolor=BG)
+plt.savefig(out, dpi=300, bbox_inches='tight', facecolor=BG)
 print(f'Salvo em: {out}')
 plt.close()
