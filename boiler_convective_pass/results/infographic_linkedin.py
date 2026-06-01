@@ -89,37 +89,37 @@ ax1.set_facecolor(PANEL)
 ax1.set_title('CONDIÇÕES DE OPERAÇÃO', color=TEXT, fontsize=10,
               fontweight='bold', pad=8, loc='center')
 
-# Caixa do domínio
-box = FancyBboxPatch((0.5, 0.5), 9, 7, boxstyle='round,pad=0.1',
-                      linewidth=1.5, edgecolor=BORDER, facecolor='#0d1117')
-ax1.add_patch(box)
+# Divisor vertical: texto à esquerda (x<5), tubos à direita (x>=5)
+ax1.axvline(4.8, color=BORDER, lw=0.8, alpha=0.5)
 
-# Tubos 3×4
+# Tubos 3×4 — lado DIREITO
 for row in range(4):
     for col in range(3):
-        cx = 2.5 + col * 2.2
-        cy = 1.4 + row * 1.6
-        ax1.add_patch(Circle((cx, cy), 0.45, color=BLUE, zorder=3, alpha=0.85))
-        ax1.add_patch(Circle((cx, cy), 0.27, color='#1f6feb', zorder=4))
+        cx = 5.8 + col * 1.35
+        cy = 1.5 + row * 1.6
+        ax1.add_patch(Circle((cx, cy), 0.38, color=BLUE, zorder=3, alpha=0.85))
+        ax1.add_patch(Circle((cx, cy), 0.22, color='#1f6feb', zorder=4))
 
-# Setas de escoamento
-for y in [1.4, 3.0, 4.6, 6.2]:
-    ax1.annotate('', xy=(1.8, y), xytext=(0.7, y),
-                 arrowprops=dict(arrowstyle='->', color=RED, lw=2.0))
+# Setas de escoamento apontando para os tubos
+for y in [1.5, 3.1, 4.7, 6.3]:
+    ax1.annotate('', xy=(5.2, y), xytext=(0.4, y),
+                 arrowprops=dict(arrowstyle='->', color=RED, lw=1.8))
 
-# Rótulos de condições
+# Rótulos — lado ESQUERDO (coordenadas de dados, sem sobreposição)
 params = [
-    (0.04, 0.93, f'Gás de combustão  →  900 °C', RED, 9, 'bold'),
-    (0.04, 0.83, f'Velocidade de abordagem  V = 8 m/s', RED, 8.5, 'normal'),
-    (0.04, 0.73, f'Tubos SA-192  ⌀50,8 mm  (BWG 9)', BLUE, 8.5, 'normal'),
-    (0.04, 0.63, f'T_sat = 195 °C  |  P = 14 bar', BLUE, 8.5, 'normal'),
-    (0.04, 0.53, f'Pitch: ST/D = SL/D = 2,0  (alinhado)', SUBTEXT, 8, 'normal'),
-    (0.04, 0.43, f'14 fileiras  ×  3 tubos  =  42 tubos', SUBTEXT, 8, 'normal'),
-    (0.04, 0.15, f'U_max = 16 m/s  |  Re_D ≈ 7 500', ORANGE, 8.5, 'bold'),
+    (0.3, 7.2, 'Gás de combustão', RED, 8.5, 'bold'),
+    (0.3, 6.65,'900 °C  |  8 m/s', RED, 8.5, 'normal'),
+    (0.3, 5.7, 'Tubo SA-192', BLUE, 8, 'normal'),
+    (0.3, 5.15, u'Ø50,8 mm  (BWG 9)', BLUE, 8, 'normal'),
+    (0.3, 4.3, 'Tₛₐₜ = 195 °C', BLUE, 8, 'normal'),
+    (0.3, 3.75,'P = 14 bar', BLUE, 8, 'normal'),
+    (0.3, 2.9, 'ST/D = SL/D = 2,0', SUBTEXT, 7.5, 'normal'),
+    (0.3, 2.35,'14 fileiras × 3 tubos', SUBTEXT, 7.5, 'normal'),
+    (0.3, 1.4, 'U_max = 16 m/s', ORANGE, 8.5, 'bold'),
+    (0.3, 0.85,'Re_D ≈ 7 500', ORANGE, 8.5, 'bold'),
 ]
 for x, y, txt, col, fs, fw in params:
-    ax1.text(x, y, txt, transform=ax1.transAxes,
-             color=col, fontsize=fs, fontweight=fw, va='center')
+    ax1.text(x, y, txt, color=col, fontsize=fs, fontweight=fw, va='center')
 
 # ─── PAINEL 2 — Mapa de Fluxo de Calor por Tubo ──────────────────────────────
 ax2 = fig.add_subplot(gs[0, 1])
@@ -152,11 +152,8 @@ cb.set_label('q"  (kW/m²)', color=SUBTEXT, fontsize=8)
 cb.ax.yaxis.set_tick_params(color=SUBTEXT)
 plt.setp(cb.ax.yaxis.get_ticklabels(), color=SUBTEXT, fontsize=7)
 
-# Seta indicando entrada de gás
-ax2.annotate('Entrada\ngás quente\n900°C',
-             xy=(-0.22, -0.02), xycoords='axes fraction',
-             fontsize=7.5, color=RED, ha='center', va='top',
-             arrowprops=None)
+ax2.text(-0.01, -0.06, '← Entrada gás 900 °C', transform=ax2.transAxes,
+         fontsize=7.5, color=RED, ha='left', va='top')
 
 # ─── PAINEL 3 — Validação Žukauskas ──────────────────────────────────────────
 ax3 = fig.add_subplot(gs[0, 2])
@@ -254,14 +251,14 @@ ax5.set_title('PROBLEMAS INDUSTRIAIS\nENDEREÇADOS', color=TEXT,
               fontsize=10, fontweight='bold', pad=8, loc='center')
 
 issues = [
-    (RED,    '[ I ]  EROSAO POR CINZAS',
-             'U_max = 16 m/s nas secoes\nminimas. Fil. 3-5: pico de\nfluxo -> maior impacto\nde particulas de SiO2.'),
-    (ORANGE, '[ II ]  FOULING / INCRUSTACAO',
-             'Gradiente de q" revela\nonde deposicao reduz\nmais a eficiencia.\nGuia frequencia de limpeza.'),
-    (BLUE,   '[ III ]  QUEDA DE PRESSAO',
-             'ΔP = 244 Pa (14 fileiras)\nEu = 0,37 — base para\ndimensionar ventilador\nde tiragem forcada.'),
+    (RED,    '[ I ]  EROSÃO POR CINZAS',
+             'U_max = 16 m/s nas seções\nmínimas. Fil. 3–5: pico de\nfluxo → maior impacto\nde partículas de SiO₂.'),
+    (ORANGE, '[ II ]  FOULING / INCRUSTAÇÃO',
+             'Gradiente de q" revela\nonde a deposição reduz\nmais a eficiência.\nGuia a frequência de limpeza.'),
+    (BLUE,   '[ III ]  QUEDA DE PRESSÃO',
+             'ΔP = 244 Pa (14 fileiras)\nEu = 0,37 — base para\ndimensionar ventilador\nde tiragem forçada.'),
     (GREEN,  '[ IV ]  PROJETO DE PITCH',
-             'ST/D = 2 valida acesso\npara sopradores de fuligem\ne distribui erosao.\nTrade-off: Nu × ΔP.'),
+             'ST/D = 2 valida acesso\npara sopradores de fuligem\ne distribui erosão.\nTrade-off: Nu × ΔP.'),
 ]
 
 y = 0.96
