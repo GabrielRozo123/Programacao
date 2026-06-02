@@ -1,75 +1,124 @@
 """
-Reboiler VOF+Boiling — Phase 1: Single Tube Pool Boiling (2D)
-Geometry: Single horizontal tube immersed in liquid n-C5H12 pool
-Export: STEP files for STAR-CCM+
+Reboiler VOF+Boiling — 2D Pool Boiling Cross-Section
+Industrial scenario  : Kettle Reboiler TEMA K  |  n-Pentane at 2.5 bar
+Tube side (utility)  : Saturated steam ~ 1.43 bar  |  T_wall = 110°C
+Shell side (process) : n-C₅H₁₂ liquid  |  T_sat = 63.5°C  |  ΔT = 46.3 K
 
-Industrial context: Kettle reboiler (TEMA K) tube in n-Pentane pool
-Operating pressure: 2.5 bar | T_sat = 63.5°C | T_wall = 110°C
-Tube: 3/4" OD = 19.05 mm, stainless steel 316L
+Geometry:
+  3 columns × 4 rows = 10 full + 4 half-tubes ≡ 12 equivalent tubes
+  Triangular staggered pitch  P/D = 1.25  (TEMA standard for reboilers)
+  Periodic (symmetry) left/right walls  →  represents infinite bundle width
+  Liquid pool below, vapor space above
+
+STAR-CCM+ Boundaries after import (assign manually):
+  Bottom face  → "Inlet"       P = 250 kPa, T = 336.7 K, alpha_liq = 1.0
+  Top face     → "Outlet"      P = 250 kPa, T = 336.7 K, alpha_vap = 1.0
+  Left face    → "Symmetry_L"
+  Right face   → "Symmetry_R"
+  Front face   → "Empty_F"     (2D — 1 cell, periodic or empty BC)
+  Back face    → "Empty_B"
+  Tube circles → "Tube_Wall"   T_wall = 383 K (110°C), no-slip
+
+Reference: TEMA (2007), NIST n-Pentane saturation data
 """
 
 from build123d import *
 import math
 
-# ─── Parâmetros geométricos ──────────────────────────────────────────────────
-TUBE_OD    = 19.05e-3      # m — 3/4" standard (TEMA)
-TUBE_R     = TUBE_OD / 2
-TUBE_WT    = 1.65e-3       # m — wall thickness, BWG 16
+# ─── TEMA K parameters ─────────────────────────────────────────────────────────
+TUBE_OD_MM  = 19.05          # 3/4" standard TEMA tube
+P_OVER_D    = 1.25           # pitch-to-diameter ratio (TEMA recommended for reboilers)
+PT_MM       = TUBE_OD_MM * P_OVER_D          # transverse pitch = 23.8125 mm
+PR_MM       = PT_MM * math.sin(math.radians(60))  # row pitch (equilateral) = 20.617 mm
+TUBE_R_MM   = TUBE_OD_MM / 2                 # outer radius = 9.525 mm
 
-# Pool dimensions (fluid domain)
-POOL_W     = 0.120         # m — 120 mm (6 × OD), symmetric
-POOL_H     = 0.150         # m — 150 mm (below tube center: 60 mm, above: 90 mm)
+N_COLS      = 3    # full tube columns
+N_ROWS      = 4    # tube rows
 
-# Tube center position
-CX         = POOL_W / 2    # centered horizontally
-CY         = 0.060         # 60 mm from bottom (3 × OD submersion)
+# Pool margins
+MARGIN_BOT_MM = 3.0 * TUBE_OD_MM   # 57.15 mm  — submerged liquid region
+MARGIN_TOP_MM = 4.5 * TUBE_OD_MM   # 85.73 mm  — vapor disengagement space
 
-# STEP extrusion depth (unit slice for 2D)
-DEPTH      = 0.001         # 1 mm (treated as 2D in STAR-CCM+)
+# Extrusion for STEP export (2D slice)
+DEPTH_MM    = 1.0
 
-# ─── Fluid domain (pool region) ───────────────────────────────────────────────
-# Rectangle minus the tube interior
-with BuildPart() as fluid_domain:
-    with BuildSketch(Plane.XZ) as sk_pool:
-        Rectangle(POOL_W, POOL_H, align=(Align.MIN, Align.MIN))
-        # Remove tube cross-section from fluid domain
-        Circle(TUBE_R + TUBE_WT, align=Align.CENTER,
-               mode=Mode.SUBTRACT).move(Location((CX, CY)))
-    extrude(amount=DEPTH)
+# ─── Derived domain dimensions ─────────────────────────────────────────────────
+POOL_W_MM   = N_COLS * PT_MM        # 71.44 mm
+Y_ROW_0     = MARGIN_BOT_MM + TUBE_R_MM               # 66.68 mm (first row center)
+Y_ROW_LAST  = Y_ROW_0 + (N_ROWS - 1) * PR_MM         # 128.53 mm (last row center)
+POOL_H_MM   = Y_ROW_LAST + TUBE_R_MM + MARGIN_TOP_MM  # 223.78 mm
 
-# ─── Tube wall solid region (CHT solid) ───────────────────────────────────────
-with BuildPart() as tube_wall:
-    with BuildSketch(Plane.XZ) as sk_tube:
-        Circle(TUBE_R + TUBE_WT, align=Align.CENTER).move(Location((CX, CY)))
-        Circle(TUBE_R, align=Align.CENTER,
-               mode=Mode.SUBTRACT).move(Location((CX, CY)))
-    extrude(amount=DEPTH)
+# ─── Tube center positions — triangular staggered pitch ────────────────────────
+#
+#  Even rows (0, 2): 3 full tubes at  x = PT/2,  3PT/2,  5PT/2
+#  Odd  rows (1, 3): 2 full tubes at  x = PT,    2PT
+#                    2 half-tubes at  x = 0,      3PT   (periodic boundary)
+#
+# The half-tubes at x=0 and x=W are cut by the domain edge.
+# With Symmetry BC on left/right, they represent a continuous infinite bundle.
 
-# ─── Export STEP ──────────────────────────────────────────────────────────────
-fluid_domain.part.export_step("01_Fluid_Pool.step")
-tube_wall.part.export_step("02_Tube_Wall.step")
+tube_centers = []
+for row in range(N_ROWS):
+    y = Y_ROW_0 + row * PR_MM
+    if row % 2 == 0:
+        for col in range(N_COLS):
+            tube_centers.append((PT_MM / 2.0 + col * PT_MM, y))
+    else:
+        for col in range(1, N_COLS):
+            tube_centers.append((col * PT_MM, y))
+        tube_centers.append((0.0, y))            # half-tube at left wall
+        tube_centers.append((POOL_W_MM, y))      # half-tube at right wall
 
-print("=" * 60)
-print("REBOILER VOF+BOILING — Geometry Summary")
-print("=" * 60)
-print(f"  Tube OD          : {TUBE_OD*1000:.2f} mm  (3/4\" TEMA)")
-print(f"  Tube wall thick  : {TUBE_WT*1000:.2f} mm  (BWG 16)")
-print(f"  Tube ID          : {(TUBE_R - TUBE_WT)*2*1000:.2f} mm")
-print(f"  Pool width       : {POOL_W*1000:.0f} mm  ({POOL_W/TUBE_OD:.1f} × OD)")
-print(f"  Pool height      : {POOL_H*1000:.0f} mm")
-print(f"  Tube center      : ({CX*1000:.0f}, {CY*1000:.0f}) mm")
-print(f"  Submersion depth : {CY*1000:.0f} mm  ({CY/TUBE_OD:.1f} × OD)")
-print(f"  Vapor space      : {(POOL_H-CY-TUBE_R-TUBE_WT)*1000:.0f} mm above tube")
+n_full  = sum(1 for row in range(N_ROWS)
+              for _ in (range(N_COLS) if row % 2 == 0 else range(1, N_COLS)))
+n_half  = N_ROWS // 2 * 2     # 2 half-tubes per odd row
+n_equiv = n_full + 0.5 * n_half
+
+# ─── Fluid domain: pool rectangle minus tube cross-sections ────────────────────
+with BuildPart() as fluid_part:
+    with BuildSketch(Plane.XY) as sk:
+        # Pool outer boundary — origin at bottom-left corner
+        Rectangle(POOL_W_MM, POOL_H_MM, align=(Align.MIN, Align.MIN))
+        # Subtract all tube circles (OCCT clips half-tubes at domain boundary)
+        with Locations(*[(x, y) for x, y in tube_centers]):
+            Circle(TUBE_R_MM, mode=Mode.SUBTRACT)
+    extrude(amount=DEPTH_MM)
+
+export_step(fluid_part.part, "01_Fluid_Pool.step")
+
+# ─── Summary ───────────────────────────────────────────────────────────────────
+hdr = "=" * 62
+print(hdr)
+print("  REBOILER VOF+BOILING — Geometry Summary")
+print(hdr)
+print(f"  Fluid            : n-C₅H₁₂  |  P = 2.5 bar  |  T_sat = 63.5°C")
+print(f"  Tube             : {TUBE_OD_MM:.2f} mm OD  (3/4\", BWG 16, SS 316L)")
+print(f"  Pitch            : triangular, P/D = {P_OVER_D:.2f}")
+print(f"  PT (transverse)  : {PT_MM:.3f} mm")
+print(f"  PR (row)         : {PR_MM:.3f} mm  (= PT × sin 60°)")
+print(f"  Bundle           : {N_COLS} cols × {N_ROWS} rows")
+print(f"  Full tubes       : {n_full}")
+print(f"  Half-tubes       : {n_half}  (at Symmetry_L / Symmetry_R)")
+print(f"  Equivalent tubes : {n_equiv:.0f}  per periodic cell")
+print(f"  Domain width     : {POOL_W_MM:.2f} mm  ({POOL_W_MM/TUBE_OD_MM:.2f} × OD)")
+print(f"  Domain height    : {POOL_H_MM:.2f} mm")
+print(f"    • Liquid below : {MARGIN_BOT_MM:.1f} mm  ({MARGIN_BOT_MM/TUBE_OD_MM:.1f} × OD)")
+print(f"    • Bundle span  : {Y_ROW_LAST - Y_ROW_0 + TUBE_OD_MM:.1f} mm")
+print(f"    • Vapor above  : {MARGIN_TOP_MM:.1f} mm  ({MARGIN_TOP_MM/TUBE_OD_MM:.1f} × OD)")
+print(f"  Extrusion depth  : {DEPTH_MM:.1f} mm  (2D unit slice)")
 print()
-print("STEP files exported:")
-print("  01_Fluid_Pool.step  — fluid region (VOF: liquid + vapor)")
-print("  02_Tube_Wall.step   — tube solid (CHT, T_wall = 110°C)")
+print("  STEP exported    : 01_Fluid_Pool.step")
 print()
-print("STAR-CCM+ Import Checklist:")
-print("  [ ] Import both regions; assign CHT interface")
-print("  [ ] Fluid region: VOF Eulerian, n-C5H12 liq + vap")
-print("  [ ] Solid region: conduction only, SS316L")
-print("  [ ] Bottom face: pressure inlet (2.5 bar, T=336.6 K, alpha_liq=1.0)")
-print("  [ ] Top face: pressure outlet (2.5 bar, T=336.6 K, alpha_vap=1.0)")
-print("  [ ] Side faces: symmetry")
-print("  [ ] Tube inner wall: T_wall = 383 K (110°C)")
+print("  STAR-CCM+ Boundary Assignment:")
+print("  ┌──────────────────────────┬──────────────────────────────────────┐")
+print("  │ Face                     │ BC type / value                      │")
+print("  ├──────────────────────────┼──────────────────────────────────────┤")
+print("  │ Bottom (y = 0)           │ Pressure Inlet  P=250 kPa T=336.7 K │")
+print("  │ Top    (y = H)           │ Pressure Outlet P=250 kPa T=336.7 K │")
+print("  │ Left   (x = 0)           │ Symmetry Plane                       │")
+print("  │ Right  (x = W)           │ Symmetry Plane                       │")
+print("  │ Front  (z = 0)           │ Empty (2D)                           │")
+print("  │ Back   (z = 1 mm)        │ Empty (2D)                           │")
+print("  │ Tube circles (12×)       │ Temperature Wall  T = 383 K (110°C) │")
+print("  └──────────────────────────┴──────────────────────────────────────┘")
+print(hdr)

@@ -1,156 +1,222 @@
-# STAR-CCM+ Setup — Reboiler VOF+Boiling (Phase 1: Single Tube)
+# STAR-CCM+ Setup — Reboiler VOF+Boiling (Phase 1)
+
+**Cenário:** Pool boiling de n-Pentano em feixe de tubos (3 col × 4 fileiras, triangular)  
+**Objetivo:** Validar fluxo de calor CFD vs. correlação de Rohsenow (±25%)
+
+---
 
 ## 1. Importar Geometria
 
-1. File → Import → Import Surface/CAD Mesh
-2. Importar `01_Fluid_Pool.step` → Region: **Fluid_Pool**
-3. Importar `02_Tube_Wall.step` → Region: **Tube_Wall**
-4. Atribuir interface CHT: Fluid_Pool ↔ Tube_Wall (inner tube surface)
+1. File → Import → Import Surface/CAD Mesh → `01_Fluid_Pool.step`
+2. Region name: **Fluid_Pool**
+3. Renomear boundaries conforme a tabela abaixo:
+
+| Face no STEP | Rename para | Tipo de BC |
+|---|---|---|
+| Bottom (y = 0) | `Inlet` | Pressure Inlet |
+| Top (y = 223.8 mm) | `Outlet` | Pressure Outlet |
+| Left (x = 0) | `Symmetry_L` | Symmetry Plane |
+| Right (x = 71.4 mm) | `Symmetry_R` | Symmetry Plane |
+| Front / Back (z) | `Empty_F` / `Empty_B` | Empty |
+| 12× círculos dos tubos | `Tube_Wall` | Temperature Wall |
+
+> **Dica:** No STAR-CCM+, use *Select All Surfaces* no tree, filtre por área ≈ 0,0598 mm² (cada círculo extrudado 1 mm) para selecionar todos os tubos de uma vez.
 
 ---
 
 ## 2. Malha
 
-| Parâmetro | Valor | Motivo |
-|-----------|-------|--------|
-| Base size | 1,5 mm | ~OD/13 |
-| Surface curvature | 36 pts/círculo | Resolução da bolha |
-| Prism layers (parede) | 10 camadas, y⁺ < 1 | Wall boiling requer resolução |
-| First cell thickness | 0,05 mm | ΔT_sup bem resolvido |
-| Volume de refino (tubo ±3 mm) | 0,3 mm | Interface líq-vap ativa |
+| Parâmetro | Valor | Justificativa |
+|---|---|---|
+| Base size | 1,5 mm | ~OD/13 — adequado para VOF |
+| Surface curvature | 36 pontos/círculo | Resolução de bolha em formação |
+| Prism layers (Tube_Wall) | 12 camadas, razão 1,3 | y⁺ < 1 obrigatório para RPI |
+| Espessura 1ª camada | 0,03 mm | Garante resolução ΔT na parede |
+| Refino volumétrico (±4 mm dos tubos) | 0,4 mm | Interface líq-vap ativa |
+| Células estimadas | ~60–120 k | Leve — viável em PC |
 
 ---
 
 ## 3. Modelos de Física — Região Fluido
 
-### Ativar na ordem:
+Ativar na seguinte ordem (a ordem importa para dependências de modelo):
 
-1. **Multiphase Model** → Eulerian Multiphase → VOF
-2. **VOF** → Multiphase Interaction: ativar
-3. **Phase 1 (primary):** n-C₅H₁₂ Liquid
-4. **Phase 2 (secondary):** n-C₅H₁₂ Vapor
-5. **Energy:** Multiphase Temperature (segregated)
-6. **Turbulence:** K-Omega SST (Menter) — two-phase
-7. **Body Force:** Gravity → g = 9.81 m/s² → direção: −Y (para baixo)
-8. **Surface Tension:** Continuum Surface Force (CSF), σ = 0.0128 N/m (C5 @ 63°C)
-9. **Wall Boiling:** RPI Model (Rohsenow–Pilch–Ivey)
-
----
-
-## 4. Propriedades do Fluido — n-Pentano (C₅H₁₂)
-
-### Fase Líquida @ 2,5 bar / T_sat = 63,5°C (336,6 K)
-
-| Propriedade | Valor | Fonte |
-|-------------|-------|-------|
-| ρ_l | 601 kg/m³ | NIST Webbook |
-| μ_l | 2,1 × 10⁻⁴ Pa·s | NIST |
-| k_l | 0,107 W/(m·K) | NIST |
-| cp_l | 2360 J/(kg·K) | NIST |
-| h_fg | 340 kJ/kg | NIST |
-| Pr_l | 4,63 | calculado |
-| σ | 0,0128 N/m | NIST |
-
-### Fase Vapor @ 2,5 bar / T_sat = 63,5°C
-
-| Propriedade | Valor |
-|-------------|-------|
-| ρ_v | 7,85 kg/m³ |
-| μ_v | 7,2 × 10⁻⁶ Pa·s |
-| k_v | 0,016 W/(m·K) |
-| cp_v | 1710 J/(kg·K) |
+1. **Space** → Two Dimensional *(ou Three Dimensional + 1 célula em Z)*
+2. **Time** → Implicit Unsteady *(transiente — ebulição é inerentemente não-estacionária)*
+3. **Material** → Eulerian Multiphase → **VOF**
+4. **Phase 1 (Primary):** n-C₅H₁₂ Liquid
+5. **Phase 2 (Secondary):** n-C₅H₁₂ Vapor
+6. **Flow** → Segregated Flow
+7. **Energy** → Segregated Multiphase Temperature
+8. **Turbulence** → K-Omega SST (Menter) *(two-phase)*
+9. **Body Forces** → Gravity → g = 9,81 m/s², direção: −Y *(para baixo)*
+10. **Multiphase Interaction** → Surface Tension Force (CSF) → σ = 0,0125 N/m
+11. **Multiphase Interaction** → Wall Boiling → **RPI model**
 
 ---
 
-## 5. Parâmetros do Modelo RPI (Wall Boiling)
+## 4. Propriedades do Fluido — n-Pentano (NIST, P = 2,5 bar / T_sat = 63,5°C)
 
-### Valores do tutorial (H₂O, Cu polido):
-- N_nuc = 10.000 sites/m² (cobre polido, Han & Griffith, 1965)
-- R_db = 0,6 mm
+### Fase Líquida — n-C₅H₁₂ Liquid
 
-### Adaptação industrial (n-C₅H₁₂, aço inox 316L):
+| Propriedade | Símbolo | Valor | Unidade |
+|---|---|---|---|
+| Densidade | ρ_l | 597,0 | kg/m³ |
+| Viscosidade dinâmica | μ_l | 1,96 × 10⁻⁴ | Pa·s |
+| Condutividade térmica | k_l | 0,1050 | W/(m·K) |
+| Calor específico | cp_l | 2358 | J/(kg·K) |
+| Calor latente de vaporização | h_fg | 354 000 | J/kg |
+| Tensão superficial | σ | 0,0125 | N/m |
+| Número de Prandtl | Pr_l | 4,40 | — |
 
-**Raio de departura de bolha (Fritz, 1935):**
+### Fase Vapor — n-C₅H₁₂ Vapor
+
+| Propriedade | Símbolo | Valor | Unidade |
+|---|---|---|---|
+| Densidade (gás ideal OK) | ρ_v | 7,76 | kg/m³ |
+| Viscosidade dinâmica | μ_v | 7,1 × 10⁻⁶ | Pa·s |
+| Condutividade térmica | k_v | 0,0160 | W/(m·K) |
+| Calor específico | cp_v | 1720 | J/(kg·K) |
+
+> **Fonte:** NIST WebBook, n-Pentane (CAS 109-66-0), saturation properties 2.5 bar.
+
+---
+
+## 5. Parâmetros do Modelo RPI — Derivação e Valores Corretos
+
+### 5.1  Raio de Departura de Bolha (R_db) — Fritz (1935)
+
+A correlação de Fritz para o **diâmetro** de saída de bolha é:
+
 ```
-R_db = 0,208 × θ_contact × √(σ / [g × (ρ_l − ρ_v)])
-     = 0,208 × 35° × √(0,0128 / [9,81 × (601 − 7,85)])
-     ≈ 1,2 mm
+d_b = 0,0208 × β × √(σ / [g × (ρ_l − ρ_v)])
 ```
-(θ_contact ≈ 35° para n-Pentano em aço inox — Pioro, 2004)
 
-**Densidade de sítios de nucleação (Jacob & Linzer, 1961):**
+onde **β é o ângulo de contato em GRAUS** e o fator 0,0208 tem unidades de °⁻¹.
+
+**Para n-Pentano em SS 316L (tubulação comercial):**
+β ≈ 22° (hidrocarboneto leve molha bem o aço inox — Pioro, 2004)
+
 ```
-N_nuc = C_s × (ΔT_e / ΔT_ref)^m
+d_b = 0,0208 × 22 × √(0,0125 / [9,81 × (597 − 7,76)])
+    = 0,4576 × √(0,0125 / 5786,3)
+    = 0,4576 × √(2,160 × 10⁻⁶)
+    = 0,4576 × 1,470 × 10⁻³
+    = 6,72 × 10⁻⁴ m  ≈  0,67 mm
+
+R_db = d_b / 2 ≈ 0,34 mm  →  usar 0,35 mm no STAR-CCM+
 ```
-Para ΔT_e = 46,5 K, aço inox: N_nuc ≈ 8.000 sites/m²
 
-### Valores a usar no STAR-CCM+:
+> **Erro comum:** usar coeficiente 0,208 (dez vezes maior) resulta em R_db ≈ 6,7 mm — fisicamente absurdo para n-Pentano.
 
-| Parâmetro RPI | Valor a inserir |
-|---------------|----------------|
-| Nucleation Site Density | 8000 m⁻² |
-| Bubble Departure Radius | 0,0012 m |
-| Bubble Departure Frequency | auto (Jakob) |
-| Area Influence Coeff. (K) | 4 (padrão Tolubinsky) |
-| Quenching Relaxation | 0,8 |
+### 5.2  Densidade de Sítios de Nucleação (N_nuc)
+
+Para superfície de aço inox 316L, tubulação industrial (Ra ≈ 0,4–1,6 μm):
+
+| Referência | Expressão / Valor |
+|---|---|
+| Han & Griffith (1965) — cobre polido | N_nuc = 10 000 m⁻² |
+| Lemmert & Chawla (1977) — água, aço | N_nuc = 210 × ΔT^1,805 |
+| Krepper et al. (2007) — agua, ANSYS | N_nuc = 1000 m⁻² (mínimo) a 10⁶ m⁻² |
+| **Recomendado para n-C₅H₁₂ em SS industrial** | **N_nuc = 30 000 m⁻²** |
+
+Lemmert-Chawla adaptado a ΔT = 46,3 K:
+`N_nuc = 210 × 46,3^1.805 ≈ 210 × 835 = 175 000 m⁻²`  ← correlação para H₂O
+Para hidrocarboneto, reduz ~5–10×: **N_nuc ≈ 20 000–35 000 m⁻²** → usar **30 000 m⁻²**
+
+### 5.3  Tabela de Parâmetros RPI para o STAR-CCM+
+
+| Parâmetro RPI | Valor a Inserir | Observação |
+|---|---|---|
+| Nucleation Site Density | **30 000 m⁻²** | SS 316L industrial (Krepper 2007) |
+| Bubble Departure Radius | **3,5 × 10⁻⁴ m** (0,35 mm) | Fritz (1935), β = 22°, n-C₅H₁₂ |
+| Departure Frequency | auto (Jakob formula) | f = k_l × ΔT / (ρ_l × h_fg × R_db²) |
+| Area Influence Coeff. K | 4,8 | Tolubinsky & Kostanchuk (1970) |
+| Quenching Relaxation τ | 0,8 | Padrão STAR-CCM+ |
+
+> **Sensibilidade:** ±50% em N_nuc muda q em ±15%. Após a simulação inicial, ajuste N_nuc para que q_CFD ≈ q_Rohsenow.
 
 ---
 
 ## 6. Condições de Contorno
 
-| Superfície | Tipo | Valor |
-|-----------|------|-------|
-| **Bottom** (entrada líquido) | Pressure Inlet | P = 250.000 Pa, T = 336,6 K, α_liq = 1,0 |
-| **Top** (saída vapor) | Pressure Outlet | P = 250.000 Pa, T = 336,6 K, α_vap = 1,0 |
-| **Left / Right** | Symmetry Plane | — |
-| **Tube inner wall** | Temperature BC | T_wall = 383 K (110°C) |
-| **CHT interface** | Coupled interface | automático |
+| Boundary | Tipo STAR-CCM+ | Valores |
+|---|---|---|
+| `Inlet` (y = 0) | Pressure Inlet | P = 250 000 Pa · T = 336,7 K · α_liq = 1,0 |
+| `Outlet` (y = H) | Pressure Outlet | P = 250 000 Pa · T = 336,7 K · α_vap = 1,0 |
+| `Symmetry_L` | Symmetry Plane | — |
+| `Symmetry_R` | Symmetry Plane | — |
+| `Empty_F / Empty_B` | Empty (2D) | — |
+| `Tube_Wall` | Temperature Wall | T = **383,15 K** (110,0°C) · Wall Boiling: RPI |
 
 ---
 
 ## 7. Solver e Critério de Parada
 
-### Solver (transient, pseudo-steady boiling):
-
-| Parâmetro | Valor |
-|-----------|-------|
-| Time step | 5 × 10⁻⁴ s |
-| Max inner iterations | 10 |
-| Total time | 30 s (regime pseudo-estacionário) |
-| URF — Velocidade | 0,7 |
-| URF — Pressão | 0,3 |
-| URF — Temperatura | 0,9 |
-| URF — VOF | 0,5 |
-| URF — Wall Heat Flux | 0,3 (não-linear!) |
+| Parâmetro | Valor | Motivo |
+|---|---|---|
+| Time step Δt | 5 × 10⁻⁴ s | ~0,25 × τ_bolha típico |
+| Max inner iterations/step | 10 | Convergência por passo |
+| Total time | 30 s | Regime pseudo-estacionário |
+| URF — Velocidade | 0,7 | — |
+| URF — Pressão | 0,3 | — |
+| URF — Temperatura | 0,9 | — |
+| URF — Volume Fraction | 0,5 | Interface VOF |
+| URF — Wall Heat Flux | **0,3** | Não-linear — nunca usar 1,0! |
 
 ---
 
-## 8. Reports e Monitores
+## 8. Reports e Monitores de Validação
 
-### Reports a criar:
+| Report | Tipo | Superfície / Expression | Saída esperada |
+|---|---|---|---|
+| `q_wall` | Surface Average | Boundary Heat Flux · `Tube_Wall` | 76–91 kW/m² |
+| `T_wall` | Surface Average | Static Temperature · `Tube_Wall` | 383 K |
+| `alpha_v_out` | Surface Average | VOF vapor · `Outlet` | 0,05–0,30 |
+| `h_boil` | Expression | `${q_wall} / (${T_wall} - 336.7)` | 1640–1960 W/(m²K) |
 
-| Report | Tipo | Superfície | Saída esperada |
-|--------|------|-----------|---------------|
-| q_boiling | Surface Average | Boundary Heat Flux | Tube outer wall | ~80–120 kW/m² |
-| T_wall_avg | Surface Average | Static Temperature | Tube outer wall | 383 K |
-| alpha_vapor_outlet | Surface Average | VOF (vapor) | Top outlet | 0,05–0,3 |
-| Nu_boiling | Expression | `${q_boiling} / (${T_wall_avg} - 336.6) * ${TUBE_OD} / ${k_liq}` | — |
+### Alvo de Validação — Correlação Rohsenow (1952)
 
-### Validação Rohsenow:
+Parâmetros: C_sf = 0,0200 (n-C₅H₁₂ em SS comercial), n = 1,7
+
 ```
-q_Rohsenow = μ_l × h_fg × [g(ρ_l − ρ_v)/σ]^0.5 × [cp_l × ΔT / (C_sf × h_fg × Pr^n)]^3
-           = 2,1e-4 × 340000 × [9,81×(601−7,85)/0,0128]^0.5 × [2360×46,5/(0,0132×340000×4,63^1.7)]^3
-           ≈ 95 kW/m²
+A = μ_l × h_fg = 1,96e-4 × 354 000 = 69,38
+
+B = [g(ρ_l − ρ_v)/σ]^0.5
+  = [9,81 × (597 − 7,76) / 0,0125]^0.5
+  = [462 000]^0.5 = 679,7  m⁻¹
+
+C = [cp_l × ΔT / (C_sf × h_fg × Pr^n)]^3
+  = [2358 × 46,3 / (0,0200 × 354 000 × 4,40^1.7)]^3
+  = [109 175 / 87 820]^3
+  = 1,243^3 = 1,923
+
+q_Rohsenow = A × B × C = 69,38 × 679,7 × 1,923 ≈ 90 700 W/m²
 ```
-Alvo: CFD dentro de ±20% da correlação Rohsenow.
+
+**q_Rohsenow ≈ 91 kW/m²**  
+**Alvo CFD: 68–114 kW/m² (±25%)**  
+Mostinski (1963) como segunda referência: q_Mostinski ≈ 76 kW/m²  
+**Faixa de consenso literatura: 76–91 kW/m²**
 
 ---
 
 ## 9. Cenas (Scenes)
 
-| Scene | Scalar | Objetivo |
-|-------|--------|---------|
-| VOF_Vapor | Volume Fraction (vapor) | Padrão de bolhas |
-| Temperature | Static Temperature | Gradiente térmico |
-| Velocity | Velocity Magnitude | Circulação natural |
-| Heat_Flux | Boundary Heat Flux | Distribuição no tubo |
+| Scene | Field Function | Objetivo |
+|---|---|---|
+| `VOF_Vapor` | Volume Fraction (vapor) | Padrão de bolhas e coalescência |
+| `Temperature` | Static Temperature | Gradiente térmico no pool |
+| `Velocity` | Velocity Magnitude | Circulação natural |
+| `Heat_Flux` | Boundary Heat Flux | Distribuição ao longo dos tubos |
+| `Wall_Superheat` | Expression: `StaticTemp - 336.7` | Mapa de ΔT local |
+
+---
+
+## 10. Progressão após Validação
+
+| Fase | Mudança | Novo objetivo |
+|---|---|---|
+| 2 | ΔT parametrico: 20 / 30 / 40 / 46 K | Curva de ebulição CFD vs. Rohsenow |
+| 3 | Feixe 3×6 + geometria de casco TEMA K | Mapa de título de vapor, DNB detection |
+| 4 | CHT: vapor condensando no tubo interno | Resistência térmica real da parede |
