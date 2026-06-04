@@ -701,5 +701,179 @@ Reports (estabilidade):
 
 ---
 
-*Documento gerado com base em Allain et al. (2015), CEJ 281, 654–664. DOI: 10.1016/j.cej.2015.07.075*
+---
+
+## Apêndice C: Dois Caminhos no STAR-CCM+ — Field Function vs. Surface Chemistry Model
+
+### C.1 Visão geral dos dois caminhos disponíveis
+
+Os tutoriais da Siemens apresentam um mecanismo nativo chamado **Surface Chemistry Model** com
+um gestor de mecanismos (`Surface Mechanism Manager`). Entender quando usar cada abordagem
+é fundamental para não implementar um caminho inadequado.
+
+| Critério | **Caminho A: Field Function + Flux BC** | **Caminho B: Surface Mechanism Manager** |
+|---|---|---|
+| Tipo de reação | Leis de potência globais (modelo Clássico) | Mecanismos elementares com cobertura de sítio (θ) |
+| Número de reações | Qualquer (nós usamos 3) | Qualquer, porém gerenciado pelo solver CVODE |
+| Fase do fluido | **Líquido** (Multi-Component Liquid) ✅ | Projetado para **gás** (Multi-Component Gas) |
+| Taxa de reação | Field Function customizada (expressão algébrica) | Arrhenius com checkboxes (LH, Reversible, Sticky…) |
+| Cobertura de sítio (θ) | **Não necessário** (taxa global) | Equações de site fraction (θ_TG, θ_MeOH…) |
+| Solver | Segregated Species (padrão) | CVODE (solver stiff especializado) |
+| Site Density [kmol/m²] | **Não necessário** | Obrigatório |
+| Complexidade de setup | Menor (tudo via Field Functions) | Maior (árvore extensa, declaração de espécies de superfície) |
+| **Recomendação** | ✅ **USAR ESTE** para o nosso caso | ❌ Overengineering para taxa global LHHW em líquido |
+
+**Conclusão: usar sempre o Caminho A (Field Function) para o modelo Clássico de Allain (2015).**
+
+O Caminho B é necessário apenas se:
+- A taxa for definida por *surface coverage* (equações diferenciais de θ sobre a superfície).
+- O fluido for gás com química complexa (ex.: CH₄/Pt do tutorial da Siemens).
+- Houver dezenas de reações elementares gerenciadas via arquivo Chemkin.
+
+---
+
+### C.2 Onde fica o Surface Mechanism Manager (para referência)
+
+Caso queira explorar o Caminho B no futuro (ex.: modelo Eley-Rideal com adsorção explícita):
+
+```
+[Simulation Tree]
+└── Continuum ("Fluid Physics")
+    └── Models
+        └── Surface Chemistry        ← ativar via "Edit Models..."
+            └── Surface Mechanism Manager
+                └── [Nome do Mecanismo]   ← clicar direito → "New Surface Mechanism"
+                    ├── Gas/Liquid Species  ← TG, MeOH, DG, MG, FAME, GL
+                    ├── Surface Species     ← sítios ativos (ex.: [*], TG*, MeOH*)
+                    ├── Site Density: [kmol/m²]
+                    └── Models
+                        └── Reacting Surface
+                            └── Reactions
+                                └── [Reaction 1]
+                                    └── Properties
+                                        └── Reaction Coefficient
+                                            └── Arrhenius Coefficients
+                                                ├── Pre-Exponent A
+                                                ├── Activation Energy Ea [J/mol]
+                                                ├── Temperature Exponent Beta
+                                                ├── ☑ Reversible (marcar para reações reversíveis)
+                                                ├── ☑ Langmuir-Hinshelwood  ← relevante para Eley-Rideal
+                                                ├── Motz-Wise Correction    (apenas gás)
+                                                └── Bohm Correction         (apenas gás)
+```
+
+**Ativar Surface Mechanism Option na parede catalítica:**
+```
+Boundaries → Top Wall → Physics Conditions
+  → Surface Mechanism Option: Enabled    ← obrigatório para que a parede seja reativa
+```
+
+---
+
+### C.3 O checkbox "Langmuir-Hinshelwood" — quando usar
+
+O painel Arrhenius Coefficients do Surface Mechanism Manager tem um checkbox
+**"Langmuir-Hinshelwood"** que, quando marcado, modifica a expressão de taxa para incluir
+termos de inibição no denominador.
+
+**Para o Modelo Clássico de Allain (2015): NÃO marcar.**
+- O Modelo Clássico é uma lei de potência de 2ª ordem sem denominador de inibição.
+- Marcar incorretamente alteraria a forma funcional da expressão.
+
+**Para o Modelo Eley-Rideal de Allain (2015): marcar.**
+- O modelo ER tem termos `1 + KA·C_TG + KG·C_GL` no denominador — isso é a forma LH.
+- Se implementando o ER via Surface Mechanism Manager, marcar o checkbox e inserir os
+  parâmetros KA e KG nos campos correspondentes.
+
+---
+
+### C.4 Surface Washcoat Factor — localização exata
+
+O `Surface Washcoat Factor` é um parâmetro do Caminho B (Surface Mechanism Manager) que
+representa o aumento efetivo da área catalítica pelo washcoat sobre a área geométrica da parede.
+
+**No Caminho A (nosso caso):** o efeito do washcoat está embutido no fator de conversão:
+```
+fator_conversão = ρ_washcoat × δ_washcoat = 1188 × 20e-6 = 0,02376 kgcat/m²_wall
+→ Já incorporado nas Field Functions r1_wall, r2_wall, r3_wall
+→ NÃO é necessário o parâmetro "Surface Washcoat Factor" da interface
+```
+
+**No Caminho B (referência futura):** localização na árvore:
+```
+Interfaces → [Nome da Interface Fluido-Parede]
+  → Physics Values
+      └── Surface Washcoat Factor: [valor adimensional]
+          → Multiplica a área geométrica para obter a área efetiva do washcoat
+          → Ex.: fator = 500 significa que o washcoat tem 500× mais área que a parede geométrica
+```
+
+Para converter o nosso fator `0,02376 kgcat/m²` em um Surface Washcoat Factor adimensional,
+seria necessário dividir pela densidade areal do catalisador monolítico — mas isso é
+desnecessário pois o Caminho A já trata isso algebricamente nas Field Functions.
+
+---
+
+### C.5 CVODE — solver para química stiff (Caminho B)
+
+O tutorial "Methane Reformer" da Siemens usa o solver **CVODE** para integrar equações
+de surface coverage (θ) que são numericamente stiff. No nosso caso:
+
+```
+Nosso sistema (Caminho A):
+  - 3 equações algébricas de taxa (r1, r2, r3) — NÃO diferenciais
+  - Segregated Species solver (padrão) é suficiente
+  - URF = 0,5 para estabilidade (ver Seção 5.2)
+  → CVODE NÃO é necessário
+```
+
+Se no futuro migrar para o Caminho B com cobertura de sítio, ativar CVODE em:
+```
+Solvers → Surface Chemistry Solver
+  → Solver Type: CVODE
+  → Absolute Tolerance: 1×10⁻¹⁰  (parâmetro padrão para stiff ODE)
+```
+
+---
+
+## Apêndice D: Build123d — Geometria 2D do Canal (Fase 1)
+
+Script Python para gerar o canal retangular 2D e exportar como STEP para o STAR-CCM+.
+
+**Arquivo:** `scripts/canal_2d.py`
+
+```python
+# Canal representativo do monólito para Fase 1 (hidrodinâmica a frio)
+# Dh = 1,1 mm (canal quadrado), L = 50 mm
+# Exporta: canal_2d.step (importar no STAR-CCM+ como 2D geometry)
+
+from build123d import *
+
+# Parâmetros do canal
+Dh = 1.1e-3    # m — diâmetro hidráulico
+L  = 50.0e-3   # m — comprimento do canal
+
+with BuildSketch() as sketch:
+    Rectangle(L * 1000, Dh * 1000)   # build123d usa mm por padrão
+
+# Exportar o contorno como STEP 2D
+export_step(sketch.sketch, "canal_2d.step")
+print(f"Canal exportado: {L*1000:.0f} mm × {Dh*1000:.1f} mm")
+```
+
+**No STAR-CCM+:**
+```
+File → Import → CAD Model → canal_2d.step
+  → Confirmar importação como 2D
+  → Renomear as 4 superfícies:
+       Borda inferior (y=0):       "Bottom_Wall"   ou "Symmetry"
+       Borda superior (y=Dh):      "Top_Wall"      (parede catalítica)
+       Borda esquerda (x=0):       "Inlet"
+       Borda direita  (x=L):       "Outlet"
+```
+
+---
+
+*Documento gerado com base em Allain et al. (2015), CEJ 281, 654–664. DOI: 10.1016/j.cej.2015.07.075*  
+*Tutoriais Siemens: "Surface Chemistry Terminology", "SurfaceChemistry on Baffle-Interface", "Methane Reformer with CVODE"*  
 *Gabriel Rozo | FEQ/UNICAMP | 2025-2027*

@@ -1,0 +1,149 @@
+% =============================================================================
+% References — Biodiesel Monolith CFD — Mestrado FEQ/UNICAMP
+% Gabriel Rozo | 2025-2027
+% =============================================================================
+
+% --- Cinética (Fonte primária dos parâmetros LHHW) ---
+
+@article{Allain2015,
+  author    = {Allain, François and Portha, Jean-François and Commenge, Jean-Marc
+               and Girot, Luc and Falk, Laurent},
+  title     = {Intrinsic kinetics and diffusional limitations of biodiesel
+               transesterification in a structured reactor filled with {ZnAl$_2$O$_4$} catalyst},
+  journal   = {Chemical Engineering Journal},
+  volume    = {281},
+  pages     = {654--664},
+  year      = {2015},
+  doi       = {10.1016/j.cej.2015.07.075},
+  publisher = {Elsevier},
+  note      = {Modelo cinético Clássico (Eq.\ 5--7): 3 reações em série reversíveis,
+               2ª ordem. Parâmetros: k1⁰=1.26e-2, k2⁰=8.88e-6, k3⁰=1.28e-7
+               m⁶/(mol·kgcat·s). Ea1=64.6, Ea2=31.8, Ea3=17.0 kJ/mol.
+               K1=51.2, K2=53.1, K3=12.2. T=140--220°C, ZnAl₂O₄, triolein+MeOH.
+               ΔHrxn≈0 J/K (isotérmico). D_TG=0.17e-9 m²/s a 185°C (Tab.\ 12).}
+}
+
+% --- Geometria e benchmark do monólito ---
+
+@phdthesis{Bath2015,
+  author    = {{Author TBD}},
+  title     = {{TBD — University of Bath PhD Thesis 2015 — Monolith Biodiesel}},
+  school    = {University of Bath},
+  year      = {2015},
+  note      = {Geometria do monólito: Dh=1.1 mm, 400 CPSI, T=120°C, P=8 bar,
+               razão molar MeOH:óleo=6:1, catalisador SrO. Benchmark principal
+               para a geometria do canal representativo 2D.}
+}
+
+@phdthesis{Bath2017,
+  author    = {{Author TBD}},
+  title     = {{TBD — University of Bath PhD Thesis 2017 — Monolith Biodiesel}},
+  school    = {University of Bath},
+  year      = {2017},
+  note      = {Catalisador Zn-prolina. Condições operacionais similares a Bath 2015.}
+}
+
+% --- Cinética homogênea (base mecanística) ---
+
+@article{Noureddini1997,
+  author    = {Noureddini, H. and Zhu, D.},
+  title     = {Kinetics of Transesterification of Soybean Oil},
+  journal   = {Journal of the American Oil Chemists' Society},
+  volume    = {74},
+  number    = {11},
+  pages     = {1457--1463},
+  year      = {1997},
+  doi       = {10.1007/s11746-997-0254-2},
+  note      = {Cinética homogênea NaOH. Modelo mecanístico em 3 reações em série
+               (mesmo mecanismo que Allain 2015). Referência fundacional.}
+}
+
+% --- CFD + reação heterogênea (benchmark numérico) ---
+
+@article{Pinheiro2024,
+  author    = {{Pinheiro, TBD} and {Larimi, TBD}},
+  title     = {{TBD — CFD Biodiesel Monolith 2024}},
+  journal   = {{TBD}},
+  year      = {2024},
+  note      = {Benchmark CFD + reação heterogênea recente. Buscar DOI.}
+}
+
+% --- Transferência de calor e massa em microcanais ---
+
+@book{HayesKolaczkowski1997,
+  author    = {Hayes, R. E. and Kolaczkowski, S. T.},
+  title     = {Introduction to Catalytic Combustion},
+  publisher = {Gordon and Breach Science Publishers},
+  year      = {1997},
+  note      = {Hipótese de canal representativo: monólito com simetria periódica.
+               Justificativa padrão da literatura.}
+}
+
+% --- Correlações de transferência ---
+
+@article{Incropera,
+  author    = {{Incropera, F. P. et al.}},
+  title     = {{Fundamentals of Heat and Mass Transfer}},
+  journal   = {{John Wiley \& Sons}},
+  note      = {Nu=7.54 para escoamento laminar desenvolvido em canal plano (UWT).
+               Sh análogo para transferência de massa.}
+}
+
+% --- Propriedades físicas ---
+
+@manual{DIPPR,
+  author    = {{DIPPR Project 801}},
+  title     = {{Design Institute for Physical Properties — DIPPR 801 Database}},
+  organization = {AIChE},
+  note      = {Propriedades termofísicas: densidade, viscosidade, condutividade
+               térmica do óleo de canola e metanol.}
+}
+
+% --- Termoquímica ---
+
+@article{Freedman1986,
+  author    = {Freedman, B. and Pryde, E. H. and Mounts, T. L.},
+  title     = {Variables affecting the yields of fatty esters from transesterified
+               vegetable oils},
+  journal   = {Journal of the American Oil Chemists' Society},
+  volume    = {63},
+  number    = {10},
+  pages     = {1375--1380},
+  year      = {1986},
+  doi       = {10.1007/BF02679606},
+  note      = {Confirmar ΔHrxn. Alain 2015 cita como referência para tratamento isotérmico.}
+}
+
+% --- Metodologia CFD ---
+
+@manual{StarCCMUserGuide,
+  author    = {Siemens},
+  title     = {{Simcenter STAR-CCM+ User Guide, v2406}},
+  year      = {2024},
+  note      = {Manual principal. Baixar do Siemens Support Center.}
+}
+
+@manual{StarCCMSurfaceChemTerms,
+  author    = {Siemens},
+  title     = {{Understanding Surface Chemistry Terminology in STAR-CCM+}},
+  year      = {2024},
+  note      = {Tutorial: Site Density, Site/Bulk species, Site Occupancy,
+               Surface Site Fraction. Base para entender Surface Mechanism Manager.}
+}
+
+@manual{StarCCMBaffleSurfRxn,
+  author    = {Siemens},
+  title     = {{How to Use the SurfaceChemistry Model on a Baffle-Interface}},
+  year      = {2024},
+  note      = {Tutorial: caminho exato Surface Mechanism Manager → Arrhenius Coefficients.
+               Checkbox Langmuir-Hinshelwood. Surface Washcoat Factor.
+               Surface Mechanism Option nas BCs.}
+}
+
+@manual{StarCCMMethaneReformer,
+  author    = {Siemens},
+  title     = {{Methane Reformer: Surface Chemistry with CVODE Solver}},
+  year      = {2024},
+  note      = {Tutorial: solver CVODE para química stiff. Gas-phase example.
+               Referência para entender diferenças vs.\ caso líquido do projeto.}
+}
