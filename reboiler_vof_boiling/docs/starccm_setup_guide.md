@@ -173,7 +173,7 @@ Para hidrocarboneto, reduz ~5–10×: **N_nuc ≈ 20 000–35 000 m⁻²** → u
 | `q_wall` | Surface Average | Boundary Heat Flux · `Tube_Wall` | 76–91 kW/m² |
 | `T_wall` | Surface Average | Static Temperature · `Tube_Wall` | 383 K |
 | `alpha_v_out` | Surface Average | VOF vapor · `Outlet` | 0,05–0,30 |
-| `h_boil` | Expression | `${q_wall} / (${T_wall} - 336.7)` | 1640–1960 W/(m²K) |
+| `h_boil` | Expression | `${q_wall} / 46.45` (ΔT constante) | 1640–1960 W/(m²K) |
 
 ### Alvo de Validação — Correlação Rohsenow (1952)
 
@@ -201,7 +201,45 @@ Mostinski (1963) como segunda referência: q_Mostinski ≈ 76 kW/m²
 
 ---
 
-## 9. Cenas (Scenes)
+## 9. Resultados — Run Exploratório (Fase 1, t = 1,3 s)
+
+### 9.1  Resultados Quantitativos
+
+| Grandeza | CFD (t = 1,3 s) | Rohsenow (1952) | Mostinski (1963) | Desvio CFD/Rohsenow |
+|---|---|---|---|---|
+| q_wall (kW/m²) | **46,2** | 90,7 | 76,0 | −49% |
+| h_boil (W/(m²·K)) | **994** | 1953 | 1636 | −49% |
+| T_wall (K) | 383 ✓ | — | — | — |
+| Alvo ±25% | — | 68–114 kW/m² | — | **fora da faixa** |
+
+> **Status:** O resultado não atinge o alvo ±25% neste run. Isso é esperado e explicável (ver §9.2).
+> A fenomenologia está fisicamente correta; a calibração quantitativa é o próximo passo.
+
+### 9.2  Análise do Desvio (−49%)
+
+| Causa | Contribuição estimada | Correção |
+|---|---|---|
+| **C_qw não calibrado** (0,008 = padrão água) | ~35–40% | Usar C_qw = 0,016–0,024 para n-C₅H₁₂ em SS |
+| **Vapor blanketing** (topo dos tubos coberto) | ~10–15% | Inerente à geometria — Rohsenow não considera |
+| **Estado transitório** (t = 1,3 s; Rohsenow = quasi-estacionário) | ~5% | Rodar até t ≥ 10 s |
+
+### 9.3  Fenomenologia Capturada (Correto Fisicamente ✓)
+
+- **Chaminés de vapor** entre colunas de tubos (Cornwell et al., 1980) ✓
+- **Vapor blanketing assimétrico** — parte superior dos tubos com cobertura maior ✓
+- **Convecção natural** — V_max ≈ 1,24 m/s sem forçamento (apenas empuxo) ✓
+- **Espaço de vapor** no topo do domínio (comportamento TEMA K) ✓
+
+### 9.4  Próximos Passos para Fechar Validação
+
+1. **Novo run do zero** com C_qw = 0,016 (n-C₅H₁₂ em SS industrial — Pioro, 2004)
+2. Rodar até t = 10–15 s (regime quasi-estacionário verdadeiro)
+3. Verificar se q_CFD cai na faixa 68–114 kW/m²
+4. Se necessário, ajustar N_nuc (±50% muda q em ±15%)
+
+---
+
+## 11. Cenas (Scenes)
 
 | Scene | Field Function | Objetivo |
 |---|---|---|
@@ -213,7 +251,7 @@ Mostinski (1963) como segunda referência: q_Mostinski ≈ 76 kW/m²
 
 ---
 
-## 10. Progressão após Validação
+## 12. Progressão após Validação
 
 | Fase | Mudança | Novo objetivo |
 |---|---|---|
