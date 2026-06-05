@@ -16,7 +16,7 @@ import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+from matplotlib.patches import Rectangle, ConnectionPatch
 import pathlib, sys
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
@@ -141,12 +141,11 @@ ax1a.text(Y_TG_0 + 0.01, 0.06, r"$Y_{TG}^{0}$",
 ax1a.text(Y_OH_0 + 0.01, 0.06, r"$Y_{MeOH}^{0}$",
           fontsize=7, color=C["MeOH"], va="bottom")
 
-# Destaque zona catalítica
-ax1a.axhspan(YZOOM, 1.02, color="0.92", zorder=0)
-# Texto na parte inferior da faixa cinza (abaixo da ação das linhas de dados)
-ax1a.text(0.50, YZOOM + 0.004,
-          "Detalhe em (b)→", fontsize=7, ha="center", va="bottom",
-          color="0.35", style="italic")
+# Destaque zona catalítica — retângulo tracejado no painel (a)
+rect = Rectangle((0.0, YZOOM), 1.0, 1.02 - YZOOM,
+                 linewidth=0.8, edgecolor="0.45", facecolor="none",
+                 linestyle="--", zorder=3, clip_on=False)
+ax1a.add_patch(rect)
 
 ax1a.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
 ax1a.set_ylabel(r"$y/D_h\;[-]$")
@@ -183,10 +182,10 @@ ax1b.annotate(
     arrowprops=dict(arrowstyle="<->", lw=0.9, color="0.35"),
     annotation_clip=True,
 )
-ax1b.text(x_arrow + 0.015, y_mid,
-          r"$\delta_c$" + "\n" + r"$\approx\!22\,\mu\mathrm{m}$",
+ax1b.text(x_arrow + 0.01, y_mid,
+          r"$\delta_c \approx 22\,\mu\mathrm{m}$",
           fontsize=7, color="0.35", va="center", ha="left",
-          clip_on=True)
+          rotation=90, rotation_mode="anchor", clip_on=True)
 
 ax1b.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
 ax1b.set_ylabel(r"$y/D_h\;[-]$")
@@ -202,6 +201,18 @@ fig1.text(0.01, -0.02,
           r"Nota: y/D_h < 0.14 excluído (artefato de refluxo na saída). "
           r"Condição: T = 120 °C, P = 8 bar, razão molar MeOH:TG = 6:1.",
           fontsize=6.5, color="0.5", va="top")
+
+# ConnectionPatch: linhas de zoom conectando painel (a) ao painel (b)
+# Linha inferior (y = YZOOM) e superior (y = 1.0 = parede)
+for y_con in (YZOOM, 1.0):
+    con = ConnectionPatch(
+        xyA=(1.0, y_con), coordsA=ax1a.transData,
+        xyB=(0.0, y_con), coordsB=ax1b.transData,
+        axesA=ax1a, axesB=ax1b,
+        color="0.45", lw=0.8, linestyle="--",
+        clip_on=False, zorder=4,
+    )
+    fig1.add_artist(con)
 
 fig1.tight_layout(pad=0.5)
 for ext in ("pdf", "png"):
