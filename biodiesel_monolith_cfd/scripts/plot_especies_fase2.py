@@ -236,7 +236,7 @@ FIG2_W, FIG2_H = 3.465, 3.2
 
 fig2, ax2 = plt.subplots(figsize=(FIG2_W, FIG2_H))
 
-SP_AXIAL = ["TG", "MeOH", "DG", "FAME"]
+SP_AXIAL = ["TG", "MeOH"]
 
 for sp in SP_AXIAL:
     x_m, val = axial[sp]
