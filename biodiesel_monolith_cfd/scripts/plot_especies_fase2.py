@@ -20,12 +20,12 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
 import pathlib, sys
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
-UPLOAD_DIR = pathlib.Path("/root/.claude/uploads/d70de078-8943-45fb-b502-4acdf429217f")
+UPLOAD_DIR = pathlib.Path("/root/.claude/uploads/7109fce1-c105-49ab-8766-968aedd847ae")
 OUT_DIR    = pathlib.Path("/home/user/Programacao/biodiesel_monolith_cfd/results")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-AXIAL_CSV  = UPLOAD_DIR / "9a9f97b4-Fracao_massica_axial.csv"
-OUTLET_CSV = UPLOAD_DIR / "0e389788-Fracao_massica_eixo_y.csv"
+AXIAL_CSV  = UPLOAD_DIR / "8e11270f-perfi_axial.csv"
+OUTLET_CSV = UPLOAD_DIR / "58faede8-perfi_saida.csv"
 
 # ─── Estilo global (CEJ) ─────────────────────────────────────────────────────
 mpl.rcParams.update({
@@ -142,10 +142,11 @@ ax1a.text(Y_OH_0 + 0.01, 0.06, r"$Y_{MeOH}^{0}$",
           fontsize=7, color=C["MeOH"], va="bottom")
 
 # Destaque zona catalítica
-ax1a.axhspan(YZOOM, 1.005, color="0.92", zorder=0)
-ax1a.text(0.50, (YZOOM + 1.0) / 2,
-          "Detalhe\nem (b)", fontsize=7, ha="center", va="center",
-          color="0.4", style="italic")
+ax1a.axhspan(YZOOM, 1.02, color="0.92", zorder=0)
+# Texto na parte inferior da faixa cinza (abaixo da ação das linhas de dados)
+ax1a.text(0.50, YZOOM + 0.004,
+          "Detalhe em (b)→", fontsize=7, ha="center", va="bottom",
+          color="0.35", style="italic")
 
 ax1a.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
 ax1a.set_ylabel(r"$y/D_h\;[-]$")
@@ -169,25 +170,32 @@ for sp in SP_ZOOM:
               label=rf"$Y_{{\mathrm{{{sp}}}}}$")
 
 # Anotação: espessura da camada limite de concentração
-# δ_c ≈ 37 µm (onde TG começa a cair, verificado nos dados)
-delta_c = 37e-6   # m
-y_delta = (Dh - delta_c) / Dh  # y/Dh onde começa a depleção
+# δ_c ≈ 22 µm — onde TG começa a cair (y=1.078mm, dados novos BC correta)
+delta_c   = 22e-6   # m  (onset of depletion from new data)
+y_onset   = (Dh - delta_c) / Dh          # y/Dh ≈ 0.980
+y_wall    = (Dh - 1e-6)  / Dh            # ligeiramente abaixo de 1.0 (evita clipping)
+y_mid     = (y_wall + y_onset) / 2
+x_arrow   = 0.90                          # à direita dos dados, fora das curvas
+
 ax1b.annotate(
-    "", xy=(0.82, 1.0), xytext=(0.82, y_delta),
-    arrowprops=dict(arrowstyle="<->", lw=0.9, color="0.3")
+    "", xy=(x_arrow, y_wall), xytext=(x_arrow, y_onset),
+    xycoords="data", textcoords="data",
+    arrowprops=dict(arrowstyle="<->", lw=0.9, color="0.35"),
+    annotation_clip=True,
 )
-ax1b.text(0.85, (1.0 + y_delta) / 2,
-          r"$\delta_c \approx 37\,\mu\mathrm{m}$",
-          fontsize=7, color="0.3", va="center")
+ax1b.text(x_arrow + 0.015, y_mid,
+          r"$\delta_c$" + "\n" + r"$\approx\!22\,\mu\mathrm{m}$",
+          fontsize=7, color="0.35", va="center", ha="left",
+          clip_on=True)
 
 ax1b.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
 ax1b.set_ylabel(r"$y/D_h\;[-]$")
 ax1b.set_xlim(0.0, 1.0)
-ax1b.set_ylim(YZOOM, 1.005)
+ax1b.set_ylim(YZOOM, 1.002)   # margem mínima: mantém arrowhead dentro do eixo
 ax1b.xaxis.set_minor_locator(AutoMinorLocator(5))
 ax1b.yaxis.set_minor_locator(AutoMinorLocator(4))
 ax1b.legend(loc="lower left", ncol=1)
-ax1b.set_title(r"(b) Camada catalítica (Top\_Wall)", fontsize=9, pad=4)
+ax1b.set_title("(b) Camada catalítica (Top_Wall)", fontsize=9, pad=4)
 
 # Nota de rodapé da figura
 fig1.text(0.01, -0.02,
