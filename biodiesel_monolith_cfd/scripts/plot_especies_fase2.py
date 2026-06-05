@@ -182,9 +182,9 @@ ax1b.annotate(
     arrowprops=dict(arrowstyle="<->", lw=0.9, color="0.35"),
     annotation_clip=True,
 )
-ax1b.text(x_arrow + 0.01, y_mid,
+ax1b.text(x_arrow - 0.025, y_mid,
           r"$\delta_c \approx 22\,\mu\mathrm{m}$",
-          fontsize=7, color="0.35", va="center", ha="left",
+          fontsize=7, color="0.35", va="center", ha="center",
           rotation=90, rotation_mode="anchor", clip_on=True)
 
 ax1b.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
@@ -202,17 +202,25 @@ fig1.text(0.01, -0.02,
           r"Condição: T = 120 °C, P = 8 bar, razão molar MeOH:TG = 6:1.",
           fontsize=6.5, color="0.5", va="top")
 
-# ConnectionPatch: linhas de zoom conectando painel (a) ao painel (b)
-# Linha inferior (y = YZOOM) e superior (y = 1.0 = parede)
-for y_con in (YZOOM, 1.0):
-    con = ConnectionPatch(
-        xyA=(1.0, y_con), coordsA=ax1a.transData,
-        xyB=(0.0, y_con), coordsB=ax1b.transData,
-        axesA=ax1a, axesB=ax1b,
-        color="0.45", lw=0.8, linestyle="--",
-        clip_on=False, zorder=4,
-    )
-    fig1.add_artist(con)
+# ConnectionPatch: apenas a linha da parede (y=1.0) — conector quase horizontal
+# A linha inferior (y=YZOOM) criaria uma diagonal acentuada por causa da
+# ampliação de 46× entre os dois painéis; o retângulo já indica o limite inferior.
+con_top = ConnectionPatch(
+    xyA=(1.0, 1.0), coordsA="data",
+    xyB=(0.0, 1.0), coordsB="data",
+    axesA=ax1a, axesB=ax1b,
+    color="0.45", lw=0.8, linestyle="--",
+    clip_on=False, zorder=4,
+)
+con_bot = ConnectionPatch(
+    xyA=(1.0, YZOOM), coordsA="data",
+    xyB=(0.0, YZOOM), coordsB="data",
+    axesA=ax1a, axesB=ax1b,
+    color="0.45", lw=0.8, linestyle="--",
+    clip_on=False, zorder=4,
+)
+fig1.add_artist(con_top)
+fig1.add_artist(con_bot)
 
 fig1.tight_layout(pad=0.5)
 for ext in ("pdf", "png"):
