@@ -174,7 +174,7 @@ delta_c   = 22e-6   # m  (onset of depletion from new data)
 y_onset   = (Dh - delta_c) / Dh          # y/Dh ≈ 0.980
 y_wall    = (Dh - 1e-6)  / Dh            # ligeiramente abaixo de 1.0 (evita clipping)
 y_mid     = (y_wall + y_onset) / 2
-x_arrow   = 0.90                          # à direita dos dados, fora das curvas
+x_arrow   = 0.83                          # à direita dos dados, dentro de xlim=0.85
 
 ax1b.annotate(
     "", xy=(x_arrow, y_wall), xytext=(x_arrow, y_onset),
@@ -189,7 +189,7 @@ ax1b.text(x_arrow - 0.025, y_mid,
 
 ax1b.set_xlabel(r"Fração mássica, $Y_i\;[-]$")
 ax1b.set_ylabel(r"$y/D_h\;[-]$")
-ax1b.set_xlim(0.0, 1.0)
+ax1b.set_xlim(0.0, 0.85)   # intervalo real dos dados + margem (padrão CEJ)
 ax1b.set_ylim(YZOOM, 1.002)   # margem mínima: mantém arrowhead dentro do eixo
 ax1b.xaxis.set_minor_locator(AutoMinorLocator(5))
 ax1b.yaxis.set_minor_locator(AutoMinorLocator(4))
