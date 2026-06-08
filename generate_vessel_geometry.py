@@ -32,14 +32,17 @@ import os, math
 
 # ============================================================
 # PARAMETERS – realistic industrial vessel (ASME VIII Div.1)
+# NOTE: CadQuery/OCCT uses millimeters internally.
+#       All dimensions here are in mm; STEP is exported as mm
+#       and Star-CCM+ will import correctly in SI (metres).
 # ============================================================
-R_INNER  = 0.250   # inner radius [m]  → ID = 500 mm
-T_WALL   = 0.012   # wall thickness [m] = 12 mm  (OK for ~13 bar per ASME)
-R_OUTER  = R_INNER + T_WALL   # = 0.262 m
-LENGTH   = 1.000   # vessel length [m]
+R_INNER  = 250.0   # inner radius [mm]  → ID = 500 mm
+T_WALL   =  12.0   # wall thickness [mm] = 12 mm  (OK for ~13 bar per ASME)
+R_OUTER  = R_INNER + T_WALL   # = 262.0 mm
+LENGTH   = 1000.0  # vessel length [mm]
 
 # Cutter margin – larger than geometry to avoid coincident-face issues in OCCT
-MARGIN   = R_OUTER * 0.25    # 25% over-cut margin
+MARGIN   = R_OUTER * 0.25    # 25% over-cut margin [mm]
 
 OUTPUT_DIR = "/home/user/Programacao"
 
@@ -88,8 +91,8 @@ print("Building FLUID domain...")
 fluid_full = cq.Workplane("XY").cylinder(LENGTH, R_INNER)
 fluid      = fluid_full.cut(half_cutter)
 
-print(f"  Volume = {fluid.val().Volume():.8f} m³")
-print(f"  Expected ≈ {0.5 * math.pi * R_INNER**2 * LENGTH:.8f} m³")
+print(f"  Volume = {fluid.val().Volume():.4f} mm³")
+print(f"  Expected ≈ {0.5 * math.pi * R_INNER**2 * LENGTH:.4f} mm³")
 n_fluid_faces = face_report(fluid)
 print(f"  Total faces: {n_fluid_faces}")
 occt_check(fluid, "FLUID")
@@ -107,9 +110,9 @@ inner_cyl  = cq.Workplane("XY").cylinder(LENGTH, R_INNER)
 vessel_hol = outer_cyl.cut(inner_cyl)
 vessel     = vessel_hol.cut(half_cutter)
 
-print(f"  Volume = {vessel.val().Volume():.8f} m³")
+print(f"  Volume = {vessel.val().Volume():.4f} mm³")
 expected_v = 0.5 * math.pi * (R_OUTER**2 - R_INNER**2) * LENGTH
-print(f"  Expected ≈ {expected_v:.8f} m³")
+print(f"  Expected ≈ {expected_v:.4f} mm³")
 n_vessel_faces = face_report(vessel)
 print(f"  Total faces: {n_vessel_faces}")
 occt_check(vessel, "VESSEL")
@@ -122,7 +125,7 @@ assert n_vessel_faces >= 5, f"Expected ≥5 vessel faces, got {n_vessel_faces}"
 # The FSI surface is the half-cylinder at radius R_INNER.
 # Expected area = pi * R_INNER * LENGTH (half-cylinder)
 # ============================================================
-fsi_expected = math.pi * R_INNER * LENGTH
+fsi_expected = math.pi * R_INNER * LENGTH  # mm²
 
 def find_fsi_area(wp):
     """Return area of face closest to expected FSI area."""
@@ -132,9 +135,9 @@ def find_fsi_area(wp):
 area_fluid_contact  = find_fsi_area(fluid)
 area_vessel_contact = find_fsi_area(vessel)
 
-print(f"\nFSI interface area check (expected {fsi_expected:.6f} m²):")
-print(f"  Fluid  inner wall: {area_fluid_contact:.6f} m²")
-print(f"  Vessel inner wall: {area_vessel_contact:.6f} m²")
+print(f"\nFSI interface area check (expected {fsi_expected:.2f} mm²):")
+print(f"  Fluid  inner wall: {area_fluid_contact:.2f} mm²")
+print(f"  Vessel inner wall: {area_vessel_contact:.2f} mm²")
 rel_error = abs(area_fluid_contact - area_vessel_contact) / fsi_expected
 print(f"  Relative difference: {rel_error:.2e}  ({'OK' if rel_error < 1e-6 else 'WARNING: mismatch!'})")
 
@@ -151,7 +154,7 @@ for name, wp in [("FLUID", fluid), ("VESSEL", vessel)]:
         except Exception:
             pass
     min_len = min(lengths) if lengths else 0
-    print(f"  {name}: min edge = {min_len:.6f} m  ({'OK' if min_len > 1e-6 else 'WARNING: degenerate edge!'})")
+    print(f"  {name}: min edge = {min_len:.4f} mm  ({'OK' if min_len > 1e-3 else 'WARNING: degenerate edge!'})")
 
 # ============================================================
 # EXPORT STEP FILES
