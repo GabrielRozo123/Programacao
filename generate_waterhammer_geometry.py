@@ -102,7 +102,7 @@ valve = (
     cq.Workplane("XZ")
     .circle(VALVE_R)
     .extrude(VALVE_THICK)
-    .translate((0.0, -VALVE_THICK / 2.0, 0.0))
+    .translate((0.0, VALVE_THICK / 2.0, 0.0))
 )
 
 valve_vol = valve.val().Volume()
