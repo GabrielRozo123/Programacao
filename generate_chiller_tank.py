@@ -7,8 +7,8 @@ resfriado por chiller externo. Estudo de estratificação térmica transiente.
 
 Geometria (domínio fluido only — paredes excluídas):
   - Cilindro vertical com fundo cônico e topo plano
-  - Dois bocais: inlet (do chiller, -5°C) no casco lateral
-                 outlet (para o chiller, +5°C) no ápice do cone
+  - Dois bocais: inlet (do chiller, -5°C) no TETO, jato descendente
+                 outlet (para o chiller, +5°C) no ápice do cone de fundo
 
 Coord system: eixo Z vertical, origem no ápice do cone (ponto mais baixo do fluido)
 
@@ -23,7 +23,7 @@ import math, os
 # ================================================================
 # PARÂMETROS GEOMÉTRICOS (mm — escala real)
 # ================================================================
-D_SHELL      = 4400.0    # diâmetro interno do casco [mm]
+D_SHELL      = 4210.0    # diâmetro interno do casco [mm] (medido DWG viewer: 42.088/10)
 R_SHELL      = D_SHELL / 2
 
 H_CONE       = 780.0     # altura do cone de fundo [mm]
@@ -38,11 +38,10 @@ print(f"  Ângulo semi-vertical do cone: {CONE_HALF_ANGLE:.1f}°")
 D_OUTLET     = 150.0     # DN150 estimado
 L_OUTLET     = 200.0     # comprimento do stub [mm]
 
-# Bocal de ENTRADA — lateral do casco, do chiller (-5°C)
-D_INLET      = 150.0     # DN150 estimado
+# Bocal de ENTRADA — TETO do tanque, do chiller (-5°C) [confirmado: croqui Otávio]
+D_INLET      = 150.0     # DN150 (medido viewer: 1.5/10 m)
 L_INLET      = 200.0     # comprimento do stub [mm]
-Z_INLET      = H_CONE + 2220.0   # elevação do centro do bocal acima do ápice [mm]
-                                  # 2220 mm acima da junção cone/casco
+R_INLET_POS  = 1200.0    # offset radial do bocal no teto [mm] (ao lado do manway)
 
 OUTPUT_DIR   = "/home/user/Programacao"
 
@@ -83,11 +82,12 @@ outlet_stub = (cq.Workplane("XY")
                .extrude(L_OUTLET, both=True))
 tank_fluid = tank_fluid.union(outlet_stub)
 
-# --- Bocal de ENTRADA (inlet) — lateral, direção +X, centrado em Z_INLET
-inlet_stub = (cq.Workplane("YZ")
-              .center(0, Z_INLET)
+# --- Bocal de ENTRADA (inlet) — no TETO, vertical, offset radial
+inlet_stub = (cq.Workplane("XY")
+              .workplane(offset=H_TOTAL)
+              .center(R_INLET_POS, 0)
               .circle(D_INLET / 2)
-              .extrude(L_INLET))
+              .extrude(L_INLET, both=True))
 tank_fluid = tank_fluid.union(inlet_stub)
 
 # --- OCCT validity check ----------------------------------------
@@ -125,9 +125,8 @@ print(f"""
   Volume total           : {V_tot*1000:.1f} L = {V_tot:.3f} m³
   Turnover time          : {TURNOVER:.1f} h (V/Q)
 
-  Bocal inlet DN{D_INLET:.0f}:
-    Velocidade de entrada : {V_INLET:.3f} m/s  @ 12 m³/h
-    Z_centro               : {Z_INLET:.0f} mm acima do ápice
+  Bocal inlet DN{D_INLET:.0f} (TETO, offset radial {R_INLET_POS:.0f} mm):
+    Velocidade de entrada : {V_INLET:.3f} m/s  @ 12 m³/h (jato descendente)
 
   Propriedades fluido (0°C):
     ρ  = 932.65 kg/m³
