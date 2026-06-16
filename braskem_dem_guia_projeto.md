@@ -648,6 +648,111 @@ D_TROUGH = 205.0  # mm — calha interna (D_SCREW + 2 × clearance)
 
 ---
 
+## 3b. SOLUÇÕES DE ENGENHARIA — O QUE RECOMENDAR AO CLIENTE
+
+### Causa raiz (confirmada pela literatura)
+```
+Embuchamento ocorre quando:
+  F_coesão (hexano, θ≈0°) > F_transporte (rosca)
+
+Alavancas de solução:
+  A) Reduzir F_coesão  → menos hexano / modificar parede
+  B) Aumentar F_transporte → rpm / geometria da pá
+  C) Quebrar plug quando forma → cut-flight screw
+```
+
+### Soluções ranqueadas
+| Rank | Solução | Mecanismo | Custo | Viabilidade |
+|---|---|---|---|---|
+| 1 | **Cut-flight screw** (cortes na pá a cada 90°) | Quebra arcos antes de solidificar | Baixo — retrofit | Alta |
+| 2 | **Aumentar rpm até rpm_crítico** | Cisalhamento supera coesão | Zero — operacional | Alta |
+| 3 | **Reduzir fill ratio < 40%** | Menos pontes simultâneas | Zero | Reduz capacidade |
+| 4 | **Passo variável** (pitch crescente na saída) | Reduz compactação axial | Médio | Média |
+| 5 | **Revestimento PTFE na pá** | θ_parede sobe → sem ponte partícula-parede | Médio | Média |
+| 6 | **Melhor remoção de hexano upstream** | Menos f_hex entra no conveyor | Alto | Depende do processo |
+| 7 | **Classificar e remover finos (D < 1mm)** | Finos têm Bo 100× menor — são os culpados primários | Alto | Média |
+| ⚠️ | ~~Vibração na calha~~ | — | — | **PROIBIDO — hexano explosivo** |
+| ⚠️ | ~~Aquecer rosca~~ | — | — | **PROIBIDO — hexano inflamável** |
+
+### Entregável principal: Mapa de Operabilidade
+A simulação produz este mapa para Jeferson:
+```
+               ▲ teor hexano (%)
+           5% │ ██████ CLOGGING ████████████████
+           2% │ ████████████████ CLOGGING ███████
+               │ ░░░░░░░░░░░░░ INTERMITENTE █████
+           1% │ ✓✓✓✓✓✓✓✓░░░░░ INTERMITENTE ████
+          0.5% │ ✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓ OK ✓✓✓✓✓✓✓✓
+               └──────────────────────────────────▶ rpm
+                  10    20    40    60    80   100
+```
+
+---
+
+## 3c. SCENES E REPORTS NO STAR-CCM+ — VER O CLOGGING
+
+### 5 Scenes a configurar
+```
+Scene 1 — Coordination Number
+  Campo: Coordination Number por partícula
+  Escala: 0 (azul, isolada) → 8+ (vermelho, compactada)
+  Lê-se: zona vermelha = plug nascendo → localização exata do clogging
+
+Scene 2 — Velocidade Axial
+  Campo: Particle Velocity[X] (direção do transporte)
+  Escala: 0 m/s (azul=parado) → v_máx (vermelho=transportado)
+  Lê-se: manchas azuis = zonas mortas = precursores de clogging
+
+Scene 3 — Liquid Film Thickness
+  Campo: Liquid Film Thickness [μm]
+  Lê-se: clusters molhados = sementes de clogging
+
+Scene 4 — Liquid Bridge Force
+  Campo: Liquid Bridge Force Magnitude [N]
+  Escala: 0 → 1.7×10⁻⁴ N
+  Lê-se: pico de força aparece ANTES do bloqueio → predição antecipada
+
+Scene 5 — Animação (Solution History a cada 0.05s)
+  Combinar Scene 1 + Scene 2 lado a lado
+  Exportar como .mp4 → mostrar ao cliente o evento completo
+```
+
+### 4 Reports quantitativos (Monitor Plots)
+```
+Report 1 — Mass Flow Rate Outlet [kg/s]
+  Comportamento normal:   constante ≈ taxa de injeção
+  Comportamento clogging: cai abruptamente para 0
+  → Momento exato do evento de clogging
+
+Report 2 — Number of Active Liquid Bridges [count]
+  Sobe ANTES do Mass Flow cair → INDICADOR PRECOCE ★
+  Usar como trigger de alerta no processo real
+
+Report 3 — Mean Coordination Number [-]
+  Threshold de alerta: > 4.0 → sistema em risco de clogging
+
+Report 4 — Transport Efficiency [%]
+  Fórmula: (Mass Flow Outlet / Injection Rate) × 100
+  Normal: 85–95% | Clogging: → 0%
+```
+
+### Assinatura visual do clogging no plot temporal
+```
+         ▲
+   1.0   │ ──────────────────── Mass Flow (estável)
+         │           ╱── Liquid Bridges (subindo = precursor)
+(normal) │          ╱
+         │         ╱       ↓ CLOGGING ONSET
+         │ ────────────────────────────────
+   0.0   │                    └─ Mass Flow = 0 (bloqueio total)
+         └──────────────────────────────────────▶ t [s]
+               0       10       20       30
+```
+O cruzamento das curvas (bridges subindo + mass flow caindo) é a
+assinatura do embuchamento — invisível num teste físico, clara na simulação.
+
+---
+
 ## 4. CRONOGRAMA DO PROJETO
 
 | Fase | Ação | Quando |
