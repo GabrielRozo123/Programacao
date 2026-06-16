@@ -222,6 +222,166 @@ Formato:        .simh → exportar como animação .mp4 para apresentação ao c
 
 ---
 
+## TUTORIAL 2 — DEM PARTICLES IN A CONVEYOR (10 seções)
+
+### T2-S1 — Overview
+**Tutorial:** Geometria importada (não criada internamente); esteira inclinada transportando grãos para uma hopper de coleta
+**Braskem:** Mesma lógica — importar STEP da rosca; calha horizontal em vez de esteira inclinada
+
+### T2-S2 — Visualizing Imported Geometry and Surface Mesh
+**Tutorial:** Verificar se a surface mesh importada não tem gaps, inverted faces ou free edges antes de malhar  
+**Braskem — checklist ao importar o STEP:**
+```
+✓ Verificar se a hélice não tem gaps na junção com o eixo
+✓ Verificar se a calha (trough) é uma superfície fechada
+✓ Verificar orientação das normais (devem apontar para dentro do fluido)
+✓ Reparar com Surface Repair Tool se necessário antes de avançar
+```
+
+### T2-S3 — Generating the Volume Mesh (Conveyor)
+**Tutorial vs. Settling — diferença crítica:**
+- Conveyor tem duas regiões: **Fluid Region** (volume) + **Motion Region** (superfície da esteira)
+- A superfície da esteira NÃO é malhada volumetricamente — é apenas uma boundary
+- Polyhedral + Surface Remesher, Base Size = 10–20mm para grãos ~5mm
+
+**Braskem:**
+```
+Regions:
+  [1] Trough Volume   → Polyhedral mesh (células onde as partículas existem)
+  [2] Screw Blade     → Surface only (Moving Wall boundary — sem volume)
+  [3] Shaft           → Surface only (Moving Wall — mesma rotação da pá)
+
+Base size: 15 mm (se D_p ≈ 3 mm → razão ≈ 5× ✓)
+Prism layers: NÃO necessário para DEM-only (sem camada limite viscosa)
+```
+
+### T2-S4 — Selecting Physics Models (Conveyor)
+**Modelos adicionais vs. Settling:**
+```
+IGUAL ao Settling, MAS adiciona:
+  ✓ Motion: Rotation    ← NOVO (não existia no Settling)
+  ✓ Reference Frame: Lab Frame (inercial)
+```
+**Braskem:** selecionar **Rotation** (não Translation como na esteira do tutorial)
+
+### T2-S5 — Defining Lagrangian Phases (Conveyor)
+**Tutorial:** Usa distribuição de tamanho (não monodisperse):
+```
+Size Distribution:  Log-Normal ou Rosin-Rammler
+D_mean:             ~4 mm (grão de trigo)
+Spread parameter:   ~1.3
+```
+**Braskem:**
+```
+Distribution:     Rosin-Rammler (padrão industrial para pós)
+D50:              *** aguardar Jeferson ***
+n (spread):       ~1.5–2.5 (pó PEAD tem distribuição estreita)
+D_min / D_max:    0.5× D50 a 2× D50
+```
+
+### T2-S6 — Defining the DEM Particle Interaction (Conveyor)
+**Diferença vs. Settling:** o conveyor adiciona **interação partícula-parede específica para o material da esteira**
+```
+Contato particle-particle:   E_grain, ν_grain, e_pp, μ_s_pp
+Contato particle-wall:       E_belt, ν_belt, e_pw, μ_s_pw   ← depende do material da esteira
+```
+**Braskem — dois contatos distintos:**
+```
+PEAD–PEAD:    E=10 MPa (soft), ν=0.46, e=0.6, μ_s=0.35, μ_r=0.02
+PEAD–Aço:     E_eff = harmônica(E_PEAD, E_steel), ν_eff, e=0.5, μ_s=0.25, μ_r=0.01
+Aço 304:      E=200 GPa → soft → 100 MPa, ν=0.27
+```
+
+### T2-S7 — Setting the Moving Conveyor Wall Condition ★ SEÇÃO MAIS CRÍTICA
+**Tutorial (esteira inclinada):**
+```
+Boundary type:   Wall
+Condition:       Moving Wall (Translating)
+Velocity:        v_belt [m/s] na direção do transporte (ex: +X)
+Frame:           Lab Frame
+```
+**Braskem — adaptação para rosca helicoidal:**
+```
+Boundary type:   Wall
+Condition:       Moving Wall (ROTATING — não Translating)
+Axis of rotation: vetor ao longo do eixo da rosca (ex: +X se rosca é horizontal em X)
+Origin:           centroide do eixo (0, 0, 0) ou coordenada real
+Angular velocity: ω [rad/s] = (rpm × 2π) / 60
+                  Ex: 30 rpm → ω = 3.14 rad/s
+
+Aplicar em:
+  ✓ Screw Blade surface → ω = +ω_screw (horário ou anti-horário)
+  ✓ Shaft surface       → ω = +ω_screw (mesmo valor)
+  ✗ Trough (calha)      → Wall estacionária (sem velocidade)
+```
+**Por que funciona sem Mesh Motion:**
+O DEM detecta contato partícula-parede e calcula a força tangencial usando a **velocidade relativa** entre a partícula e a superfície da parede. A parede "desliza" sob a partícula mesmo sem a malha se mover — mais eficiente computacionalmente que Morphing/Overset Mesh.
+
+### T2-S8 — Creating an Injector (Conveyor)
+**Tutorial:** Injector no topo da chute de alimentação
+```
+Type:         Surface Injector (na face de entrada)
+Rate:         N particles/s (calculado de kg/s ÷ m_partícula)
+Velocity:     v_initial ≈ 0 (caem por gravidade na chute)
+Duration:     Continuous
+Position:     Distribuição aleatória na face de injeção
+```
+**Braskem:**
+```
+Face de injeção:   Face transversal da calha na extremidade de alimentação
+Rate:              Q_feed [kg/h] ÷ (ρ_PEAD × V_partícula) = N/s
+                   Exemplo: 1000 kg/h, D_p=3mm → V_p=14.1mm³ → N ≈ 22.000 p/s
+                   → reduzir para 1.000–5.000 p/s para simulação exploratory
+Velocity:          0 m/s (PEAD cai na entrada por gravidade)
+```
+
+### T2-S9 — Solver Parameters and Stopping Criteria (Conveyor)
+**Tutorial — diferença vs. Settling:**
+- Com geometria em movimento, verificar que Δt_DEM é compatível com a velocidade da parede
+- Partícula não deve "atravessar" a pá entre dois timesteps
+
+**Critério adicional para geometria em movimento:**
+```
+Δx_wall = v_wall × Δt_DEM   deve ser << D_partícula
+Ex: ω=30 rpm, R=0.1m → v_tip = 0.314 m/s
+    Δt_DEM = 1.7×10⁻⁵ s → Δx_wall = 5.3×10⁻⁶ m = 0.005 mm  << D_p=3mm ✓
+```
+**Stopping criteria para Braskem:**
+```
+Primary:    Max Physical Time = 30 s (suficiente para observar 1–3 rotações completas)
+Secondary:  Monitor: Mass Flow Rate (outlet) → se cair a 0 por 5s → clogging confirmado
+Backup:     Max Particles = 100.000 (evitar memória excessiva)
+```
+
+### T2-S10 — Solution History + Visualization (Conveyor)
+**Tutorial:** Scalar Scene colorida por Particle Velocity — vê-se as partículas acelerando ao subir a esteira
+
+**Braskem — cenas prioritárias:**
+```
+Cena 1 — Transport:        Partículas coloridas por velocidade axial (direção da rosca)
+                           Azul=estagnado, Vermelho=transportado → onde para o fluxo?
+Cena 2 — Compaction:       Partículas coloridas por Coordination Number
+                           > 6 contatos simultâneos = compactado = zona de clogging 🚨
+Cena 3 — Contact Force:    Força de contato total [N] por partícula
+                           Picos de força = onde a rosca perde eficiência
+Cena 4 — Animação:         Solution History a cada 0.05 s → .mp4 mostrando evolução
+```
+
+---
+
+## TUTORIAL 2 — RESUMO EXECUTIVO: ADAPTAÇÃO PARA BRASKEM
+
+| Aspecto | Tutorial (Esteira) | Braskem (Rosca) |
+|---|---|---|
+| Geometria | Esteira plana inclinada | Hélice + calha cilíndrica |
+| Movimento | Translation v [m/s] | Rotation ω [rad/s] |
+| Direção de transporte | Inclinação da esteira | Passo da hélice × rpm |
+| Partículas | Grãos de trigo, D~4mm | PEAD, D~3mm (confirmar) |
+| Contato partícula-parede | Borracha/aço da esteira | Aço 304 (trough + blade) |
+| Clogging | Não modelado | Objetivo principal |
+
+---
+
 ## 2. PARÂMETROS CRÍTICOS — CONFIRMAR COM JEFERSON (QUINTA)
 
 ### Geometria da rosca
