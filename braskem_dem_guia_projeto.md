@@ -382,6 +382,223 @@ Cena 4 — Animação:         Solution History a cada 0.05 s → .mp4 mostrando
 
 ---
 
+## TUTORIAL 3 — LIQUID ABSORPTION AND TRANSFER: SPRAY COATING (10 seções)
+
+### T3-S1 a T3-S5 — (mapeados na sessão anterior)
+Overview, Loading File, Physics Models, Coating Liquid Phase, Tablet Phase
+
+### T3-S6 — Defining the DEM Phase Interactions ★★ CORAÇÃO DO MODELO
+**Tutorial:** Define as interações entre TODOS os pares de fases:
+
+```
+Par 1: Tablet ↔ Tablet      → Hertz-Mindlin + LIQUID BRIDGE FORCE ★
+Par 2: Tablet ↔ Droplet     → Absorption Model (líquido transfere da gota → filme)
+Par 3: Tablet ↔ Wall        → Hertz-Mindlin apenas (sem ponte líquida na parede)
+```
+
+**Liquid Bridge Force — parâmetros do modelo:**
+```
+σ   (surface tension liquid-air):    [N/m]
+θ   (contact angle liquid-solid):    [°]  ← parâmetro mais sensível
+S_c (rupture distance):              gap máximo para existir ponte = f(V_liquid, θ)
+
+Equação de força (modelo de Lian):
+  F_bridge = π·σ·R_eff·(cos θ₁ + cos θ₂)·f(V_liq, gap)
+
+Para hexano-PEAD:
+  σ_hexano = 0.018 N/m
+  θ_hexano-PEAD ≈ 5–10°  → cos θ ≈ 0.99 → FORÇA MÁXIMA 🚨
+  S_c ≈ (V_liq)^(1/3) × (1 + θ/2)   (correlação de Lian et al.)
+```
+
+**Braskem — configuração dos 3 pares:**
+```
+PEAD ↔ PEAD (partícula-partícula):
+  Contato base:    Hertz-Mindlin  (E=10 MPa soft, ν=0.46, e=0.6, μ_s=0.35)
+  Coesão:          Liquid Bridge Force
+    σ = 0.018 N/m  (hexano)
+    θ = 8°         (hexano molha PEAD quase perfeitamente)
+    V_liq:         calculado do teor de hexano inicial
+
+PEAD ↔ Aço (partícula-parede, trough + blade):
+  Contato base:    Hertz-Mindlin  (E_eff, ν_eff, e=0.5, μ_s=0.25)
+  Coesão:          NENHUMA (hexano não forma ponte líquida com aço inox) ← simplificação válida
+
+PEAD ↔ Hexano-Droplet:
+  NÃO APLICÁVEL — hexano já está nas partículas, sem spray
+```
+
+### T3-S7 — Injecting the Coating Liquid Droplets
+**Tutorial:** Spray nozzle injector com gotículas de ~200 μm, v_spray = 2–5 m/s  
+**Braskem:** NÃO precisa de injetor de líquido — hexano já está nas partículas
+
+### T3-S8 — Injecting the Tablets ★ COMO DEFINIR O TEOR DE HEXANO INICIAL
+**Tutorial:** Surface injector com parâmetro-chave:
+```
+Particle Phase:           Tablet
+Initial Liquid Content:   f_liq [kg_liquid / kg_particle] ou volume fraction
+Injection Rate:           N/s ou kg/s
+```
+
+**Braskem — como inicializar o hexano nas partículas:**
+```
+Na configuração do injector de PEAD:
+  Initial Liquid Film Thickness:  δ₀  ou  Initial Liquid Mass Fraction: f_hex
+
+Cálculo de δ₀ a partir do teor de hexano:
+  f_hex = 0.01 (1% em massa)
+  m_partícula = ρ_PEAD × (π/6) × D_p³  = 950 × (π/6) × (0.003)³ = 1.34×10⁻⁵ kg
+  m_hexano    = f_hex × m_partícula      = 1.34×10⁻⁷ kg
+  A_partícula = π × D_p²                 = 2.83×10⁻⁵ m²
+  δ₀ = m_hexano / (ρ_hex × A_part)     = 1.34×10⁻⁷ / (659 × 2.83×10⁻⁵) ≈ 7.2 μm
+
+Repetir para f_hex = 0.5%, 1%, 2%, 5% → estudo paramétrico do teor de hexano
+```
+
+### T3-S9 — Visualizing the Spray Coating → Cenas para Braskem
+**Tutorial:** partículas coloridas por Liquid Film Thickness + coating uniformity
+
+**Braskem — cenas prioritárias:**
+```
+Cena A — Liquid Film:        Cor = Liquid Film Thickness [μm]
+  → Mostra onde hexano redistribui durante transporte
+  → Partículas com filme espesso = mais propensas a formar pontes
+
+Cena B — Bridge Force:       Cor = Liquid Bridge Force [N]
+  → MAPA DE RISCO: onde as forças de coesão são máximas?
+  → Zona de máxima força = ponto de iniciação do embuchamento
+
+Cena C — Velocity Axial:     Cor = velocidade na direção do transporte [m/s]
+  → Azul = estagnado = clogging começando
+  → Vermelho = transportado normalmente
+
+Cena D — Coordination Nº:   Cor = nº de contatos simultâneos por partícula
+  → > 6 contatos = compactado = embuchamento confirmado 🚨
+
+Animação: gravar todas as cenas como Solution History a cada 0.05 s
+```
+
+### T3-S10 — Running the Spray Coating Simulation
+**Solver com LMP + DEM acoplados:**
+```
+A cada timestep:
+  1. DEM: calcular forças de contato (Hertz-Mindlin + Liquid Bridge)
+  2. LMP: transportar gotículas (NÃO necessário para Braskem)
+  3. Liquid Film: redistribuir filme quando partículas entram em contato
+
+Δt: ainda governado pelo Rayleigh time (DEM limita)
+    Com soft sphere E=10 MPa, D_p=3mm → Δt ≈ 1.7×10⁻⁵ s ✓
+
+Tempo de simulação:
+  30 s físicos × (1/1.7×10⁻⁵) = 1.76×10⁶ timesteps
+  Com 5.000 partículas: estimativa ~12h CPU em 16 cores
+```
+
+---
+
+## TUTORIAL 3 — RESUMO EXECUTIVO
+
+**O que o Liquid Bridge Force resolve que JKR não resolve:**
+
+| Aspecto | JKR (Tutorial 1/2) | Liquid Bridge Force (Tutorial 3) |
+|---|---|---|
+| Parâmetro de entrada | γ [J/m²] — empírico | σ [N/m] + θ [°] — medíveis |
+| Variação com teor de líquido | Não — γ fixo | Sim — força ∝ V_líquido |
+| Redistribuição durante contato | Não | Sim — líquido transfere entre partículas |
+| Ruptura da ponte | Não modelada | Sim — S_c calculado fisicamente |
+| Adequação para Braskem | Exploratório | PRODUÇÃO ✓ |
+
+---
+
+## PROCEDIMENTO COMPLETO STAR-CCM+ PARA BRASKEM
+### (Combinação dos 3 tutoriais em sequência operacional)
+
+```
+FASE 0 — Pré-processamento (Python/CadQuery)
+  [ ] Gerar screw_blade.step  (hélice paramétrica)
+  [ ] Gerar trough.step       (calha cilíndrica)
+  [ ] Validar volume e geometria
+
+FASE 1 — Star-CCM+: Importar e Malhar
+  [ ] File → Import → Surface Mesh → selecionar ambos os STEPs
+  [ ] Visualize + Surface Repair (verificar gaps, free edges)
+  [ ] Assign regions: "Trough Volume" / "Screw Blade" (boundary only) / "Shaft" (boundary only)
+  [ ] Mesh → Polyhedral + Surface Remesher
+  [ ] Base Size = 15 mm (= 5× D_p se D50=3mm)
+  [ ] Generate Volume Mesh
+
+FASE 2 — Modelos Físicos
+  [ ] Physics → Select Models:
+      ✓ Three Dimensional
+      ✓ Implicit Unsteady
+      ✓ Lagrangian Multiphase
+      ✓ Discrete Element Method (DEM)
+      ✓ Liquid Film on Particles (LFP)
+      ✓ Gravity (-9.81 m/s² em -Z)
+      ✓ Rotation Motion
+
+FASE 3 — Fase Lagrangiana (PEAD)
+  [ ] Lagrangian → Add Phase → "PEAD_Phase"
+  [ ] Material: PEAD (ρ=950, E=10 MPa soft, ν=0.46)
+  [ ] Size Distribution: Rosin-Rammler (D50 de Jeferson)
+  [ ] Initial Liquid Content: δ₀ calculado do teor de hexano
+
+FASE 4 — Interações DEM
+  [ ] DEM Interactions → Add:
+      PEAD-PEAD: Hertz-Mindlin + Liquid Bridge Force
+        σ = 0.018 N/m, θ = 8°
+      PEAD-Wall: Hertz-Mindlin apenas
+        E_wall=100 MPa (soft steel), ν=0.27, μ_s=0.25
+
+FASE 5 — Condição de Contorno da Rosca
+  [ ] Screw Blade boundary → Wall → Moving Wall → Rotation
+  [ ] Axis: vetor do eixo da rosca
+  [ ] ω = rpm_Braskem × 2π / 60   [rad/s]
+  [ ] Shaft → mesma condição
+
+FASE 6 — Injetor de Partículas
+  [ ] Injectors → Add → Surface Injector
+  [ ] Face: face de entrada da calha
+  [ ] Rate: taxa de alimentação kg/h de Jeferson
+  [ ] Initial Liquid Content: δ₀ do hexano
+
+FASE 7 — Solver
+  [ ] Δt_DEM = 1.7×10⁻⁵ s (soft sphere, D_p=3mm)
+  [ ] Max Physical Time = 30 s
+  [ ] Stopping: Mass Flow Rate outlet < 0.01× inlet por 5 s → clogging
+
+FASE 8 — Cenas de Visualização
+  [ ] Scalar Scene 1: Liquid Film Thickness
+  [ ] Scalar Scene 2: Liquid Bridge Force
+  [ ] Scalar Scene 3: Axial Velocity
+  [ ] Scalar Scene 4: Coordination Number
+  [ ] Solution History: todas as cenas, cada 0.05 s
+
+FASE 9 — Rodar e Analisar
+  [ ] Run → observar se ocorre clogging
+  [ ] Variar teor hexano (0.5% / 1% / 2% / 5%)
+  [ ] Variar rpm
+  [ ] Gerar mapa de operabilidade
+```
+
+---
+
+## AVALIAÇÃO: PRECISAMOS DE MAIS TUTORIAIS?
+
+| Tutorial disponível | Necessário? | Motivo |
+|---|---|---|
+| **DEM Particle Settling** ✅ | SIM — feito | Base do DEM |
+| **DEM Particles in a Conveyor** ✅ | SIM — feito | Moving Wall rotation |
+| **Liquid Absorption** ✅ | SIM — feito | Liquid Bridge Force hexano |
+| Arbitrarily Shaped Particles | Talvez — Fase 2 | Só se pellets forem cilíndricos |
+| Coarse Grain Particles | Talvez — Fase 2 | Só se N_part > 100k e CPU insuficiente |
+| Meshfree DEM: Excavator | NÃO | Solo/escavação, irrelevante |
+| Flexible Fiber Model: Lawnmower | NÃO | Fibras, irrelevante |
+
+**CONCLUSÃO: os 3 tutoriais são suficientes para a Fase 1 do projeto Braskem.**
+
+---
+
 ## 2. PARÂMETROS CRÍTICOS — CONFIRMAR COM JEFERSON (QUINTA)
 
 ### Geometria da rosca
@@ -440,8 +657,8 @@ D_TROUGH = 205.0  # mm — calha interna (D_SCREW + 2 × clearance)
 | **Pós-reunião** | Gerar geometria em CadQuery com dados reais | Quinta tarde |
 | **Semana 1** | Tutorial 2: DEM Particles in a Conveyor | Próxima semana |
 | **Semana 1** | Importar geometria Braskem no Star-CCM+ | Próxima semana |
-| **Semana 2** | Tutorial 3: Liquid Absorption (JKR cohesion) | Semana 2 |
-| **Semana 2** | Adicionar JKR no caso Braskem — caso seco vs úmido | Semana 2 |
+| **Semana 2** | Tutorial 3: Liquid Absorption (Liquid Bridge Force) | Semana 2 |
+| **Semana 2** | Adicionar Liquid Bridge Force no caso Braskem | Semana 2 |
 | **Semana 3** | Estudo paramétrico γ (hexano) + rpm | Semana 3 |
 | **Entrega** | Relatório + animação do embuchamento | A combinar com Jeferson |
 
@@ -453,4 +670,4 @@ D_TROUGH = 205.0  # mm — calha interna (D_SCREW + 2 × clearance)
 
 ---
 
-*Última atualização: 2026-06-16 | Gestor: Claude (IA) | Engenheiro responsável: Gabriel Hernandez Rozo*
+*Última atualização: 2026-06-16 (Tutorial 3 completo — 3 tutoriais absorvidos) | Gestor: Claude (IA) | Engenheiro responsável: Gabriel Hernandez Rozo*
