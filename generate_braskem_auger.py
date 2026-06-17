@@ -225,17 +225,17 @@ def make_casing_assembly():
         .extrude(L_TOTAL_SHAFT)
     )
 
-    # Funil retangular: penetra 2 mm dentro da parede do tubo para garantir
-    # interseção volumétrica limpa → borda curva na junção (look "soldado")
-    # Workplane("XZ"): xDir=worldX, yDir=worldZ(tubo), normal=-Y; extrude cresce em -Y
-    # center(a, b): a=worldX (transversal), b=worldZ (axial=HOPPER_X)
-    # rect(w, h): w=worldX (W_HOPPER), h=worldZ (L_HOPPER_AX)
+    # Funil retangular: prismo a partir do eixo do tubo (Y=0).
+    # Isso garante interseção sólida com o tubo em toda a largura do funil.
+    # O void_tube cortará o furo cilíndrico; o que sobra do prismo dentro do bore
+    # é removido por void_tube, deixando bordas ELÍPTICAS na junção funil-tubo
+    # (exatamente como na referência Siemens — sem ledge/degrau nas laterais).
+    # Workplane("XZ"): normal=+Y → extrude cresce em +Y.
     solid_hopper = (
-        cq.Workplane("XZ")
-        .workplane(offset=r_outer - 2.0)              # plano em Y=-(r_outer-2) = -57 mm
-        .center(0, HOPPER_X)                           # centralizado em X=0, posição axial Z=HOPPER_X
-        .rect(hopper_w_out, hopper_lax_out)            # worldX-transversal × worldZ-axial
-        .extrude(H_HOPPER + 2.0)                       # cresce em -Y até Y=-(r_outer+H_HOPPER)=-149mm
+        cq.Workplane("XZ")                           # plano em Y=0 (eixo do tubo)
+        .center(0, HOPPER_X)
+        .rect(hopper_w_out, hopper_lax_out)
+        .extrude(r_outer + H_HOPPER)                 # Y=0 → Y=r_outer+H_HOPPER=149mm
     )
 
     casing_solid = solid_tube.union(solid_hopper)
@@ -248,14 +248,16 @@ def make_casing_assembly():
         .extrude(L_TOTAL_SHAFT)
     )
 
-    # Bore retangular do funil: começa 1 mm dentro do bore do tubo (Y=-52 mm)
-    # e vai até o topo (Y=-149 mm). Cria a abertura retangular que conecta os dois volumes.
+    # Bore retangular do funil: também começa de Y=0.
+    # Após a operação void_tube (cilindro r<r_inner), o fundo da parede do funil
+    # ficará exatamente na superfície do bore cilíndrico — criando a aresta elíptica
+    # na junção sem nenhum ledge. O void_tube resolve o fundo da seção circular;
+    # o void_hopper resolve o espaço retangular de Y=0 até o topo do funil.
     void_hopper = (
-        cq.Workplane("XZ")
-        .workplane(offset=r_inner - 1.0)           # plano em Y=-(r_inner-1) = -52 mm
-        .center(0, HOPPER_X)                        # centralizado em X=0, posição axial Z=HOPPER_X
-        .rect(W_HOPPER, L_HOPPER_AX)               # worldX-transversal × worldZ-axial
-        .extrude(H_HOPPER + T_CASING + 1.0)        # 97 mm → até Y=-149 mm
+        cq.Workplane("XZ")                          # plano em Y=0
+        .center(0, HOPPER_X)
+        .rect(W_HOPPER, L_HOPPER_AX)
+        .extrude(r_outer + H_HOPPER + 1.0)          # Y=0 → Y=150mm (1mm extra no topo)
     )
 
     casing = casing_solid.cut(void_tube).cut(void_hopper)
