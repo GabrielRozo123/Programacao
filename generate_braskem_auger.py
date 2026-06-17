@@ -207,15 +207,15 @@ def make_casing_assembly():
 
     Coordenadas (pré-rotação Z→-X):
       Workplane("XZ") normal = -Y  →  funil cresce em -Y
-      W_HOPPER  = dimensão na direção Z do workplane (transversal ao eixo da rosca)
-      L_HOPPER_AX = dimensão na direção X do workplane (axial, ao longo da rosca)
+      W_HOPPER  = dimensão na direção X do workplane (transversal ao eixo da rosca)
+      L_HOPPER_AX = dimensão na direção Z do workplane (axial, ao longo da rosca)
     """
     r_inner = D_CASING_I / 2        # 53 mm
     r_outer = r_inner + T_CASING    # 59 mm
 
     # Dimensões externas do prismo do funil (parede + bore)
-    hopper_w_out  = W_HOPPER  + 2 * T_CASING   # 82 mm — largura externa (Z)
-    hopper_lax_out = L_HOPPER_AX + 2 * T_CASING  # 92 mm — comprimento axial externo (X)
+    hopper_w_out  = W_HOPPER  + 2 * T_CASING   # 82 mm — largura externa (worldX, transversal)
+    hopper_lax_out = L_HOPPER_AX + 2 * T_CASING  # 92 mm — comprimento axial externo (worldZ)
 
     # ─── 1. Sólidos exteriores (antes de escavar) ───────────────────────────
 
@@ -227,13 +227,15 @@ def make_casing_assembly():
 
     # Funil retangular: penetra 2 mm dentro da parede do tubo para garantir
     # interseção volumétrica limpa → borda curva na junção (look "soldado")
-    # Workplane("XZ"): normal=-Y, offset=v → plano em Y=-v; extrude → cresce em -Y
+    # Workplane("XZ"): xDir=worldX, yDir=worldZ(tubo), normal=-Y; extrude cresce em -Y
+    # center(a, b): a=worldX (transversal), b=worldZ (axial=HOPPER_X)
+    # rect(w, h): w=worldX (W_HOPPER), h=worldZ (L_HOPPER_AX)
     solid_hopper = (
         cq.Workplane("XZ")
-        .workplane(offset=r_outer - 2.0)          # plano em Y=-(r_outer-2) = -57 mm
-        .center(HOPPER_X, 0)                       # centro axial do funil, centralizado em Z
-        .rect(hopper_lax_out, hopper_w_out)        # X-axial × Z-transversal
-        .extrude(H_HOPPER + 2.0)                   # cresce em -Y até Y=-(r_outer+H_HOPPER)=-149mm
+        .workplane(offset=r_outer - 2.0)              # plano em Y=-(r_outer-2) = -57 mm
+        .center(0, HOPPER_X)                           # centralizado em X=0, posição axial Z=HOPPER_X
+        .rect(hopper_w_out, hopper_lax_out)            # worldX-transversal × worldZ-axial
+        .extrude(H_HOPPER + 2.0)                       # cresce em -Y até Y=-(r_outer+H_HOPPER)=-149mm
     )
 
     casing_solid = solid_tube.union(solid_hopper)
@@ -251,8 +253,8 @@ def make_casing_assembly():
     void_hopper = (
         cq.Workplane("XZ")
         .workplane(offset=r_inner - 1.0)           # plano em Y=-(r_inner-1) = -52 mm
-        .center(HOPPER_X, 0)
-        .rect(L_HOPPER_AX, W_HOPPER)
+        .center(0, HOPPER_X)                        # centralizado em X=0, posição axial Z=HOPPER_X
+        .rect(W_HOPPER, L_HOPPER_AX)               # worldX-transversal × worldZ-axial
         .extrude(H_HOPPER + T_CASING + 1.0)        # 97 mm → até Y=-149 mm
     )
 
