@@ -49,7 +49,7 @@ L_RECEIVER  = 70.0   # mm
 
 # Parâmetros Cut-Flight
 CUTS_PER_TURN  = 4    # cortes por volta → a cada 90° de rotação
-CUT_FRACTION   = 0.25 # fração da pá removida por corte (25% do segmento)
+CUT_FRACTION   = 0.45 # fração da pá removida por corte (45% → cortes bem visíveis)
 
 # ============================================================
 # COMPONENTES DA GEOMETRIA (eixo da rosca ao longo de Z)
@@ -67,48 +67,70 @@ def make_shaft():
 
 def make_helical_blade_full():
     """
-    Pá helicoidal CONTÍNUA (rosca padrão).
-    Sweep de retângulo radial ao longo de hélice com isFrenet=True.
+    Pá helicoidal CONTÍNUA.
+    Loft de seções retangulares radiais: cada seção é um retângulo (inner_r→outer_r) × T_BLADE
+    posicionado na ângulo/altura correta da hélice.
     """
     outer_r = D_SCREW / 2
     inner_r = D_SHAFT / 2
-    mid_r   = (outer_r + inner_r) / 2.0
-    blade_w = outer_r - inner_r
 
-    path = cq.Wire.makeHelix(pitch=PITCH, height=L_SCREW, radius=mid_r)
+    n_secs = N_TURNS * 60  # 60 seções por volta → 360 total
+    sections = []
+    for i in range(n_secs + 1):
+        t = i / n_secs
+        angle = t * 2 * math.pi * N_TURNS
+        z = L_SHAFT_EXTRA + t * L_SCREW
+        cos_a, sin_a = math.cos(angle), math.sin(angle)
 
-    blade = (
-        cq.Workplane("XZ")
-        .rect(blade_w, T_BLADE)
-        .sweep(path, isFrenet=True)
-        .translate((0, 0, L_SHAFT_EXTRA))  # desloca para começar após a extensão do eixo
-    )
-    return blade
+        # Retângulo radial: p1(inner,z) → p2(outer,z) → p3(outer,z+T) → p4(inner,z+T)
+        p1 = cq.Vector(inner_r * cos_a, inner_r * sin_a, z)
+        p2 = cq.Vector(outer_r * cos_a, outer_r * sin_a, z)
+        p3 = cq.Vector(outer_r * cos_a, outer_r * sin_a, z + T_BLADE)
+        p4 = cq.Vector(inner_r * cos_a, inner_r * sin_a, z + T_BLADE)
+
+        wire = cq.Wire.assembleEdges([
+            cq.Edge.makeLine(p1, p2),
+            cq.Edge.makeLine(p2, p3),
+            cq.Edge.makeLine(p3, p4),
+            cq.Edge.makeLine(p4, p1),
+        ])
+        sections.append(wire)
+
+    return cq.Workplane().add(cq.Solid.makeLoft(sections))
 
 
 def make_helical_blade_cutflight():
     """
     Pá helicoidal com CORTES a cada 90° (cut-flight screw).
-
-    Estratégia robusta: começa da pá CONTÍNUA (que funciona) e subtrai
-    cunhas (wedge cutters) nas posições de gap da hélice.
-
-    Para cada segmento de CUTS_PER_TURN por volta:
-      - Pá ativa: cobre (1 - CUT_FRACTION) × segment_pitch axialmente
-      - Gap (corte): cunha posicionada na posição angular da hélice
+    Pá base via loft de seções retangulares (geometria correta),
+    depois subtrai cunhas nos gaps.
     """
     outer_r = D_SCREW / 2
     inner_r = D_SHAFT / 2
-    mid_r   = (outer_r + inner_r) / 2.0
 
-    # Começa com a pá contínua completa (geometria comprovada)
-    path = cq.Wire.makeHelix(pitch=PITCH, height=L_SCREW, radius=mid_r)
-    blade = (
-        cq.Workplane("XZ")
-        .rect(outer_r - inner_r, T_BLADE)
-        .sweep(path, isFrenet=True)
-        .translate((0, 0, L_SHAFT_EXTRA))
-    )
+    # === Pá base com geometria correta (loft) ===
+    n_secs = N_TURNS * 60
+    sections = []
+    for i in range(n_secs + 1):
+        t = i / n_secs
+        angle = t * 2 * math.pi * N_TURNS
+        z = L_SHAFT_EXTRA + t * L_SCREW
+        cos_a, sin_a = math.cos(angle), math.sin(angle)
+
+        p1 = cq.Vector(inner_r * cos_a, inner_r * sin_a, z)
+        p2 = cq.Vector(outer_r * cos_a, outer_r * sin_a, z)
+        p3 = cq.Vector(outer_r * cos_a, outer_r * sin_a, z + T_BLADE)
+        p4 = cq.Vector(inner_r * cos_a, inner_r * sin_a, z + T_BLADE)
+
+        wire = cq.Wire.assembleEdges([
+            cq.Edge.makeLine(p1, p2),
+            cq.Edge.makeLine(p2, p3),
+            cq.Edge.makeLine(p3, p4),
+            cq.Edge.makeLine(p4, p1),
+        ])
+        sections.append(wire)
+
+    blade = cq.Workplane().add(cq.Solid.makeLoft(sections))
 
     # Parâmetros dos cortes
     segment_pitch = PITCH / CUTS_PER_TURN
@@ -165,69 +187,63 @@ def make_helical_blade_cutflight():
     return blade
 
 
-def make_casing():
+def make_casing_assembly():
     """
-    Calha cilíndrica (tubo oco).
-    Comprimento = comprimento total do eixo (cobre toda a rosca).
-    """
-    r_outer = D_CASING_I / 2 + T_CASING
-    r_inner = D_CASING_I / 2
+    Calha completa: tubo cilíndrico + funil de alimentação + coletor de saída.
 
-    outer_cyl = (
+    Sistema de coordenadas (antes da rotação Z→X):
+      Z = eixo da rosca (direção de transporte)
+      Y = vertical (direção da gravidade: −Y)
+      X = lateral
+
+    Funil posicionado em +Y (acima da calha) → partículas caem em −Y para dentro.
+    Coletor posicionado em Z = L_TOTAL_SHAFT (extremidade de saída).
+    """
+    r_inner = D_CASING_I / 2
+    r_outer = r_inner + T_CASING
+
+    # --- Tubo principal da calha ---
+    tube = (
         cq.Workplane("XY")
         .circle(r_outer)
         .extrude(L_TOTAL_SHAFT)
-    )
-    inner_cyl = (
-        cq.Workplane("XY")
-        .circle(r_inner)
-        .extrude(L_TOTAL_SHAFT)
-    )
-    return outer_cyl.cut(inner_cyl)
-
-
-def make_hopper():
-    """
-    Funil de alimentação: caixa retangular acima da calha,
-    com abertura no topo e abertura na face inferior que comunica
-    com o interior da calha.
-    """
-    r_casing = D_CASING_I / 2 + T_CASING
-
-    # Corpo do funil
-    hopper = (
-        cq.Workplane("XZ")
-        .workplane(offset=D_CASING_I / 2 + T_CASING)  # começa na parte superior da calha
-        .rect(L_HOPPER_AX, W_HOPPER)
-        .extrude(H_HOPPER)
-        .translate((0, 0, HOPPER_X - L_HOPPER_AX / 2))  # posiciona axialmente
+        .cut(
+            cq.Workplane("XY")
+            .circle(r_inner)
+            .extrude(L_TOTAL_SHAFT)
+        )
     )
 
-    # Abertura na base do funil (comunica com a calha)
-    # A abertura é um retângulo que subtrai a parede da calha
+    # --- Abertura retangular no topo da calha para o funil ---
+    # Corta da superfície interna (r_inner) para fora (r_outer)
+    # Posicionada em Z = HOPPER_X, no topo (+Y)
     opening = (
         cq.Workplane("XZ")
-        .workplane(offset=r_casing - 0.1)  # ligeiramente abaixo da parede externa
-        .rect(L_HOPPER_AX - 2 * T_CASING, W_HOPPER - 2 * T_CASING)
-        .extrude(T_CASING + 0.2)  # perfura a parede da calha
-        .translate((0, 0, HOPPER_X - L_HOPPER_AX / 2 + T_CASING))
+        .workplane(offset=r_inner - 1.0)   # começa ligeiramente dentro da calha
+        .center(0, HOPPER_X)               # centrado em Z = HOPPER_X
+        .rect(W_HOPPER * 0.85, L_HOPPER_AX * 0.85)
+        .extrude(T_CASING + 2.0)           # perfura a parede completa
+    )
+    tube = tube.cut(opening)
+
+    # --- Corpo do funil: caixa retangular ACIMA da calha ---
+    hopper = (
+        cq.Workplane("XZ")
+        .workplane(offset=r_outer)         # começa na superfície externa da calha
+        .center(0, HOPPER_X)               # centrado axialmente em HOPPER_X
+        .rect(W_HOPPER, L_HOPPER_AX)
+        .extrude(H_HOPPER)                 # cresce em +Y (acima da calha)
     )
 
-    return hopper
-
-
-def make_receiver():
-    """
-    Cilindro coletor de partículas na saída (lado direito).
-    Partículas saem da calha e caem neste coletor.
-    """
-    z_start = L_TOTAL_SHAFT  # inicia imediatamente após o final da calha
-    return (
+    # --- Coletor cilíndrico na saída ---
+    receiver = (
         cq.Workplane("XY")
-        .workplane(offset=z_start)
+        .workplane(offset=L_TOTAL_SHAFT)   # plano na face de saída da calha
         .circle(D_RECEIVER / 2)
-        .extrude(L_RECEIVER)
+        .extrude(L_RECEIVER)               # cresce em +Z (saída)
     )
+
+    return tube.union(hopper).union(receiver)
 
 
 def assemble_rotor(blade):
@@ -259,13 +275,8 @@ def build_and_export(output_dir="."):
     blade_cf = make_helical_blade_cutflight()
     rotor_cf = assemble_rotor(blade_cf)
 
-    print("Construindo casing (calha + funil + coletor)...")
-    casing = make_casing()
-    hopper = make_hopper()
-    receiver = make_receiver()
-
-    # Montagem do casing assembly (uma peça única para importar no Star-CCM+)
-    casing_assembly = casing.union(hopper).union(receiver)
+    print("Construindo casing (calha + funil + abertura + coletor)...")
+    casing_assembly = make_casing_assembly()
 
     # Rotaciona tudo para orientação horizontal (X-axis)
     rotor_std_h     = rotate_to_horizontal(rotor_std)
