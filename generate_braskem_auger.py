@@ -29,8 +29,8 @@ T_BLADE   = 4.0      # mm — espessura da pá
 PITCH     = 100.0    # mm — passo da hélice (= D_SCREW = padrão) *** confirmar
 N_TURNS   = 6        # número de voltas
 L_SCREW   = N_TURNS * PITCH   # 600 mm — comprimento ativo da pá
-L_SHAFT_EXTRA = 35.0 # mm — eixo se estende além da pá (cada lado)
-L_TOTAL_SHAFT = L_SCREW + 2 * L_SHAFT_EXTRA  # 670 mm
+L_SHAFT_EXTRA = T_BLADE   # mm — mínimo para pá caber exato dentro do tubo (= espessura da pá)
+L_TOTAL_SHAFT = L_SCREW + 2 * L_SHAFT_EXTRA  # 608 mm
 
 # Calha (casing)
 CLEARANCE   = 3.0   # mm — folga radial entre pá e calha
