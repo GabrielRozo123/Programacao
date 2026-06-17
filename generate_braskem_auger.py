@@ -189,16 +189,28 @@ def make_helical_blade_cutflight():
 
 def make_casing_assembly():
     """
-    Calha completa: tubo + funil TRAPEZOIDAL + tampa esquerda + coletor de saída.
+    Calha DEM completa para Star-CCM+.
 
-    Nota: Workplane('XZ') tem normal = -Y, então extrude vai em -Y.
-    O funil fica no lado -Y da calha, que no Star-CCM+ aparece como "cima"
-    (eixo Y apontando para baixo na cena, gravity = +Y no solver).
+    Estrutura de fronteiras (boundary conditions no Star-CCM+):
+      Tube Wall     → Wall  + DEM Interaction (E_aço, μ_PEAD-aço)
+      Hopper Walls  → Wall  + DEM Interaction (idem)
+      Left Cap      → Wall  (fundo esquerdo — partículas não escapam por aqui)
+      Escape Cap    → Wall  com DEM Escape (face de saída: partículas são deletadas)
+
+    Injeção de partículas: DEM Surface Injector na abertura do funil (face superior aberta).
+
+    Todos os volumes internos são OCOS para que as partículas possam existir dentro:
+      - Funil: paredes T_CASING espessas, aberto em cima (injeção) e embaixo (passa p/ tubo)
+      - Coletor: anel oco com tampa de escape; bore contínuo com a calha
+
+    Coordenadas (pré-rotação Z→-X):
+      Workplane("XZ") tem normal = -Y  →  funil e gravidade vão em -Y
+      No Star-CCM+ a cena é renderizada com -Y para cima  →  gravity = +Y no solver
     """
-    r_inner = D_CASING_I / 2
-    r_outer = r_inner + T_CASING
+    r_inner = D_CASING_I / 2   # 53 mm
+    r_outer = r_inner + T_CASING  # 59 mm
 
-    # --- Tubo principal da calha ---
+    # ─── Tubo principal (oco) ───────────────────────────────────────────────
     tube = (
         cq.Workplane("XY")
         .circle(r_outer)
@@ -210,7 +222,7 @@ def make_casing_assembly():
         )
     )
 
-    # --- Abertura retangular na parede da calha (lado -Y) ---
+    # ─── Abertura retangular para o funil ───────────────────────────────────
     opening = (
         cq.Workplane("XZ")
         .workplane(offset=r_inner - 1.0)
@@ -220,10 +232,10 @@ def make_casing_assembly():
     )
     tube = tube.cut(opening)
 
-    # --- Funil TRAPEZOIDAL (estreito na base = abertura da calha, largo no topo) ---
-    # Y coordenadas: base em Y=-r_outer (superfície ext. calha), topo em Y=-(r_outer+H_HOPPER)
+    # ─── Funil TRAPEZOIDAL OCO ──────────────────────────────────────────────
+    # Y vai em -Y: y_base = -r_outer (junto calha), y_top = -(r_outer+H_HOPPER) (boca)
     def _rect_wire_xz(half_w, half_l, y_world):
-        """Retângulo fechado no plano Y=y_world, centrado em X=0, Z=HOPPER_X."""
+        """Retângulo no plano Y=y_world, centrado em X=0, Z=HOPPER_X."""
         pts = [
             cq.Vector(-half_w, y_world, HOPPER_X - half_l),
             cq.Vector( half_w, y_world, HOPPER_X - half_l),
@@ -234,32 +246,57 @@ def make_casing_assembly():
             cq.Edge.makeLine(pts[i], pts[(i + 1) % 4]) for i in range(4)
         ])
 
-    y_base = -r_outer                   # -59 mm — boca de saída do funil (junto à calha)
-    y_top  = -(r_outer + H_HOPPER)      # -149 mm — boca de entrada (larga, recebe partículas)
+    y_base = -r_outer                 # -59 mm  (saída do funil, junto à calha)
+    y_top  = -(r_outer + H_HOPPER)    # -149 mm (boca larga — injeção de partículas)
 
-    w_base = _rect_wire_xz(W_HOPPER * 0.85 / 2, L_HOPPER_AX * 0.85 / 2, y_base)
-    w_top  = _rect_wire_xz(W_HOPPER * 1.40 / 2, L_HOPPER_AX * 1.40 / 2, y_top)
-    hopper = cq.Workplane().add(cq.Solid.makeLoft([w_base, w_top]))
+    hw_ob = W_HOPPER * 0.85 / 2       # 29.75 mm — meia-largura exterior base
+    hl_ob = L_HOPPER_AX * 0.85 / 2   # 34.0  mm
+    hw_ot = W_HOPPER * 1.40 / 2      # 49.0  mm — meia-largura exterior topo
+    hl_ot = L_HOPPER_AX * 1.40 / 2   # 56.0  mm
 
-    # --- Tampa esquerda (fecha o furo interno em Z=0 — entrada da calha) ---
-    # Preenche o espaço entre o eixo e a parede interna da calha no extremo de entrada.
+    # Forma exterior sólida
+    hopper_outer = cq.Workplane().add(cq.Solid.makeLoft([
+        _rect_wire_xz(hw_ob, hl_ob, y_base),
+        _rect_wire_xz(hw_ot, hl_ot, y_top),
+    ]))
+
+    # Vazio interior: T_CASING de espessura de parede; extrapola ±1 mm
+    # para garantir abertura limpa no fundo E no topo (sem faces residuais)
+    hopper_inner = cq.Workplane().add(cq.Solid.makeLoft([
+        _rect_wire_xz(hw_ob - T_CASING, hl_ob - T_CASING, y_base - 1.0),
+        _rect_wire_xz(hw_ot - T_CASING, hl_ot - T_CASING, y_top  - 1.0),
+    ]))
+
+    hopper = hopper_outer.cut(hopper_inner)
+
+    # ─── Tampa esquerda (inlet endcap em Z=0) ───────────────────────────────
+    # Fecha o bore interno entre eixo e calha no extremo esquerdo (não é escape).
     left_cap = (
         cq.Workplane("XY")
         .circle(r_inner)
         .extrude(T_CASING)
         .cut(
             cq.Workplane("XY")
-            .circle(D_SHAFT / 2 + 1.0)   # folga de 1 mm para o eixo passar
+            .circle(D_SHAFT / 2 + 1.0)
             .extrude(T_CASING)
         )
     )
 
-    # --- Coletor cilíndrico na saída ---
+    # ─── Coletor OCO com face de escape ─────────────────────────────────────
+    # Bore contínuo com a calha (r_inner=53mm → partículas entram sem obstáculo).
+    # Tampa traseira (T_CASING espessa) = face de escape das partículas no Star-CCM+.
+    # Atribuição no Star-CCM+: face plana traseira → Wall + DEM Escape.
     receiver = (
         cq.Workplane("XY")
         .workplane(offset=L_TOTAL_SHAFT)
         .circle(D_RECEIVER / 2)
         .extrude(L_RECEIVER)
+        .cut(
+            cq.Workplane("XY")
+            .workplane(offset=L_TOTAL_SHAFT)
+            .circle(r_inner)
+            .extrude(L_RECEIVER - T_CASING)    # oco até T_CASING antes do fundo
+        )
     )
 
     return tube.union(hopper).union(left_cap).union(receiver)
