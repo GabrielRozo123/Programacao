@@ -37,10 +37,12 @@ CLEARANCE   = 3.0   # mm — folga radial entre pá e calha
 D_CASING_I  = D_SCREW + 2 * CLEARANCE   # 106 mm — diâmetro interno
 T_CASING    = 6.0   # mm — espessura da parede da calha
 
-# Funil de alimentação (hopper) — cilíndrico, perpendicular ao tubo
+# Funil de alimentação (hopper) — RETANGULAR, perpendicular ao tubo
+# (8 faces planas como na geometria de referência Star-CCM+)
 H_HOPPER      = 90.0   # mm — altura acima da superfície externa da calha
 HOPPER_X      = L_SHAFT_EXTRA + PITCH * 0.75  # posição axial do centro do funil
-HOPPER_R_INNER = 30.0  # mm — raio interno do funil (bore de partículas)
+W_HOPPER      = 70.0   # mm — largura do bore do funil (na direção Z, transversal)
+L_HOPPER_AX   = 80.0   # mm — comprimento axial do bore do funil (na direção Z-eixo = X após rotação)
 
 # Cilindro coletor (receiving hopper) na saída
 D_RECEIVER  = 130.0  # mm
@@ -190,10 +192,12 @@ def make_casing_assembly():
     """
     Calha DEM completa para Star-CCM+.
 
-    Funil CILÍNDRICO perpendicular ao tubo:
-      - A interseção de dois cilindros perpendiculares cria bordas ELÍPTICAS na junção,
-        exatamente como a geometria de referência do tutorial Star-CCM+ (Casing.step).
-      - Isso produz o efeito "soldado" (welded) na entrada do funil.
+    Funil RETANGULAR perpendicular ao tubo (8 faces planas):
+      - Prismo retangular penetra 2 mm na parede do tubo → interseção volumétrica limpa.
+      - Gera bordas CURVAS (b-spline) na junção funil-tubo, exatamente como a referência
+        Star-CCM+ (Casing.step com 8 PLANE faces no funil).
+      - Vista superior: abertura retangular, não circular.
+      - Vista lateral: paredes planas do funil se encontram com a superfície cilíndrica do tubo.
 
     Estrutura de fronteiras (boundary conditions no Star-CCM+):
       Tube Wall     → Wall + DEM Interaction (E_aço, μ_PEAD-aço)
@@ -203,11 +207,15 @@ def make_casing_assembly():
 
     Coordenadas (pré-rotação Z→-X):
       Workplane("XZ") normal = -Y  →  funil cresce em -Y
-      gravity = +Y no solver Star-CCM+ (funil aparece "acima" na cena)
+      W_HOPPER  = dimensão na direção Z do workplane (transversal ao eixo da rosca)
+      L_HOPPER_AX = dimensão na direção X do workplane (axial, ao longo da rosca)
     """
     r_inner = D_CASING_I / 2        # 53 mm
     r_outer = r_inner + T_CASING    # 59 mm
-    hopper_r_out = HOPPER_R_INNER + T_CASING  # 36 mm — raio externo do funil
+
+    # Dimensões externas do prismo do funil (parede + bore)
+    hopper_w_out  = W_HOPPER  + 2 * T_CASING   # 82 mm — largura externa (Z)
+    hopper_lax_out = L_HOPPER_AX + 2 * T_CASING  # 92 mm — comprimento axial externo (X)
 
     # ─── 1. Sólidos exteriores (antes de escavar) ───────────────────────────
 
@@ -217,14 +225,15 @@ def make_casing_assembly():
         .extrude(L_TOTAL_SHAFT)
     )
 
-    # Funil cilíndrico: penetra 2 mm dentro da parede do tubo para garantir
-    # interseção volumétrica limpa → borda elíptica na junção (look "soldado")
+    # Funil retangular: penetra 2 mm dentro da parede do tubo para garantir
+    # interseção volumétrica limpa → borda curva na junção (look "soldado")
+    # Workplane("XZ"): normal=-Y, offset=v → plano em Y=-v; extrude → cresce em -Y
     solid_hopper = (
         cq.Workplane("XZ")
-        .workplane(offset=r_outer - 2.0)   # Y = -(r_outer-2) = -57 mm
-        .center(0, HOPPER_X)
-        .circle(hopper_r_out)
-        .extrude(H_HOPPER + 2.0)           # −Y até Y = -(r_outer + H_HOPPER) = -149 mm
+        .workplane(offset=r_outer - 2.0)          # plano em Y=-(r_outer-2) = -57 mm
+        .center(HOPPER_X, 0)                       # centro axial do funil, centralizado em Z
+        .rect(hopper_lax_out, hopper_w_out)        # X-axial × Z-transversal
+        .extrude(H_HOPPER + 2.0)                   # cresce em -Y até Y=-(r_outer+H_HOPPER)=-149mm
     )
 
     casing_solid = solid_tube.union(solid_hopper)
@@ -237,15 +246,14 @@ def make_casing_assembly():
         .extrude(L_TOTAL_SHAFT)
     )
 
-    # Bore do funil: começa 1 mm dentro do bore do tubo (Y=-52mm) e vai até
-    # o topo do funil (Y=-149mm). Isso corta a parede do tubo na posição do funil
-    # (Y=-53..−59mm) criando a abertura circular que conecta os dois volumes.
+    # Bore retangular do funil: começa 1 mm dentro do bore do tubo (Y=-52 mm)
+    # e vai até o topo (Y=-149 mm). Cria a abertura retangular que conecta os dois volumes.
     void_hopper = (
         cq.Workplane("XZ")
-        .workplane(offset=r_inner - 1.0)          # Y = -(r_inner-1) = -52 mm
-        .center(0, HOPPER_X)
-        .circle(HOPPER_R_INNER)
-        .extrude(H_HOPPER + T_CASING + 1.0)       # 97 mm → até Y = -149 mm
+        .workplane(offset=r_inner - 1.0)           # plano em Y=-(r_inner-1) = -52 mm
+        .center(HOPPER_X, 0)
+        .rect(L_HOPPER_AX, W_HOPPER)
+        .extrude(H_HOPPER + T_CASING + 1.0)        # 97 mm → até Y=-149 mm
     )
 
     casing = casing_solid.cut(void_tube).cut(void_hopper)
@@ -349,7 +357,7 @@ def build_and_export(output_dir="."):
     print(f"  T_blade   = {T_BLADE} mm")
     print(f"  Cortes/volta = {CUTS_PER_TURN} (a cada 90°)")
     print(f"  Fração cortada = {CUT_FRACTION*100:.0f}% por segmento")
-    print(f"  Funil: cilíndrico Ø{HOPPER_R_INNER*2:.0f}mm bore × H={H_HOPPER}mm (junção elíptica)")
+    print(f"  Funil: retangular {L_HOPPER_AX:.0f}mm(ax) × {W_HOPPER:.0f}mm(lat) bore × H={H_HOPPER}mm (junção curva)")
 
     print("\n=== Instruções Star-CCM+ ===")
     print("1. File → Import → Surface Mesh → importar OS 3 STEP files")
