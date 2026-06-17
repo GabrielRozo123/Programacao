@@ -189,15 +189,11 @@ def make_helical_blade_cutflight():
 
 def make_casing_assembly():
     """
-    Calha completa: tubo cilíndrico + funil de alimentação + coletor de saída.
+    Calha completa: tubo + funil TRAPEZOIDAL + tampa esquerda + coletor de saída.
 
-    Sistema de coordenadas (antes da rotação Z→X):
-      Z = eixo da rosca (direção de transporte)
-      Y = vertical (direção da gravidade: −Y)
-      X = lateral
-
-    Funil posicionado em +Y (acima da calha) → partículas caem em −Y para dentro.
-    Coletor posicionado em Z = L_TOTAL_SHAFT (extremidade de saída).
+    Nota: Workplane('XZ') tem normal = -Y, então extrude vai em -Y.
+    O funil fica no lado -Y da calha, que no Star-CCM+ aparece como "cima"
+    (eixo Y apontando para baixo na cena, gravity = +Y no solver).
     """
     r_inner = D_CASING_I / 2
     r_outer = r_inner + T_CASING
@@ -214,36 +210,59 @@ def make_casing_assembly():
         )
     )
 
-    # --- Abertura retangular no topo da calha para o funil ---
-    # Corta da superfície interna (r_inner) para fora (r_outer)
-    # Posicionada em Z = HOPPER_X, no topo (+Y)
+    # --- Abertura retangular na parede da calha (lado -Y) ---
     opening = (
         cq.Workplane("XZ")
-        .workplane(offset=r_inner - 1.0)   # começa ligeiramente dentro da calha
-        .center(0, HOPPER_X)               # centrado em Z = HOPPER_X
+        .workplane(offset=r_inner - 1.0)
+        .center(0, HOPPER_X)
         .rect(W_HOPPER * 0.85, L_HOPPER_AX * 0.85)
-        .extrude(T_CASING + 2.0)           # perfura a parede completa
+        .extrude(T_CASING + 2.0)
     )
     tube = tube.cut(opening)
 
-    # --- Corpo do funil: caixa retangular ACIMA da calha ---
-    hopper = (
-        cq.Workplane("XZ")
-        .workplane(offset=r_outer)         # começa na superfície externa da calha
-        .center(0, HOPPER_X)               # centrado axialmente em HOPPER_X
-        .rect(W_HOPPER, L_HOPPER_AX)
-        .extrude(H_HOPPER)                 # cresce em +Y (acima da calha)
+    # --- Funil TRAPEZOIDAL (estreito na base = abertura da calha, largo no topo) ---
+    # Y coordenadas: base em Y=-r_outer (superfície ext. calha), topo em Y=-(r_outer+H_HOPPER)
+    def _rect_wire_xz(half_w, half_l, y_world):
+        """Retângulo fechado no plano Y=y_world, centrado em X=0, Z=HOPPER_X."""
+        pts = [
+            cq.Vector(-half_w, y_world, HOPPER_X - half_l),
+            cq.Vector( half_w, y_world, HOPPER_X - half_l),
+            cq.Vector( half_w, y_world, HOPPER_X + half_l),
+            cq.Vector(-half_w, y_world, HOPPER_X + half_l),
+        ]
+        return cq.Wire.assembleEdges([
+            cq.Edge.makeLine(pts[i], pts[(i + 1) % 4]) for i in range(4)
+        ])
+
+    y_base = -r_outer                   # -59 mm — boca de saída do funil (junto à calha)
+    y_top  = -(r_outer + H_HOPPER)      # -149 mm — boca de entrada (larga, recebe partículas)
+
+    w_base = _rect_wire_xz(W_HOPPER * 0.85 / 2, L_HOPPER_AX * 0.85 / 2, y_base)
+    w_top  = _rect_wire_xz(W_HOPPER * 1.40 / 2, L_HOPPER_AX * 1.40 / 2, y_top)
+    hopper = cq.Workplane().add(cq.Solid.makeLoft([w_base, w_top]))
+
+    # --- Tampa esquerda (fecha o furo interno em Z=0 — entrada da calha) ---
+    # Preenche o espaço entre o eixo e a parede interna da calha no extremo de entrada.
+    left_cap = (
+        cq.Workplane("XY")
+        .circle(r_inner)
+        .extrude(T_CASING)
+        .cut(
+            cq.Workplane("XY")
+            .circle(D_SHAFT / 2 + 1.0)   # folga de 1 mm para o eixo passar
+            .extrude(T_CASING)
+        )
     )
 
     # --- Coletor cilíndrico na saída ---
     receiver = (
         cq.Workplane("XY")
-        .workplane(offset=L_TOTAL_SHAFT)   # plano na face de saída da calha
+        .workplane(offset=L_TOTAL_SHAFT)
         .circle(D_RECEIVER / 2)
-        .extrude(L_RECEIVER)               # cresce em +Z (saída)
+        .extrude(L_RECEIVER)
     )
 
-    return tube.union(hopper).union(receiver)
+    return tube.union(hopper).union(left_cap).union(receiver)
 
 
 def assemble_rotor(blade):
