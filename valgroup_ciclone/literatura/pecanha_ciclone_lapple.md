@@ -66,54 +66,105 @@ Todas as dimensões em função do **diâmetro do corpo (D_c)**:
 | Densidade do gás | ρ | kg/m³ | ⚠️ aguardando composição |
 | Densidade do char | ρ_s | kg/m³ | ⚠️ aguardando dado |
 | Vazão volumétrica | Q | m³/s | ⚠️ aguardando composição |
-| Nº de espiras efetivas | N_e | — | ≈ 5 (padrão Lapple) |
+| Nº de espiras efetivas | N_e | — | **5** (padrão Lapple; faixa: 2 ≤ N_e ≤ 10) |
 
-### Diâmetro de corte D' [eqs. 3.86–3.89]
+### Diâmetro de corte D' — Avaliação (D_c conhecido) [eqs. 3.86–3.89]
 
-Primeiro, diâmetro mínimo coletável (partícula na posição mais desfavorável, η = 1):
+Diâmetro mínimo coletável (η = 1, partícula na posição mais desfavorável):
 ```
 D_min = √(18μ B_c³ / (π · N_e · Q · (ρ_s − ρ)))     [eq. 3.86]
 ```
 
-Diâmetro de corte (D_min/D' = √2):
+Diâmetro de corte (D_min / D' = √2):
 ```
-D' = D_min / √2 = √(9μ B_c³ / (π · N_e · Q · (ρ_s − ρ)))     [eq. 3.88]
-```
-
-Como B_c = D_c/4:
-```
-D' = √(9μ (D_c/4)³ / (π · N_e · Q · (ρ_s − ρ)))
+D' = √(9μ B_c³ / (π · N_e · Q · (ρ_s − ρ)))          [eq. 3.88]
 ```
 
-### Velocidade de entrada (verificar faixa Perry)
+Forma adimensional com N_e = 5 e B_c = D_c/4 [eq. 3.92]:
 ```
-v_i = Q / (B_c × H_c)
+D' / D_c = 0.0946 · √(μ D_c / (Q · (ρ_s − ρ)))
 ```
-**Faixa válida:** 6 ≤ v_i ≤ 21 m/s (Perry, 1984)  
-- < 6 m/s → eficiência muito baixa  
+
+### Velocidade de entrada
+
+```
+U_θ0 = v_i = Q / (B_c × H_c)
+```
+**Faixa válida (Perry, 1984):** 20 ≤ U_θ0 ≤ 70 ft/s  →  6.1 ≤ v_i ≤ 21.3 m/s  
+Valor recomendado: **U_θ0 ≈ 50 ft/s ≈ 15.2 m/s**
+- < 6 m/s → eficiência muito baixa
 - > 21 m/s → ressuspensão das partículas coletadas
 
-### Queda de pressão (estimativa)
+### Queda de pressão [eqs. 3.93–3.98]
+
+Shepherd & Lapple determinaram **ξ = 8** para as proporções da Fig. 3.20:
 ```
-ΔP = ξ · (ρ/2) · v_i²
+ΔP_c = 8 · (ρ · U_θ0²) / 2          [Pa, SI]
 ```
-- ξ ≈ 8 para ciclone Lapple padrão (adimensional, varia com geometria)
-- **Restrição Valgroup:** ΔP ≤ 40 mbar (≈ 16 pol H₂O) → verificar
+ou equivalentemente:
+```
+ΔP_c ≈ 0.002 · ρ_c · U²_θ0          [lbm/ft², com U em ft/s]
+ΔP_c ≈ 0.024 · ρ_c · U²_θ0          [ft de coluna d'água, com U em ft/s]
+```
+**Restrição Valgroup:** ΔP ≤ 40 mbar (≈ 16 pol H₂O) → verificar após calcular v_i.
+
+#### Onde medir ΔP (Figura 3.23)
+```
+ΔP_c = p_A − p_P
+```
+- **p_A**: pressão estática no duto de **alimentação** (entrada tangencial)
+- **p_P**: pressão estática na saída do **vortex finder** (passante — gás limpo)
+
+> **Star-CCM+:** dois monitores "Area Average → Static Pressure":
+> um na face de entrada e outro na face de saída do vortex finder.
+> ΔP = Report_entrada − Report_saída_vortex_finder.
+
+#### Potência do soprador [eq. 3.100]
+```
+Pot_sop = ΔP_c · Q / Rend
+```
+- Rend = 0.6–0.8 (motor-soprador industrial típico)
 
 ---
 
-## 4. Procedimento de Dimensionamento
+## 4. Projeto do Ciclone Lapple (seção 3.4.3) — D_c a partir de d* alvo
+
+Para **dimensionar** (dado d* desejado, encontrar D_c), inverter a eq. 3.88 via B_c [eq. 3.101]:
+```
+B_c = √(N_e · (ρ_s − ρ) · Q · (d*)² / (9μ))
+```
+Como B_c = D_c / 4:
+```
+D_c = 4 · √(N_e · (ρ_s − ρ) · Q · (d*)² / (9μ))
+```
+
+**Procedimento de projeto (2 passos — Peçanha seção 3.4.3):**
+
+**Passo 1 — Estimativa inicial de d*:**
+- Adotar um d* inicial com base na PSD da alimentação (DT_A)
+- Regra prática: começar com d* = D_min (η ≈ 1 para todos os tamanhos)
+- Calcular D_c → verificar v_i → ajustar
+
+**Passo 2 — Refinamento com a curva η(d_p):**
+- Com D_c calculado, obter D' pela eq. 3.88
+- Calcular η_i para cada fração da PSD do char
+- Calcular η̄ global → verificar se atende ao requisito do processo
+- Se não atender: reduzir D_c (menor D_c → menor D' → capta partículas mais finas, mas ↑ v_i e ↑ ΔP)
+
+---
+
+## 5. Procedimento de Cálculo Completo (Valgroup)
 
 1. **Calcular ρ e μ do gás** via Peng-Robinson a T=450°C, P=1.2 bar (aguardando composição)
 2. **Converter vazão:** ṁ_gás = 800 kg/h → Q = ṁ/ρ [m³/s]
-3. **Escolher D_c** (iterativo): começar com D_c estimado, calcular v_i, verificar faixa 6–21 m/s
-4. **Calcular D'** com a eq. 3.88
-5. **Para cada fração do char** (PSD do peneiramento):
-   - d_p = diâmetro representativo da fração
-   - η_i = 1 / (1 + (D'/d_p)²)
-6. **Calcular η̄** global = Σ (η_i × Δm_i / m_total)
-7. **Verificar ΔP** → se > 40 mbar, redimensionar
-8. **Calcular geometria completa** com as proporções da Tabela acima
+3. **Definir d* alvo** com base na PSD do char carreado (quando chegar)
+4. **Calcular D_c** pela eq. 3.101 inversa com N_e = 5
+5. **Verificar v_i:** se fora de 6–21 m/s, ajustar com múltiplos ciclones em paralelo
+6. **Calcular D'** pela eq. 3.88 e montar tabela de η_i por fração granulométrica
+7. **Calcular η̄** global = Σ (η_i × Δm_i / m_total)
+8. **Verificar ΔP** ≤ 40 mbar → se exceder, rever v_i ou usar ciclone maior
+9. **Definir geometria completa** com as proporções da Tabela (seção 2)
+10. **Gerar STEP** com script CadQuery para importação no Star-CCM+
 
 ---
 
