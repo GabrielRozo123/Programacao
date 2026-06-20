@@ -240,13 +240,55 @@ n = Q / (U_θ0 · B_c · H_c)
 
 ---
 
-## 8. Hipóteses do Modelo Lapple (limitações → justificam CFD)
+## 8. Equações Finais da Bateria — Projeto com n ciclones e d* fixo
+
+Equações derivadas para n' ciclones em paralelo com d* garantido:
+
+**Novo U_θ0 da bateria** [eq. 3.110]:
+```
+U_θ0 = Q / (2·n'·B_c²)
+```
+(porque H_c' = 2B_c para cada ciclone da bateria)
+
+**d' em função de n e B_c** [eq. 3.112]:
+```
+d' = √(9μ·n'·B_c³ / (π·Q·N_e·(ρ_s − ρ)))
+```
+
+**B_c a partir de d* alvo e n' ciclones** [eq. 3.113 — equação mestra de projeto]:
+```
+B_c = ∛(π·Q·N_e·(ρ_s − ρ)·(d*)² / (9μ·n'))
+```
+→ D_c = 4·B_c → todas as outras dimensões pela Fig. 3.20.
+
+> **Ponto-chave:** qualquer valor inteiro de n' pode ser usado mantendo d* fixo. A escolha de n' é então um problema de espaço físico, custo e logística de manutenção — não de eficiência.
+
+**Figuras 3.25 e 3.26 — η̄ vs D₅₀/d* para modelos RRB e GGS:**
+- Fig. 3.25: parâmetro = n (expoente RRB): curvas para n = 0.5, 0.7, 1.0, 1.2, 1.5, 2.0, 3.0, 4.0
+- Fig. 3.26: parâmetro = m (expoente GGS): curvas para m = 0.5 → 3.5
+- Uso idêntico ao da Fig. 3.24 (LN): entrar com D₅₀/d* e ler η̄ para o expoente de dispersão da PSD
+
+---
+
+## 9. Hipóteses do Modelo Lapple (limitações → justificam CFD)
 
 - **Sem turbulência:** assume escoamento espiral laminar e ordenado. Na realidade, turbulência ressuspende finos já coletados → **η real < η Lapple**
 - **Sem mistura radial:** partícula entra em B_c/2 da parede (pior caso), mas assume trajetória determinística. Na realidade, partículas pequenas são arrastadas de volta pelo vórtice interno.
 - **N_e fixo:** o número de espiras efetivas é estimado geometricamente. O CFD mostra que o escoamento real desvia da espiral perfeita.
 - **Sem bypass:** parte do gás entra direto no vortex finder sem espiralar (short-circuit). O Lapple ignora isso.
 - **Conclusão:** Lapple → limite superior de eficiência. CFD (Star-CCM+, fase discreta) → eficiência realista com turbulência e ressuspensão.
+
+### Pontos específicos onde o CFD supera o Lapple (Valgroup)
+
+| Fenômeno | Lapple | CFD (Star-CCM+) |
+|---|---|---|
+| N_e efetivo | fixo = 5 | calculado do campo de velocidades (tipicamente 3–4 na prática) |
+| Curva η_i(d_p) | S-curve idealizad (eq. 3.90) | grade efficiency real: deslocada para direita, menos afiada |
+| Ressuspensão | ignorada | capturada pela turbulência near-wall e reentrada de partículas |
+| Bypass (short-circuit) | ignorado | visível no campo de pressão e trajetórias Lagrangianas |
+| ΔP | analítico (ξ=8) | campo de pressão 3D com efeitos helicoidais (erro tipico 10–30%) |
+| Temperatura | entra via ρ e μ | gradiante térmico parede-gás afeta camada limite onde char precisa sedimentar |
+| Partículas <20 μm | trajetória determinística | dispersão estocástica turbulenta → finos escapam mais do que Lapple prevê |
 
 ---
 
