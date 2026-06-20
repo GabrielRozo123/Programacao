@@ -168,7 +168,79 @@ D_c = 4 · √(N_e · (ρ_s − ρ) · Q · (d*)² / (9μ))
 
 ---
 
-## 5. Hipóteses do Modelo Lapple (limitações → justificam CFD)
+## 5. Procedimento Iterativo Completo de Projeto (seção 3.4.3 — 5 passos)
+
+> Usado quando η̄ alvo é especificado e d* é incógnita.
+
+**Passo 1 — Valor inicial de d*:**
+Adotar D_i* com base na DT_A (distribuição de alimentação). Como regra prática, estimar d* = D₅₀ da PSD do char carreado.
+
+**Passo 2 — Curva η(d_p) da distribuição:**
+Supor que a DT_A é conhecida (tabela ou modelo LN/RRB/GGS). Usar a eq. 3.90 para calcular η_i para cada d_p da PSD.
+
+**Passo 3 — Diagrama η vs y_A:**
+Lançar diagrama cartesiano de η (eixo vertical) vs y_A obtidos da DT_A. Traçar curva do tipo "curva francesa" (sigmoidal).
+
+**Passo 4 — Calcular η̄_c (calculada):**
+Aplicar a fórmula do Cálculo Integral (áreas iguais, seção 3.3.2):
+```
+η̄_c = ∫₀¹ η(y_A) dy_A         [eq. 3.103]
+```
+Caso existam partículas menores que D_min na alimentação [eq. 3.102]:
+```
+η̄_c = ∫₀^y_Amin η(y_A) dy_A
+```
+(y_Amin = fração acumulada correspondente a D_min, onde η = 0.99)
+
+**Passo 5 — Comparar η̄_c vs η̄_desejada:**
+```
+Se η̄_c ≥ η̄_min  →  D_i* correto → calcular B_c pela eq. 3.101 → geometria pela Fig. 3.20
+Se η̄_c < η̄_min  →  reduzir D_i* e reiniciar do Passo 1
+```
+
+---
+
+## 6. Modelo Log-Normal para DT_A + Figura 3.24
+
+Quando a distribuição de alimentação for Log-Normal, a equação explicitável é [eq. 3.104–3.107]:
+```
+d_p = d* · √(η / (1 − η))         [invertendo eq. 3.90]
+
+y_A = ½ · [1 + erf(u)]             [CDF Log-Normal, eq. 3.105]
+
+erf(u) = (2/√π) · ∫₀ᵘ exp(−t²) dt  [eq. 3.106]
+
+u = ln(d_p / D₅₀) / (√2 · ln σ)    [eq. 3.107]
+```
+- σ = desvio padrão geométrico da distribuição
+- D₅₀ = diâmetro médio da alimentação
+
+**Figura 3.24 — η̄ vs D₅₀/d* com parâmetro σ (Massarani, 1984):**
+
+Para U_θ0 = 50 ft/s, com DT_A descrita pelo modelo LN:
+- Curvas de σ = 1.0 → 4.5 mostradas
+- Eixo x: D₅₀/d* (1 a 9)
+- Eixo y: η̄ (0.5 a 1.0)
+
+> **Uso prático Valgroup:** Uma vez calculado d* (do D_c escolhido), calcular D₅₀/d* com o D₅₀ do char carreado, e ler η̄ diretamente do gráfico para o σ correspondente — sem integração numérica.
+
+---
+
+## 7. Ciclones em Paralelo (Bateria) [eq. 3.108]
+
+Quando um único ciclone resulta em v_i fora da faixa 6–21 m/s, usar n ciclones em paralelo:
+```
+n = Q / (U_θ0 · B_c · H_c)
+```
+- n geralmente não é inteiro → arredondar para cima
+- n > n_real → cada ciclone recebe Q/n_real > Q/n → U_θ0 aumenta ligeiramente
+- U_θ0 > 50 ft/s → d* menor → eficiência melhor, mas ΔP sobe
+
+> **Relevância Valgroup:** Com Q relativamente baixo (~720 kg/h de gás a 450°C), pode ser que um único ciclone Lapple resulte em D_c muito pequeno (v_i muito alta). Verificar se n = 2 ou 4 ciclones menores em paralelo são melhores que um único grande.
+
+---
+
+## 8. Hipóteses do Modelo Lapple (limitações → justificam CFD)
 
 - **Sem turbulência:** assume escoamento espiral laminar e ordenado. Na realidade, turbulência ressuspende finos já coletados → **η real < η Lapple**
 - **Sem mistura radial:** partícula entra em B_c/2 da parede (pior caso), mas assume trajetória determinística. Na realidade, partículas pequenas são arrastadas de volta pelo vórtice interno.
@@ -178,7 +250,7 @@ D_c = 4 · √(N_e · (ρ_s − ρ) · Q · (d*)² / (9μ))
 
 ---
 
-## 6. Faixa de Aplicação (Perry, 1984)
+## 9. Faixa de Aplicação (Perry, 1984)
 
 - Partículas: **5–200 μm** com densidade suficiente
 - Ciclones operam com **baixas quedas de pressão** (tipicamente 3–5 in H₂O)
