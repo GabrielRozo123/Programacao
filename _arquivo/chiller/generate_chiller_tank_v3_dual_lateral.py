@@ -43,12 +43,12 @@ print(f"  Ângulo semi-vertical do cone: {CONE_HALF_ANGLE:.1f}°")
 # ── Bocal de ENTRADA (inlet) ─────────────────────────────────────
 D_INLET      = 150.0     # DN150
 L_INLET      = 200.0     # comprimento do stub [mm]
-Z_INLET_H    = 2200.0    # z do bocal inlet (sensor_alto) [mm desde ápice]
+Z_INLET_H    = 1641.0    # DWG viewer Z=1641 mm → stub inlet na parede lateral
 
 # ── Bocal de SAÍDA (outlet) ──────────────────────────────────────
 D_OUTLET     = 150.0     # DN150
 L_OUTLET     = 200.0     # comprimento do stub [mm]
-Z_OUTLET_H   = 900.0     # sensor_baixo: Point=[-2.0, 0.0, 0.9]m → z=0.9m=900mm
+Z_OUTLET_H   = 1116.0    # DWG viewer Z=1116 mm → stub outlet na parede lateral
 
 OUTPUT_DIR   = "/home/user/Programacao/_arquivo/chiller"
 
