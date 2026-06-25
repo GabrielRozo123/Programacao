@@ -48,10 +48,7 @@ Z_INLET_H    = 2200.0    # z do bocal inlet (sensor_alto) [mm desde ápice]
 # ── Bocal de SAÍDA (outlet) ──────────────────────────────────────
 D_OUTLET     = 150.0     # DN150
 L_OUTLET     = 200.0     # comprimento do stub [mm]
-Z_OUTLET_H   = 1000.0    # TODO: substituir pelo z do sensor_baixo [mm desde ápice]
-                          # → abra o projeto antigo do Star-CCM+, clique no
-                          #   Point Part sensor_baixo, leia Position.Z em metros
-                          #   e multiplique por 1000 para obter mm.
+Z_OUTLET_H   = 900.0     # sensor_baixo: Point=[-2.0, 0.0, 0.9]m → z=0.9m=900mm
 
 OUTPUT_DIR   = "/home/user/Programacao/_arquivo/chiller"
 
