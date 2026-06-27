@@ -45,6 +45,8 @@ Conferir apenas Molecular Weight = 28.0134.
 | Temperatura crítica (Tc) | 126.2 K | Clausius-Clapeyron / Antoine |
 | Pressão crítica (Pc) | 3.39 MPa | Clausius-Clapeyron / Antoine |
 | Massa molar | 28.0134 kg/kmol | Ideal Gas (vapor) |
+| Reference Density | 4.6 kg/m³ | termo-fonte de empuxo (= densidade do vapor) |
+| Reference Pressure | 101325 Pa | base da Absolute Pressure (1 atm) |
 
 ---
 
