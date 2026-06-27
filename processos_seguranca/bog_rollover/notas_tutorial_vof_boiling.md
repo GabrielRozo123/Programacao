@@ -2,8 +2,8 @@
 
 > Registro do passo a passo do tutorial oficial (Star-CCM+ 20.06.007) e como adaptar
 > para o estudo de BOG/rollover criogênico (caso de validação Seo & Jeong, LN₂, 201×213 mm).
-> Atualizado: 2026-06-27 — PDFs recebidos: 5 de 10 (faltam BCs, modelo de ebulição,
-> solver, stopping criteria, run/pós-proc).
+> Atualizado: 2026-06-27 — PDFs recebidos: 10 de ~15 (faltam: run/iterating, pós-proc
+> final / cenas de resultado).
 
 ---
 
@@ -53,6 +53,62 @@ Ordem de seleção:
 
 ---
 
+### 5. Defining the Phase Interactions  ⭐ (modelo de mudança de fase)
+- `Models > Multiphase Interaction > Phase Interactions` → New → **H2O / H2O (G)**
+  (primária = líquido H2O, secundária = vapor H2O(G)).
+- Modelos da interação, em ordem:
+  - Optional: **VOF Boiling**
+  - Boiling Models: **Rohsenow Boiling** → Multiphase Material (auto)
+- Dica do tutorial: o fluxo de calor por ebulição é altamente não-linear em paredes onde
+  T_parede faz parte da solução; **reduzir o Under-Relaxation Factor** do nó Rohsenow Boiling
+  ajuda a convergência.
+
+### 6. Setting Initial Conditions
+- Volume Fraction = **[1.0, 0.0]** (100% líquido, 0% vapor inicialmente)
+- Static Temperature = **350 K**
+
+### 7. Setting Boundary Conditions
+- Renomear região `Default_Fluid 2D` → **Fluid**. Tipos de contorno:
+  - Bottom = **Wall** (T fixa = **540 K**)
+  - Left = **Velocity Inlet** (T=350 K, v=1 m/s, VF=[1,0])
+  - Middle = **Wall**
+  - Right = **Pressure Outlet** (T=370 K, VF=[1,0])
+  - TopRight, TopLeft = **Wall**
+
+### 8. Solver Parameters & Stopping Criteria
+- Implicit Unsteady: **Time-Step = 0.01 s**
+- Segregated Flow > Velocity: **URF = 0.8**
+- Segregated VOF: **URF = 0.1**
+- Stopping: **Maximum Physical Time = 3 s**, **Maximum Inner Iterations = 1**
+  (time-marching com 1 iteração/passo).
+
+### 9. Reporting, Monitoring, Plotting
+- Report `Heat Transfer` na Bottom wall → renomear "Heat Flux (Bottom Wall)".
+- `Create Monitor and Plot from Report` → eixo X = Iteration.
+- Usado p/ avaliar convergência ao regime permanente.
+
+---
+
+## ⚠️ ALERTA TÉCNICO — Rohsenow Boiling vs. nosso caso
+
+**Rohsenow Boiling** é correlação de **ebulição nucleada NA PAREDE** (wall boiling).
+Modela bolhas nucleando numa superfície aquecida — perfeito p/ o tutorial (placa a 540 K).
+
+No **BOG/rollover criogênico**, a mudança de fase dominante é **evaporação na INTERFACE
+líquido-vapor** (superfície livre do tanque), causada pelo heat leak que aquece o líquido —
+NÃO ebulição nucleada na parede (o ΔT parede-líquido é pequeno, poucos W/m²).
+
+→ Para auto-pressurização fiel, o modelo correto é **mass transfer interfacial**
+  (Evaporation/Condensation tipo **Lee** ou **Schrage**), não Rohsenow.
+→ Rohsenow só entraria se houvesse ebulição de parede (heat flux alto / boilover em incêndio).
+
+**Conclusão:** o tutorial nos dá o WORKFLOW completo (VOF + 2 fases + phase interaction +
+unsteady + monitores), mas vamos **trocar o modelo de ebulição**: usar
+Evaporation/Condensation (Lee) na interação de fases em vez de Rohsenow Boiling.
+Confirmar disponibilidade do modelo na versão 20.06 ao montar o caso.
+
+---
+
 ## ADAPTAÇÕES para o nosso caso (LN₂, Seo & Jeong)
 
 | Item | Tutorial (água) | Nosso caso (LN₂) |
@@ -77,10 +133,21 @@ Ordem de seleção:
 
 ---
 
+### Adaptações dos passos 5–9
+| Passo tutorial | Água | Nosso caso LN₂ |
+|---|---|---|
+| Phase interaction | Rohsenow Boiling | **Evaporation/Condensation (Lee)** na interface |
+| Initial Conditions | VF=[1,0], T=350 K | VF estratificada por altura; T inicial ~77–80 K (sat. LN₂) |
+| BCs | inlet/outlet + parede 540 K | **paredes fechadas** com **heat flux** (Seo & Jeong: vários valores) |
+| Solver | Δt=0.01 s, t=3 s | Δt maior; **t físico = minutos a horas** (self-press. é lenta) |
+| Monitor | heat flux na parede | **Pressão do ullage P(t)** + T(z) (validar vs Seo & Jeong) |
+
 ## Pendente
-- [ ] Receber os 5 PDFs restantes (BCs, modelo de ebulição, solver, run, pós-proc)
-- [ ] Definir modelo de phase change (provável Lee/Schrage) e parâmetros
+- [ ] Receber PDFs restantes (running/iterating, cenas de pós-proc)
+- [x] Modelo de phase change identificado: tutorial usa **Rohsenow** (wall boiling);
+      nosso caso usará **Lee/Schrage** (interfacial) — ver alerta técnico acima
 - [ ] Montar geometria LN₂ 2D-axissimétrica (201×213 mm)
 - [ ] Trocar materiais para N₂ líq/gás
 - [ ] Inicialização estratificada + parede com heat flux
-- [ ] Validar P(t) vs Seo & Jeong
+- [ ] Trocar Rohsenow → Evaporation/Condensation (Lee); confirmar na v20.06
+- [ ] Monitor de P(t) do ullage; validar vs Seo & Jeong
