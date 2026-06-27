@@ -3,7 +3,7 @@
 > Segundo tutorial de referência. Fornece o **kit de redução de custo** (AMR +
 > Adaptive Time-Stepping + Multi-Stepping VOF) e a forma limpa de inicializar o
 > nível de líquido (VOF Waves). Complementa notas_tutorial_vof_boiling.md.
-> Atualizado: 2026-06-27 — 5 PDFs recebidos.
+> Atualizado: 2026-06-27 — 10 PDFs recebidos (tutorial sloshing completo).
 
 ---
 
@@ -59,6 +59,45 @@ Contexto técnico:
 - Modelo: **Surface Tension Force** → Multiphase Material (auto).
 - Valor água-ar: **0.072 N/m**. Ativar **Semi-implicit Surface Tension** (estabilidade p/ Δt maior).
 
+### 5. Defining Tank Acceleration  (específico do sloshing — NÃO usamos)
+- Sloshing é movido por componente horizontal **variável** da gravidade, via field function
+  `X-acceleration` interpolada de tabela. `Reference Values > Gravity` = [${X-acceleration},0,-9.81].
+- **No nosso caso:** gravidade **constante** [0,0,-9.81]. Não há aceleração imposta.
+- 💡 Guardar a técnica: se um dia simularmos rollover disparado por movimento de navio
+  (FSRU/embarcação), é exatamente assim que se impõe a aceleração do casco.
+
+### 6. Setting Up Multi-Stepping  (valores concretos)
+- `Solvers > Segregated VOF > Sub-Steps = 4`.
+- Permite Δt global ~4× maior mantendo interface afiada (CFL efetivo = CFL_substep × 4).
+
+### 7. Setting Up Adaptive Time-Stepping
+- Adicionar modelo opcional **Adaptive Time-Step**.
+- `Models > Adaptive Time-Step > Time-Step Providers > New > Free Surface Implicit Multi-Step`.
+  - Cut-off Percentage = 0 (default).
+- **Max time-step:** `Solvers > Implicit Unsteady > Time-Step = 2.0E-3 s`.
+- **Min time-step:** `Solvers > Adaptive Time-Step > Minimum Time-Step = 1.0E-4 s`
+  (ordem de grandeza abaixo do máximo).
+- Initial Time-Step Option = **Auto** (derivado do provider em t=0).
+
+### 8. Setting Up Adaptive Mesh Refinement (AMR)
+- Adicionar modelo opcional **Adaptive Mesh**.
+- `Models > Adaptive Mesh > Adaptive Mesh Criteria > New > Free Surface Mesh Refinement`.
+- `Models > Adaptive Mesh` props:
+  - **Transition Width = 5** (células de transição entre níveis; evita salto brusco grosso→fino).
+  - **Limit Cell Size = Activated**, **Min Adaption Cell Size = 1.0E-6 m**.
+  - Prism Cell Refinement = default.
+- `Adaptive Mesh Criteria > Free Surface Mesh Refinement` props:
+  - **Max Refinement Level = 2** (nº máx. de refinos; escolher o menor que resolve a feature).
+  - **Enabled = Activated**.
+- `Solvers > Adaptive Mesh > Trigger > Time-Step Frequency = 1` (refina a cada passo;
+  recomendado quando se usa adaptive time-stepping, pois Δt é desconhecido a priori).
+- `Regions > Tank > Physics Conditions > Adaption Option > Enable Adaption` = ligado.
+
+### 9. Setting the Stopping Criteria
+- **Maximum Inner Iterations = 15** (ativado).
+- **Maximum Physical Time = 0.7 s** (ativado).
+- Maximum Steps = desativado.
+
 ---
 
 ## Aplicação ao nosso caso LN₂ (síntese dos 2 tutoriais)
@@ -83,6 +122,26 @@ Contexto técnico:
 - Phase Interaction: **Surface Tension (σ≈0.0089)** + **Evaporation/Condensation (Lee)**
 
 ---
+
+### ⚠️ Escalas de tempo — diferença crítica vs sloshing
+O sloshing roda **0.7 s** com Δt_max = 2e-3 s (dinâmica rápida da onda). A nossa
+auto-pressurização é **lenta** (minutos a horas): o fator limitante deixa de ser o CFL da
+onda e passa a ser o **acoplamento térmico/evaporação**.
+→ No nosso caso o **Δt_max pode ser MUITO maior** (ordem de segundos), e o
+  **Maximum Physical Time** será de minutos/horas. O Adaptive Time-Step cuida do ajuste,
+  mas precisamos definir Δt_max coerente com a escala de evaporação, não de sloshing.
+
+### Parâmetros AMR/solver sugeridos p/ LN₂ (ponto de partida)
+| Parâmetro | Sloshing | LN₂ (chute inicial) |
+|---|---|---|
+| Segregated VOF Sub-Steps | 4 | 4 (manter) |
+| Δt_max (Implicit Unsteady) | 2e-3 s | ~0.1–1 s (calibrar) |
+| Δt_min (Adaptive Time-Step) | 1e-4 s | ~1e-3 s |
+| AMR Transition Width | 5 | 5 (manter) |
+| AMR Max Refinement Level | 2 | 2–3 |
+| AMR Trigger Frequency | 1 | 1 (manter) |
+| Max Physical Time | 0.7 s | minutos–horas (validação Seo & Jeong) |
+| Max Inner Iterations | 15 | 10–15 |
 
 ## ⚠️ LACUNA EM ABERTO — geração de malha
 Os DOIS tutoriais (Boiling e Sloshing) usaram malha **pré-definida**. Ainda falta o
