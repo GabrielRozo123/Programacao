@@ -223,6 +223,29 @@ Mitigações p/ a rodada definitiva (refino, não a causa):
 - Δt máx (Implicit Unsteady) 0.1 → **1e-3 s** (resolve transiente de partida)
 - Accommodation Coefficient do Schrage 0.01 → **1e-4** (desacelera evaporação)
 
+## ⚠️ INSTABILIDADE — colapso do ullage (tanque fechado rígido)
+
+Sintoma (rodada 2, após corrigir o clamp): P_ullage fez o "J" esperado (caiu de 145→110
+kPa até t≈1,4s), mas depois **explodiu** — pico 222 kPa, oscilações violentas. Scene BOG
+mostrou **VF_vapor≈0 em todo o domínio** (ullage colapsou). Output: `WARNING: insufficient
+precision on multigrid level 8`.
+
+Causa: tanque **fechado e rígido** + ullage **compressível** (Ideal Gas) + phase change na
+interface = sistema **rígido/stiff fortemente acoplado**. A condensação do transiente
+passou do ponto (accommodation 0,01 agressivo + Δt grande) → vapor condensa demais →
+ullage encolhe → P=mRT/V dispara → realimenta → vapor colapsa. Quando a região de vapor
+quase some, o report P_ullage (média no threshold de vapor) calcula sobre ~0 células → ruído.
+
+Plano de estabilização (ordem de impacto):
+1. **Accommodation Coefficient 0,01 → 1e-3** (botão principal: phase change suave, sem overshoot)
+2. **Δt máx 0,1 → 1e-3 s** (resolve o acoplamento, não pula)
+3. **Maximum Inner Iterations 10 → 15–20** (acopla melhor pressão-fase por passo)
+4. Re-inicializar limpo e rodar
+5. Se o aviso de multigrid persistir → ajustar solver AMG (secundário; física primeiro)
+
+Lição: self-pressurization em tanque fechado é numericamente delicado — phase change tem
+que ser GENTIL e o passo pequeno, senão o ullage colapsa.
+
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
       notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
