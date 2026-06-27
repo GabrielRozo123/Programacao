@@ -1,6 +1,35 @@
 # Status dos Projetos — CAExperts
 
-> Atualizado: 2026-06-25
+> Atualizado: 2026-06-27
+
+---
+
+## 0. Estudo próprio — BOG/Rollover Criogênico (Segurança + CFD)
+
+**Tipo:** estudo técnico próprio (segurança de processos via CFD), não-cliente.
+**Status:** setup CFD totalmente mapeado a partir dos tutoriais Star-CCM+; pronto p/ montar.
+**Pasta:** `processos_seguranca/bog_rollover/`
+
+### Definições fechadas
+- Caso de validação: tanque LN₂ **Seo & Jeong** (201×213 mm, 6,76 L) — geometria 3D gerada.
+- Modelo de mudança de fase: **Schrage Boiling/Condensation** (cinético interfacial,
+  single-component; NÃO Rohsenow/wall nem Evaporation-Condensation/multicomp.).
+- Custo: VOF + **AMR** (Free Surface) + **Adaptive Time-Stepping** + Multi-Stepping (Sub-Steps=4).
+- Vapor N₂ = **Ideal Gas** (p/ ullage pressurizar em tanque fechado).
+- Init: **VOF Wave Flat** no nível y=170 mm; tensão superficial LN₂ ≈ 0,0089 N/m.
+- Malha: Automated Mesh (Surface Remesher + Trimmed + **Prism Layer ×5**), base ~5 mm.
+  Prism layers nas 3 paredes = essencial (camada-limite do heat leak; AMR não refina parede).
+- Narrativa de segurança: La Spezia 1971 (rollover, venting, sobrepressão).
+
+### Próximo passo
+- Montar o caso no Star-CCM+ seguindo as notas (geometria→malha→physics→Schrage→monitores).
+- Validar P(t) do ullage vs Seo & Jeong; calibrar Accommodation Coefficient do Schrage.
+
+### Arquivos
+- `revisao_bog_rollover.md` — literatura, casos de validação, La Spezia
+- `notas_tutorial_vof_boiling.md` — tutorial VOF Boiling + decisão Schrage
+- `notas_tutorial_vof_sloshing_amr.md` — AMR/multi-stepping + receita de malha
+- `generate_ln2_tank_seo_jeong.py` + `ln2_tank_3d.step` / `ln2_tank_profile_2d.step`
 
 ---
 

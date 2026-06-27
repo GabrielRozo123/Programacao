@@ -163,12 +163,43 @@ onda e passa a ser o **acoplamento térmico/evaporação**.
 - **Swept Distance Estimation Factor [up/down]:** default 1.5; aumentar se a interface
   "escapar" da zona refinada entre dois eventos de AMR.
 
-## ⚠️ LACUNA EM ABERTO — geração de malha
-Os DOIS tutoriais (Boiling e Sloshing) usaram malha **pré-definida**. Ainda falta o
-workflow de **criar a operação de malha do zero** (Automated Mesh: Surface Remesher +
-Trimmed/Polyhedral + Prism Layer + base size). Opções:
-- (a) pegar o PDF "Parts-Based Meshing External Aerodynamics" (tem o workflow), ou
-- (b) seguir direto pela orientação (workflow padrão é simples p/ um cilindro limpo).
+## MALHA — receita (do tutorial Parts-Based Meshing, adaptada ao cilindro LN₂)
+
+### Workflow Automated Mesh (genérico, do tutorial aero)
+1. `Geometry > Operations > New > Mesh > Automated Mesh`.
+2. Selecionar a part (no nosso caso **ln2_tank_3d**).
+3. Meshers a ativar:
+   - Surface Meshers: **Surface Remesher**
+   - Optional Surface: **Automatic Surface Repair** (não essencial p/ CAD limpo)
+   - Core Volume: **Trimmed Cell Mesher** (hexa-dominante; bom p/ interface horizontal)
+   - Optional Boundary Layer: **Prism Layer Mesher**
+4. `Meshers > Surface Remesher > Minimum Face Quality = 0.1`.
+5. `Default Controls > Prism Layer Controls`: **Number of Prism Layers = 5**,
+   **Boundary March Angle = 85°**.
+6. `Default Controls > Base Size` (valor base) e Surface Growth Rate = Fast.
+7. (Opcional) `Custom Controls > New > Surface Control` p/ refinar/engrossar superfícies
+   específicas (% do base size em Minimum/Target Surface Size).
+8. `Operations > Automated Mesh > Execute` p/ gerar a malha.
+
+### Adaptação ao cilindro LN₂ (D=201 mm, H=213 mm)
+| Controle | Aero (carro) | Nosso LN₂ |
+|---|---|---|
+| Part | Fluid Volume | **ln2_tank_3d** |
+| Core mesher | Trimmed | **Trimmed** (interface líq-vapor ~horizontal casa bem com hexa) |
+| Base Size | 0.02 m | **~0.005 m (5 mm)** → ~40 células no diâmetro, ~43 na altura |
+| Prism Layers | 5 | **5** (essencial! camada-limite térmica do heat leak na parede) |
+| Boundary March Angle | 85° | 85° |
+| Min Face Quality | 0.1 | 0.1 |
+
+### Por que Prism Layers importam tanto aqui (liga ao alerta de AMR)
+O Free Surface AMR **não refina na parede**. A camada-limite térmica/convectiva gerada pelo
+heat leak fica nas paredes (fundo, parede_lateral, topo). Os **5 prism layers** resolvem
+exatamente essa região → sem eles, o fluxo de calor entrando no líquido fica subestimado e
+a taxa de auto-pressurização P(t) sai errada. Aplicar prism layers nas **3 paredes**.
+
+### Estimativa de custo
+Base 5 mm em cilindro 201×213 mm → ~50–70k células base (3D) + prism + AMR local na
+interface (Max Level 2). Totalmente factível na máquina. Se pesar, subir base p/ 6–8 mm.
 
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
