@@ -15,6 +15,11 @@
 | Dynamic Viscosity | **1.61e-4** | Pa·s |
 | Specific Heat (cp) | **2042** | J/(kg·K) |
 | Thermal Conductivity | **0.1396** | W/(m·K) |
+| Speed of Sound | **853** | m/s |
+| Molecular Weight | **28.0134** | kg/kmol |
+
+Obs.: o nó do líquido pode pedir Speed of Sound (default 1500 = água; trocar por 853)
+e Molecular Weight (28.0134) dependendo da EOS selecionada.
 
 ## N₂ VAPOR saturado @ 77,35 K  (fase N2_vapor, Ideal Gas)
 
