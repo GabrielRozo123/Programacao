@@ -49,6 +49,10 @@ Contexto técnico:
 - Fase **Water**: Liquid, Constant Density. Fase **Air**: Gas, Constant Density.
 - **VOF Waves → New → Flat** (Flat Vof Wave 1):
   - propriedade-chave **Point On Water Level** = posição inicial da superfície (default [0,0,0]).
+  - ⚠️ **ARMADILHA: Vertical Direction aponta para CIMA = [0,0,1]** (contrário à gravidade),
+    NÃO [0,0,-1]. Se inverter, o fluido pesado vai pro topo e o leve pro fundo (vapor
+    embaixo) e a pressão hidrostática inverte. No caso LN₂: Vertical Direction=[0,0,1],
+    Point On Water Level=[0,0,0.170]. Conferir sempre a scene de VF após inicializar.
   - dá **solução exata do campo de pressão** no 1º time-step.
 - **Initial Conditions** via Field Functions geradas pela Flat Wave:
   - Pressure → Field Function → **Hydrostatic Pressure of Heavy Fluid of Flat Vof Wave 1**
