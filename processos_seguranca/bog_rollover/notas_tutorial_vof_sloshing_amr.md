@@ -205,6 +205,24 @@ a taxa de auto-pressurização P(t) sai errada. Aplicar prism layers nas **3 par
 Base 5 mm em cilindro 201×213 mm → ~50–70k células base (3D) + prism + AMR local na
 interface (Max Level 2). Totalmente factível na máquina. Se pesar, subir base p/ 6–8 mm.
 
+## ⚠️ ARMADILHA CRIOGÊNICA — Minimum Allowable Temperature (clamp)
+
+Sintoma na 1ª rodada: T_bulk travou em **exatamente 100,0 K** (−173,15 °C) mesmo
+inicializando em 77,35 K, e a pressão disparou para ~720 kPa em 0,07 s.
+
+Causa: `LN2 > Reference Values > Minimum Allowable Temperature` tem **default ~100 K**.
+LN₂ a 77,35 K fica ABAIXO do piso → o solver clampa o líquido para 100 K. A 101 kPa,
+líquido a 100 K está **superaquecido** (Tsat=77 K) → flash instantâneo → pressão sobe
+até Psat(100 K)≈720 kPa. Self-consistent, mas partindo da T errada.
+
+Correção: **Minimum Allowable Temperature = 50 K** (folga abaixo da operação criogênica).
+SEMPRE baixar esse piso em simulação criogênica (LN₂, LNG, LH₂). Conferir T_bulk após
+inicializar: deve ler a T de operação, não 100 K.
+
+Mitigações p/ a rodada definitiva (refino, não a causa):
+- Δt máx (Implicit Unsteady) 0.1 → **1e-3 s** (resolve transiente de partida)
+- Accommodation Coefficient do Schrage 0.01 → **1e-4** (desacelera evaporação)
+
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
       notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
