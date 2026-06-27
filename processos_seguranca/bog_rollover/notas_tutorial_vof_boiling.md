@@ -2,8 +2,7 @@
 
 > Registro do passo a passo do tutorial oficial (Star-CCM+ 20.06.007) e como adaptar
 > para o estudo de BOG/rollover criogênico (caso de validação Seo & Jeong, LN₂, 201×213 mm).
-> Atualizado: 2026-06-27 — PDFs recebidos: 10 de ~15 (faltam: run/iterating, pós-proc
-> final / cenas de resultado).
+> Atualizado: 2026-06-27 — tutorial COMPLETO (13 passos capturados).
 
 ---
 
@@ -87,6 +86,24 @@ Ordem de seleção:
 - `Create Monitor and Plot from Report` → eixo X = Iteration.
 - Usado p/ avaliar convergência ao regime permanente.
 
+### 10. Modifying the Boiling Model Parameters
+- Rohsenow usa correlação empírica com 2 parâmetros: **C_qw** e **n_p**, que dependem da
+  combinação líquido-superfície e do acabamento.
+- Exemplo (cobre polido): `Rohsenow Boiling` → **C_qw = 0.0128**, **n_p = 1.7**.
+- Reforça que Rohsenow é **específico de parede/acabamento** → confirma que não serve p/
+  evaporação interfacial criogênica.
+
+### 11. Running the Simulation
+- `Solution > Clear Solution` → `Run`. Salvar ao terminar.
+
+### 12. Visualizing the Solution
+- Cena escalar 1: **Volume Fraction of H2O (G)** (fração de vapor), Contour = Smooth Filled.
+- Cena escalar 2: **Temperature**.
+- Abrir o monitor plot de heat flux.
+
+### 13. Visualizing Results
+- Inspecionar abas: fração de vapor, temperatura, perfil de heat flux.
+
 ---
 
 ## ⚠️ ALERTA TÉCNICO — Rohsenow Boiling vs. nosso caso
@@ -141,9 +158,11 @@ Confirmar disponibilidade do modelo na versão 20.06 ao montar o caso.
 | BCs | inlet/outlet + parede 540 K | **paredes fechadas** com **heat flux** (Seo & Jeong: vários valores) |
 | Solver | Δt=0.01 s, t=3 s | Δt maior; **t físico = minutos a horas** (self-press. é lenta) |
 | Monitor | heat flux na parede | **Pressão do ullage P(t)** + T(z) (validar vs Seo & Jeong) |
+| Cenas | VF de vapor + Temperatura | VF de vapor (BOG gerado) + T(z); + perfil P(t) |
+| Param. modelo | C_qw, n_p (Rohsenow) | coef. do modelo Lee (HTC de evap./cond.) |
 
 ## Pendente
-- [ ] Receber PDFs restantes (running/iterating, cenas de pós-proc)
+- [x] Tutorial VOF: Boiling capturado por completo (13 passos)
 - [x] Modelo de phase change identificado: tutorial usa **Rohsenow** (wall boiling);
       nosso caso usará **Lee/Schrage** (interfacial) — ver alerta técnico acima
 - [ ] Montar geometria LN₂ 2D-axissimétrica (201×213 mm)
