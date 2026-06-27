@@ -21,8 +21,9 @@ Estratégia de malha (ver notas_tutorial_vof_boiling.md):
 Workflow CFD pretendido (adaptado do tutorial VOF: Boiling):
   - VOF, Implicit Unsteady, Gravity, Segregated Multiphase Temperature
   - Fases: N2 líquido + N2 gasoso (banco Standard)
-  - Phase interaction: Evaporation/Condensation (Lee) — NÃO Rohsenow
-    (Rohsenow é wall boiling; aqui a evaporação é interfacial)
+  - Phase interaction: Schrage Boiling/Condensation — NÃO Rohsenow, NÃO Evap/Cond
+    (Rohsenow = wall boiling; Evap/Cond = multicomponente; Schrage = interfacial
+     cinético single-component, correto p/ N2 puro em auto-pressurização)
   - Paredes fechadas com heat flux (heat leak); validar P(t) vs Seo & Jeong
 """
 
@@ -116,7 +117,7 @@ print(f"""
    1. Importar ln2_tank_profile_2d.step -> Convert to 2D (axissimétrico)
    2. Physics: VOF, Implicit Unsteady, Gravity, Seg. Multiphase Temperature
    3. Fases: N2 (Liquid) + N2 (Gas) do banco Standard
-   4. Phase Interaction: Evaporation/Condensation (Lee)  [NAO Rohsenow]
+   4. Phase Interaction: Schrage Boiling/Condensation  [NAO Rohsenow/Evap-Cond]
    5. Initial: VF estratificada (liquido ate y={H_LIQUID:.0f} mm, vapor acima)
    6. BCs: paredes fechadas com HEAT FLUX (heat leak Seo & Jeong)
    7. Monitor: Pressao do ullage P(t) + T(z)  ->  validar vs Seo & Jeong

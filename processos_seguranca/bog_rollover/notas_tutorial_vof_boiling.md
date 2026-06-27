@@ -106,23 +106,35 @@ Ordem de seleção:
 
 ---
 
-## ⚠️ ALERTA TÉCNICO — Rohsenow Boiling vs. nosso caso
+## ⚠️ DECISÃO DE MODELO — mudança de fase (CONFIRMADO via User Guide)
 
-**Rohsenow Boiling** é correlação de **ebulição nucleada NA PAREDE** (wall boiling).
-Modela bolhas nucleando numa superfície aquecida — perfeito p/ o tutorial (placa a 540 K).
+O tutorial usa **Rohsenow Boiling** = ebulição nucleada **NA PAREDE** (placa a 540 K).
+No nosso caso (BOG criogênico), a mudança de fase é **evaporação na INTERFACE
+líquido-vapor** (superfície livre), por não-equilíbrio térmico — não ebulição de parede.
 
-No **BOG/rollover criogênico**, a mudança de fase dominante é **evaporação na INTERFACE
-líquido-vapor** (superfície livre do tanque), causada pelo heat leak que aquece o líquido —
-NÃO ebulição nucleada na parede (o ΔT parede-líquido é pequeno, poucos W/m²).
+O Star-CCM+ (VOF) oferece **3 famílias** de mudança de fase — escolha confirmada nas refs:
 
-→ Para auto-pressurização fiel, o modelo correto é **mass transfer interfacial**
-  (Evaporation/Condensation tipo **Lee** ou **Schrage**), não Rohsenow.
-→ Rohsenow só entraria se houvesse ebulição de parede (heat flux alto / boilover em incêndio).
+| Modelo | Física | Fases | Veredito |
+|---|---|---|---|
+| Evaporation/Condensation | Raoult, **difusão de espécies**, equilíbrio na interface | **multicomponente** | ❌ exige gás carreador (água→ar); não é N₂ puro |
+| VOF Boiling (Rohsenow/Transition) | ebulição **na parede** (nucleada/filme) | single-comp. | ❌ precisa parede quente; nosso ΔT é baixo |
+| **Schrage Boiling/Condensation** | **cinético**, interface líq-vapor, **não-equilíbrio** | **single-comp.** | ✅ **ESCOLHIDO** |
 
-**Conclusão:** o tutorial nos dá o WORKFLOW completo (VOF + 2 fases + phase interaction +
-unsteady + monitores), mas vamos **trocar o modelo de ebulição**: usar
-Evaporation/Condensation (Lee) na interação de fases em vez de Rohsenow Boiling.
-Confirmar disponibilidade do modelo na versão 20.06 ao montar o caso.
+→ **Modelo escolhido: Schrage Boiling/Condensation.** ("Lee" é nomenclatura do Fluent;
+  no Star-CCM+ o modelo cinético interfacial equivalente é o Schrage / Hertz-Knudsen-Schrage.)
+
+### Setup do Schrage (do User Guide "Modeling Boiling in VOF")
+1. Continuum: VOF + **Gravity** + **Segregated Multiphase Temperature** (obrigatórios).
+2. Duas fases **single-component**: N₂ líquido (primária) + N₂ vapor (secundária).
+3. `Phase Interaction > Models > Optional Models` → **Schrage Boiling/Condensation**.
+4. `Schrage Boiling/Condensation > Accommodation Coefficient` → coef. de acomodação
+   (0 < σ ≤ 1; calibrável — começar próximo de 1 e ajustar p/ casar P(t) de Seo & Jeong).
+5. `[liquid phase] > Material Properties > Saturation Pressure` → método
+   **Schrage Model Extrapolation** (default; usa Clausius-Clapeyron + calor latente).
+   - Alternativas p/ p_sat: Antoine, Wagner, Polynomial(T), Table(T).
+6. Definir calor latente de vaporização (via entalpias) e T_sat (~77.4 K @ 1 atm p/ LN₂).
+
+→ Rohsenow só entraria em ebulição de parede (boilover em incêndio / heat flux alto).
 
 ---
 
@@ -153,7 +165,7 @@ Confirmar disponibilidade do modelo na versão 20.06 ao montar o caso.
 ### Adaptações dos passos 5–9
 | Passo tutorial | Água | Nosso caso LN₂ |
 |---|---|---|
-| Phase interaction | Rohsenow Boiling | **Evaporation/Condensation (Lee)** na interface |
+| Phase interaction | Rohsenow Boiling | **Schrage Boiling/Condensation** na interface |
 | Initial Conditions | VF=[1,0], T=350 K | VF estratificada por altura; T inicial ~77–80 K (sat. LN₂) |
 | BCs | inlet/outlet + parede 540 K | **paredes fechadas** com **heat flux** (Seo & Jeong: vários valores) |
 | Solver | Δt=0.01 s, t=3 s | Δt maior; **t físico = minutos a horas** (self-press. é lenta) |
@@ -163,10 +175,11 @@ Confirmar disponibilidade do modelo na versão 20.06 ao montar o caso.
 
 ## Pendente
 - [x] Tutorial VOF: Boiling capturado por completo (13 passos)
-- [x] Modelo de phase change identificado: tutorial usa **Rohsenow** (wall boiling);
-      nosso caso usará **Lee/Schrage** (interfacial) — ver alerta técnico acima
-- [ ] Montar geometria LN₂ 2D-axissimétrica (201×213 mm)
-- [ ] Trocar materiais para N₂ líq/gás
-- [ ] Inicialização estratificada + parede com heat flux
-- [ ] Trocar Rohsenow → Evaporation/Condensation (Lee); confirmar na v20.06
+- [x] Modelo de phase change DECIDIDO: **Schrage Boiling/Condensation** (interfacial,
+      single-component, não-equilíbrio) — confirmado via User Guide. Não é Rohsenow
+      (wall) nem Evaporation/Condensation (multicomponente). Ver decisão acima.
+- [ ] Montar geometria LN₂ (201×213 mm) — 3D (preferência do usuário) ✓ já importada
+- [ ] Trocar materiais para N₂ líq/gás (vapor = Ideal Gas)
+- [ ] Inicialização via VOF Wave Flat + parede com heat flux
+- [ ] Phase interaction: Schrage + Accommodation Coefficient + p_sat (Clausius-Clapeyron)
 - [ ] Monitor de P(t) do ullage; validar vs Seo & Jeong

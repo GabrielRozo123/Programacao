@@ -107,7 +107,7 @@ Contexto técnico:
 | Inicializar nível de líquido | Sloshing (VOF Waves Flat) | **VOF Wave Flat** em y=170 mm (80% de 213 mm) → init automático de P e VF |
 | Refino de interface | Sloshing (AMR) | **AMR** na interface líquido-vapor |
 | Controle de Δt | Sloshing (Adaptive Time-Step) | **Free Surface Implicit Multi-Step** |
-| Phase change (evaporação) | Boiling (mas trocar Rohsenow) | **Evaporation/Condensation (Lee)** — do User Guide |
+| Phase change (evaporação) | Boiling (mas trocar Rohsenow) | **Schrage Boiling/Condensation** (single-comp., interfacial) |
 | Tensão superficial | Sloshing (0.072 N/m água) | **σ(LN₂) ≈ 0.0089 N/m** + Semi-implicit |
 | Energia por fase | Boiling | **Segregated Multiphase Temperature** |
 | Vapor compressível | (nenhum — ambos const. density) | **N₂ gás = Ideal Gas** (p/ ullage pressurizar em tanque fechado) |
@@ -119,7 +119,7 @@ Contexto técnico:
 - **AMR** + **Adaptive Time-Stepping** (Free Surface Implicit Multi-Step) + Multi-Stepping VOF
 - Turbulência: avaliar laminar vs K-ε (convecção natural fraca em LN₂)
 - Fases: N₂ Liquid (const. density ou f(T)) + N₂ Gas (**Ideal Gas**)
-- Phase Interaction: **Surface Tension (σ≈0.0089)** + **Evaporation/Condensation (Lee)**
+- Phase Interaction: **Surface Tension (σ≈0.0089)** + **Schrage Boiling/Condensation**
 
 ---
 
@@ -143,6 +143,26 @@ onda e passa a ser o **acoplamento térmico/evaporação**.
 | Max Physical Time | 0.7 s | minutos–horas (validação Seo & Jeong) |
 | Max Inner Iterations | 15 | 10–15 |
 
+## Refinamentos de AMR (das refs do User Guide)
+
+- **HRIC exige CFL < 0.5** na interface → por isso AMR + Adaptive Time-Step.
+- **Free Surface Mesh Refinement só refina PERTO da interface** — NÃO refina longe dela.
+  ⚠️ **Crítico p/ nós:** o heat leak cria **camada-limite térmica/convectiva nas PAREDES**
+  (longe da superfície livre). O AMR de superfície livre **ignora** essa região.
+  → Resolver com: (a) **Prism Layers** + base mesh fina o suficiente na parede, e/ou
+    (b) **User-Defined Mesh Adaption** adicional, e/ou (c) **Transition Width** maior.
+- **Trigger:** só **Time Step** ou **Delta Time** (Iteration/Update Event NÃO suportados
+  p/ free surface). Com adaptive time-stepping → refinar a cada **1–2 passos**.
+- **Sharp Reconstruction** (opcional): `Models > Volume Of Fluid (VOF) >
+  Adaptive Mesh Interpolation > Option = Sharp Reconstruction` — reduz "smearing" da
+  interface ao refinar, mas é mais caro e exige interface bem resolvida na malha grossa.
+- **Max Refinement Level:** começar em **2**; cada nível = metade do tamanho base.
+  Subir incrementalmente só se necessário (contagem de células cresce rápido).
+- **Resolution Criterion for Interface Detection:** sensibilidade p/ detectar a interface
+  (valores maiores toleram interface mais "borrada").
+- **Swept Distance Estimation Factor [up/down]:** default 1.5; aumentar se a interface
+  "escapar" da zona refinada entre dois eventos de AMR.
+
 ## ⚠️ LACUNA EM ABERTO — geração de malha
 Os DOIS tutoriais (Boiling e Sloshing) usaram malha **pré-definida**. Ainda falta o
 workflow de **criar a operação de malha do zero** (Automated Mesh: Surface Remesher +
@@ -151,7 +171,9 @@ Trimmed/Polyhedral + Prism Layer + base size). Opções:
 - (b) seguir direto pela orientação (workflow padrão é simples p/ um cilindro limpo).
 
 ## Pendente
-- [ ] User Guide: página de **Evaporation/Condensation (Lee)** — coef. e T_sat
-- [ ] Resolver a malha (Automated Mesh no cilindro)
+- [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
+      notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
+- [ ] Resolver a malha (Automated Mesh no cilindro: + Prism Layers p/ camada-limite parede)
 - [ ] Definir σ(LN₂) e propriedades N₂ líq/gás (Ideal Gas no vapor)
 - [ ] Montar VOF Wave Flat no nível y=170 mm
+- [ ] Accommodation Coefficient do Schrage (calibrar vs Seo & Jeong)
