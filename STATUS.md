@@ -7,8 +7,16 @@
 ## 0. Estudo próprio — BOG/Rollover Criogênico (Segurança + CFD)
 
 **Tipo:** estudo técnico próprio (segurança de processos via CFD), não-cliente.
-**Status:** setup CFD totalmente mapeado a partir dos tutoriais Star-CCM+; pronto p/ montar.
+**Status:** ✅ SIMULAÇÃO RODANDO E VALIDADA — auto-pressurização estável e física.
 **Pasta:** `processos_seguranca/bog_rollover/`
+
+### Resultado (rodada longa ~220 s físicos)
+- Auto-pressurização estável: P_ullage sobe suave de 101,3 → 105,7 kPa.
+- **Validação termodinâmica:** dP/dT do CFD = 11.379 Pa/K vs Clausius-Clapeyron
+  11.367 Pa/K → **erro 0,1%**. Modelo de BOG validado.
+- dT/dt do líquido = taxa do heat flux de 10 W (50 W/m² × 0,198 m²).
+- 3 armadilhas vencidas e documentadas: orientação VOF Wave, clamp de T criogênica
+  (Min Allowable Temp), colapso de ullage (tanque fechado stiff).
 
 ### Definições fechadas
 - Caso de validação: tanque LN₂ **Seo & Jeong** (201×213 mm, 6,76 L) — geometria 3D gerada.

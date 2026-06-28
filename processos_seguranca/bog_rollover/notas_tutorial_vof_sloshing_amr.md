@@ -264,6 +264,23 @@ Parâmetros estáveis que funcionaram:
 Próximo: subir Δt gradualmente p/ acelerar, rodar até 2–5 min de tempo físico, ler a
 inclinação limpa de dP/dt (após o transiente) e comparar com Seo & Jeong.
 
+### ✅✅ VALIDAÇÃO TERMODINÂMICA FECHADA (rodada longa, ~220 s físicos)
+Trecho limpo (após transiente, ~65 s em diante):
+- dP/dt ≈ **13,2 Pa/s**
+- dT/dt ≈ **1,16e-3 K/s** (= taxa do heat flux de 10 W)
+- dP/dT (CFD) = 13,2/1,16e-3 ≈ **11.379 Pa/K**
+
+Clausius-Clapeyron teórico: dP/dT = h_lv·P/(R·T²) = 199200·101325/(296,8·77,35²) ≈
+**11.367 Pa/K**.
+
+→ **Erro de 0,1%.** A simulação reproduz exatamente o acoplamento calor→Tsat→P.
+Modelo de BOG VALIDADO internamente contra a termodinâmica.
+
+Acelerações p/ rodada de apresentação (curva mais longa, mesmo resultado):
+1. AMR Trigger Frequency 1 → **5** (maior ganho; interface quase estática)
+2. Δt máx → **0,1 s**
+3. Inner Iterations 15 → **10**
+
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
       notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
