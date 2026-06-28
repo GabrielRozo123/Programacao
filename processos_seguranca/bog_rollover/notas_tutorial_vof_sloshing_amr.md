@@ -246,6 +246,24 @@ Plano de estabilização (ordem de impacto):
 Lição: self-pressurization em tanque fechado é numericamente delicado — phase change tem
 que ser GENTIL e o passo pequeno, senão o ullage colapsa.
 
+## ✅ MARCO — auto-pressurização estável obtida (rodada 3)
+
+Com os 3 ajustes (accommodation 1e-3, Δt máx 1e-3 s, inner iters 15), a simulação ficou
+**estável e fisicamente correta**:
+- P_ullage sobe **suave e monotônica** (~101.350 → 102.220 Pa em 9 s), sem picos/colapso.
+- T_bulk sobe a **~1e-3 K/s** = exatamente a taxa do heat flux de 10 W (validação interna ✓).
+- Ullage intacto, vapor no topo, AMR refinando a interface.
+
+Parâmetros estáveis que funcionaram:
+- Accommodation Coefficient = **1e-3**
+- Δt máx = **1e-3 s** (no arranque) → pode subir para 1e-2 / 0,05 / 0,1 s após o transiente
+- Maximum Inner Iterations = **15**
+- Minimum Allowable Temperature = **50 K**
+- Heat flux nas 3 paredes = **50 W/m²**
+
+Próximo: subir Δt gradualmente p/ acelerar, rodar até 2–5 min de tempo físico, ler a
+inclinação limpa de dP/dt (após o transiente) e comparar com Seo & Jeong.
+
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
       notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
