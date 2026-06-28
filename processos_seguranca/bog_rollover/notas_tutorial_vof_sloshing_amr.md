@@ -281,6 +281,34 @@ Acelerações p/ rodada de apresentação (curva mais longa, mesmo resultado):
 2. Δt máx → **0,1 s**
 3. Inner Iterations 15 → **10**
 
+## ⚠️ CORREÇÃO — laminar vs turbulento (Ra ~ 10¹²)
+
+Achado (catch do usuário): o rollover com heating forte tem **Ra ~ 1,85×10¹²** →
+**turbulento** (convecção natural turbulenta começa ~10⁸). Rodar **Laminar** é
+inconsistente para o rollover.
+
+Nuance:
+- **Auto-pressurização:** laminar foi OK — a validação (dP/dT vs Clausius-Clapeyron,
+  0,1%) é **termodinâmica**, NÃO depende de resolver turbulência. Resultado mantém-se.
+- **Rollover:** as taxas (mistura, transporte de calor, vigor) **dependem** do transporte
+  turbulento → laminar sub-resolve. Tem que ser turbulento.
+
+Correção aplicada no rollover:
+- Viscous Regime: Laminar → **Turbulent** → K-Epsilon → **Realizable K-Epsilon Two-Layer**
+  + Two-Layer All y+ Wall Treatment (prism layers já servem).
+- ⭐ `Realizable K-Epsilon Two-Layer > Buoyancy Production of Dissipation` =
+  **Thermal Stratification** (não "Boundary Layer Orientation", que é p/ cisalhamento).
+  Sem isso o k-ε não responde à estratificação por empuxo.
+- Turbulência resolvida no nível da **mistura VOF** (fases não precisam de modelo próprio).
+- Demais constantes do k-ε = default. Re-inicializar e rodar.
+
+Correlação do rollover (não é termodinâmica como a auto-press.; é adimensional):
+- Ra_q ≈ 1,85e12 (Ra/Ra_c ~ 1e9, altamente supercrítico → turbulento)
+- Pr ≈ 2,36; velocidade convectiva w* = (g·β·Q·L/ρcp)^⅓ ≈ 0,0163 m/s
+- V_max/w* ≈ 3 (baseline) — consistente com free-convection scaling (Deardorff)
+- Similaridade de Rayleigh: tanque de 6,76 L no MESMO regime turbulento de tanque
+  industrial → mecanismo representativo do La Spezia (elo científico).
+
 ## Pendente
 - [x] Modelo de mudança de fase definido: **Schrage Boiling/Condensation** (ver
       notas_tutorial_vof_boiling.md). Evaporation/Condensation descartado (multicomp.).
