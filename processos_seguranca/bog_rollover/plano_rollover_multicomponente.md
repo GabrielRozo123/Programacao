@@ -58,6 +58,28 @@ Pressões de saturação: Antoine/Wagner para CH₄ e C₂H₆ (CH₄ volátil, 
 Maior build do projeto: materiais novos (CH₄/C₂H₆ a 111 K), VLE multicomponente, espécies,
 densidade de mistura. Geometria/malha/AMR/monitores reaproveitados. Construir passo a passo.
 
+## Condições iniciais (composição em FRAÇÃO MÁSSICA)
+Conversão molar→mássica:
+| Camada | CH₄ mol | C₂H₆ mol | C₂H₆ massa | ρ (~111K) |
+|---|---|---|---|---|
+| Topo (leve) | 95% | 5% | 0,090 | ~436 kg/m³ |
+| Fundo (pesada) | 88% | 12% | 0,204 | ~455 kg/m³ |
+Δρ compositional ≈ 19 kg/m³ (~4%) = âncora estável.
+
+- Líquido `Species Mass Fraction` C₂H₆ (field function):
+  `($${Position}[2] < 0.085) ? 0.204 : 0.090`  (metano = complemento)
+- Vapor `Species Mass Fraction` C₂H₆ ≈ 0,01 (ullage quase puro metano)
+- `Static Temperature` = 111 K constante (estratificação é por composição, não T)
+- Volume Fraction = VOF Wave (líquido até z=170mm)
+- Heat flux: Fundo = 1000 W/m²; lateral/topo adiabáticas
+- Aceleradores: AMR Trigger Freq=5, Δt máx=0,05s
+- Gatilho: fundo aquece ~14 K (vence o Δρ compositional) → flip. Atraso ~30-40 min físicos.
+
+## Scenes/Reports
+- Scene nova: **Ethane Mass Fraction** (a composição que inverte)
+- Mantém: Temperatura, BOG (VF vapor), Velocidade; P_ullage, V_max, T_bulk
+- Report novo: Volume Average de C₂H₆ mass fraction no threshold líquido
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
