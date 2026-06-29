@@ -102,6 +102,18 @@ Correção:
 - Se persistir: Δt 1e-4, Inner Iters 20, conferir consistência composição/P/T inicial.
 Lição: phase-change multicomponente em tanque fechado é ainda mais stiff que o N₂.
 
+## ⚠️ Cascata de divergência no arranque → decisão: LAMINAR
+Sequência de falhas no startup: VOF (fix: Δt 1e-3, Evap URF 0.2) → momentum
+(fix: Reference Density 4.6→1.76 LNG vapor, Δt 1e-4, Velocity URF 0.5) →
+turbulência (μ_t limitado em ~todas as células + AMG diverge).
+Causa da turbulência: k-ε com Buoyancy Production=Thermal Stratification reage
+violentamente aos gradientes íngremes das interfaces (líquido-vapor E camadas de
+composição) → produção de turbulência gigante.
+Decisão pragmática: **rodar LAMINAR** (multicomponente). Laminar demonstra o
+mecanismo compositional (VLE+empuxo); turbulência só refina taxas de mistura.
+Reativar k-ε depois, com campo já estabelecido (startup laminar→turbulento) e TVR baixo.
+Ajustes finais do arranque: Laminar + Δt 1e-4 + Ref Density 1.76 + Evap URF 0.2.
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
