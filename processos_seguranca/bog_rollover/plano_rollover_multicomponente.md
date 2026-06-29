@@ -75,6 +75,18 @@ Conversão molar→mássica:
 - Aceleradores: AMR Trigger Freq=5, Δt máx=0,05s
 - Gatilho: fundo aquece ~14 K (vence o Δρ compositional) → flip. Atraso ~30-40 min físicos.
 
+## ⚠️ EXIGÊNCIA do Evaporation/Condensation — componente INERTE no gás
+Erro na 1ª init: "Inert gas component missing". O modelo Evaporation/Condensation
+(difusão de condensáveis através de um gás carreador) **exige ≥1 componente inerte
+não-condensável no gás**. (Por isso não serve p/ fluido puro — precisa de carreador.)
+
+Correção: adicionar **Nitrogênio (N₂)** ao GÁS (só no gás; NÃO no líquido, NÃO na
+Connectivity). N₂ é fisicamente ok para LNG (constituinte real, não-condensável a 111K).
+- N₂ gás: MW=28,0134; μ=7,6e-6; cp=1040; k=0,0105; Std State T=111,67K; HoF=0 (inerte)
+- Composição vapor com 3 componentes [Metano, Etano, N₂] = [0,9899, 0,01, 0,0001]
+  (N₂ a 1e-4 — desprezível, só satisfaz o modelo; mass frac 0 também é válido)
+- Connectivity permanece [Metano↔Metano, Etano↔Etano] (N₂ fora).
+
 ## Scenes/Reports
 - Scene nova: **Ethane Mass Fraction** (a composição que inverte)
 - Mantém: Temperatura, BOG (VF vapor), Velocidade; P_ullage, V_max, T_bulk
