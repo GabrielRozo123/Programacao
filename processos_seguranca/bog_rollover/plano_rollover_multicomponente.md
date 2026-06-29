@@ -133,6 +133,15 @@ inconsistente → desbalanço gigante no 1º passo → cascata de divergência.
 Correção: Heavy Fluid Density → **445** kg/m³ (líquido LNG ~111K), Light → **1.76**
 (vapor metano). Sempre conferir as densidades da VOF Wave ao trocar de fluido.
 
+## ⚠️ BUG da composição — field function do metano copiada errada
+Sintoma: C2H6_liq ≈ 0,495 (esperado ~0,147). Causa: a FF do metano era cópia da do
+etano ("etane_2") com `>` em vez de `<`, mas mantendo os VALORES do etano (0,204/0,090).
+→ metano e etano davam 0,204/0,090 cada → soma 0,294 (≠1) → Star normaliza → ~0,5/0,5.
+Correção: FF do metano = **`1.0 - ${Mass_fraction_initial_etane}`** (complemento garantido)
+ou explícita `($${Position}[2] < 0.085) ? 0.796 : 0.910`. Ou: especificar só o etano e
+deixar o metano como remainder. Após corrigir, C2H6_liq deve dar ~0,147.
+(O threshold quebrado também contribuía, mas o bug real era a composição.)
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
