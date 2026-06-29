@@ -125,6 +125,14 @@ segregado (nível de pressão flutua). Solução (ideia do usuário):
   respiro** (Report Mass Flow no Topo, monitor BOG_vent) — que dispara no overturn.
 - Mantém: Laminar, Δt 1e-4, Reference Density 1.76, Evap URF 0.2, heat flux fundo 1000.
 
+## ⚠️ ARMADILHA — densidades da VOF Wave herdadas do N₂
+A Flat VOF Wave guardava Light/Heavy Fluid Density do caso N₂:
+Light=4,6 e Heavy=806,6 kg/m³. Ela usa essas densidades p/ a PRESSÃO HIDROSTÁTICA
+inicial → com líquido a 806,6 (≈2× o LNG real ~445), o campo de pressão inicial fica
+inconsistente → desbalanço gigante no 1º passo → cascata de divergência.
+Correção: Heavy Fluid Density → **445** kg/m³ (líquido LNG ~111K), Light → **1.76**
+(vapor metano). Sempre conferir as densidades da VOF Wave ao trocar de fluido.
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
