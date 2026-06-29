@@ -96,9 +96,25 @@ Sem isso não há evaporação e o rollover não funciona.
 | Topo (leve) | 95% | 5% |
 | Fundo (pesada) | 88% | 12% |
 
-## Densidade de mistura
-ρ_mix = f(T, x) — usar regra de mistura do Star (ou Peng-Robinson se disponível).
-Mais etano → mais densa. Aquecer → menos densa. Os dois efeitos competem → rollover.
+## Densidade de mistura — User Defined EOS (composição + T)
+A Polynomial Density da mistura é só f(T) (não capta composição) → não serve p/ rollover.
+Solução: **User Defined EOS** com densidade por **mistura ideal de volumes**:
+  1/ρ_mix = w_CH4/ρ_CH4(T) + w_C2H6/ρ_C2H6(T)
+  ρ_CH4(T) = 577,8 − 1,39·T ; ρ_C2H6(T) = 787,6 − 1,24·T
+
+Field function (rho_LNG_liq):
+  1.0 / ( (1.0 - ${EtanoMassFrac})/(577.8 - 1.39*${Temperature})
+          + ${EtanoMassFrac}/(787.6 - 1.24*${Temperature}) )
+(${EtanoMassFrac} = Mass Fraction of Etano of Fase Líquida — inserir pelo menu)
+
+Referência: padrões da indústria p/ densidade de LNG são Revised Klosek-McKinley (RKM,
+custody transfer, 100–135 K) e COSTALD; ambos = mistura de volumes + correção de excesso
+(~1%). Aqui usamos a mistura ideal (termo dominante), suficiente p/ a Δρ compositional.
+Refs: ScienceDirect S037838201631308X (ERKM); NIST EOS-LNG (1.5093800).
+
+Sanity-check: topo (w_E=0,090, 111K) → ~437 kg/m³; fundo (w_E=0,204) → ~456 kg/m³;
+Δρ≈19 (~4%) = âncora compositional. CUIDADO: faixa de T tal que ρ_i não fique negativo
+(Max Allowable Temp=200K protege).
 
 ## Polinômios de densidade por componente (Polynomial Density, faixa T=[80,150] K)
 Linearização em torno de ~111 K (β do líquido):
