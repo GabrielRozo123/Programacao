@@ -142,6 +142,17 @@ ou explícita `($${Position}[2] < 0.085) ? 0.796 : 0.910`. Ou: especificar só o
 deixar o metano como remainder. Após corrigir, C2H6_liq deve dar ~0,147.
 (O threshold quebrado também contribuía, mas o bug real era a composição.)
 
+## ⚠️ Divergência de ENERGIA (T→5000K) + turbulência de novo
+Sintoma: "Maximum Temperature limited to 5000 on 12316 cells" + "Turbulent viscosity
+limited" + non-finite Energy. A turbulência (k-ε) estava ativa de novo e arrastou a
+energia; T disparou ao limite default (5000 K).
+Correções:
+- **Laminar** (confirmar — "turbulent viscosity limited" = k-ε ligado; ele explode nas
+  interfaces, já visto).
+- **Maximum Allowable Temperature 5000 → 200 K** (clamp criogênico; operação 111K,
+  impede excursão a 5000K que envenena ideal gas/evaporação). Espelha o Min=50K.
+- Δt → 1e-5 s ; Evaporation/Condensation Under-Relaxation 0.2 → 0.1.
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
