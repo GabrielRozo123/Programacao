@@ -60,3 +60,12 @@ Líquido subresfriado @ ~111 K (NBP = 184,55 K — bem acima):
 ## Densidade de mistura
 ρ_mix = f(T, x) — usar regra de mistura do Star (ou Peng-Robinson se disponível).
 Mais etano → mais densa. Aquecer → menos densa. Os dois efeitos competem → rollover.
+
+## Polinômios de densidade por componente (Polynomial Density, faixa T=[80,150] K)
+Linearização em torno de ~111 K (β do líquido):
+- **Metano líq.:** ρ(T) = **577,8 − 1,39·T** [kg/m³] (a0=577,8, a1=−1,39)
+  - confere: T=111,67 K → 422,6 kg/m³ ; β≈0,0033/K
+- **Etano líq.:** ρ(T) = **787,6 − 1,24·T** [kg/m³] (a0=787,6, a1=−1,24)
+  - confere: T=111 K → 650 kg/m³ ; β≈0,0019/K (mais denso = âncora)
+- ⚠️ Faixa de T do polinômio DEVE cobrir 111 K (usar [80,150] K). Default do banco
+  pode vir em faixa quente → a 111 K daria valor errado (mesma armadilha do N₂).
