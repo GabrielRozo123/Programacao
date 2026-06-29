@@ -92,6 +92,16 @@ Connectivity). N₂ é fisicamente ok para LNG (constituinte real, não-condens�
 - Mantém: Temperatura, BOG (VF vapor), Velocidade; P_ullage, V_max, T_bulk
 - Report novo: Volume Average de C₂H₆ mass fraction no threshold líquido
 
+## ⚠️ Instabilidade de partida (non-finite residual na iteração 2)
+Erro: "A non-finite residual (Fase Líquida) ... SegregatedVofSolver ... overflow".
+Causa: multicomponente (VLE Raoult) + gás ideal + arranque = MUITO stiff. Δt=0,05s
+(acelerador) é grande demais p/ o arranque → evaporação estoura num passo.
+Correção:
+- Δt máx → **1e-3 s** (acelerar só DEPOIS de estável, como no N₂)
+- Evaporation/Condensation **Under-Relaxation Factor 1.0 → 0.2** (suaviza mass transfer)
+- Se persistir: Δt 1e-4, Inner Iters 20, conferir consistência composição/P/T inicial.
+Lição: phase-change multicomponente em tanque fechado é ainda mais stiff que o N₂.
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
