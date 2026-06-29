@@ -153,6 +153,24 @@ Correções:
   impede excursão a 5000K que envenena ideal gas/evaporação). Espelha o Min=50K.
 - Δt → 1e-5 s ; Evaporation/Condensation Under-Relaxation 0.2 → 0.1.
 
+## ✅ MARCO — rollover multicomponente RODANDO e estável
+Após a saga de debugging, o caso multicomponente roda estável com composição correta:
+- C2H6_liq ≈ 0,148 (= média esperada das camadas 0,09/0,204) ✓
+- Scene Etano mostra as 2 camadas (fundo ~0,20 denso, topo ~0,09 leve) ✓
+- Estável (laminar, User Defined EOS, Max Temp 200K, Δt 1e-5, Evap URF 0.1)
+
+Lista de fixes que destravaram (resumo da saga):
+1. Min Allowable Temp 50K (clamp criogênico)  2. VOF Wave Vertical Direction [0,0,1]
+3. Densidade líquida = User Defined EOS (mistura ideal, composição+T) — Polynomial era
+   só f(T); e o default [0,1;0,2;0,3] era lixo (~3700 kg/m³)  4. N2 inerte no gás
+   (exigência do Evap/Cond)  5. Topo Pressure Outlet (AMG + realista)  6. VOF Wave
+   densidades LNG (445/1.76, não 806.6/4.6)  7. FF do metano = complemento do etano
+   8. Reference Density 1.76  9. Max Allowable Temp 200K  10. Laminar (k-ε explodia)
+   11. Δt 1e-5 + Evap URF 0.1 (arranque stiff)
+
+Próximo: subir Δt gradualmente (1e-5→1e-4→1e-3→1e-2) p/ alcançar a escala do rollover
+(minutos); monitor Evap_CH4 (geração de BOG); caçar o flip (V_max, BOG_vent, homogeneização).
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
