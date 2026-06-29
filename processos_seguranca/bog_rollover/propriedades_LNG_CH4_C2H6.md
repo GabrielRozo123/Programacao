@@ -43,6 +43,24 @@ Densidade NÃO se digita (Ideal Gas calcula ρ=PM/RT); só conferir Molecular We
 | Specific Heat | 2100 | 1300 | J/(kg·K) |
 | Thermal Conductivity | 0,012 | 0,008 | W/(m·K) |
 
+## Propriedades extras do Evaporation/Condensation (HoF, Std State, Speed of Sound)
+O modelo adiciona estes nós (como o Schrage no N₂):
+| Propriedade | Metano liq | Etano liq | Metano gás | Etano gás | Unidade |
+|---|---|---|---|---|---|
+| Standard State Temperature | 111,67 | 111,67 | 111,67 | 111,67 | K |
+| Heat of Formation | 0 | 0 | 510000 | 489000 | J/kg |
+| Speed of Sound | 1450 | 1700 | — | — | m/s |
+
+Calor latente via diferença gás−líquido: metano 510 kJ/kg, etano 489 kJ/kg.
+
+## Saturation Pressure (alvos para sanity-check; Antoine a confirmar a forma no Star)
+- Metano @ 111,67 K: Psat ≈ 101.325 Pa (volátil)
+- Etano @ 111 K: Psat ≈ 87 Pa (~1000× menor → quase não evapora)
+Antoine padrão log₁₀(P[bar]) = A − B/(T+C):
+- Metano: A=3,9895 B=443,028 C=−0,49 (91–190 K)
+- Etano: A=4,50706 B=791,3 C=−6,422 (extrapolado a 111 K)
+Converter para a convenção do Star (ln/Pa) ao saber a forma do nó Antoine.
+
 ## Connectivity do Evaporation/Condensation (CRÍTICO)
 Mapear os pares líquido↔gás (default vem "None" → corrigir!):
 - Metano(liq) ↔ Metano(gas)
