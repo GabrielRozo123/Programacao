@@ -114,6 +114,17 @@ mecanismo compositional (VLE+empuxo); turbulência só refina taxas de mistura.
 Reativar k-ε depois, com campo já estabelecido (startup laminar→turbulento) e TVR baixo.
 Ajustes finais do arranque: Laminar + Δt 1e-4 + Ref Density 1.76 + Evap URF 0.2.
 
+## ⚠️→✅ Tanque VENTADO (Pressure Outlet no topo) — resolve AMG + mais fiel
+Mesmo laminar, o AMG (solver de pressão) divergia: tanque fechado com líquido
+quase incompressível + bolha de gás compressível é mal-condicionado p/ o solver
+segregado (nível de pressão flutua). Solução (ideia do usuário):
+- **Topo: Wall → Pressure Outlet** (101325 Pa, backflow T~111K, comp. metano-rica).
+- Dá condição de Dirichlet de pressão → Poisson bem-posto → AMG converge.
+- MAIS realista: tanques LNG ventam BOG; o perigo do La Spezia foi o surto de BOG
+  superar o venting (186 t). Assinatura do rollover passa a ser a **vazão de BOG no
+  respiro** (Report Mass Flow no Topo, monitor BOG_vent) — que dispara no overturn.
+- Mantém: Laminar, Δt 1e-4, Reference Density 1.76, Evap URF 0.2, heat flux fundo 1000.
+
 ## Sequência
 1. Trocar física p/ multicomponente; criar componentes CH₄ + C₂H₆ (líquido e vapor)
 2. Propriedades (NIST) de cada componente; densidade de mistura f(T,x)
