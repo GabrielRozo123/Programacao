@@ -56,10 +56,16 @@ Calor latente via diferença gás−líquido: metano 510 kJ/kg, etano 489 kJ/kg.
 ## Saturation Pressure (alvos para sanity-check; Antoine a confirmar a forma no Star)
 - Metano @ 111,67 K: Psat ≈ 101.325 Pa (volátil)
 - Etano @ 111 K: Psat ≈ 87 Pa (~1000× menor → quase não evapora)
-Antoine padrão log₁₀(P[bar]) = A − B/(T+C):
-- Metano: A=3,9895 B=443,028 C=−0,49 (91–190 K)
-- Etano: A=4,50706 B=791,3 C=−6,422 (extrapolado a 111 K)
-Converter para a convenção do Star (ln/Pa) ao saber a forma do nó Antoine.
+### Convenção do Star CONFIRMADA (pelo default da água)
+Star Antoine: **p_sat[bar] = exp(A − B/(T+C))**, T em K, Logarithm Base = e.
+(default água A=11,949/B=3978,205/C=−39,801 → 1,015 bar a 373 K → confirma BAR)
+Constantes (= ln(10)×Antoine padrão; C inalterado):
+| Componente | A | B | C | Min/Max T |
+|---|---|---|---|---|
+| Metano | 9.186 | 1020.1 | −0.49 | 80 / 200 K |
+| Etano | 10.378 | 1822.0 | −6.422 | 80 / 200 K |
+⚠️ Min/Max Temperature do default vem 273–647 K (água) → TROCAR para 80–200 K.
+Verificação: metano ~1,013 bar (101325 Pa) @ 111,67 K; etano ~8,7e-4 bar (87 Pa) @ 111 K.
 
 ## Connectivity do Evaporation/Condensation (CRÍTICO)
 Mapear os pares líquido↔gás (default vem "None" → corrigir!):
