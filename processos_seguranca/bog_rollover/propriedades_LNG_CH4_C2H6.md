@@ -34,6 +34,21 @@ Líquido subresfriado @ ~111 K (NBP = 184,55 K — bem acima):
 | T crítica / P crítica | 305,32 K / 4,872 MPa | |
 | Psat @ ~111 K | ~0,01–0,1 | kPa (quase NÃO evapora → não-volátil) |
 
+## Propriedades do GÁS (vapor multicomponente, Ideal Gas, ~111 K)
+Densidade NÃO se digita (Ideal Gas calcula ρ=PM/RT); só conferir Molecular Weight.
+| Propriedade | Metano(g) | Etano(g) | Unidade |
+|---|---|---|---|
+| Molecular Weight | 16,043 | 30,069 | kg/kmol |
+| Dynamic Viscosity | 4,4e-6 | 3,8e-6 | Pa·s |
+| Specific Heat | 2100 | 1300 | J/(kg·K) |
+| Thermal Conductivity | 0,012 | 0,008 | W/(m·K) |
+
+## Connectivity do Evaporation/Condensation (CRÍTICO)
+Mapear os pares líquido↔gás (default vem "None" → corrigir!):
+- Metano(liq) ↔ Metano(gas)
+- Etano(liq) ↔ Etano(gas)
+Sem isso não há evaporação e o rollover não funciona.
+
 ## Pressão de saturação — Antoine (log₁₀ P[bar] = A − B/(T[K]+C))
 | Componente | A | B | C | Validade |
 |---|---|---|---|---|
