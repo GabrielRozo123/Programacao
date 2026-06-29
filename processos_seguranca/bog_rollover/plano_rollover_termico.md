@@ -68,6 +68,16 @@ sobrepressão → venting). NÃO é validação quantitativa (escala/tempo indus
 5. Re-inicializar; conferir scene de Temperatura (2 camadas: fria embaixo)
 6. Rodar; observar T(z) estratificado → overturn → surto em P_ullage e velocidade
 
+## Receita B — flip dramático metaestável (turbulento)
+Após observar que 1500 W/m² + turbulência dá mistura gradual (não flip), ajuste para:
+- Heat flux Fundo = **400 W/m²** (brando → estratificação metaestável resiste mais)
+- T inicial = **77/79 K** (ΔT=2K): `($${Position}[2] < 0.085) ? 77.0 : 79.0`
+- Turbulência k-ε + **Thermal Stratification** (mantida), densidade f(T), Schrage 1e-3
+- Aceleradores: **AMR Trigger Frequency = 5**, **Δt máx = 0,05 s**, Inner Iters = 12
+- Esperado: atraso ~10-12 min físicos → flip abrupto (V_max dispara, T(z) homogeneíza,
+  P_ullage surto). Cap de Δt=0,05s garante resolver o flip (free-surface provider não
+  reduz Δt sozinho pois a superfície livre quase não mexe no overturn interno).
+
 ## Resultado esperado (assinatura do rollover)
 - Fase 1 (atraso): T(z) com degrau estável, P_ullage subindo devagar (como antes)
 - Fase 2 (gatilho): camada inferior cruza a densidade da superior
