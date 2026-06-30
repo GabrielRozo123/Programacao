@@ -36,8 +36,35 @@ Hipótese: há fator de escala (0,1 mm ou ×10). **Confirmar escala real com Jad
 - Bounding box bruto do conjunto é dominado por coordenadas de planta/entidades soltas
   (não usar como tamanho de tanque).
 
+---
+
+# Análise do IGES — Conjunto Ejetor
+Arquivo `dados_cliente/Conjunto_Ejetor.iges` (11 MB, AutoCAD Architecture 2023, INCH).
+9.724 entidades, 136 shells.
+
+## Sistema: 4 ejetores (eductores) em manifold (jet aeration)
+| Componente | Qtd | raw | ÷10 = real (mm) |
+|---|---|---|---|
+| Lanças/tubos longos | 4 | D=1.855, L=76.200 | D≈185 mm, L≈7,62 m |
+| Manifolds (topo+fundo) | 2 | ~35.560 compr. | ~3,56 m |
+| Flanges/conexões | vários | ~5.565–5.806 | ~556–580 mm |
+| Bocais/gargantas (menores) | 4+ | ~144–395 | ~14–40 mm |
+
+Funcionamento: líquido motriz no manifold → acelera nos bocais (~14 mm) → arrasta ar →
+mistura desce pelas 4 lanças para o tanque. = jet aeration / eductor.
+
+## ESCALA — confirmação cruzada (forte evidência de ×10)
+Com ÷10: lança L≈7,62 m ≈ altura do tanque (6,9 m); bocal ≈14 mm; lança D≈185 mm.
+Tudo realista E consistente entre os 2 arquivos → **fator ×10 muito provável** (real ≈ raw/10 em mm).
+Confirmar no kick-off, mas agora com 2 evidências independentes.
+
+## Implicações CFD
+- Multifásico **gás-líquido** (ejetor arrasta ar → bolhas → aeração/mistura).
+- Bocal ~14 mm em tanque ~5 m → razão ~350:1 → **malha refinada local no bocal**
+  (como o gargalo do chiller). Pesa no esforço/proposta.
+
 ## Pendente
-- [ ] Confirmar ESCALA/UNIDADE real (kick-off)
-- [ ] Localizar/medir o tanque Aerador
-- [ ] Receber e analisar o Ejetor (.iges)
-- [ ] Definir o domínio fluido a extrair
+- [ ] Confirmar ESCALA real (×10?) no kick-off — pergunta nº1
+- [ ] Localizar/medir o tanque Aerador (3º tanque)
+- [ ] Definir domínio fluido a extrair (interior dos tanques + lanças/bocais)
+- [ ] Dados de operação: vazão motriz, vazão de ar induzida, pressão (kick-off)
