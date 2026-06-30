@@ -1,6 +1,6 @@
 # Status dos Projetos — CAExperts
 
-> Atualizado: 2026-06-27
+> Atualizado: 2026-06-30
 
 ---
 
@@ -99,8 +99,8 @@
 
 ## 3. Braskem PE5 — DEM Rosca Transportadora
 
-**Cliente:** Braskem S.A. — Unidade PE5 (RS) | **Contatos:** Marcus Castro Neves, Jeferson Diefenthaler  
-**Status:** Proposta enviada ao Marcus
+**Cliente:** Braskem S.A. — Unidade PE5 (RS) | **Contatos:** Marcus Castro Neves, Jeferson Diefenthaler, Barros  
+**Status:** Proposta ENVIADA ao cliente (Barros encaminhou à Braskem)
 
 ### Arquivos principais
 - `braskem_pe5/Proposta_Braskem_PE5_DEM.xlsx` — proposta comercial (ativa)
@@ -124,9 +124,31 @@
 - Desenho técnico ou croqui com cotas
 
 ### Pendente
-- [ ] Marcus revisar HH e aprovar proposta
+- [x] Proposta enviada à Braskem (via Barros)
 - [ ] Receber dados operacionais do Jeferson
 - [ ] Confirmar geometria e iniciar setup DEM
+
+---
+
+## 4. [Sugar] — Tanque de Aeração + Reatores A/B + Ejetor (NOVO)
+
+**Setor:** Sucroalcooleiro ("Sugar" = codinome) | **Contatos:** Jadir Batista (JSA Consultoria),
+Marcus Ito (cliente), Marcus Castro Neves, Gabriel Rozo  
+**Status:** Arquivos recebidos; **kick-off 2026-07-01 08:00 (Teams)**
+
+### Arquivos principais
+- `sugar_tanque_aeracao/README.md` — info do projeto + preparação do kick-off
+- CAD a importar para `dados_cliente/` (anexos do e-mail de Jadir/JSA):
+  Tanques Reator A/B + Aerador (.iges/.dwg), Ejetor (.iges/.dwg)
+
+### Escopo (a confirmar no kick-off)
+2 tanques reatores (A/B) + tanque aerador + ejetor(es). Hipótese: CFD de **aeração/mistura
+gás-líquido** (jet aeration via ejetor) — mistura, transferência de O₂, zonas mortas.
+
+### Pendente
+- [ ] Importar os CAD para `dados_cliente/`
+- [ ] Kick-off 01/07 com Marcus Ito — definir objetivo, dados, entregável
+- [ ] Revisão de literatura (jet aeration / ejetor) + proposta
 
 ---
 
@@ -135,6 +157,9 @@
 | Pessoa | Empresa | Projeto |
 |---|---|---|
 | Pedro Costa | GreyLogix | Chiller |
-| Marcus Castro Neves | CAExperts | Valgroup + Braskem |
+| Marcus Castro Neves | CAExperts | Valgroup + Braskem + Sugar |
 | Daniel | Valgroup | Ciclone |
 | Jeferson Diefenthaler | Braskem PE5 | DEM rosca |
+| Barros | — | encaminhou proposta Braskem |
+| Jadir Batista | JSA Consultoria e Projeto | Sugar (enviou CAD) |
+| Marcus Ito (M. E. Katsuda Ito) | cliente | Sugar — aeração |
