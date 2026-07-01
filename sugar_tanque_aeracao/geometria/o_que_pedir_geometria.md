@@ -28,6 +28,17 @@ Ignorar: Flange Solto, Parafuso, bos-us (weld boss), Hexagon Nipples = ferragem.
 7. (Ideal) modelo do **domínio fluido** já simplificado, se existir
 + Curva **vazão × pressão do ar** (já pedida no kick-off) — parâmetro do ejetor
 
+## Tanque: o que MANTER vs IGNORAR (nuance vs ejetor)
+No tanque, alguns internos SÃO parte do domínio fluido e afetam o escoamento:
+- **MANTER** (molhado + influencia mistura): paredes, **CONE INFERIOR** (fundo cônico),
+  **QUEBRA VORTEX** (baffles/quebra-ondas — quebram o vórtice do agitador), **impelidor/
+  agitador**, descarga das **lanças** (entradas).
+- **IGNORAR** (ferragem externa): B16.5 Flange, ANSI L (cantoneiras/suportes), Pestana,
+  parafusos.
+Regra: malha o **volume de líquido + internos que mexem no escoamento**; descarta a
+estrutura externa.
+Tanques visíveis no CAD: 2 verdes (Reatores A/B) + 1 roxo (Aerador, fundo cônico) = nosso.
+
 ## Plano B (se não vier GA cotado)
 Medir no visualizador/Star (como o flange já medido, ×10):
 - Isolar BICO → medir garganta, entrada, saída
