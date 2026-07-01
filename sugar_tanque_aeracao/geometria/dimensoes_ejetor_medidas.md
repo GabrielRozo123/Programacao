@@ -45,9 +45,29 @@ Simular **2 tanques**, **ambos CHEIOS**, 3º não precisa:
   baffles, eixo.
 (O cilindro 85mm "28E" no aerador = lança/tubo, NÃO eixo de agitador — aerador não tem agitador.)
 
+## TANQUE REATOR (verde) — 4 STEPs reais (wall, cone, baffles, defletor) + impelidores
+> Escala do arquivo TANQUES fixada: **model ÷ 10.000 = metros** (unidade model = 0,1 mm).
+> Prova: defletor mede 3,628 × 4,665 × 0,01626 m e o volume bate exato 0,275 m³.
+> Todas as peças no MESMO referencial de montagem → encaixam sozinhas.
+> **Eixo do tanque: x = 0,200 m ; y = −6,282 m** (coords de montagem).
+
+| Peça | Medida real | Nota |
+|---|---|---|
+| Casca cilíndrica | **ID 5,080 m** (OD 5,113, parede 16 mm) | z: −5,638 → +1,220 (H_cil = 6,858 m) |
+| Bocal topo | Ø 1,60 m | abertura/manway no topo |
+| Cone inferior | topo Ø5,08 → **saída Ø 0,30 m**, **H 0,793 m** | z: −6,431 → −5,638; semiângulo ~17° |
+| Baffles (quebra-vortex) | **5 chapas**, larg **0,508 m (=T/10)**, alt **4,318 m**, esp 16 mm | r≈2,16 m, folga parede ~0,13 m; 2 inclinadas ~35° |
+| Defletor | chapa **3,628 × 4,665 m × 16 mm** | z −4,34 → +0,32 (do meio ao topo), lado y− |
+| Impelidores | **DUPLO hydrofoil**, **Ø ≈ 1,98 m** (D/T=0,39) | inferior z=−4,47 ; superior z=−0,57 ; espaç. 3,9 m; eixo sai pelo topo |
+| Altura interna total | saída→borda = **7,65 m** | |
+
+Coerência: D/T=0,39 na faixa Sinatub (0,35–0,50); D=5,08 m ≈ estimativa prévia ~5,4 m.
+Potência Sinatub p/ esse porte ~22–25 kW (alvo <25 kW). ✅
+Domínio interno limpo construído: `reator_dominio_fluido_v1.step` (cilindro ID5,08 + cone, no referencial de montagem). Internos (baffles/defletor/impelidor/eixo) = subtrair via boolean p/ MRF.
+
 ## Pendente
 - [ ] Confirmar **D real do aerador** com Marcus/Ito (fixa a escala dos tanques)
 - [ ] Cone do aerador: junção cilindro-cone + Ø saída (2 medidas rápidas) ou GA
-- [ ] Reator verde: D, H, impelidor (D/tipo/posição), baffles
+- [x] Reator verde: D=5,08, H_cil=6,86, cone H=0,79/saída Ø0,30, 5 baffles, defletor, impelidor duplo Ø1,98
 - [ ] Confirmar Ø câmara + bicos de ar (1mm) do ejetor
 - [ ] Ao acoplar: escalar ejetor (÷25,4) → tanque (÷10)
