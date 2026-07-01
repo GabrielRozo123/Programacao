@@ -44,7 +44,16 @@
 ## 1. GreyBeer — Chiller Tank (CFD Estratificação Térmica)
 
 **Cliente:** GreyLogix | **Contato:** Pedro Costa  
-**Status:** Simulação transiente rodando no Star-CCM+
+**Status:** RE-RODANDO com inlet/outlet CORRIGIDOS (estavam invertidos no modelo).
+Cliente pediu a config real para o PPTX do engenheiro deles.
+
+### ⚠️ Correção inlet/outlet (2026-06-30)
+- Modelo tinha inlet/outlet trocados. Config REAL: **inlet = z=1116 (Sensor Baixo)**,
+  **outlet = z=1641 (Sensor Alto)**. Só troca os BCs (geometria/stubs iguais).
+- Balanço de Energia: usar **TempSaida_MassFlowAvg** (Mass-Flow Average na face de saída),
+  NÃO o Sensor (Maximum). Sensor Baixo agora fica na entrada → lê −5°C constante.
+- 1ª leitura pós-correção: Q ≈ −8 kW (tardio) ≈ magnitude do original (7,57 kW) →
+  **inversão NÃO mudou muito os resultados térmicos** (como esperado). Re-run limpo p/ curva final.
 
 ### Arquivos principais
 - `_arquivo/chiller/generate_chiller_tank_v3_dual_lateral.py` — script de geometria (versão ativa)
@@ -125,6 +134,7 @@
 
 ### Pendente
 - [x] Proposta enviada à Braskem (via Barros)
+- [ ] **AMANHÃ: follow-up com Jeferson** — confirmar se receberam a proposta
 - [ ] Receber dados operacionais do Jeferson
 - [ ] Confirmar geometria e iniciar setup DEM
 
@@ -145,9 +155,17 @@ Marcus Ito (cliente), Marcus Castro Neves, Gabriel Rozo
 2 tanques reatores (A/B) + tanque aerador + ejetor(es). Hipótese: CFD de **aeração/mistura
 gás-líquido** (jet aeration via ejetor) — mistura, transferência de O₂, zonas mortas.
 
+### Análise dos CAD (IGES, via OpenCASCADE) — feita
+- 2 tanques cilíndricos (Reator A/B), H/D≈1,3, ~5,4 m D × 6,9 m H (com ÷10)
+- Ejetor = **array de 4 eductores** em manifold (jet aeration): lança D~185mm/L~7,6m,
+  bocais/jatos ~23–28 mm (multi-jato)
+- **ESCALA ×10 CONFIRMADA** por medição no visualizador (flange 228,6" = 5,8m absurdo →
+  real ÷10 = 581mm). Real = medida/10 (pol) = medida×2,54 (mm).
+
 ### Pendente
-- [ ] Importar os CAD para `dados_cliente/`
-- [ ] Kick-off 01/07 com Marcus Ito — definir objetivo, dados, entregável
+- [x] Importar CAD (tanques + ejetor .iges/.dwg) para `dados_cliente/` + análise
+- [ ] **AMANHÃ AM: kick-off com Marcus Ito** — perguntas no README:
+      objetivo, escala (confirmar ×10), fluido, vazões motriz/ar, entregável
 - [ ] Revisão de literatura (jet aeration / ejetor) + proposta
 
 ---
