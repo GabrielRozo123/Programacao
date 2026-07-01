@@ -27,13 +27,21 @@ Caminho: entrada Ø52 (2") → 7 bicos Ø9 (hex) → câmara Ø60 × 56 → lan�
 BCs: entrada = xarope (motriz); ar 1mm = inlet na câmara; saída = tanque.
 v1 = representativa; refinar Ø/compr. da câmara e posição do ar quando confirmado (GA).
 
-## TANQUE AERADOR (roxo) — Body 271, escala do arquivo TANQUES
-Extents (model): dx=dy=**20,80 m**, dz=**55,88 m** → H/D ≈ 2,7 (alto + cone).
-⚠️ Escala dos TANQUES ≠ ejetor. Sem rótulo ASME p/ fixar. Restrição: a lança (3,0 m real)
-tem que caber → **÷10** (H=5,59 m ✓); ÷25,4 daria 2,2 m (não caberia). Então **÷10 provável**:
-**D≈2,08 m, H≈5,59 m** (a CONFIRMAR o D real com Marcus/Ito — 1 número fixa tudo).
-Casca v1 construída: `aerador_casca_v1.step` (fluido ~16 m³; cone estimado ~1,4 m, saída ~0,25 m).
+## TANQUE AERADOR (roxo) — CONFIRMADO pela casca real `aerador_wall.step`
+**D = 2,08 m** (OD), **H cilindro = 5,588 m**. Eixo em (x=0,20 ; y=−0,44). Borda z=+1,22.
+Escala ÷10 (do arquivo TANQUES) agora CONFIRMADA — a casca real bate com a estimativa prévia.
+z: −4,368 → +1,220 (cilindro). Cone abaixo de −4,368 (ainda não veio o STEP do cone do aerador).
+Casca v1 estimada anterior: `aerador_casca_v1.step` (substituir pela real ao acoplar ejetor).
 Acoplar ejetor: redimensionar o ejetor (÷25,4) para a escala do tanque (÷10) ao combinar.
+
+## PASSAGEM (calha de transbordo reator→aerador) — `reator_passagem.step`
+Canal no topo ligando os 2 tanques. Interior ~**1,52 (larg) × 1,29 (alt) × 2,69 m (compr)**.
+z: −0,21 → +1,08 (parte alta). Alinhado ao eixo x=0,20. Xarope transborda reator → aerador.
+Só 2 paredes laterais no STEP (16 mm) — canal retangular.
+
+## NÍVEL DE LÍQUIDO: "até o transbordo" (Marcus Castro Neves confirmou)
+Ambos os tanques cheios **até a borda z=+1,22**. Domínio do reator refeito p/ esse nível
+(144,7 m³ bruto, antes de descontar internos).
 
 ## ESCOPO (Marcus gerente) + PAPÉIS CORRIGIDOS (usuário confirmou olhando o CAD)
 Simular **2 tanques**, **ambos CHEIOS**, 3º não precisa:
