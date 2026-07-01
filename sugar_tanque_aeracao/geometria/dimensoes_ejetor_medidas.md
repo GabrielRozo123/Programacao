@@ -44,9 +44,12 @@ Ambos os tanques cheios **até a borda z=+1,22**. Domínio do reator refeito p/ 
 (144,7 m³ bruto, antes de descontar internos).
 
 ## INJETORES DE AR (lanças do ejetor no aerador) — injetor_1/2/3.step
-3 lanças verticais **OD 84,8 mm / ID 70,8 mm**, z −5,246 → +1,866 (entram pelo topo,
-descem até o cone). Posições (m): (0,464,−0,288), (−0,064,−0,288), (0,200,−0,745)
+3 lanças verticais **OD 84,8 mm / ID 70,8 mm**, comprimento **7,112 m** (topo z=+1,8655 →
+**boca/face circular z=−5,2465**). Posições (m): (0,464,−0,288), (−0,064,−0,288), (0,200,−0,745)
 → **r=0,305 m do eixo do aerador (0,20/−0,44), 120° entre si** (triângulo).
+⚠️ A boca fica **0,646 m ACIMA da saída do cone** (−5,2465 vs −5,892): a lança termina
+DENTRO do cone, não no bico. Face circular Ø84,8 (56,5 cm²) = **inlet do ar/microbolhas** no CFD.
+Penetração submersa (abaixo do nível 1,22) = 6,47 m. (v1 tinha cortado até −5,9 = erro, corrigido.)
 
 ## CONE DE FUNDO DO AERADOR — aerador_cone_fundo.step
 Cone: topo **R 1,016 m** (=ID cilindro) → saída **R 0,258 m (Ø 0,516 m)**, **H 1,524 m**,
