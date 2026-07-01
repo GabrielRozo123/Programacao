@@ -144,16 +144,20 @@ Cliente pediu a config real para o PPTX do engenheiro deles.
 
 **Setor:** Sucroalcooleiro ("Sugar" = codinome) | **Contatos:** Jadir Batista (JSA Consultoria),
 Marcus Ito (cliente), Marcus Castro Neves, Gabriel Rozo  
-**Status:** Arquivos recebidos; **kick-off 2026-07-01 08:00 (Teams)**
+**Status:** ✅ KICK-OFF REALIZADO (01/07) — escopo definido; aguardando curva de ar (Marcus Ito)
 
 ### Arquivos principais
 - `sugar_tanque_aeracao/README.md` — info do projeto + preparação do kick-off
 - CAD a importar para `dados_cliente/` (anexos do e-mail de Jadir/JSA):
   Tanques Reator A/B + Aerador (.iges/.dwg), Ejetor (.iges/.dwg)
 
-### Escopo (a confirmar no kick-off)
-2 tanques reatores (A/B) + tanque aerador + ejetor(es). Hipótese: CFD de **aeração/mistura
-gás-líquido** (jet aeration via ejetor) — mistura, transferência de O₂, zonas mortas.
+### Escopo (CONFIRMADO no kick-off 01/07 — ver reuniao_kickoff_marcus_ito.md)
+**Clarificação de xarope por FLOTAÇÃO** (fosfatação-flotação). Ejetor = micronizador tipo
+**venturi**: xarope motriz + ar comprimido (bicos 1mm) → micro-bolhas (<200µm) → flotam os
+flocos de fosfato (200-400µm) com impurezas. Roxo=aerador/flotação; verde=reatores A/B.
+⚠️ **Viscosidade 65 poise (6,5 Pa·s, tipo mel)** = desafio central (bolha sobe 4mm/HORA!).
+CFD: geração de micro-bolhas no venturi + aeração/flotação no meio viscoso + otimização
+(impelidor hydrofoil, headspace). Pendente: curva vazão×pressão do ar (Marcus Ito).
 
 ### Análise dos CAD (IGES, via OpenCASCADE) — feita
 - 2 tanques cilíndricos (Reator A/B), H/D≈1,3, ~5,4 m D × 6,9 m H (com ÷10)
