@@ -27,7 +27,21 @@ Caminho: entrada Ø52 (2") → 7 bicos Ø9 (hex) → câmara Ø60 × 56 → lan�
 BCs: entrada = xarope (motriz); ar 1mm = inlet na câmara; saída = tanque.
 v1 = representativa; refinar Ø/compr. da câmara e posição do ar quando confirmado (GA).
 
+## TANQUE AERADOR (roxo) — Body 271, escala do arquivo TANQUES
+Extents (model): dx=dy=**20,80 m**, dz=**55,88 m** → H/D ≈ 2,7 (alto + cone).
+⚠️ Escala dos TANQUES ≠ ejetor. Sem rótulo ASME p/ fixar. Restrição: a lança (3,0 m real)
+tem que caber → **÷10** (H=5,59 m ✓); ÷25,4 daria 2,2 m (não caberia). Então **÷10 provável**:
+**D≈2,08 m, H≈5,59 m** (a CONFIRMAR o D real com Marcus/Ito — 1 número fixa tudo).
+Casca v1 construída: `aerador_casca_v1.step` (fluido ~16 m³; cone estimado ~1,4 m, saída ~0,25 m).
+Acoplar ejetor: redimensionar o ejetor (÷25,4) para a escala do tanque (÷10) ao combinar.
+
+## ESCOPO (Marcus gerente, 2026-07-01)
+Simular **2 tanques**: 🟢 Reator (verde, agitador→potência<25kW) + 🟣 Aerador (roxo, ejetor
+→micro-bolhas). **3º tanque não precisa. Ambos começam CHEIOS** (nível transbordo).
+
 ## Pendente
-- [ ] Confirmar Ø interno da câmara e posição/quantidade dos bicos de ar (1mm)
-- [ ] Manifold/header (TAMPA HEADER) — Ø (distribuição do xarope) se relevante
-- [ ] Escala do arquivo dos TANQUES (separado; conferir — Sinatub dá T~4,3 m do reator)
+- [ ] Confirmar **D real do aerador** com Marcus/Ito (fixa a escala dos tanques)
+- [ ] Cone do aerador: junção cilindro-cone + Ø saída (2 medidas rápidas) ou GA
+- [ ] Reator verde: D, H, impelidor (D/tipo/posição), baffles
+- [ ] Confirmar Ø câmara + bicos de ar (1mm) do ejetor
+- [ ] Ao acoplar: escalar ejetor (÷25,4) → tanque (÷10)
