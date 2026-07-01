@@ -43,6 +43,27 @@ Só 2 paredes laterais no STEP (16 mm) — canal retangular.
 Ambos os tanques cheios **até a borda z=+1,22**. Domínio do reator refeito p/ esse nível
 (144,7 m³ bruto, antes de descontar internos).
 
+## INJETORES DE AR (lanças do ejetor no aerador) — injetor_1/2/3.step
+3 lanças verticais **OD 84,8 mm / ID 70,8 mm**, z −5,246 → +1,866 (entram pelo topo,
+descem até o cone). Posições (m): (0,464,−0,288), (−0,064,−0,288), (0,200,−0,745)
+→ **r=0,305 m do eixo do aerador (0,20/−0,44), 120° entre si** (triângulo).
+
+## CONE DE FUNDO DO AERADOR — aerador_cone_fundo.step
+Cone: topo **R 1,016 m** (=ID cilindro) → saída **R 0,258 m (Ø 0,516 m)**, **H 1,524 m**,
+z −5,892 → −4,368. Eixo (0,20/−0,44). Aerador completo: cilindro ID2,032×H5,588 + cone.
+
+## ⭐ ENTREGÁVEL: `sugar_dominio_fluido_completo.step` (em METROS, validado 2×)
+4 sólidos, todos válidos (BRepCheck OK), no referencial de montagem:
+| Sólido | Vol (m³) | Descrição |
+|---|---|---|
+| `Fluido_Reator` | 125,09 | interior − 5 baffles − defletor − haste − cilindro MRF |
+| `MRF_Impelidores` | 19,00 | cilindro rotativo R1,15 eixo (0,327/−6,282) z[−4,85,−0,25] − haste |
+| `Fluido_Aerador` | 20,17 | cilindro+cone − 3 lanças |
+| `Fluido_Passagem` | 5,31 | calha de transbordo reator→aerador |
+Companheiro: **`impelidor_em_metros.step`** (impelidor do cliente ×1e−4, MESMO referencial,
+pré-alinhado ao MRF — pás R1,034<1,15 ✓). ⚠️ IMPORTAR AMBOS EM **METROS** no Star.
+Reator+MRF = 144,09 m³ (conformais, sem overlap). MRF: impelidor entra como wall (subtrair no Star).
+
 ## ESCOPO (Marcus gerente) + PAPÉIS CORRIGIDOS (usuário confirmou olhando o CAD)
 Simular **2 tanques**, **ambos CHEIOS**, 3º não precisa:
 - 🟣 **Aerador (roxo):** tem o **EJETOR (4 lanças) + cone**. **SEM impelidor/baffles.**
