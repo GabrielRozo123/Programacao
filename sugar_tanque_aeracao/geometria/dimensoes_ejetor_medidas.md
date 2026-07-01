@@ -35,9 +35,15 @@ tem que caber → **÷10** (H=5,59 m ✓); ÷25,4 daria 2,2 m (não caberia). En
 Casca v1 construída: `aerador_casca_v1.step` (fluido ~16 m³; cone estimado ~1,4 m, saída ~0,25 m).
 Acoplar ejetor: redimensionar o ejetor (÷25,4) para a escala do tanque (÷10) ao combinar.
 
-## ESCOPO (Marcus gerente, 2026-07-01)
-Simular **2 tanques**: 🟢 Reator (verde, agitador→potência<25kW) + 🟣 Aerador (roxo, ejetor
-→micro-bolhas). **3º tanque não precisa. Ambos começam CHEIOS** (nível transbordo).
+## ESCOPO (Marcus gerente) + PAPÉIS CORRIGIDOS (usuário confirmou olhando o CAD)
+Simular **2 tanques**, **ambos CHEIOS**, 3º não precisa:
+- 🟣 **Aerador (roxo):** tem o **EJETOR (4 lanças) + cone**. **SEM impelidor/baffles.**
+  → CFD multifásico (micro-bolhas). Domínio = casca (v1) + cone + lanças (escalar do ejetor).
+  Geometria quase pronta (não precisa MRF/rotação).
+- 🟢 **Reator (verde):** tem **IMPELIDOR (hydrofoil duplo) + BAFFLES + eixo**.
+  → CFD de agitação (MRF) → **potência <25 kW**. Precisa medir: shell, impelidor (Ø/nº pás),
+  baffles, eixo.
+(O cilindro 85mm "28E" no aerador = lança/tubo, NÃO eixo de agitador — aerador não tem agitador.)
 
 ## Pendente
 - [ ] Confirmar **D real do aerador** com Marcus/Ito (fixa a escala dos tanques)
