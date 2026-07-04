@@ -1,6 +1,6 @@
 # Status dos Projetos — CAExperts
 
-> Atualizado: 2026-06-30
+> Atualizado: 2026-07-04
 
 ---
 
@@ -44,8 +44,8 @@
 ## 1. GreyBeer — Chiller Tank (CFD Estratificação Térmica)
 
 **Cliente:** GreyLogix | **Contato:** Pedro Costa  
-**Status:** RE-RODANDO com inlet/outlet CORRIGIDOS (estavam invertidos no modelo).
-Cliente pediu a config real para o PPTX do engenheiro deles.
+**Status:** ✅ PPTX entregue e reunião com o cliente realizada — **feedback positivo**
+(gostaram do resultado). Correção de inlet/outlet incorporada antes da entrega.
 
 ### ⚠️ Correção inlet/outlet (2026-06-30)
 - Modelo tinha inlet/outlet trocados. Config REAL: **inlet = z=1116 (Sensor Baixo)**,
@@ -74,9 +74,9 @@ Cliente pediu a config real para o PPTX do engenheiro deles.
 - Recomendação: usar T_topo < −4.5°C como critério de desligamento do chiller
 
 ### Pendente
-- [ ] Aguardar simulação completar resfriamento total (estimado >40h total)
-- [ ] Capturar T(z) final e T_bulk(t) para slides do Pedro
-- [ ] Confirmar com Pedro Costa critério de shutdown
+- [x] PPTX com resultados entregue ao cliente
+- [x] Reunião de apresentação realizada — feedback positivo
+- [ ] Confirmar se o cliente vai querer alguma rodada adicional/refinamento após a reunião
 
 ---
 
@@ -100,6 +100,7 @@ Cliente pediu a config real para o PPTX do engenheiro deles.
 
 ### Pendente
 - [ ] Receber planilha de composição do gás (Marcus/Daniel)
+- [ ] Receber granulometria do sólido (d10/d50/d90, necessária pro modelo Lapple — d_p50) (Marcus)
 - [ ] Calcular propriedades do gás via Peng-Robinson
 - [ ] Rodar dimensionamento Lapple
 - [ ] Gerar geometria STEP do ciclone para Star-CCM+
@@ -133,8 +134,8 @@ Cliente pediu a config real para o PPTX do engenheiro deles.
 - Desenho técnico ou croqui com cotas
 
 ### Pendente
-- [x] Proposta enviada à Braskem (via Barros)
-- [ ] **AMANHÃ: follow-up com Jeferson** — confirmar se receberam a proposta
+- [x] Proposta enviada à Braskem (via Barros) — confirmado
+- [ ] Follow-up com Jeferson — confirmar recebimento e próximos passos
 - [ ] Receber dados operacionais do Jeferson
 - [ ] Confirmar geometria e iniciar setup DEM
 
