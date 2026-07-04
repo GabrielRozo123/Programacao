@@ -60,12 +60,13 @@ z −5,892 → −4,368. Eixo (0,20/−0,44). Aerador completo: cilindro ID2,032
 | Sólido | Vol (m³) | Descrição |
 |---|---|---|
 | `Fluido_Reator` | 125,09 | interior − 5 baffles − defletor − haste − cilindro MRF |
-| `MRF_Impelidores` | 19,00 | cilindro rotativo R1,15 eixo (0,327/−6,282) z[−4,85,−0,25] − haste |
+| `MRF_Impelidores` | 4,3545 | cilindro rotativo **R 0,55 m** (corrigido de R1,15 em 2026-07-04 — escala real Agimix AGX-PBW800 Ø800mm) eixo (0,327/−6,282) z[−4,85,−0,25] − haste |
 | `Fluido_Aerador` | 20,17 | cilindro+cone − 3 lanças |
 | `Fluido_Passagem` | 5,31 | calha de transbordo reator→aerador |
-Companheiro: **`impelidor_em_metros.step`** (impelidor do cliente ×1e−4, MESMO referencial,
-pré-alinhado ao MRF — pás R1,034<1,15 ✓). ⚠️ IMPORTAR AMBOS EM **METROS** no Star.
-Reator+MRF = 144,09 m³ (conformais, sem overlap). MRF: impelidor entra como wall (subtrair no Star).
+Companheiro: **`impelidor_3pas.step`** (impelidor corrigido 3 pás/estágio, 6 total, real Agimix
+AGX-PBW800 — substitui `impelidor_em_metros.step`, MESMO referencial, pré-alinhado ao MRF, raio
+de ponta 0,4144m < 0,55m ✓). ⚠️ IMPORTAR AMBOS EM **METROS** no Star.
+Reator+MRF = 129,44 m³ (125,09+4,3545, conformais, sem overlap). MRF: impelidor entra como wall (subtrair no Star).
 
 ## ESCOPO (Marcus gerente) + PAPÉIS CORRIGIDOS (usuário confirmou olhando o CAD)
 Simular **2 tanques**, **ambos CHEIOS**, 3º não precisa:
