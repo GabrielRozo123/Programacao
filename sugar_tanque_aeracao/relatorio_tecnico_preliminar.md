@@ -60,6 +60,22 @@ Ambas as causas têm a **mesma raiz física**: a viscosidade extrema do xarope (
 
 **Pendente:** casos de **2 kgf/cm² (196.130 Pa)** e **3 kgf/cm² (294.200 Pa)** ainda não rodados. A expectativa (a confirmar) é que a margem sobre a pressão hidrostática melhore substancialmente (~129% e ~244% de folga, respectivamente), potencialmente resultando em melhor dispersão e/ou bolhas menores — essa comparação é o que vai permitir recomendar a pressão otimizada ao Ito.
 
+### Refinamento — velocidade de subida da bolha (literatura)
+
+Fonte: Bird, Armstrong & Hassager, *Dynamics of Polymeric Liquids, Vol. 1: Fluid Mechanics*, 2ª ed., Exemplo 1.4-2 ("Flow around a Rising Bubble"). Para uma **bolha de gás** (superfície livre de cisalhamento, diferente de uma partícula sólida) em líquido Newtoniano em repouso, o balanço de forças (arrasto viscoso = empuxo) dá:
+
+$$V = \frac{1}{3}\cdot\frac{\rho g R^2}{\mu}$$
+
+— 1,5× mais rápido que a Lei de Stokes para esfera **rígida** (V=(2/9)ρgR²/μ), usada na estimativa preliminar anterior, já que a bolha permite escorregamento/circulação na superfície.
+
+Refazendo a estimativa para o tamanho de bolha realmente medido no CFD (SMD≈2mm, R=1mm):
+
+$$V \approx 0{,}68\text{ mm/s} \Rightarrow t_{subida} = \frac{6{,}47\text{ m}}{0{,}68\text{ mm/s}} \approx 2{,}6\text{ horas}$$
+
+Mais rápido que a estimativa anterior (>16h com a fórmula de esfera rígida), mas ainda uma escala de tempo muito maior que os ~10s de tempo físico já simulados — reforça que a subida por empuxo puro é lenta demais para explicar transporte na escala de operação observada, embora não seja "impossível" na escala de horas de residência real da planta.
+
+**Cross-check de consistência física:** a mesma referência (§2.6, "Bubbles and Particles") descreve fenômenos **exclusivos de fluidos viscoelásticos/não-Newtonianos** — bolhas com formato de "lágrima"/cúspide, "esteira negativa" (fluido recuando atrás da bolha), cadeias de partículas em cisalhamento. Como o xarope é Newtoniano, **nenhum desses fenômenos é esperado** — as bolhas devem permanecer razoavelmente esféricas/elipsoidais. Isso serve como alerta futuro: se algum vídeo real da planta mostrar bolhas com esses formatos exóticos, seria sinal de que a suspensão floco+xarope pode ter ganho caráter não-Newtoniano inesperado, valendo revisitar a hipótese.
+
 ---
 
 ## 🔗 Achado unificador — o mesmo fator explica os dois tanques
