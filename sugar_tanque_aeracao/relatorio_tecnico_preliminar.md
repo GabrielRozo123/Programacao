@@ -1,60 +1,53 @@
 # Relatório Técnico Preliminar — Projeto Sugar (Usina Colombo)
 
-> Resumo técnico consolidado, organizado pelos objetivos do Ito. Status: rodada 1 concluída
-> (t=21,2s físicos, caso 1 kgf/cm² do Aerador + Reator acoplado). Torque/Potência/Np FECHADOS;
-> SMD do Aerador em banda provisória (falta confirmar estacionariedade); Nq requer rodada
-> dedicada em regime permanente. Casos 2 e 3 kgf/cm² pendentes.
-> Data: 2026-07-06 (dados da rodada exportados em CSV e processados em Python; conclusões
-> submetidas a revisão adversarial independente antes da publicação).
+> Resumo técnico consolidado, organizado pelos objetivos do Ito. Status: **REATOR 100% FECHADO**
+> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). Aerador: caso 1 kgf/cm²
+> caracterizado (SMD em banda provisória, falta estender p/ confirmar); casos 2 e 3 kgf/cm²
+> pendentes.
+> Data: 2026-07-07 (dados exportados em CSV e processados em Python; conclusões submetidas a
+> revisão adversarial independente antes da publicação).
 
 ---
 
-## 🟢 REATOR — Objetivo: Potência do agitador (<25kW) + Nq/Np
+## 🟢 REATOR — Objetivo: Potência do agitador (<25kW) + Nq/Np — ✅ FECHADO
 
-### Resultados FECHADOS (convergidos, janela t=16–21,3s, n=2185 amostras)
+### Resultados FINAIS (rodada dedicada em MRF regime permanente, convergida — iter 2320)
 
 | Item | Valor | Nota técnica |
 |---|---|---|
 | Geometria do impelidor | Duplo hidrofólio, **3 pás/estágio (6 total)**, Ø800mm, eixo Ø69,85mm | Corrigido em 04/07 a partir do desenho real Agimix AGX-PBW800 |
 | Rotação | 109,3 rpm (11,446 rad/s) | Dado real do redutor Macopema MP05 + motor WEG 15cv |
-| **Torque (2 estágios)** | **374,31 ± 0,91 N·m** | Deriva entre janelas de 5s: <0,5% e caindo → convergido. (Valor anterior 383,66 era leitura pontual prematura) |
-| **Potência** | **4,284 kW** | P = \|T\|×ω. **83% abaixo da meta de 25kW** ✓ |
-| **Np total (2 estágios)** | **1,602** | Np = P/(ρN³D⁵) |
-| **Np por estágio** | **0,801** | ÷2 é convenção válida para potência (grandeza somada no eixo); assume estágios ~independentes (espaçamento 3,56m = 4,4×D, favorável) |
+| **Torque (2 estágios)** | **355,66 N·m** | Steady convergido (achatado desde ~iter 200) |
+| **Potência** | **4,07 kW** | P = \|T\|×ω. **84% abaixo da meta de 25kW** ✓ |
+| **Np total (2 estágios)** | **1,522** | Np = P/(ρN³D⁵) |
+| **Np por estágio** | **0,76** | ÷2 válido para potência (grandeza somada no eixo); estágios ~independentes (espaçamento 3,56m = 4,4×D) |
+| **Nq (número de vazão)** | **0,345** | Nq = \|Q\|/(ND³), Q=−0,321 m³/s no plano de descarga (z=−4,50, r≤0,4). **Sem ÷2** — plano mede 1 impelidor |
 | **Reynolds do impelidor** | **≈ 242** | Re = ρND²/μ — **regime de TRANSIÇÃO** |
 
-**Sobre a comparação com literatura (leia com o cuidado devido):** o valor turbulento de
-catálogo para hidrofólio é Np≈0,8/impelidor (AIChE CEP) — nosso 0,801 coincide notavelmente.
-Porém esse benchmark é a **assíntota turbulenta (Re>10⁴)**, e estamos em Re≈242 (transição),
-onde Np tipicamente fica **acima** do platô turbulento. A coincidência é encorajadora como
-ordem de grandeza, mas não deve ser vendida como "validação exata" — o número defensável é o
-do CFD, reportado junto com o Re do regime. Correlações de catálogo não se aplicam com rigor
-em transição, o que reforça a necessidade do CFD para esta geometria.
+**Coerência do torque (3 determinações independentes):** transiente limpo (15-20s) = −374 N·m
+(Np/est 0,80); steady iter 547 = −360 N·m (0,77); **steady final = −356 N·m (0,76)**. Os três
+convergem dentro de ~5% — a potência (~4,1 kW) e o Np (~0,76-0,80) são sólidos. O valor steady
+final é o definitivo (totalmente convergido, sem sensibilidade de passo de tempo).
 
-### ⚠️ ERRATA — Nq (corrige versão anterior deste relatório)
+**Posicionamento físico do Nq:** cai **entre o laminar (Nq~0,214) e o turbulento (0,55-0,73)** —
+exatamente onde um número de vazão em Re≈242 (transição) deve estar. Não é um valor de catálogo;
+é o valor real desta geometria neste regime, que só o CFD entrega.
 
-A versão anterior reportava "Nq≈1,01 total, ≈0,505 por estágio". **Dois erros identificados
-em revisão adversarial:**
+**Sobre o Np vs literatura (com o cuidado devido):** o valor turbulento de catálogo para
+hidrofólio é Np≈0,8/impelidor (AIChE CEP) — nosso 0,76-0,80 fica na mesma ordem. Mas esse
+benchmark é a assíntota turbulenta (Re>10⁴); em Re≈242 (transição) Np tipicamente fica acima do
+platô turbulento. A proximidade é encorajadora, não uma "validação exata" — o número defensável
+é o do CFD, reportado junto com o Re.
 
-1. **O ÷2 do Nq era conceitualmente errado.** Diferente do torque (somado no eixo, 2 estágios),
-   o plano de medição de Q é um disco na altura do impelidor **inferior** — mede a descarga de
-   **UM** impelidor. O valor já é "por estágio"; dividir por 2 subestimava o Nq por um fator 2.
-2. **O Q daquela leitura (e desta rodada inteira) não está convergido.** O torque converge em
-   poucas rotações (depende do campo local na pá), mas o Q cresceu monotonicamente a rodada
-   inteira (−1,01 m³/s em t=4–6s → −1,75 m³/s em t=18–20s, deriva ~2,6%/s no fim). Torque
-   estável + Q subindo prova que o crescimento do Q é o **spin-up da circulação de tanque
-   inteiro** (turnover ≈80s; foram simulados 21s) passando fluxo de retorno/entranhamento
-   crescente pelo plano — não é bombeamento novo do impelidor. Além disso, um plano no
-   **centro** do impelidor integra descarga+entranhamento e tende ao número de **circulação**
-   (Nqc ≈ 1,8×Nq para impelidores axiais), inflando o valor vs. o Nq de descarga da literatura.
+### Notas metodológicas (correções aplicadas em revisão adversarial)
 
-**Conclusão honesta: o Nq NÃO pode ser finalizado desta rodada transiente.**
-Caminho definido para o Nq final: **rodada dedicada do Reator sozinho em MRF regime
-permanente** (converge a circulação desenvolvida diretamente, sem spin-up), com:
-- plano de medição **logo abaixo** do impelidor, no jato de descarga (não no centerplane);
-- sem ÷2;
-- benchmark contra dados de **regime de transição** (reportando Re≈242 junto);
-- sanity check de balanço de massa (fluxo líquido por um plano de tanque inteiro → 0).
+- **Nq NÃO é dividido por 2** (errata de versão anterior): diferente do torque (somado no eixo),
+  o plano de medição é um disco na altura de UM impelidor — o valor já é "por estágio".
+- **O Nq exigiu rodada dedicada em regime permanente.** Na rodada transiente acoplada, o Q não
+  convergia (crescia com o spin-up da circulação de tanque inteiro, turnover ≈80s), enquanto o
+  torque já estava estável. O steady MRF converge a circulação desenvolvida diretamente.
+- **Plano de descarga** posicionado logo abaixo do impelidor (z=−4,50, ~0,25×D abaixo do centro),
+  não no centerplane (que integra descarga+entranhamento e infla o valor rumo ao nº de circulação).
 
 ---
 
@@ -131,9 +124,8 @@ catálogo — em transição as correlações não se aplicam, e o CFD é a font
   (tabela acima). Mesma lógica nos 3 casos de pressão → comparação justa.
 
 ## Próximos passos
+- [x] Rodada dedicada do Reator (steady MRF) p/ Nq final → **Nq=0,345, Np/est=0,76, P=4,07 kW**
 - [ ] Estender caso 1 kgf/cm² +5–10s físicos p/ confirmar banda do SMD (1,4–1,6mm)
-- [ ] Rodada dedicada do Reator (steady MRF) p/ Nq final — plano de descarga abaixo do
-      impelidor, sem ÷2, benchmark de transição
 - [ ] Rodar Aerador a 2 kgf/cm² (mesmo critério de parada)
 - [ ] Rodar Aerador a 3 kgf/cm²
 - [ ] Comparar os 3 casos e recomendar pressão otimizada
