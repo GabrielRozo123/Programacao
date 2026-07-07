@@ -1,9 +1,8 @@
 # Relatório Técnico Preliminar — Projeto Sugar (Usina Colombo)
 
 > Resumo técnico consolidado, organizado pelos objetivos do Ito. Status: **REATOR 100% FECHADO**
-> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). Aerador: caso 1 kgf/cm²
-> caracterizado (SMD em banda provisória, falta estender p/ confirmar); casos 2 e 3 kgf/cm²
-> pendentes.
+> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). **AERADOR caso 1 (1 kgf/cm²)
+> CARACTERIZADO** (distribuição de bolha do campo desenvolvido); casos 2 e 3 kgf/cm² pendentes.
 > Data: 2026-07-07 (dados exportados em CSV e processados em Python; conclusões submetidas a
 > revisão adversarial independente antes da publicação).
 
@@ -53,24 +52,25 @@ platô turbulento. A proximidade é encorajadora, não uma "validação exata" �
 
 ## 🟣 AERADOR — Objetivo: distribuição de bolhas + diagnóstico da aeração deficiente + pressão otimizada
 
-**Caso 1: 1 kgf/cm² (98.070 Pa gauge) — rodada de 21,2s físicos concluída**
+**Caso 1: 1 kgf/cm² (98.070 Pa gauge) — ✅ CARACTERIZADO (rodada de ~31s físicos, campo desenvolvido)**
 
 | Item | Valor | Nota técnica |
 |---|---|---|
 | Física | EMP (Xarope+Ar) + Phasic Turbulence + S-Gamma (Breakup+Coalescence) + Implicit Unsteady | RANS permanente diverge nesse regime — transiente é obrigatório |
 | **Ar entra na boundary?** | **Sim, confirmado** | VF=1,0 no Stagnation Inlet + mancha real de VF na ponta da lança |
-| **Dispersão pelo tanque** | **Praticamente nula em 21s** | Sondas de meio/topo em zero numérico a rodada inteira; recirculação longe do jato ~µm/s |
-| **SMD perto do injetor** | **PROVISÓRIO: banda 1,4–1,6mm** | Cresceu até crista ~1595µm (t≈17,5s), depois caiu 3s seguidos (queda acelerando: −34/−20/−47 µm/s). Um único ponto de virada em ~13s de registro **não caracteriza estacionariedade** (razão deriva/ruído = 3,0× → sinal ainda dominado por tendência). Confirmar com +5–10s de rodada |
-| **% de bolha "boa" (<200µm)** | **1,84×10⁻⁶ % (estável)** | Zero na prática — nenhuma fração relevante do ar em bolhas flotáveis |
-| **Holdup de gás** | **0,94 L em 20.170 L (0,005%)** | Ainda acumulando em t=21s (report pontual de Volume de Ar Total) |
+| **Dispersão pelo tanque** | **Praticamente nula** | Sondas de meio/topo em zero numérico a rodada inteira; recirculação longe do jato ~µm/s; ar confinado à vizinhança das lanças |
+| **SMD — distribuição do domínio** (ponderada por VF de Ar) | **média 2,39 mm · moda/mediana 2,16 mm · D10–D90 1,67–3,16 mm** | Distribuição madura (histograma). A bolha nasce ~1,5mm na boca do injetor e **cresce por coalescência** para ~2,4mm no volume |
+| **Fração < 200µm (a meta)** | **≈ 0% (0,000000%)** | Confirmado pelo histograma e pelo report `Percentual_Bolha_Flotavel` (~3,4×10⁻⁶%) |
+| **Holdup de gás** | **~0,94 L em 20.170 L (0,005%)** | Ar confinado à região dos injetores |
 | Margem de pressão vs. hidrostática | ~13–14% de folga | Submersão 6,47m → hidrostática ≈85,6 kPa vs. 98,07 kPa configurados |
 
 **Diagnóstico (2 causas simultâneas, mesma raiz física — viscosidade 6,5 Pa·s):**
-1. **Bolha ~7× maior que a meta**: coalescência leva o SMD à banda de ~1,5mm perto do injetor
-   (meta: <200µm) — nesse tamanho, a bolha é maior que o próprio floco (200–400µm), o que
-   desfavorece geometricamente a adesão bolha-floco, essência do processo de flotação.
+1. **Bolha ~8× maior que a meta E que o floco.** A bolha típica (~2,4mm) é ~8× a meta de 200µm
+   e, criticamente, ~8× maior que o próprio floco (200–400µm). O kick-off do Ito definiu que
+   *"a bolha deve ser menor que o floco"* para grudar e flotar — aqui é o oposto, o que inviabiliza
+   geometricamente a adesão bolha-floco (essência da flotação).
 2. **Sem dispersão**: o jato não gera circulação de tanque; o ar fica confinado à vizinhança
-   das lanças.
+   das lanças, sem varrer o volume onde estão os flocos.
 
 ### Cálculos analíticos — tempo de subida por empuxo (Bird, Armstrong & Hassager, Ex. 1.4-2)
 
@@ -125,8 +125,8 @@ catálogo — em transição as correlações não se aplicam, e o CFD é a font
 
 ## Próximos passos
 - [x] Rodada dedicada do Reator (steady MRF) p/ Nq final → **Nq=0,345, Np/est=0,76, P=4,07 kW**
-- [ ] Estender caso 1 kgf/cm² +5–10s físicos p/ confirmar banda do SMD (1,4–1,6mm)
-- [ ] Rodar Aerador a 2 kgf/cm² (mesmo critério de parada)
-- [ ] Rodar Aerador a 3 kgf/cm²
+- [x] Caso 1 kgf/cm² caracterizado → **SMD médio 2,39mm, <200µm ≈ 0%**
+- [ ] Rodar Aerador a 2 kgf/cm² (196.130 Pa · Clear Solution, só multifásico, mesmo critério)
+- [ ] Rodar Aerador a 3 kgf/cm² (294.200 Pa)
 - [ ] Comparar os 3 casos e recomendar pressão otimizada
 - [ ] Consolidar relatório final
