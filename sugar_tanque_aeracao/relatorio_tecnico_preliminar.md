@@ -1,10 +1,11 @@
 # Relatório Técnico Preliminar — Projeto Sugar (Usina Colombo)
 
 > Resumo técnico consolidado, organizado pelos objetivos do Ito. Status: **REATOR 100% FECHADO**
-> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). **AERADOR caso 1 (1 kgf/cm²)
-> CARACTERIZADO** (distribuição de bolha do campo desenvolvido); casos 2 e 3 kgf/cm² pendentes.
-> Data: 2026-07-07 (dados exportados em CSV e processados em Python; conclusões submetidas a
-> revisão adversarial independente antes da publicação).
+> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). **AERADOR: comparação de pressão
+> 1 vs 2 kgf/cm² feita** (caso 2 provisório, não estacionário) → conclusão: **pressão não é a
+> alavanca; o gargalo é breakup suprimido pela viscosidade (6,5 Pa·s)**. Caso 3 de baixa prioridade.
+> Data: 2026-07-08 (dados exportados em CSV e processados em Python; conclusões submetidas a
+> revisão adversarial independente — 4 lentes + crítico de completude — antes da publicação).
 
 ---
 
@@ -52,25 +53,53 @@ platô turbulento. A proximidade é encorajadora, não uma "validação exata" �
 
 ## 🟣 AERADOR — Objetivo: distribuição de bolhas + diagnóstico da aeração deficiente + pressão otimizada
 
-**Caso 1: 1 kgf/cm² (98.070 Pa gauge) — ✅ CARACTERIZADO (rodada de ~31s físicos, campo desenvolvido)**
+**Metodologia (comum aos casos de pressão):** EMP (Xarope+Ar) + Phasic Turbulence + S-Gamma
+(breakup+coalescência) + Implicit Unsteady. Produção a **Δt=0,01s, 1ª ordem no tempo** (arranque
+a 0,001s p/ absorver o impulso da nova pressão, depois rampa até 0,01s). O **SMD do domínio** é a
+média ponderada por VF de ar (histograma). Ar confirmado entrando (VF=1,0 no Stagnation Inlet).
 
-| Item | Valor | Nota técnica |
-|---|---|---|
-| Física | EMP (Xarope+Ar) + Phasic Turbulence + S-Gamma (Breakup+Coalescence) + Implicit Unsteady | RANS permanente diverge nesse regime — transiente é obrigatório |
-| **Ar entra na boundary?** | **Sim, confirmado** | VF=1,0 no Stagnation Inlet + mancha real de VF na ponta da lança |
-| **Dispersão pelo tanque** | **Praticamente nula** | Sondas de meio/topo em zero numérico a rodada inteira; recirculação longe do jato ~µm/s; ar confinado à vizinhança das lanças |
-| **SMD — distribuição do domínio** (ponderada por VF de Ar) | **média 2,39 mm · moda/mediana 2,16 mm · D10–D90 1,67–3,16 mm** | Distribuição madura (histograma). A bolha nasce ~1,5mm na boca do injetor e **cresce por coalescência** para ~2,4mm no volume |
-| **Fração < 200µm (a meta)** | **≈ 0% (0,000000%)** | Confirmado pelo histograma e pelo report `Percentual_Bolha_Flotavel` (~3,4×10⁻⁶%) |
-| **Holdup de gás** | **~0,94 L em 20.170 L (0,005%)** | Ar confinado à região dos injetores |
-| Margem de pressão vs. hidrostática | ~13–14% de folga | Submersão 6,47m → hidrostática ≈85,6 kPa vs. 98,07 kPa configurados |
+**Comparação de pressão — 1 vs 2 kgf/cm²**
 
-**Diagnóstico (2 causas simultâneas, mesma raiz física — viscosidade 6,5 Pa·s):**
-1. **Bolha ~8× maior que a meta E que o floco.** A bolha típica (~2,4mm) é ~8× a meta de 200µm
-   e, criticamente, ~8× maior que o próprio floco (200–400µm). O kick-off do Ito definiu que
-   *"a bolha deve ser menor que o floco"* para grudar e flotar — aqui é o oposto, o que inviabiliza
-   geometricamente a adesão bolha-floco (essência da flotação).
-2. **Sem dispersão**: o jato não gera circulação de tanque; o ar fica confinado à vizinhança
-   das lanças, sem varrer o volume onde estão os flocos.
+| Métrica | Caso 1 · 1 kgf/cm² (98.070 Pa) | Caso 2 · 2 kgf/cm² (196.130 Pa) | Leitura |
+|---|---|---|---|
+| Estado | ✅ convergido (~31s) | ⚠️ **provisório** (~38s; perto-injetor ainda caía −16µm/s) | caso 2 não estacionário |
+| SMD médio (domínio) | 2,392 mm | 2,437 mm *(indicativo)* | ~igual (+1,9%, dentro da incerteza) |
+| Moda / mediana | 2,165 / 2,165 mm | 1,864 / 2,235 mm | pico desce |
+| **D10 (ponta pequena)** | 1,669 mm | **1,492 mm** | pressão empurra a ponta pequena p/ baixo |
+| D90 (cauda grande) | 3,156 mm | 3,534 mm | cauda engorda |
+| Desvio-padrão | 0,581 mm | 0,784 mm | distribuição alarga (+35%) |
+| **Fração <200µm (meta)** | **≈0%** | **≈0%** (1,26×10⁻⁶%, estável) | métrica-chave já convergida nos dois |
+| Dispersão (meio/topo) | nula | nula | ar confinado aos injetores nos dois |
+
+**O que a pressão faz e não faz:** entre 1 e 2 kgf/cm² a distribuição **se reestrutura** — a ponta
+pequena desce (D10 e moda caem) e a cauda grande engorda (D90 sobe), **sem deslocar a média nem
+gerar fração flotável resolvível**. Mais pressão dá mais quebra na formação, mas não fecha o gap de
+ordem de grandeza até a meta. *(A leitura correta pro objetivo é a **cauda <200µm / D10**, não a
+média — flotação depende da ponta pequena.)*
+
+**Diagnóstico — causa-raiz (revisado após verificação adversarial):**
+1. **Bolha ~12× a meta.** A bolha típica (~2,4mm) é **~12× a meta de 200µm** e **~6–12× o floco
+   (200–400µm)**; até o D10 (~1,5mm) é ~7–8× a meta. Requisito do Ito: bolha **menor** que o floco
+   para aderir e flotar — aqui é o oposto, o que inviabiliza geometricamente a adesão bolha-floco.
+2. **O gargalo é breakup SUPRIMIDO, não coalescência.** A viscosidade de 6,5 Pa·s **resiste à
+   deformação da interface** (exige cisalhamento/Weber muito maior para quebrar) e o bulk tem baixa
+   turbulência — a bolha fica travada no tamanho de formação do orifício. *(A viscosidade, aliás,
+   **inibe** coalescência via drenagem lenta de filme; o tamanho grande vem da falta de quebra, não
+   do excesso de fusão — correção de uma versão anterior deste relatório.)*
+3. **Sem dispersão.** Em 6,5 Pa·s o Re da pluma é baixíssimo: o jato não gera circulação de tanque
+   e o ar fica confinado aos injetores, sem varrer o volume onde estão os flocos.
+
+**Conclusão da comparação de pressão:** **a pressão de injeção NÃO é a alavanca.** Dobrar 1→2 kgf/cm²
+não muda o essencial (bolha ~2,4mm, flotável ~0%, sem dispersão). A alavanca física real é **(a)
+reduzir a viscosidade** (temperatura/diluição do xarope) e/ou **(b) aumentar o cisalhamento na
+formação** (geometria do injetor / venturi). O caso 3 (3 kgf/cm²) é de baixa prioridade — extrapola
+o mesmo comportamento sem fechar o gap.
+
+**Ressalvas (rigor técnico):** caso 2 provisório (não estacionário — deltas finos são indicativos);
+Δt=0,01s + 1ª ordem **sem estudo de convergência em passo de tempo**; resolução de malha near-injector
+a verificar (o SMD do S-Gamma é contínuo, mas os termos-fonte de breakup são mesh-sensíveis); "sem
+dispersão" observado até a parada (a pluma precisaria subir ~6,47m, especialmente no caso 2 ainda em
+desenvolvimento).
 
 ### Cálculos analíticos — tempo de subida por empuxo (Bird, Armstrong & Hassager, Ex. 1.4-2)
 
@@ -126,7 +155,9 @@ catálogo — em transição as correlações não se aplicam, e o CFD é a font
 ## Próximos passos
 - [x] Rodada dedicada do Reator (steady MRF) p/ Nq final → **Nq=0,345, Np/est=0,76, P=4,07 kW**
 - [x] Caso 1 kgf/cm² caracterizado → **SMD médio 2,39mm, <200µm ≈ 0%**
-- [ ] Rodar Aerador a 2 kgf/cm² (196.130 Pa · Clear Solution, só multifásico, mesmo critério)
-- [ ] Rodar Aerador a 3 kgf/cm² (294.200 Pa)
-- [ ] Comparar os 3 casos e recomendar pressão otimizada
+- [x] Caso 2 kgf/cm² (provisório) + comparação 1×2 → **pressão não muda o essencial**
+- [ ] **Convergir o caso 2** (rodar até o probe perto-injetor achatar) p/ fechar os deltas finos
+- [ ] (Baixa prioridade) Caso 3 a 3 kgf/cm² — só se exigirem os 3 pontos, com dt fino
+- [ ] **Alavanca real**: estudar redução de viscosidade (temperatura/diluição) e/ou geometria do injetor
+- [ ] Verificar resolução de malha near-injector (piso do breakup) e convergência em Δt
 - [ ] Consolidar relatório final
