@@ -3,7 +3,7 @@
 ## Decisões abertas (bloqueiam o setup final)
 | # | Decisão | Status | Nota |
 |---|---|---|---|
-| 1 | **Modelo de condensação** do STAR (interfacial / Lee-coeficiente / Fluid Film) | ⏳ | Aguardando a lista de opções que o STAR oferece (usuário vai passar). Classificar cada uma e escolher a que dá o `h` mais fiel. |
+| 1 | ~~Modelo de condensação~~ → **VOF Evaporation/Condensation** | ✅ | Limitado por difusão (interface em equilíbrio, Raoult) → `h` emerge, sem coef. de ajuste. **NCG = espécie inerte nativa** (multicomponente). Ver `02_fisica_e_metodo.md`. |
 | 2 | **Fluido** | 🟢 provável | Vapor d'água/água (melhor dataset, caso condensador de usina/processo). Refrigerante só se quiserem sabor HVAC. |
 | 3 | **Material do tubo** | ⏳ | Real de condensador: CuNi 90/10, titânio ou inox. Afeta condução se formos conjugados. |
 | 4 | **Ponto de operação** (T_sat, ΔT sub-resfriamento) | ⏳ | Ex.: vapor atmosférico T_sat=373 K, parede ~353 K (ΔT=20 K); ou condensador a vácuo (T_sat~45 °C). Fixar com a literatura. |
@@ -29,3 +29,6 @@
 - **2026-07-09** — Repo criado. Consolidados: contexto/objetivo, física+método (incl. definição do
   `h` a partir do doc de HTC do STAR), setup do tutorial adaptado, plano de validação Nusselt,
   geometria. Pendências 1, 3, 4, 5 em aberto.
+- **2026-07-09** — Decisão #1 RESOLVIDA: modelo **VOF Evaporation/Condensation** (limitado por
+  difusão, NCG = espécie inerte nativa). Revisão de literatura disparada (deep research) para fixar
+  dataset de validação, condições de operação e correlações de NCG.

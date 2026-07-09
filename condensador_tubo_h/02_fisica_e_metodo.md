@@ -18,16 +18,32 @@ Base: o tutorial VOF "Boiler" do STAR-CCM+ (2D). Modelos:
 | Modelo de fase | VOF Boiling → **Rohsenow** (q″ de parede) | **modelo de condensação** (ver abaixo) |
 | Resto (2D, VOF, energia, k-ε, gravidade, dt) | — | **igual** |
 
-## Modelo de mudança de fase — condensação
-Assim como o Rohsenow precisa de coeficientes empíricos (C_qw, n_p) de uma tabela superfície-fluido,
-o modelo de condensação terá o **seu** parâmetro — escolhê-lo/justificá-lo é o cerne de "formular o
-h". Famílias esperadas nas opções do STAR (a classificar quando a lista chegar — `06_pendencias.md`):
-1. **Interfacial / limitada por transferência de calor** — a interface fica presa em T_sat; o `h`
-   **emerge** do campo térmico resolvido. Mais honesta para medir `h`.
-2. **Coeficiente (tipo Lee):** ṁ = C·α·ρ·(T_sat−T)/T_sat — tem **C de ajuste** a calibrar (senão
-   domina artificialmente); calibração feita justamente pela validação vs Nusselt.
-3. **Filme fino / parede (Fluid Film condensation):** não resolve o filme → carta para o **banco
-   de tubos** (Fase 3).
+## Modelo de mudança de fase — condensação → **DECIDIDO: VOF Evaporation/Condensation**
+Fonte: docs STAR "Modeling Evaporation and Condensation", "Setting Up...", "Model Reference (VOF)".
+
+O STAR-CCM+ oferece o modelo **Evaporation/Condensation (VOF)** — condensação na **interface livre**
+líquido-gás, e ele é ideal para o nosso caso:
+
+- **Limitado por difusão / hidrodinâmico:** as fases ficam em **equilíbrio na interface** (interface
+  na saturação) e a força motriz é a **difusão de espécie**. Ou seja, é da família "interfacial" — o
+  **`h` emerge** do campo resolvido, **sem coeficiente de ajuste tipo Lee**. A "calibração" vira, na
+  prática, **resolução de malha** do filme e da camada-limite (a validação vs Nusselt confirma isso,
+  não um fator-fudge).
+- **Multicomponente com espécie inerte NATIVA:** exige fases multicomponentes; o gás precisa de
+  **≥1 componente inerte**. **Essa espécie inerte É o gás não-condensável (NCG).** Consequência
+  enorme para o flagship:
+  - **Fase 1 (validação):** fração de inerte mínima (~1e-3 a 1e-4; 0 também é válido) → condensação
+    limitada só pela **condução no filme** = regime de Nusselt.
+  - **Fase 2 (NCG):** aumentar a fração do inerte (ar) → o modelo captura a **resistência difusiva
+    na interface** sozinho, degradando o `h`. **Mesmo modelo, só muda a fração de inerte.**
+- **Equilíbrio por lei de Raoult**; **pressão de saturação** por Antoine / Wagner / Polinômio / Tabela;
+  **calor latente** automático via *Heat of Formation*.
+- **Under-Relaxation Factor** da taxa de evaporação (numérico) para estabilizar.
+- Requer: VOF-VOF Phase Interaction, fase primária = líquido multicomponente, secundária = gás
+  multicomponente.
+
+**Extensão (Fase 3, banco de tubos):** modelo de **filme fino (Fluid Film condensation)** — não
+resolve o filme, viabiliza o custo do banco/inundação.
 
 ## Definição do `h` — a decisão de método mais importante
 Fonte: doc STAR "What Methods Are Available for Exchanging Heat Transfer Coefficients?"

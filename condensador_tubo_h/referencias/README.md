@@ -9,6 +9,10 @@
 - **"What Methods Are Available for Exchanging Heat Transfer Coefficients?"** — as 4 definições de
   `h` no STAR e suas temperaturas de referência. Base da nossa decisão de método — ver
   `../02_fisica_e_metodo.md`.
+- **"Modeling Evaporation and Condensation" + "Setting Up..." + "Model Reference (VOF)"** — o modelo
+  **VOF Evaporation/Condensation**: limitado por difusão, interface em equilíbrio (Raoult),
+  multicomponente com espécie inerte (= NCG), Antoine/Wagner p/ P_sat, calor latente via Heat of
+  Formation. Base do modelo escolhido — ver `../02_fisica_e_metodo.md`.
 
 ## Literatura técnica (a consolidar na revisão de literatura)
 - **Nusselt (1916)** — teoria de condensação filmwise (tubo horizontal / placa vertical).
