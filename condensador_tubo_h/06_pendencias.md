@@ -1,0 +1,31 @@
+# 06 — Pendências e decisões (documento vivo)
+
+## Decisões abertas (bloqueiam o setup final)
+| # | Decisão | Status | Nota |
+|---|---|---|---|
+| 1 | **Modelo de condensação** do STAR (interfacial / Lee-coeficiente / Fluid Film) | ⏳ | Aguardando a lista de opções que o STAR oferece (usuário vai passar). Classificar cada uma e escolher a que dá o `h` mais fiel. |
+| 2 | **Fluido** | 🟢 provável | Vapor d'água/água (melhor dataset, caso condensador de usina/processo). Refrigerante só se quiserem sabor HVAC. |
+| 3 | **Material do tubo** | ⏳ | Real de condensador: CuNi 90/10, titânio ou inox. Afeta condução se formos conjugados. |
+| 4 | **Ponto de operação** (T_sat, ΔT sub-resfriamento) | ⏳ | Ex.: vapor atmosférico T_sat=373 K, parede ~353 K (ΔT=20 K); ou condensador a vácuo (T_sat~45 °C). Fixar com a literatura. |
+| 5 | **D do tubo** | ⏳ | Típico 19,05 ou 25,4 mm. Fixar com o dataset de validação. |
+| 6 | **NCG desde já ou depois** | 🟢 | Fase 1 vapor puro (valida Nusselt) → Fase 2 injeta NCG (flagship). |
+| 7 | **Tubo único vs banco** | 🟢 | Único primeiro; banco (inundação) só na Fase 3, provável Fluid Film. |
+
+## Decisões já tomadas (registradas)
+- **Definição do `h`:** `h = q″/(T_sat − T_parede)` via field function "Heat Transfer Coefficient"
+  com **T_ref = T_sat** (não o Local HTC, mesh-dependent). Verificação de malha via Specified y+ HTC.
+  Fonte: doc STAR de HTC. Ver `02_fisica_e_metodo.md`.
+- **Abordagem:** direto industrial; o instante de tubo limpo serve de checagem Nusselt embutida.
+- **Base de setup:** tutorial VOF "Boiler", invertido para condensação (parede fria, vapor inicial).
+
+## Próximos passos
+1. Receber e classificar as **opções de condensação do STAR** (decisão 1).
+2. **Revisão de literatura** (deep research): fixar dataset de validação (D, T_sat, ΔT, h medido),
+   Nusselt, e correlações de NCG (Rose/Dehbi/Sparrow) — resolve decisões 4 e 5 e confirma novidade.
+3. Construir a **geometria** paramétrica com os valores fixados.
+4. Montar o setup STAR (scaffold do `03_`) com o modelo escolhido e rodar a validação.
+
+## Log
+- **2026-07-09** — Repo criado. Consolidados: contexto/objetivo, física+método (incl. definição do
+  `h` a partir do doc de HTC do STAR), setup do tutorial adaptado, plano de validação Nusselt,
+  geometria. Pendências 1, 3, 4, 5 em aberto.
