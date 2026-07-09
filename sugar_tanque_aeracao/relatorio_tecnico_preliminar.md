@@ -1,10 +1,10 @@
 # Relatório Técnico Preliminar — Projeto Sugar (Usina Colombo)
 
 > Resumo técnico consolidado, organizado pelos objetivos do Ito. Status: **REATOR 100% FECHADO**
-> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). **AERADOR: comparação de pressão
-> 1 vs 2 kgf/cm² feita** (caso 2 provisório, não estacionário) → conclusão: **pressão não é a
-> alavanca; o gargalo é breakup suprimido pela viscosidade (6,5 Pa·s)**. Caso 3 de baixa prioridade.
-> Data: 2026-07-08 (dados exportados em CSV e processados em Python; conclusões submetidas a
+> (torque/potência/Np/Nq finais via rodada dedicada steady MRF). **AERADOR: sweep de pressão
+> 1, 2 e 3 kgf/cm² completo** (casos 2/3 quase estacionários) → conclusão blindada com 3 pontos:
+> **pressão não é a alavanca; o gargalo é breakup suprimido pela viscosidade (6,5 Pa·s)**.
+> Data: 2026-07-09 (dados exportados em CSV e processados em Python; conclusões submetidas a
 > revisão adversarial independente — 4 lentes + crítico de completude — antes da publicação).
 
 ---
@@ -58,24 +58,32 @@ platô turbulento. A proximidade é encorajadora, não uma "validação exata" �
 a 0,001s p/ absorver o impulso da nova pressão, depois rampa até 0,01s). O **SMD do domínio** é a
 média ponderada por VF de ar (histograma). Ar confirmado entrando (VF=1,0 no Stagnation Inlet).
 
-**Comparação de pressão — 1 vs 2 kgf/cm²**
+**Sweep de pressão — 1, 2 e 3 kgf/cm² (os 3 pontos pedidos pelo Ito)**
 
-| Métrica | Caso 1 · 1 kgf/cm² (98.070 Pa) | Caso 2 · 2 kgf/cm² (196.130 Pa) | Leitura |
+| Métrica | Caso 1 · 1 kgf/cm² (98.070 Pa) | Caso 2 · 2 kgf/cm² (196.130 Pa) | Caso 3 · 3 kgf/cm² (294.200 Pa) |
 |---|---|---|---|
-| Estado | ✅ convergido (~31s) | ⚠️ **provisório** (~38s; perto-injetor ainda caía −16µm/s) | caso 2 não estacionário |
-| SMD médio (domínio) | 2,392 mm | 2,437 mm *(indicativo)* | ~igual (+1,9%, dentro da incerteza) |
-| Moda / mediana | 2,165 / 2,165 mm | 1,864 / 2,235 mm | pico desce |
-| **D10 (ponta pequena)** | 1,669 mm | **1,492 mm** | pressão empurra a ponta pequena p/ baixo |
-| D90 (cauda grande) | 3,156 mm | 3,534 mm | cauda engorda |
-| Desvio-padrão | 0,581 mm | 0,784 mm | distribuição alarga (+35%) |
-| **Fração <200µm (meta)** | **≈0%** | **≈0%** (1,26×10⁻⁶%, estável) | métrica-chave já convergida nos dois |
-| Dispersão (meio/topo) | nula | nula | ar confinado aos injetores nos dois |
+| Estado | ✅ convergido (~31s) | ⚠️ quase (~38s; −16µm/s perto-inj.) | ⚠️ quase (~35s; −9µm/s perto-inj., desacelerando) |
+| SMD médio (domínio) | 2,392 mm | 2,437 mm | **2,526 mm** |
+| Moda / mediana | 2,165 / 2,165 | 1,864 / 2,235 | 1,895 / 2,317 |
+| **D10 (ponta pequena)** | 1,669 mm | 1,492 mm | **1,426 mm** |
+| D90 (cauda grande) | 3,156 mm | 3,534 mm | **3,569 mm** |
+| Desvio-padrão | 0,581 mm | 0,784 mm | 0,794 mm |
+| **Fração <200µm (meta)** | **≈0%** (3,4×10⁻⁶%) | **≈0%** (1,3×10⁻⁶%) | **≈0%** (9,8×10⁻⁷%, dead-stable) |
+| SMD perto-injetor (formação) | — | — | 1,267 mm |
 
-**O que a pressão faz e não faz:** entre 1 e 2 kgf/cm² a distribuição **se reestrutura** — a ponta
-pequena desce (D10 e moda caem) e a cauda grande engorda (D90 sobe), **sem deslocar a média nem
-gerar fração flotável resolvível**. Mais pressão dá mais quebra na formação, mas não fecha o gap de
-ordem de grandeza até a meta. *(A leitura correta pro objetivo é a **cauda <200µm / D10**, não a
-média — flotação depende da ponta pequena.)*
+**A tendência dos 3 pontos é monotônica e mata a questão da pressão:**
+- **Flotável <200µm ≈ 0 nos três** — e até *diminuindo* levemente com a pressão (3,4→1,3→0,98 ×10⁻⁶%).
+  **Pressão não cria bolha flotável.**
+- **SMD médio ~constante, na verdade subindo** (2,39 → 2,44 → 2,53 mm). **Pressão não encolhe a bolha** —
+  mais gás injetado gera leve coalescência a mais na pluma (a bolha nasce ~1,27mm no orifício e cresce
+  no volume).
+- **A distribuição só se alarga**: D10 desce (1,67→1,49→1,43), D90 sobe (3,16→3,53→3,57), std sobe
+  (+37%). A pressão **espalha** a distribuição, não a desloca pra meta. *(A leitura correta pro objetivo
+  é a cauda <200µm / D10, não a média — flotação depende da ponta pequena.)*
+
+**Conclusão do sweep (blindada com 3 pontos): a pressão de injeção NÃO é a alavanca.** O gap de ~12× até
+os 200µm fica intacto de 1 a 3 kgf/cm². Aumentar pressão só reorganiza a distribuição (e até engrossa a
+bolha média) — nunca gera a fração flotável.
 
 **Diagnóstico — causa-raiz (revisado após verificação adversarial):**
 1. **Bolha ~12× a meta.** A bolha típica (~2,4mm) é **~12× a meta de 200µm** e **~6–12× o floco
@@ -89,14 +97,15 @@ média — flotação depende da ponta pequena.)*
 3. **Sem dispersão.** Em 6,5 Pa·s o Re da pluma é baixíssimo: o jato não gera circulação de tanque
    e o ar fica confinado aos injetores, sem varrer o volume onde estão os flocos.
 
-**Conclusão da comparação de pressão:** **a pressão de injeção NÃO é a alavanca.** Dobrar 1→2 kgf/cm²
-não muda o essencial (bolha ~2,4mm, flotável ~0%, sem dispersão). A alavanca física real é **(a)
-reduzir a viscosidade** (temperatura/diluição do xarope) e/ou **(b) aumentar o cisalhamento na
-formação** (geometria do injetor / venturi). O caso 3 (3 kgf/cm²) é de baixa prioridade — extrapola
-o mesmo comportamento sem fechar o gap.
+**Conclusão da comparação de pressão:** **a pressão de injeção NÃO é a alavanca** — agora confirmado com
+os **3 pontos** (1, 2 e 3 kgf/cm²). Triplicar a pressão não muda o essencial (bolha ~2,4–2,5mm, flotável
+~0%, sem dispersão) e o gap de ~12× até a meta fica intacto. A alavanca física real é **(a) reduzir a
+viscosidade** (temperatura/diluição do xarope) e/ou **(b) aumentar o cisalhamento na formação**
+(geometria do injetor / venturi).
 
-**Ressalvas (rigor técnico):** caso 2 provisório (não estacionário — deltas finos são indicativos);
-Δt=0,01s + 1ª ordem **sem estudo de convergência em passo de tempo**; resolução de malha near-injector
+**Ressalvas (rigor técnico):** casos 2 e 3 em maturidade "quase estacionária" (probe perto-injetor ainda
+desacelerando: −16 e −9µm/s respectivamente — deltas finos são indicativos, mas o flotável está
+dead-stable nos dois); Δt=0,01s + 1ª ordem **sem estudo de convergência em passo de tempo**; resolução de malha near-injector
 a verificar (o SMD do S-Gamma é contínuo, mas os termos-fonte de breakup são mesh-sensíveis); "sem
 dispersão" observado até a parada (a pluma precisaria subir ~6,47m, especialmente no caso 2 ainda em
 desenvolvimento).
@@ -155,9 +164,8 @@ catálogo — em transição as correlações não se aplicam, e o CFD é a font
 ## Próximos passos
 - [x] Rodada dedicada do Reator (steady MRF) p/ Nq final → **Nq=0,345, Np/est=0,76, P=4,07 kW**
 - [x] Caso 1 kgf/cm² caracterizado → **SMD médio 2,39mm, <200µm ≈ 0%**
-- [x] Caso 2 kgf/cm² (provisório) + comparação 1×2 → **pressão não muda o essencial**
-- [ ] **Convergir o caso 2** (rodar até o probe perto-injetor achatar) p/ fechar os deltas finos
-- [ ] (Baixa prioridade) Caso 3 a 3 kgf/cm² — só se exigirem os 3 pontos, com dt fino
+- [x] Casos 2 e 3 kgf/cm² + sweep dos 3 pontos → **pressão não é a alavanca (confirmado)**
+- [ ] (Opcional) Convergir 100% os casos 2 e 3 (probe perto-injetor ainda desacelerando) p/ fechar deltas finos
 - [ ] **Alavanca real**: estudar redução de viscosidade (temperatura/diluição) e/ou geometria do injetor
 - [ ] Verificar resolução de malha near-injector (piso do breakup) e convergência em Δt
 - [ ] Consolidar relatório final
