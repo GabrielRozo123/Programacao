@@ -14,10 +14,13 @@ Domínio retangular ao redor do tubo, com entrada de vapor e saída.
              saída (condensado + vapor)
 ```
 
-## Parâmetros (no topo do script — a fixar na revisão de literatura)
-- `D_tubo`  — diâmetro externo do tubo  **[A CONFIRMAR]** (típico condensador: 19,05 / 25,4 mm)
-- `W, H`    — largura/altura do domínio (~8–12·D para não confinar o filme e a pluma)
-- `T_sat`, `T_wall` — ponto de operação (define ΔT)  **[A CONFIRMAR]**
+## Parâmetros — ✅ FIXADOS (geometria construída)
+- `D_tubo` = **25,4 mm (1")** — padrão de condensador e na escala do experimento de validação.
+- `W = H` = **254 mm (10·D)** — domínio amplo, sem confinar o filme/vapor.
+- tubo centrado em **y = +30,5 mm** (0,12·H acima do meio) → espaço de drenagem embaixo.
+- Ponto de operação: **T_sat = 100 °C (1 atm), ΔT = 25 K → T_parede = 75 °C** (ancorado no
+  experimental ~26 K).
+- Arquivo gerado: **`condenser_tube_2D.step`** (slab fino 1 mm p/ Convert to 2D no STAR).
 - refino de parede: o filme é fino (dezenas–centenas de µm) → **prism layers finas** no tubo
   (resolver o filme é o que dá o `h`).
 

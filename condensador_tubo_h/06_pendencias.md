@@ -4,10 +4,10 @@
 | # | Decisão | Status | Nota |
 |---|---|---|---|
 | 1 | ~~Modelo de condensação~~ → **VOF Evaporation/Condensation** | ✅ | Limitado por difusão (interface em equilíbrio, Raoult) → `h` emerge, sem coef. de ajuste. **NCG = espécie inerte nativa** (multicomponente). Ver `02_fisica_e_metodo.md`. |
-| 2 | **Fluido** | 🟢 provável | Vapor d'água/água (melhor dataset, caso condensador de usina/processo). Refrigerante só se quiserem sabor HVAC. |
+| 2 | **Fluido** | ✅ | Vapor d'água / água, atmosférico. |
 | 3 | **Material do tubo** | ⏳ | Real de condensador: CuNi 90/10, titânio ou inox. Afeta condução se formos conjugados. |
-| 4 | **Ponto de operação** (T_sat, ΔT sub-resfriamento) | ⏳ | Ex.: vapor atmosférico T_sat=373 K, parede ~353 K (ΔT=20 K); ou condensador a vácuo (T_sat~45 °C). Fixar com a literatura. |
-| 5 | **D do tubo** | ⏳ | Típico 19,05 ou 25,4 mm. Fixar com o dataset de validação. |
+| 4 | **Ponto de operação** | ✅ | T_sat=100°C (1 atm), ΔT=25 K → T_parede=75 °C. Alvo Nusselt h≈9,7 kW/m²·K. |
+| 5 | **D do tubo** | ✅ | 25,4 mm (1"). Geometria 2D construída (`geometria/condenser_tube_2D.step`). |
 | 6 | **NCG desde já ou depois** | 🟢 | Fase 1 vapor puro (valida Nusselt) → Fase 2 injeta NCG (flagship). |
 | 7 | **Tubo único vs banco** | 🟢 | Único primeiro; banco (inundação) só na Fase 3, provável Fluid Film. |
 
