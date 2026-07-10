@@ -39,3 +39,7 @@ filme). Por isso:
 
 > Construo o `.step`/superfície assim que a revisão de literatura fixar `D_tubo`, `T_sat` e `ΔT`
 > (para casar com um dataset de validação).
+
+## Malha do filme (ver `07_revisao_malha_e_setup.md`)
+- Filme δ≈69 µm → **1ª célula 5 µm + 14 prism layers** (growth 1,2) no tubo; tangencial 0,5–1 mm.
+- Far-field grosso; refina só perto do tubo. Critério = resolver o filme, não y+.

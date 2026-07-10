@@ -3,11 +3,16 @@
 > Todos os passos do tutorial VOF "Boiler" (9 páginas), com os pontos que **mudam** para
 > condensação marcados com ⇒. Sem colar a doc proprietária — só os parâmetros do nosso setup.
 
+> ⚠️ **Correções vs este scaffold em `07_revisao_malha_e_setup.md`** — a principal: para o modelo
+> Evaporation/Condensation as **fases têm de ser MULTICOMPONENTES** (não as de 1 componente do
+> tutorial de ebulição).
+
 ## 1. Fases e materiais
-- Fase 1: **H2O** (Liquid, Constant Density). Fase 2: **H2O (G)** (Gas) — substituir o Ar padrão
-  por **H2O (Water)** da base Standard > Gases.
-- ⇒ **Industrial:** trocar Constant Density por propriedades reais (água/vapor dependentes de T,
-  ou IAPWS) no ponto de operação. `06_pendencias.md`.
+- **Gás = Multi-Component Gas:** H2O (vapor) + **Ar (inerte)** — Fase 1 ar ~1e-4; Fase 2 aumenta o ar.
+- **Líquido = Multi-Component Liquid:** H2O. Pressão de saturação por Antoine/Wagner.
+- *(O tutorial usa fases de 1 componente porque é ebulição/Rohsenow; Evap/Condensation exige
+  multicomponente — ver `02_fisica_e_metodo.md` e `07_`.)*
+- ⇒ **Industrial:** propriedades reais (água/vapor dependentes de T) no ponto de operação.
 
 ## 2. Modelos de física (continuum)
 Two Dimensional · Implicit Unsteady · Multiphase → VOF · Segregated Flow · Turbulent → k-ε
