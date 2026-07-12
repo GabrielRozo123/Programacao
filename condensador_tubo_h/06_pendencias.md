@@ -32,3 +32,10 @@
 - **2026-07-09** — Decisão #1 RESOLVIDA: modelo **VOF Evaporation/Condensation** (limitado por
   difusão, NCG = espécie inerte nativa). Revisão de literatura disparada (deep research) para fixar
   dataset de validação, condições de operação e correlações de NCG.
+- **2026-07-11** — Decisão #1 **REVISTA**: VOF difusivo **não condensa vapor puro** (sem gradiente
+  de espécie). Trocado para **Fluid Film + Thermal Limitation** + Shell Region no tubo. Condensou.
+- **2026-07-12** — **ESTUDO FECHADO em 2D.** `h(θ)` reproduz a forma de Nusselt e o `h` local no
+  topo enquadra o alvo (9,7 kW/m²·K), mas o `h` médio = **2,29 kW/m²·K (~4× abaixo)** por
+  **acúmulo do filme**: o condensado não drena num tubo liso em 2D (gotejar/edge-stripping são 3D).
+  Validação **qualitativa** aceita; quantitativo exige **fatia 3D** (trabalho futuro). Registro
+  completo em `08_resultado_e_licoes.md`. Material de divulgação (carrossel LinkedIn) em `linkedin/`.

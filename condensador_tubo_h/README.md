@@ -4,9 +4,12 @@ Estudo CFD de **condensação filmwise** de vapor num tubo horizontal frio, com 
 **prever o coeficiente de transferência de calor `h`** — a grandeza que projetos de mudança de
 fase frequentemente subestimam ou ignoram. Ferramenta: Simcenter STAR-CCM+ (VOF + mudança de fase).
 
-> **Status (2026-07-09):** repositório aberto. Setup e método definidos a partir do tutorial de
-> ebulição (adaptado para condensação). **Pendente:** travar o modelo de condensação (aguardando a
-> lista de opções do STAR), o fluido/material e o ponto de operação. Ver `06_pendencias.md`.
+> **Status (2026-07-12): ESTUDO FECHADO em 2D.** Condensação obtida com o modelo **Fluid Film +
+> Thermal Limitation** (o VOF difusivo não condensa vapor puro). `h(θ)` reproduz a **forma de
+> Nusselt** e o `h` local no topo (~9–12 kW/m²·K) **enquadra** o alvo (9,7); mas o `h` **médio**
+> ficou **2,29 kW/m²·K (~4× abaixo)** porque o condensado **não drena num tubo liso em 2D**
+> (gotejar é 3D). Veredito, lições e o caminho 3D em [`08_resultado_e_licoes.md`](08_resultado_e_licoes.md).
+> Material de divulgação (carrossel LinkedIn) em [`linkedin/`](linkedin/).
 
 ## A tese em uma frase
 CFD **prevê o `h` de condensação** (local e médio), validável contra a teoria de Nusselt no tubo
@@ -22,6 +25,9 @@ limpo — e, diferente da tabela de projeto, **captura a degradação industrial
 | [`04_validacao_nusselt.md`](04_validacao_nusselt.md) | Teoria de Nusselt, o `h` alvo, plano de validação |
 | [`05_geometria.md`](05_geometria.md) | Domínio 2D paramétrico (tubo frio no campo de vapor) |
 | [`06_pendencias.md`](06_pendencias.md) | Decisões abertas + log (documento vivo) |
+| [`07_revisao_malha_e_setup.md`](07_revisao_malha_e_setup.md) | Revisão da malha do filme e correções de setup |
+| [`08_resultado_e_licoes.md`](08_resultado_e_licoes.md) | **Fechamento:** resultado, as 3 armadilhas, veredito honesto, caminho 3D |
+| [`linkedin/`](linkedin/) | **Divulgação:** roteiro do carrossel + figuras (o `h` difícil de prever) |
 | [`referencias/`](referencias/) | Resumos de literatura e da documentação STAR (sem PDFs proprietários) |
 
 ## Abordagem
