@@ -1,4 +1,4 @@
-caso,pressao_kgfcm2,pressao_Pa,estado,SMD_medio_mm,moda_mm,D10_mm,mediana_mm,D90_mm,std_mm,flotavel_pct
-1,1,98070,convergido_31s,2.392,2.165,1.669,2.165,3.156,0.581,3.4e-6
-2,2,196130,quase_38s,2.437,1.864,1.492,2.235,3.534,0.784,1.3e-6
-3,3,294200,quase_35s,2.526,1.895,1.426,2.317,3.569,0.794,9.8e-7
+caso,pressao_kgfcm2,pressao_Pa,estado,SMD_medio_mm,moda_mm,D10_mm,mediana_mm,D90_mm,std_mm,flotavel_pct,holdup_gas_pct
+1,1,98070,convergido_31s,2.392,2.165,1.669,2.165,3.156,0.581,3.4e-6,0.0050
+2,2,196130,quase_38s,2.437,1.864,1.492,2.235,3.534,0.784,1.3e-6,0.0057
+3,3,294200,quase_35s,2.526,1.895,1.426,2.317,3.569,0.794,9.8e-7,0.0073

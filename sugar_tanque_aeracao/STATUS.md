@@ -24,7 +24,12 @@ Triplicar a pressão (1→3 kgf/cm²) não muda o essencial: bolha ~2,4–2,5 mm
 | SMD médio (mm) | 2,392 | 2,437 | 2,526 |
 | D10 / D90 (mm) | 1,67 / 3,16 | 1,49 / 3,53 | 1,43 / 3,57 |
 | flotável <200µm | ~0 (3,4e-6%) | ~0 (1,3e-6%) | ~0 (9,8e-7%) |
+| holdup de gás | 0,005% | 0,006% (0,0057) | 0,007% (0,0073) |
 | estado | ✅ conv. (~31s) | ⚠️ quase (~38s) | ⚠️ quase (~35s) |
+
+> **Holdup** = Volume Average de `Volume Fraction of Ar` em `Dominio.Aerador` (× 100). Praticamente
+> plano nos três (ar confinado às lanças; pressão quase não mexe). Figuras do slide 6 completas:
+> `apresentacao/hist_bolha_caso{1,2,3}.png` + `apresentacao/cards_caso{2,3}.png`.
 
 ## Onde está cada coisa
 - **Relatório completo:** `relatorio_tecnico_preliminar.md`
