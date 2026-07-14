@@ -33,7 +33,13 @@ HUB_H       = 90.0      # mm  altura do cubo
 BLADE_THK   = 10.0      # mm  espessura da pá
 CHORD_FRAC  = 0.19      # corda da pá = CHORD_FRAC * D  (~152 mm p/ D=800)
 N_STAGES    = 2         # estágios no conjunto duplo
-STAGE_SPACING = 3900.0  # mm  distância entre estágios (real: inf z=-4470, sup z=-570)
+STAGE_SPACING = 3556.0  # mm  distância entre estágios (medido no impelidor real: inf z=-4296, sup z=-740)
+
+# --- POSICIONAMENTO no MRF do reator (medido do impelidor_3pas.step real) ---
+# Para gerar o impelidor JÁ ALINHADO ao MRF (importar e encaixar), sem transform no STAR.
+POS_EIXO_X  = 327.0     # mm  eixo de rotação x
+POS_EIXO_Y  = -6282.0   # mm  eixo de rotação y (reator)
+POS_Z_CENTRO = -2518.0  # mm  z do centro entre os 2 estágios (inf -4296, sup -740)
 
 # --- restrição de PROPORÇÃO FABRIL (Ito): D não pode ser desproporcional ao tanque ---
 T_TANQUE    = 5080.0    # mm  diâmetro interno do REATOR (ID 5,08 m, do CAD real)
@@ -77,8 +83,8 @@ def build(D, angle, n_pas, n_stages=1):
         shaft = cq.Workplane("XY").circle(r_shaft).extrude(z_top, both=True)
         return imp.union(shaft)
 
-    # duplo: 2 estágios no eixo + eixo longo
-    total_h = STAGE_SPACING + 2 * HUB_H + 600.0
+    # duplo: 2 estágios no eixo + eixo longo (cobre o cilindro MRF inteiro c/ folga)
+    total_h = STAGE_SPACING + 2 * HUB_H + 1400.0
     shaft = (cq.Workplane("XY").circle(r_shaft)
              .extrude(total_h).translate((0, 0, -total_h / 2.0)))
     assembly = shaft
@@ -126,6 +132,10 @@ if __name__ == "__main__":
 
     duplo = build(D_IMPELIDOR, ANGULO_PA, N_PAS, n_stages=N_STAGES)
     cq.exporters.export(duplo, "impelidor_parametrico_duplo.step")
+
+    # versão POSICIONADA no MRF do reator (importar e encaixar, sem transform no STAR)
+    duplo_pos = duplo.translate((POS_EIXO_X, POS_EIXO_Y, POS_Z_CENTRO))
+    cq.exporters.export(duplo_pos, "impelidor_parametrico_duplo_POSICIONADO.step")
 
     render(single, "preview_impelidor.png",
            f"Impelidor paramétrico — Ø{int(D_IMPELIDOR)}mm · {ANGULO_PA:g}° · {N_PAS} pás")
