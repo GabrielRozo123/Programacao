@@ -28,6 +28,14 @@ O Ito pediu duas frentes:
 - **Metodologia de CFD:** ver [`ejetor/01_metodologia_cfd_ejetor.md`](ejetor/01_metodologia_cfd_ejetor.md)
   (montada por análise multi-abordagem + literatura + verificação adversarial).
 
+## ⚠️ Esclarecimento (recorrente): impelidor × ejetor são tanques DIFERENTES
+Verificado no **CAD montado** (`../geometria/sugar_dominio_fluido_completo.step`, referência única,
+volumes batem com o projeto). Ver figura [`prova_impelidor_so_reator.png`](prova_impelidor_so_reator.png).
+- 🟣 **AERADOR** (fluido 20,2 m³, eixo y=−0,44 m): **ejetor + 3 lanças. SEM impelidor.** É onde se fazem as microbolhas.
+- 🟢 **REATOR** (fluido ~140 m³, eixo y=−6,282 m): **impelidor duplo (MRF, 4,4 m³) + baffles.** É a agitação/potência.
+- O impelidor **não** move o ejetor: o venturi é alimentado por **bomba motriz dedicada** (linha "xarope motriz").
+- "Aumentar o impelidor" (pedido do Ito) = estudo paramétrico do **reator** (não mexe no ejetor).
+
 ## O achado do "fabricante sobrenatural" (registro)
 Fabricante das lanças alega bolha **5 µm** no nascimento; CFD dá **~1,2 mm** (~240×). Não é erro do CFD:
 o tamanho de nascimento é propriedade do **fluido+escoamento**, não da lança — os 5 µm são poro/água e
