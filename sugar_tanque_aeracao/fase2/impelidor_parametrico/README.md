@@ -48,6 +48,27 @@ aerador transiente no sweep.
 Potência do agitador (meta **< 25 kW**), **Np**, **Nq**, Reynolds do impelidor, torque — os mesmos da
 Tabela 1 do deck da Fase 1.
 
+## Matriz do sweep — incrementos definidos pelo Ito (14/07)
+Perturbações pequenas e **realistas** (respeitando proporção fabril), em torno do caso-base:
+
+| Eixo | Base | Variação (Ito) | Valor | Tipo |
+|---|---|---|---|---|
+| **Ângulo das pás** | 30° | **+5%** | **31,5°** | geometria (novo STEP) |
+| **Nº de pás** | 3 | **+1** | **4** | geometria (novo STEP) |
+| **Rotação** | 109,3 rpm | **+10%** | **120,2 rpm** | física (global parameter, sem STEP) |
+| **Diâmetro** | Ø800 mm | *respeitar D/T fabril* | **⚠️ a definir** | geometria (novo STEP) |
+
+**Estudo recomendado:** OFAT (One-Factor-At-A-Time) — 5 rodadas (base + 1 mudança por vez) isolam o
+efeito de cada parâmetro em **P/Np/Nq**. Se quiser interações, full factorial (2⁴ = 16 rodadas).
+
+### ⚠️ Pendência do DIÂMETRO — reconciliar D/T
+O impelidor do CAD real é **Ø800 mm** → com T_reator = 5,08 m dá **D/T = 0,157**, **abaixo** da faixa
+clássica (0,25–0,50). O "1/3,1" clássico (=0,323) daria **D ≈ 1640 mm** (2× o atual). Duas leituras:
+- **(a)** Manter Ø800 e varrer **pequeno** em torno dele (ex.: 720/800/880 mm) — mantém o modelo fabril atual.
+- **(b)** Explorar **rumo ao clássico** (D/T → ~1/3) — impelidor maior, mais potência/bombeamento.
+O script já **avisa** se o D/T sai da faixa (`D/T = ... -> FORA da faixa clássica`). **Confirmar com o Ito
+qual leitura** (e o T que ele considera) antes de fixar o eixo do diâmetro.
+
 ## Validação
-Rodar o **caso-base (Ø800, 30°, 3 pás)** e conferir contra a Fase 1 (P≈4,07 kW · Nq=0,345 · Np/est=0,76).
-Bateu → a parametrização está calibrada e o sweep é confiável.
+Rodar o **caso-base (Ø800, 30°, 3 pás, 109,3 rpm)** e conferir contra a Fase 1 (P≈4,07 kW · Nq=0,345 ·
+Np/est=0,76). Bateu → a parametrização está calibrada e o sweep é confiável.

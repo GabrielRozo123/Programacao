@@ -35,6 +35,10 @@ CHORD_FRAC  = 0.19      # corda da pá = CHORD_FRAC * D  (~152 mm p/ D=800)
 N_STAGES    = 2         # estágios no conjunto duplo
 STAGE_SPACING = 3900.0  # mm  distância entre estágios (real: inf z=-4470, sup z=-570)
 
+# --- restrição de PROPORÇÃO FABRIL (Ito): D não pode ser desproporcional ao tanque ---
+T_TANQUE    = 5080.0    # mm  diâmetro interno do REATOR (ID 5,08 m, do CAD real)
+DT_CLASSICO = (0.25, 0.50)  # faixa clássica D/T de impelidores de tanque agitado
+
 # CLI opcional: D  angulo  n_pas
 if len(sys.argv) >= 2: D_IMPELIDOR = float(sys.argv[1])
 if len(sys.argv) >= 3: ANGULO_PA   = float(sys.argv[2])
@@ -127,8 +131,11 @@ if __name__ == "__main__":
            f"Impelidor paramétrico — Ø{int(D_IMPELIDOR)}mm · {ANGULO_PA:g}° · {N_PAS} pás")
 
     r_tip = D_IMPELIDOR / 2.0
+    dt = D_IMPELIDOR / T_TANQUE
+    flag = "OK" if DT_CLASSICO[0] <= dt <= DT_CLASSICO[1] else "⚠️ FORA da faixa clássica"
     print(f"[{tag}]")
     print(f"  Ø = {D_IMPELIDOR:.1f} mm (r_ponta {r_tip:.1f}) · ângulo {ANGULO_PA:g}° · {N_PAS} pás/estágio")
+    print(f"  D/T = {dt:.3f}  (T={T_TANQUE:.0f} mm; faixa clássica {DT_CLASSICO[0]}–{DT_CLASSICO[1]}) -> {flag}")
     print(f"  corda {CHORD_FRAC*D_IMPELIDOR:.1f} mm · cubo Ø{HUB_D} · eixo Ø{SHAFT_D}")
     print("  -> impelidor_parametrico.step (1 estágio)")
     print("  -> impelidor_parametrico_duplo.step (2 estágios)")
