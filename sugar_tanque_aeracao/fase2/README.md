@@ -1,0 +1,38 @@
+# Fase 2 (Ito) — Estudo paramétrico + Ejetor
+
+Segunda parte do projeto Sugar/Ito, aberta após a **apresentação (14/07/2026)** — feedback **positivo**.
+O Ito pediu duas frentes:
+
+| Frente | O que | Pasta |
+|---|---|---|
+| **A. Paramétrico do agitador** | Varrer **diâmetro, ângulo das pás, nº de pás** → potência/Np/Nq (Design Manager) | [`impelidor_parametrico/`](impelidor_parametrico/) |
+| **B. Ejetor venturi** | Simular o **gerador de microbolhas** e prever o tamanho da bolha no meio viscoso | [`ejetor/`](ejetor/) |
+
+## A. Paramétrico (Design Manager)
+- **CAD paramétrico pronto:** [`impelidor_parametrico/`](impelidor_parametrico/) — pitched-blade com
+  `D`, `ângulo`, `nº de pás` varriáveis; caso-base Agimix Ø800/30°/3 pás.
+- **Dificuldade das variáveis:** rotação (rpm) é trivial (global parameter); **diâmetro e ângulo**
+  exigem geometria paramétrica (o CAD deste repo resolve isso).
+- **Custo:** varrer **só no reator** (MRF permanente). Aerador transiente fica de fora do sweep.
+- **Plano de estudo DM:** tutorial "Design Sweep of a Static Mixer" (fluxo base) → aplicar na rotação →
+  Part-Replacement / 3D-CAD paramétrico para D e ângulo → "Pareto Optimization" se quiser o ótimo.
+
+## B. Ejetor venturi
+- **O equipamento:** venturi (convergente–garganta–difusor). Xarope motriz acelera na garganta →
+  pressão cai → ar (furos ~1 mm) é sugado/injetado → **cisalhamento** fragmenta em microbolhas → difusor
+  → lança → tanque. Geometria/medidas em [`../geometria/dimensoes_ejetor_medidas.md`](../geometria/dimensoes_ejetor_medidas.md)
+  e domínio fluido `../geometria/eductor_dominio_fluido_v1.step`.
+- **Por que importa:** as lanças passivas dão bolha ~1,2–2,4 mm (viscosidade suprime a quebra). O ejetor
+  tem **garganta de alto cisalhamento** — é o device que **pode** de fato quebrar a bolha até a faixa de
+  flotação (<200–300 µm). É a **alavanca real** que identificamos na Fase 1.
+- **Metodologia de CFD:** ver [`ejetor/01_metodologia_cfd_ejetor.md`](ejetor/01_metodologia_cfd_ejetor.md)
+  (montada por análise multi-abordagem + literatura + verificação adversarial).
+
+## O achado do "fabricante sobrenatural" (registro)
+Fabricante das lanças alega bolha **5 µm** no nascimento; CFD dá **~1,2 mm** (~240×). Não é erro do CFD:
+o tamanho de nascimento é propriedade do **fluido+escoamento**, não da lança — os 5 µm são poro/água e
+não sobrevivem ao xarope de 6,5 Pa·s. **Reforça** que a alavanca é a viscosidade/cisalhamento, não a lança.
+
+## Log
+- **2026-07-14** — Fase 2 aberta. CAD paramétrico do impelidor construído e verificado (ponta em D/2 p/
+  qualquer ângulo). Metodologia do ejetor em elaboração (workflow multi-agente). Achado do 5 µm registrado.

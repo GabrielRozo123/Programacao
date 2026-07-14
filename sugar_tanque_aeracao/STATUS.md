@@ -1,7 +1,7 @@
 # STATUS — Projeto Sugar (Ito) · onde paramos
 
 > Nota de recall. Última atualização: 2026-07-14. **Apresentação ao Ito ENTREGUE — feedback positivo.**
-> Próximo marco: **Fase 2** (paramétrico via Design Manager + ejetor) — ver `fase2_parametrizacao_e_ejetor.md`.
+> Próximo marco: **Fase 2** (paramétrico via Design Manager + ejetor) — ver `fase2/`.
 
 ## Estado geral
 - **REATOR — 100% FECHADO.** Nq=0,345 · Np/est=0,76 · P=4,07 kW (rodada dedicada steady MRF).
@@ -9,7 +9,7 @@
   **a pressão NÃO é a alavanca.**
 - **APRESENTAÇÃO AO ITO — ENTREGUE (14/07), feedback positivo.** Fabricante alega bolha 5 µm no
   nascimento vs CFD ~1,2 mm (física de formação em meio viscoso — reforça a conclusão).
-- **FASE 2 aberta:** paramétrico D/ângulo/rpm (Design Manager) + ejetor. Ver `fase2_parametrizacao_e_ejetor.md`.
+- **FASE 2 aberta:** paramétrico D/ângulo/rpm (Design Manager) + ejetor. Ver `fase2/`.
 
 ## Conclusão central do Aerador (o recado pro Ito)
 Triplicar a pressão (1→3 kgf/cm²) não muda o essencial: bolha ~2,4–2,5 mm (**~12× a meta** de
