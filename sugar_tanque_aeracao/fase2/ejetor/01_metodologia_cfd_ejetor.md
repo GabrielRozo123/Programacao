@@ -104,9 +104,10 @@ processo), trocar o S-Gamma de 2 momentos por **classes** (12–15 bins, ~10 µm
 Escolhido para que a **razão de arraste de ar seja RESULTADO, não input**:
 - **Entrada motriz** (Ø52 / redutor 4"→2"): **Mass-Flow Inlet** de xarope (duty da bomba), VF_ar=0.
   Mass-flow (não pressão) fixa o ponto de operação no meio viscoso; **reportar a pressão de garganta resultante**.
-- **Furos de ar** (1 mm): **Pressure/Stagnation Inlet** na pressão de suprimento (atmosférica se auto-aspirante;
-  manométrica do compressor se soprado), VF_ar=1 → a **sucção do venturi decide quanto ar entra**. No Passo 2,
-  opção estável = impor a razão de arraste do Passo 1 como mass-flow; +1 run com pressure-inlet p/ checar **choking**.
+- **Furos de ar** (1 mm): **ar SOPRADO sob pressão — CONFIRMADO pelo cliente** (1/2/3 kgf/cm², como na Fase 1).
+  BC = **Pressure/Stagnation Inlet na pressão manométrica de suprimento**, VF_ar=1 (não é auto-aspiração; a
+  sucção de Bernoulli não é o mecanismo de entrada). Se a vazão de ar for medida, usar **Mass-Flow Inlet**.
+  Isso **simplifica**: a razão de arraste deixa de ser incógnita de sucção — o ponto de operação do ar é dado.
 - **Saída** (fim do stub de lança): **Pressure Outlet** = **hidrostática da submersão** (~82 kPa, 6,47 m de xarope)
   **+ ΔP laminar restante da lança** (Poiseuille ~200 kPa em 3 m — **da ordem do próprio suprimento**, fixa o ponto de operação). **Não é atmosférica.**
 - **Paredes:** no-slip. **Ângulo de contato** nos furos (xarope molha aço, θ~30–60°) governa o desprendimento (sensibilidade no VOF).
@@ -157,9 +158,10 @@ ejetor → tanque → eficiência de flotação.
 | d32 mesh/Δt-sensível | Convergência de malha e de Δt **obrigatórias** |
 
 ## 9. O que precisamos do cliente (dados que MUDAM o resultado)
-- **⚠️ O ar é AUTO-ASPIRADO (Bernoulli) ou SOPRADO sob pressão?** A Fase 1 alimentava as lanças a 1/2/3 kgf/cm²
-  → sugere soprado. **É o dado que mais muda o arraste.** Confirmar com Ito/Jadir.
-- **Vazão/curva da bomba motriz** de xarope (faixa de escopo 7–22 m³/h).
+- **✅ RESOLVIDO — o ar é SOPRADO sob pressão** (confirmado pelo Ito via Marcus, 14/07). BC do ar = pressão
+  de suprimento (1/2/3 kgf/cm²); não é auto-aspirante.
+- **⚠️ Vazão/curva da bomba motriz** de xarope (faixa de escopo 7–22 m³/h). **É agora o dado nº 1** — define
+  a velocidade na garganta → o cisalhamento (γ̇) → o tamanho da bolha. Sem ela não há ponto de operação do jato.
 - **Curva vazão×pressão do ar** (já pedida no kick-off).
 - **ρ do xarope concentrado** (~1300 vs 1350) e **σ ar-xarope** (~0,07 N/m) — entram ~linear no tamanho.
 - **Geometria exata:** Ø da garganta, posição/nº dos furos de ar, e confirmar se são **7 bicos Ø9** ou um venturi único (o esquema `venturi_o_que_medir.png` mostra garganta única; as medidas citam 7 bicos).
