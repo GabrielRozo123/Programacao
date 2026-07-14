@@ -62,10 +62,12 @@ aproximação grosseira.
   - **(c) Razão de arraste de ar** via equação de orifício `Q_ar = Cd·A·√(2ΔP/ρ_ar)`, ΔP = P_suprimento − P_câmara(CFD), Cd~0,6–0,8.
   - **(d) Tempo de residência** na zona de alta deformação → confrontar com `t_cap`.
   - **PREDITOR ANALÍTICO de tamanho** (antes de qualquer multifásico!): `d_max(x) = 2·Ca_crit·σ / (μ·γ̇(x))`.
-    Nas zonas extensionais (γ̇~160–490 /s) dá **d_max ~10–70 µm — DENTRO da faixa de flotação**; nas de
-    cisalhamento de parede o d_max formal é sub-µm mas **fisicamente inválido** (λ→0). Filtro de viabilidade:
-    quebra só se `t_res > ~2–3·t_cap`. Os números dão `t_res ~2–6 ms` vs `t_cap ~1–3 ms` → **corda bamba**
-    (é a pergunta aberta, já quantificada na 1ª semana).
+    ⚠️ **Corrigido pela verificação:** Ca_crit para **ar** (λ~3e-6) é `≈0,148·λ^(−1/6) ≈ 1,25` — **não** ~0,3.
+    Logo o teto nas zonas extensionais é **~55–170 µm** (não 10–70; era ~3× otimista), e é um **TETO DE
+    ESTABILIDADE** ("acima disso é instável"), **NÃO** o SMD entregue. Nas zonas de cisalhamento de parede o
+    d_max formal é sub-µm mas **inválido** (λ→0, sem quebra em cisalhamento simples). Filtro de viabilidade
+    **cinético** (obrigatório): quebra só se a deformação extensional acumulada e o tempo de fio (μ·R_fio/σ)
+    couberem no `t_res`. **Nunca apresentar d_max ao cliente como tamanho alcançável.**
 
 ### Âncora VOF — interface resolvida de 1 bico + furos de 1 mm  (transiente · AMR)
 O elo mais forte cientificamente: **não usa nenhuma constante calibrada em água**. Resolve a interface
@@ -175,7 +177,55 @@ ejetor → tanque → eficiência de flotação.
 6. **Acoplar** a distribuição de saída ao tanque → eficiência de flotação.
 7. **Parametrizar** (garganta, vazão) para otimizar.
 
+## 11. Veredito da VERIFICAÇÃO ADVERSARIAL + refinamentos (obrigatórios)
+6 afirmações-alicerce atacadas por céticos (física + CFD/literatura). **Veredito líquido:
+`SUPPORTED_WITH_CAVEAT` — a metodologia se sustenta como ABORDAGEM, não como promessa de sucesso.**
+A espinha laminar está fisicamente correta e é decisivamente superior ao tratamento turbulento/steady que
+gerou os falsos-positivos da Fase 1. Placar: **C1–C4 corretas com ressalva; C5 e C6 incertas (eram
+justificativas fracas, não o plano em si).**
+
+### 🔴 O MAIOR RISCO (honestidade com o cliente)
+> **O venturi pode simplesmente NÃO produzir microbolha flotável em 6,5 Pa·s num único passe.** O tempo de
+> quebra de uma bolha-mãe de ~1 mm (dezenas de ms) excede a residência na zona extensional (~1–13 ms), e um
+> passe não cascateia 1 mm → <300 µm (~10⁵ fragmentos), ainda mais com λ~3e-6 (fio lento). Com o Ca_crit
+> corrigido, o **teto** é só ~55–170 µm (margem fina sob 200 µm) e provavelmente **não é atingido num passe**.
+> A literatura de venturi viscoso confirma: **bolha CRESCE com a viscosidade**; os ~30 µm da literatura
+> exigiam μ muito abaixo de 6,5 Pa·s. **Sucesso provavelmente depende de recirculação / múltiplos passes no
+> tanque.** A metodologia deve **LOCALIZAR o desfecho na faixa 5 µm–mm (provável viés p/ centenas de µm–mm)**,
+> não assumir que o ejetor resolve.
+
+### Refinamentos a aplicar (10) — antes de rodar
+1. **Matar os kernels turbulentos** (Luo, Lehr, Prince-Blanch, Coulaloglou-Tavlarides, S-Gamma turbulento):
+   ε≈0 → dariam quebra zero. Usar a **branch NATIVA de quebra laminar por cisalhamento/capilaridade do
+   S-Gamma** (é **seleção de sub-modelo**, não override customizado obrigatório — C4 corrigido). Turbulência OFF.
+2. **Ca sobre o invariante EXTENSIONAL** do tensor (parâmetro de tipo-de-escoamento contínuo via Q-critério/
+   autovalores de S), com **Ca_crit dependente de λ~3e-6 → ~1,0–1,5** (NÃO o genérico ~0,3). Ainda avaliar
+   zonas de cisalhamento confinado (mm-gap, Ca_crit finito + confinamento de parede), não mascarar.
+3. **Limitar a quebra por TEMPO:** portão de deformação acumulada (Hencky) + tempo visco-capilar do fio
+   (μ·R_fio/σ), **não** o t_cap da bolha-mãe nem evento instantâneo. Regiões só-cisalhamento (lança de 3 m,
+   difusor distante) **não** geram quebra.
+4. **Coalescência por drenagem de filme VISCOSA** (t_dren ∝ μ domina) — coerente com a Fase 1 (viscosidade inibe).
+5. **Fase contínua LAMINAR mas TRANSIENTE** (captura flapping do jato); steady só como **inicializador**, nunca preditor de SMD/flotável.
+6. **Injeção de ar = orifício COMPRESSÍVEL / possivelmente CHOKED** (razão de pressão >1,89 a 1–3 kgf/cm²
+   nos furos de 1 mm). O **ar é turbulento** (Re_ar ~1,6–5,4×10⁴) e compressível — **não** modelar laminar/
+   incompressível na âncora VOF. Vazão de ar do orifício compressível (não do solve incompressível do líquido).
+7. **Âncora VOF ampliada:** cobrir injeção + garganta + **contração extensional** (não só 1 bico) → calibra
+   tamanho de nascimento **E** Ca_crit **E** o tempo de quebra transiente numa zona extensional real.
+8. **Refazer a justificativa do Passo 1 (C5):** abandonar o argumento do holdup global (0,005% é implausível —
+   ar choked por furos de 1 mm dá holdup de **vários %**, não 5e-5). Justificar dois-passos como *"bulk distante
+   laminar+diluído + VOF no campo próximo"* + **critério a posteriori:** extrair α_local do passo multifásico;
+   se α>~1e-3 nas zonas que definem pressão/deformação → rodar checagem EMP two-way pontual.
+9. **d_max só como TETO** (~55–170 µm com o Ca_crit do gás), pareado com teste cinético (t_quebra vs t_res).
+   SMD alcançável **só** do VOF + S-Gamma/EMP transiente. **Nunca** o preditor analítico como tamanho ao cliente.
+10. **Confirmar σ experimentalmente** e testar surfactantes/impurezas no xarope quente; registrar **tip-streaming**
+    como rota condicional de quebra em cisalhamento (o único mecanismo que realocaria quebra p/ zonas de cisalhamento).
+
+> **Como isso muda a entrega:** não muda a arquitetura (dois-passos + VOF + transiente + laminar). Muda o
+> **enquadramento**: entregamos "onde o desfecho cai na faixa 5 µm–mm e por quê", com honestidade sobre a
+> chance real de o venturi **não** bastar num passe — exatamente o tipo de conclusão defensável que blindou a Fase 1.
+
 ---
 *Confiança das abordagens avaliadas: VOF-resolvido 0,72 · Dois-passos 0,72 · EMP+S-Gamma 0,60 · Population Balance 0,60.
 Recomendação = Dois-passos (0,72) com âncora VOF embutida, por ser a única que separa arraste de finura,
-entrega número cedo, e triangula o tamanho por 3 vias independentes.*
+entrega número cedo, e triangula o tamanho por 3 vias independentes. Verificação adversarial: SUPPORTED_WITH_CAVEAT
+(6 afirmações, 10 refinamentos aplicados acima).*

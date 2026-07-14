@@ -48,3 +48,8 @@ não sobrevivem ao xarope de 6,5 Pa·s. **Reforça** que a alavanca é a viscosi
   análise multi-abordagem (4 filosofias de CFD) + literatura. **Achado central:** o ejetor é **laminar**
   (Re~10–90) → sem quebra turbulenta; quebra (se houver) é viscosa/extensional. Recomendação: **dois passos**
   (monofásico laminar → EMP+S-Gamma transiente) **+ âncora VOF**, com quebra por strain-rate/Ca (não ε).
+- **2026-07-14** — **Verificação adversarial** das 6 afirmações-alicerce (§11 do doc). Veredito:
+  `SUPPORTED_WITH_CAVEAT` — metodologia sólida, 10 refinamentos aplicados. **Maior risco (honesto):** o venturi
+  pode não gerar microbolha flotável em 6,5 Pa·s num único passe (sucesso provável depende de recirculação).
+  Ar dos furos é compressível/choked (não laminar); d_max é TETO ~55–170 µm, não SMD.
+- **2026-07-14** — Confusão impelidor×aerador RESOLVIDA (prova geométrica; Marcus confirmou por call).
