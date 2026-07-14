@@ -51,12 +51,18 @@ if len(sys.argv) >= 3: ANGULO_PA   = float(sys.argv[2])
 if len(sys.argv) >= 4: N_PAS       = int(sys.argv[3])
 
 
+ROOT_OVERLAP = 30.0     # mm  raiz da pá PENETRA no cubo (sobreposição p/ boolean limpo)
+
+
 def _stage(D, angle, n_pas, chord):
-    """Um estágio: cubo + n pás de passo 'angle' arranjadas a 360/n."""
+    """Um estágio: cubo + n pás de passo 'angle' arranjadas a 360/n.
+    A raiz da pá penetra o cubo (ROOT_OVERLAP) → união com sobreposição de volume
+    (boolean robusto; evita faces coincidentes que quebram o Unite no STAR)."""
     r_hub = HUB_D / 2.0
     r_tip = D / 2.0
-    Lr = r_tip - r_hub                      # comprimento radial da pá
-    r_mid = r_hub + Lr / 2.0                # raio do centro da pá
+    r_root = r_hub - ROOT_OVERLAP           # raiz penetra o cubo
+    Lr = r_tip - r_root                     # comprimento radial da pá (com penetração)
+    r_mid = r_root + Lr / 2.0               # raio do centro da pá
 
     # cubo
     hub = cq.Workplane("XY").circle(r_hub).extrude(HUB_H, both=True)
