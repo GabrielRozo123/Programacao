@@ -35,4 +35,8 @@ não sobrevivem ao xarope de 6,5 Pa·s. **Reforça** que a alavanca é a viscosi
 
 ## Log
 - **2026-07-14** — Fase 2 aberta. CAD paramétrico do impelidor construído e verificado (ponta em D/2 p/
-  qualquer ângulo). Metodologia do ejetor em elaboração (workflow multi-agente). Achado do 5 µm registrado.
+  qualquer ângulo). Achado do 5 µm registrado.
+- **2026-07-14** — **Metodologia do ejetor FECHADA** (`ejetor/01_metodologia_cfd_ejetor.md`), a partir de
+  análise multi-abordagem (4 filosofias de CFD) + literatura. **Achado central:** o ejetor é **laminar**
+  (Re~10–90) → sem quebra turbulenta; quebra (se houver) é viscosa/extensional. Recomendação: **dois passos**
+  (monofásico laminar → EMP+S-Gamma transiente) **+ âncora VOF**, com quebra por strain-rate/Ca (não ε).
