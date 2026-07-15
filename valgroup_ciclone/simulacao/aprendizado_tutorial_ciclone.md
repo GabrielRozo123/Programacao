@@ -147,10 +147,45 @@ o tutorial a liga PORQUE usa SST)*.
 5. **PSD do char CARREADO** (mais fino, mal caracterizado) → η **global** incerto (a curva η(d) é robusta; o integrado não). *(Marcus vai mandar.)*
 6. **Finos revestidos de tar** (condensação incipiente) podem **grudar e AUMENTAR** a η real vs prevista — não modelado, documentar.
 
-> **Nota de processo:** a verificação adversarial e a síntese do workflow não completaram (limite de sessão),
-> mas as 4 adaptações vieram completas e **coerentes entre si** (confirmam RSM > SST, two-way a 11%, parede
-> térmica p/ orvalho, URANS p/ o PVC). Síntese feita manualmente. Confiança das dimensões: turbulência 0,85 ·
-> fase discreta 0,80 · térmica 0,72 · malha (alta).
+### 4.8 Execução (rodar) — confirmado pelos tutoriais "Running Steady/Unsteady"
+Os tutoriais oficiais **confirmam a receita steady → unsteady + curvature correction**. Adaptado p/ nós:
+
+| Fase | Tutorial (SST) | **Nosso caso (RSM)** |
+|---|---|---|
+| **1. Steady** | Max Steps **1500** (semeia o unsteady) | RSM steady 2ª ordem até o **ciclo-limite** (PVC); salvar snapshot "Steady" p/ comparação |
+| **2. Unsteady** | desliga Steady → **Implicit Unsteady**; **Curvature Correction = ON** (no SST) | Implicit Unsteady; **Curvature Correction = OFF** (o RSM já responde à rotação!) |
+| **Δt** | 5e-4 s | **5e-5–1e-4 s** (ciclone menor, v maior → CFL~1 no núcleo) |
+| **Inner iterations** | 8 | **5–10** (queda de ~3 ordens de resíduo/passo) |
+| **URF (segregado)** | vel 0,9 · press 0,4 | **vel 0,5–0,7 · press 0,2–0,3** (RSM + tensões 0,4–0,6, mais conservador) |
+| **Tempo físico** | 0,5 s | **2–3 s** (~15–20 tempos de residência p/ estatística de ΔP/η; descartar ~0,2–0,3 s iniciais) |
+| **Paralelo** | 4 cores | mais (2–4 M células + fase discreta) |
+
+**Ordem geral:** malha → **init 2-eq steady** → **RSM steady** (ciclo-limite) → **URANS-RSM** (converge ΔP/v_t)
+→ **ligar energia + parede Convection** (campo térmico p/ orvalho) → **injetar partículas** (one-way curva →
+two-way produção) sobre o campo já desenvolvido → média temporal → extrair η(d), ΔP, T_parede, erosão.
+
+> ⚠️ **Diferença crítica vs o tutorial:** ele liga *Curvature Correction* porque usa **SST**. **Nós NÃO
+> ligamos** (usamos RSM, que capta a curvatura pelos termos exatos). Ligar as duas seria redundante/inconsistente.
+
+### 4.9 ⚠️ DEM × Lagrangiana — não confundir (o ciclone é LAGRANGIANO)
+O char no ciclone é **DILUÍDO** (fração volumétrica α_v ≈ 0,029%) → **Lagrangian Multiphase (LMP/DPM)**,
+com colisão partícula-partícula **desprezível**. **NÃO é DEM.**
+- **DEM** (Discrete Element Method) = fluxo **DENSO**, colisão/contato partícula-partícula domina (ângulo de
+  repouso, empacotamento). É o caso do **Braskem PE5** (rosca/embuchamento) e do **Petrobras** (fluxo de coque).
+- **Lagrangiana/DPM** = fluxo **diluído**, partícula segue o gás com arrasto+dispersão, sem contato. É o ciclone.
+- O tutorial "DEM Particles in a Conveyor" é ótimo para **Braskem/Petrobras** (e p/ entender injetores), mas o
+  **modelo físico** do ciclone é LMP. O conceito de **Injector/Part Injector** é semelhante; a física de contato não.
+
+## 5. Estado / pendências
+- ✅ Geometria (`gen_ciclone_lapple.py` → `ciclone_lapple_fluido.step`), dimensionamento Lapple, matriz revisada.
+- ✅ Guia de setup adaptado e (em fechamento) verificado.
+- ⏳ **Dados do cliente p/ refinar:** composição do gás (µ, cp, k, **T_orvalho** via VLE) · **PSD do char CARREADO**
+  (Marcus) · ρ_s real da partícula · material (Cl → liga anti-HCl).
+- ⏳ **Verificação adversarial** das 4 escolhas-chave (rodando; consolidar veredito aqui ao concluir).
+
+> **Nota de processo:** a 1ª rodada do workflow completou as 4 adaptações (coerentes entre si: RSM > SST,
+> two-way a 11%, parede térmica p/ orvalho, URANS p/ o PVC) mas parou na verificação por limite de sessão;
+> **verificação re-disparada**. Confiança das dimensões: turbulência 0,85 · fase discreta 0,80 · térmica 0,72 · malha (alta).
 
 ## Fonte
 Tutorial oficial STAR-CCM+ 21.02: *Anisotropic Flow: Cyclone Separator* (Selecting Physics Models,
