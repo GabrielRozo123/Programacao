@@ -9,8 +9,14 @@
 > domínio fluido `../../geometria/eductor_dominio_fluido_v1.step`.
 
 ## 0. O ACHADO QUE MUDA TUDO — o ejetor é LAMINAR
-Checagem de Reynolds (com vazão motriz plausível 7–22 m³/h, 7 bicos Ø9 mm):
-- **Re_bico ≈ 18–90**, **Re_câmara/lança ≈ 37** — mesmo a 20 m/s. **Escoamento inteiramente laminar.**
+> ✅ **VAZÃO MOTRIZ CONFIRMADA (Ito, 15/07):** a bomba = 100% do fluxo de xarope = **130 m³/h** (Colombo).
+> Dividido pelas lanças (3–4), dá **~32–43 m³/h por ejetor** → **v_bico ≈ 20–27 m/s** (mais que os 7–22 m³/h
+> estimados!). Recalculado: **Re_bico ≈ 36–49 · Re_câmara/lança ≈ 37–49 · γ̇ ≈ 2250–3000 /s · Ca ≈ 125–167 ·
+> pressão dinâmica ~2,7–4,7 bar.** Mais cisalhamento que o estimado → **mais favorável à quebra** — mas
+> **AINDA LAMINAR** (Re~40), então a tese central se mantém integralmente.
+
+Checagem de Reynolds (agora com a vazão real de 130 m³/h, 7 bicos Ø9 mm por ejetor):
+- **Re_bico ≈ 36–49**, **Re_câmara/lança ≈ 37–49** — mesmo a 20–27 m/s. **Escoamento inteiramente laminar.**
 - Venturis de microbolha da literatura são **turbulentos** (Re 10⁴–10⁵) — a quebra lá é por turbulência.
   **Aqui não existe quebra turbulenta** (ε_turb ≈ 0).
 
@@ -162,10 +168,13 @@ ejetor → tanque → eficiência de flotação.
 ## 9. O que precisamos do cliente (dados que MUDAM o resultado)
 - **✅ RESOLVIDO — o ar é SOPRADO sob pressão** (confirmado pelo Ito via Marcus, 14/07). BC do ar = pressão
   de suprimento (1/2/3 kgf/cm²); não é auto-aspirante.
-- **⚠️ Vazão/curva da bomba motriz** de xarope (faixa de escopo 7–22 m³/h). **É agora o dado nº 1** — define
-  a velocidade na garganta → o cisalhamento (γ̇) → o tamanho da bolha. Sem ela não há ponto de operação do jato.
+- **✅ RESOLVIDO — Vazão motriz = 130 m³/h** (Colombo; = 100% do fluxo de xarope; Ito 15/07). → v_bico 20–27 m/s,
+  Re~40 (laminar), γ̇ ~2250–3000 /s, Ca ~125–167. *(Confirmar nº de lanças p/ o split exato: 3 ou 4.)*
 - **Curva vazão×pressão do ar** (já pedida no kick-off).
-- **ρ do xarope concentrado** (~1300 vs 1350) e **σ ar-xarope** (~0,07 N/m) — entram ~linear no tamanho.
+- **⚠️ σ ar-xarope — dado nº 1 agora** (crítico no setup do ejetor; entra ~linear no Ca/tamanho). Ito **não tem**;
+  Gabriel busca **correlação de literatura p/ xarope de cana** (tem Brix + densidade → estimar σ(Brix,T)).
+  Placeholder ~0,07 N/m até fechar. *(σ de xarope de cana ~72→~78 mN/m com Brix; confirmar na literatura.)*
+- **ρ do xarope concentrado** (~1300 vs 1350) — do Brix/densidade que o cliente tem.
 - **Geometria exata:** Ø da garganta, posição/nº dos furos de ar, e confirmar se são **7 bicos Ø9** ou um venturi único (o esquema `venturi_o_que_medir.png` mostra garganta única; as medidas citam 7 bicos).
 
 ## 10. Roteiro de execução (ordem sugerida)
