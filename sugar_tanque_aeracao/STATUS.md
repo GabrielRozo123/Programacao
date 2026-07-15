@@ -1,7 +1,8 @@
 # STATUS — Projeto Sugar (Ito) · onde paramos
 
-> Nota de recall. Última atualização: 2026-07-14. **Apresentação ao Ito ENTREGUE — feedback positivo.**
-> Próximo marco: **Fase 2** (paramétrico via Design Manager + ejetor) — ver `fase2/`.
+> Nota de recall. Última atualização: 2026-07-14 (noite). **Apresentação ao Ito ENTREGUE — feedback positivo.**
+> **Fase 2 em execução.** Próximo (15/07): **malhar + rodar o impelidor novo** (steady MRF) → torque.
+> Ver `fase2/` e `fase2/impelidor_parametrico/execucao_star.md`.
 
 ## Estado geral
 - **REATOR — 100% FECHADO.** Nq=0,345 · Np/est=0,76 · P=4,07 kW (rodada dedicada steady MRF).
@@ -9,7 +10,11 @@
   **a pressão NÃO é a alavanca.**
 - **APRESENTAÇÃO AO ITO — ENTREGUE (14/07), feedback positivo.** Fabricante alega bolha 5 µm no
   nascimento vs CFD ~1,2 mm (física de formação em meio viscoso — reforça a conclusão).
-- **FASE 2 aberta:** paramétrico D/ângulo/rpm (Design Manager) + ejetor. Ver `fase2/`.
+- **FASE 2 — em execução:**
+  - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm (decisão Ito, 1 design vs base). No STAR: import→subtract→
+    named faces→rotação 12,59 rad/s OK (`Marcos_Ito_Bolhas_segunda_fase.sim`). **Falta:** malhar→steady MRF→torque.
+  - **Ejetor** (venturi): metodologia fechada e verificada (dois-passos + VOF; laminar; quebra por Ca).
+    Sim separado, **esperando a vazão da bomba motriz** do cliente.
 
 ## Conclusão central do Aerador (o recado pro Ito)
 Triplicar a pressão (1→3 kgf/cm²) não muda o essencial: bolha ~2,4–2,5 mm (**~12× a meta** de

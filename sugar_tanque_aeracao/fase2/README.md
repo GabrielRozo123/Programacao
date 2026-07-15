@@ -53,3 +53,7 @@ não sobrevivem ao xarope de 6,5 Pa·s. **Reforça** que a alavanca é a viscosi
   pode não gerar microbolha flotável em 6,5 Pa·s num único passe (sucesso provável depende de recirculação).
   Ar dos furos é compressível/choked (não laminar); d_max é TETO ~55–170 µm, não SMD.
 - **2026-07-14** — Confusão impelidor×aerador RESOLVIDA (prova geométrica; Marcus confirmou por call).
+- **2026-07-14** — **Impelidor novo decidido** (Ito via Marcus): Ø880/31,5°/4pás/120,2 rpm — 1 design vs base
+  (sem sweep). STEP posicionado gerado (1 corpo fundido). **No STAR:** import→subtract→named faces→rotação
+  12,59 rad/s feitos; salvo `Marcos_Ito_Bolhas_segunda_fase.sim`. **Falta:** malhar→steady MRF→torque→P/Np/Nq.
+  Detalhe em [`impelidor_parametrico/execucao_star.md`](impelidor_parametrico/execucao_star.md).
