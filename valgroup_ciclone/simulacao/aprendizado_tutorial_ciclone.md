@@ -176,16 +176,38 @@ com colisão partícula-partícula **desprezível**. **NÃO é DEM.**
 - O tutorial "DEM Particles in a Conveyor" é ótimo para **Braskem/Petrobras** (e p/ entender injetores), mas o
   **modelo físico** do ciclone é LMP. O conceito de **Injector/Part Injector** é semelhante; a física de contato não.
 
+### 4.10 Veredito da VERIFICAÇÃO ADVERSARIAL (4 afirmações-alicerce)
+Cada afirmação atacada por 2 céticos (física + CFD/literatura). Resultado:
+
+| Afirmação | Veredito | Refinamento |
+|---|---|---|
+| **RSM necessário** (vs K-ω SST) | ✅ SUPPORTED / ⚠️ UNCERTAIN | "necessário" é **forte demais**. RSM é o **mínimo recomendado** p/ fidelidade; mas o tutorial usa **SST + Curvature Correction (SST-CC)** — opção legítima e barata (2 EDPs vs 6), às vezes competitiva na literatura. **→ ESTRATÉGIA DE BRACKETING:** rodar **EB-RSM (workhorse) E SST-CC (sanidade)**. Concordam em d50 → aceitar RANS. Divergem nos **finos <20µm** → **escalar p/ LES/DES** de verificação. |
+| **Two-way a 11% de carga** | ✅ SUPPORTED (2 lentes) | α_v=2,9e-4 firmemente na zona two-way (Elghobashi). **Vigiar α_v LOCAL na corda/cone** — pode cruzar 1e-3 (four-way) → DDPM/CFD-DEM só nessas zonas. |
+| **Bulk 450°C ≠ sem condensação** (parede mais fria) | ✅ SUPPORTED — "irrefutável" (2 lentes) | Mesmo mecanismo de **cold-end / orvalho ácido** (economizadores, tar dew-point fouling). Confirma energia + parede Convection + VLE offline. **← é a resposta técnica ao Humberto.** |
+| **Transiente/URANS pro PVC** | ✅ SUPPORTED (2 lentes) | PVC é intrinsecamente transiente; steady não o captura. **dt deve resolver a frequência do PVC** (f~St·v_i/D_c, St~0,5 → ~20–40 passos/período). |
+
+**Refinamentos da verificação a NÃO esquecer:**
+- ⚠️ **RANS-RSM SUPERESTIMA a coleta de finos <10–20µm** (subestima as flutuações RMS) — é a **MAIOR incerteza**
+  da grade efficiency, e é **exatamente onde está o char carreado**. → planejar **LES/DES de verificação nos finos**.
+- **ΔP:** padronizar a definição (estática × total, incluir/excluir o outlet pipe) **antes** de comparar com os 36,5 mbar.
+- **Bracketing** EB-RSM × SST-CC é a forma honesta de reportar a incerteza de modelo de turbulência ao cliente.
+- **Plano de convergência em rampa** (nunca acoplar tudo): 2-eq steady → RSM steady (ciclo-limite) → URANS-RSM
+  isotérmico → +energia/ideal-gas → +LMP one-way → +two-way. *(Detalhe no §4.8.)*
+
 ## 5. Estado / pendências
 - ✅ Geometria (`gen_ciclone_lapple.py` → `ciclone_lapple_fluido.step`), dimensionamento Lapple, matriz revisada.
-- ✅ Guia de setup adaptado e (em fechamento) verificado.
-- ⏳ **Dados do cliente p/ refinar:** composição do gás (µ, cp, k, **T_orvalho** via VLE) · **PSD do char CARREADO**
-  (Marcus) · ρ_s real da partícula · material (Cl → liga anti-HCl).
-- ⏳ **Verificação adversarial** das 4 escolhas-chave (rodando; consolidar veredito aqui ao concluir).
+- ✅ Guia de setup adaptado **e VERIFICADO** (veredito no §4.10 — SUPPORTED_WITH_CAVEAT, bracketing RSM×SST-CC).
+- ✅ **Composição do gás recebida** (GC-MS: HC C7–C15, alceno-dominante, MW~124–184) → base p/ µ/cp/k/orvalho.
+  Ver [`../dados_cliente/dados_recebidos_15jul.md`](../dados_cliente/dados_recebidos_15jul.md).
+- ⚠️ **Reconciliar com a planilha dos colegas:** vazão de gás **800 vs 1900 kg/h** (muda D_c 163→265mm!), µ
+  (2,5e-5 vs 9,5e-5), ρ_s (eles usaram o **bulk** 776,8 — errado). T de operação ~343°C (TT-209), não 400. Ver o doc.
+- ⏳ **Ainda pendente:** **PSD do char CARREADO** (Marcus) · **T_orvalho via VLE** (calcular com a composição GC) ·
+  ρ_s real da partícula · material (Cl → liga anti-HCl).
 
-> **Nota de processo:** a 1ª rodada do workflow completou as 4 adaptações (coerentes entre si: RSM > SST,
-> two-way a 11%, parede térmica p/ orvalho, URANS p/ o PVC) mas parou na verificação por limite de sessão;
-> **verificação re-disparada**. Confiança das dimensões: turbulência 0,85 · fase discreta 0,80 · térmica 0,72 · malha (alta).
+> **Nota de processo:** workflow multi-agente **CONCLUÍDO** (16/16 agentes): 4 adaptações + verificação
+> adversarial (§4.10) + síntese. As 4 afirmações-alicerce **sobreviveram** (3 SUPPORTED, 1 SUPPORTED-com-nuance
+> = bracketing RSM×SST-CC). Síntese consolidada acima. Confiança: turbulência 0,85 · fase discreta 0,80 ·
+> térmica 0,72 · malha (alta).
 
 ## Fonte
 Tutorial oficial STAR-CCM+ 21.02: *Anisotropic Flow: Cyclone Separator* (Selecting Physics Models,
