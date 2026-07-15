@@ -65,9 +65,92 @@ O tutorial é "o passo inicial" — **single-phase, isotérmico, sem partículas
 | **Saída de sólidos** | — | base do cone: **trap** de partícula |
 | **Validação** | — | vs **Lapple** (d*≈3,6µm, η, ΔP) + independência de malha |
 
-## 4. Guia de setup ADAPTADO e VERIFICADO (documento vivo)
-> Preenchido a partir do workflow de adaptação+verificação (RSM vs K-ω, acoplamento, térmica, malha).
-> *(Em processamento — será consolidado aqui.)*
+## 4. Guia de setup ADAPTADO e VERIFICADO
+> Consolidado de análise multi-agente (4 dimensões: turbulência, fase discreta, térmica, malha) +
+> literatura de CFD de ciclone. **O tutorial é o ponto de partida; abaixo está o setup do NOSSO caso.**
+
+### 4.1 Física (Continua) — o que muda vs o tutorial
+`3D` · `Gas` → **Ideal Gas** (M=184 kg/kmol → reproduz ρ=3,946) *(tutorial: Constant Density)* ·
+`Segregated Flow` · **`Segregated Fluid Temperature` (ENERGIA LIGADA)** *(tutorial: isotérmico)* ·
+**`Implicit Unsteady` (URANS)** · Turbulent → RANS → **`Reynolds Stress Turbulence → Elliptic Blending
+(EB-RSM)`** *(tutorial: K-ω SST)* · **Curvature Correction DESLIGADA** *(o RSM já responde à rotação;
+o tutorial a liga PORQUE usa SST)*.
+
+### 4.2 Turbulência — **RSM, não K-ω SST** (a decisão nº 1)
+- **Por quê:** a eficiência é governada pelo **pico de velocidade tangencial** (v_t²/r). Modelos de
+  viscosidade turbulenta (k-ε, k-ω SST — Boussinesq/isotrópicos) **achatam o vórtice de Rankine**,
+  subestimam v_t → **erram ΔP E a curva de eficiência**. O RSM transporta as 6 tensões de Reynolds →
+  captura a anisotropia. Padrão-ouro RANS p/ ciclone (Hoekstra, Slack, Elsayed & Lacor).
+- **Modelo:** EB-RSM (integra até a parede — bom p/ o fluxo de calor do orvalho e a deposição).
+  Alternativa robusta: SSG/Linear Pressure-Strain Two-Layer (se EB não convergir).
+- **Receita de convergência:** init 2-eq (k-ε/k-ω, 1ª ordem, ~1000 it) → RSM steady 2ª ordem (só semeia;
+  vai estacionar num **ciclo-limite** por causa do PVC — não é divergência) → **URANS-RSM**.
+- **Numérica:** 2ª ordem upwind no momento (**NUNCA 1ª ordem** — borra o vórtice, é o erro nº1 de CFD de
+  ciclone). BDF2 no tempo. **dt = 5e-5–1e-4 s** (CFL~1 no núcleo). **Média temporal ~15–20 tempos de
+  residência** (~2–3 s; residência ~0,16 s), descartando ~0,2–0,3 s iniciais. *(O 0,5 s do tutorial é curto.)*
+- **Convergência por MONITORES físicos:** ΔP, v_t em sondas radiais, desbalanço de massa <0,5%, η — não só resíduo.
+
+### 4.3 Fase discreta (Lagrangiana) — **o que entrega a grade efficiency** (o tutorial não tem)
+- **Modelo:** Lagrangian Multiphase, Material Particles, ρ_s=1500, esf. 0,8 (Haider-Levenspiel).
+- **Forças:** Drag (Schiller-Naumann) + Gravity + **Turbulent Dispersion (DRW) — OBRIGATÓRIA** (sem ela os
+  finos seguem a linha média → η **falsamente alta**) + Saffman-Mei (opcional, finos <10µm). Ignorar
+  massa virtual/grad. pressão (ρ_s/ρ_g=380).
+- **Acoplamento:** α_v bulk = 2,9e-4 (diluído, zona two-way de Elghobashi). **One-way primeiro** (curva de
+  eficiência, campo do gás não muda) → **Two-way na produção** (11% carga amortece o swirl, reduz ΔP 5–15%).
+- **Injeção — 2 campanhas:**
+  - **(A) Grade efficiency:** injeções **MONODISPERSAS** (1/2/3/**3,6**/5/7/10/15/20/30/50/75 µm +150/425)
+    → η_i = m_saída_pó/m_injetado por rodada (toda a física está em <20µm, pois d*≈3,6µm).
+  - **(B) Produção (ΔP, erosão, η global):** Rosin-Rammler no inlet (d63≈120–150µm, n≈2, dmin 1µm,
+    dmax ~500µm), 80 kg/h, >20.000 parcelas.
+- **Partícula-parede:** corpo/cone = **REBOUND** (e_n≈0,85, e_t≈0,95) + rugosidade estocástica (Sommerfeld),
+  **NÃO Trap** (trap lateral superestima η). **Saída de gás = ESCAPE (não-coletado)**; **ápice do cone =
+  ESCAPE contado como COLETADO** (incluir **coto de hopper** p/ o vórtice não rearrastar).
+- **Erosão:** OKA (ou DNV) nas paredes de aço → mm/ano nos hotspots (impacto do jato, cone, ápice). Só
+  ranking relativo (char-mineral ≠ areia calibrada; incerteza fator 2–3).
+- **Extração:** Lagrangian Mass Flow reports por fronteira; validar vs Lapple (d*~3,6µm; o CFD dá cut-size
+  um pouco **maior** que Lapple por causa da dispersão turbulenta).
+
+### 4.4 Térmica / condensação — **o pedido do Lucas** (o tutorial não tem)
+- **Energia:** Segregated Fluid Temperature + Gradients. **Densidade: Ideal Gas M=184** (reproduz 3,946;
+  **NÃO** Peng-Robinson no solver — VLE fica offline). Props: cp≈2500, k≈0,06, µ=2,5e-5 (Pr≈1), Pr_t=0,9.
+- **BC de parede = CONVECTION com camadas (o item central):** aço 4mm (k=16) + **isolante paramétrico
+  0/25/50/75mm** (k=0,06) + h_ext + T_amb=30°C. O solver **calcula T_parede** pelo balanço gás→aço→isolante→
+  ambiente. **NÃO adiabática** (daria ~400°C, nunca prevê orvalho) e **NÃO temperatura fixa** (é o que queremos prever).
+- **Inlet T=400°C**; ápice do cone = ponto mais frio. **Malha de parede y+≲1** (mais prisms que os 5 do tutorial).
+- **Condensação = pós-processamento OFFLINE** (CFD monofásica não muda de fase): T_orvalho(p) via VLE
+  (Aspen/DWSIM/CoolProp). Field function **`WallCondensationMargin = ${WallTemperature} − T_dew`**.
+  **Entregáveis:** contorno de T_parede; contorno de (T_parede−T_dew) com limiar 0 (vermelho = condensa);
+  min(T_parede) e fração de área abaixo do orvalho por fronteira; **curva de projeto: espessura de isolante
+  × ΔT_min** → especifica o **isolamento mínimo** que mantém min(T_parede) ≥ T_dew **+15–20 K de margem**
+  (não só ≥0 — o condensado com Cl 2,78% = HCl **corrói**).
+
+### 4.5 Malha (redimensionada do tutorial p/ D_c=163mm)
+- Meshers iguais (Surface Remesher + Polyhedral + Advancing Layer).
+- **Base 3 mm** (tutorial 12,5); entrada/jato **2 mm** (~20 células em B_c=40,8); **cilindro de refino no
+  núcleo do vórtice** (r≤D_e~40mm, **do vortex finder até a ponta do cone**, 1,0–1,5 mm — estendido vs o
+  tutorial, pois os finos escapam pelo núcleo de fluxo reverso); lip do vortex finder + ponta do cone 1,0–1,5mm.
+- **Prism: 12–15 camadas** (tutorial 5), 1ª célula ~7µm (**y+~1**), stretch 1,2, total 2–3mm, All y+.
+- **Azimutal: 120–144 pts/círculo** (tutorial 72). 2ª ordem de convecção (poli não é alinhada ao swirl → difusão numérica de momento angular).
+- **Contagem:** 2–4 M células (RSM/URANS); 10–20 M (LES, fallback de fidelidade dos finos).
+- **Independência:** 3 malhas r≥1,3, GCI <5% em ΔP e d50; independência de **parcelas** (≥1e4–1e5 por bin).
+
+### 4.6 Validação (âncoras)
+- **ΔP** vs **36,5 mbar** (Lapple) · **d50 / curva η(d)** vs Lapple (d*≈3,6µm; η_i=1/(1+(d*/d)²)) ·
+  **perfil de v_t** vs vórtice de Rankine/LDA (pico ~1,5–2·v_i perto de r~D_e/2).
+- Cross-checks: **Iozia-Leith** (físico) e **Muschelknautz** (captura o efeito da carga de 11%).
+
+### 4.7 Riscos-chave (síntese)
+1. **1ª ordem / núcleo grosso → borra o vórtice** → superestima d50, subestima η. *(Disciplina: 2ª ordem + refino do núcleo.)*
+2. **Finos <20µm** são MUITO sensíveis à dispersão turbulenta e ao near-wall; RANS-RSM pode errar o cut-size → **sensibilidade RSM×LES nos finos.**
+3. **T_orvalho dos tars** (MW~184) é a maior incerteza térmica → precisa da **composição/VLE**; reportar por faixa (~250–350°C) + sensibilidade.
+4. **Trap × Escape na parede** muda η drasticamente → usar Rebound + destino na fronteira, nunca Trap lateral.
+5. **PSD do char CARREADO** (mais fino, mal caracterizado) → η **global** incerto (a curva η(d) é robusta; o integrado não). *(Marcus vai mandar.)*
+6. **Finos revestidos de tar** (condensação incipiente) podem **grudar e AUMENTAR** a η real vs prevista — não modelado, documentar.
+
+> **Nota de processo:** a verificação adversarial e a síntese do workflow não completaram (limite de sessão),
+> mas as 4 adaptações vieram completas e **coerentes entre si** (confirmam RSM > SST, two-way a 11%, parede
+> térmica p/ orvalho, URANS p/ o PVC). Síntese feita manualmente. Confiança das dimensões: turbulência 0,85 ·
+> fase discreta 0,80 · térmica 0,72 · malha (alta).
 
 ## Fonte
 Tutorial oficial STAR-CCM+ 21.02: *Anisotropic Flow: Cyclone Separator* (Selecting Physics Models,
