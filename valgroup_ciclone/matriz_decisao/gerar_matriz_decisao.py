@@ -98,12 +98,26 @@ CRITERIOS = [
         "nome": "Adequação\ndownstream\n(condensador\ncasco-tubo)",
         "peso": 2,
         "celulas": [
-            ("✓✓ Gás seco\na ~450°C\nperfito",           1),
+            ("✓✓ Gás seco\na ~450°C\nperfeito",          1),
             ("✗✗ Gás frio\númido <250°C\nmodifica T",   -1),
             ("✓✓ Gás seco\na T alta\ncompatível",        1),
             ("✓✓ Gás seco\ncompatível",                   1),
             ("✗✗ Gás úmido\nfrio <250°C\nincompatível", -1),
             ("✓✓ Gás seco",                               1),
+        ],
+    },
+    {
+        # Critério do EMAIL DO CLIENTE (Lucas Geronimi): quench exige filtração
+        # do líquido; ciclone evita a necessidade de filtração.
+        "nome": "Necessidade de\nfiltração de\nlíquido\n(email cliente)",
+        "peso": 2,
+        "celulas": [
+            ("✓✓ Seco — NÃO\nprecisa filtrar\n(evita)",   1),
+            ("✗✗ Exige\nfiltração do\nlíquido carregado",-1),
+            ("✓✓ Seco\nsem líquido",                       1),
+            ("✓✓ Seco\nsem líquido",                       1),
+            ("✗✗ Exige\ntratamento do\nefluente líquido",-1),
+            ("✓✓ Seco\nsem líquido",                       1),
         ],
     },
     {

@@ -41,6 +41,26 @@
 
 > **Atenção:** este é o char EXTRAÍDO na saída. O char CARREADO (o que interessa separar) tende a ser **mais fino** — concentrado principalmente abaixo de 150 μm.
 
+### Composição e propriedades do char (relatório ComBio 3072-1/2025.0, 25/08/2025)
+
+| Propriedade | Valor | Implicação p/ o projeto |
+|---|---|---|
+| Umidade | 4,64% b.u. | baixa — favorável a via seca (ciclone) |
+| PCS (base seca) | 3.481 kcal/kg | contexto energético |
+| **Densidade aparente** | **776,75 kg/m³** | *bulk* (com vazios); **falta ρ_s (densidade real da partícula)** p/ Lapple |
+| **Titânio** | **14,91%** | TiO₂ (pigmento do r-PET) → char **mais denso e ABRASIVO** |
+| Sílica | 3,46% | + densidade, + abrasão |
+| Ferro | 3,18% | + densidade |
+| **Cloro** | **2,78% (27.800 mg/kg)** | ⚠️ **HCl a 450°C → CORROSÃO** (seleção de material) |
+| Enxofre / Nitrogênio | 0,45% / 0,55% | corrosão/emissão (menor) |
+
+> **2 achados que a matriz/dimensionamento precisam absorver:**
+> 1. **Minerais ~21% (Ti+Si+Fe):** o char **não é carbono fofo** — é denso e mineral. **ρ_s alto FAVORECE
+>    o ciclone** (partícula pesada separa melhor → entra na eq. de Lapple), mas é **abrasivo** (erosão do
+>    ciclone → material/espessura de parede).
+> 2. **Cloro 2,78%:** a 450°C forma **HCl** → corrosão. Reforça a **via seca** (ciclone) sobre as úmidas
+>    (quench/scrubber, onde HCl + água = ácido agressivo, e o líquido a filtrar fica corrosivo).
+
 ---
 
 ## Dados Pendentes (solicitar à Valgroup)
@@ -110,3 +130,21 @@ Fase 5: Apresentação à Valgroup
 - **Baixa vazão + alta temperatura:** desfavorável para ciclone simples (Re baixo = eficiência menor para finos). Pode ser necessário ciclone de alta eficiência (tipo Stairmand) ou conjunto em série.
 - **Risco de entupimento no buffer tank:** chars pegajosos a alta temperatura podem aglomerar. Considerar na matriz.
 - **Finos abaixo de 75 μm (~9.41% + a fração carreada):** são os mais difíceis de capturar em ciclone convencional — podem precisar de estágio secundário (filtro cerâmico ou ESP).
+
+### Email do cliente (Lucas Geronimi, Diretor — 25/06/2026) → traduzido em requisitos
+
+> *"O ciclonamento evita a necessidade de filtração; o desafio é o dimensionamento correto do ciclone
+> de forma a capturar as partículas e evitar a condensação do gás. Se forem estudar a quench, a solução
+> de filtragem deve fazer parte."*
+
+1. **Filtração é critério de decisão** → adicionado à matriz (peso 2): ciclone/via-seca **+1** (evita),
+   quench/scrubber **−1** (exigem filtrar/tratar o líquido). Reforçou o ciclone (+9 → **+11/17**).
+2. **Os DOIS desafios do ciclone (para o CFD):**
+   - **(a) Capturar as partículas** — especialmente a fração fina <75 μm (o ponto fraco do ciclone).
+     O CFD (fase discreta) quantifica a eficiência por faixa; o Lapple dá o limite superior.
+   - **(b) Evitar a condensação do gás** — o ciclone tem de operar **acima do ponto de orvalho** dos
+     hidrocarbonetos. **Requisito de projeto:** parede/gás acima do dew-point (senão condensa e "lava"
+     o char, entope, e antecipa a condensação que é do condensador downstream). **→ Ponto térmico a
+     checar no CFD** (gradiente parede-gás; ΔT de resfriamento no ciclone deve ser pequeno).
+3. **Corrosão (Cl 2,78% → HCl a 450°C):** entra na **seleção de material** do ciclone (liga resistente a
+   HCl a quente). Também **desfavorece as vias úmidas** (HCl aquoso = ácido) — coerente com a escolha do ciclone.
