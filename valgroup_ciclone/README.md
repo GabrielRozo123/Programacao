@@ -25,7 +25,8 @@
 | Downstream finos | Condensador casco-tubo | confirmado |
 | Downstream pesados | Tanque buffer → óleo | confirmado |
 | Segunda opção | Quench tower (kuenti) | mencionado |
-| "Dor" principal | Estimar massa específica do gás | confirmado |
+| **Densidade do gás ρ** | **3,946 kg/m³** (400°C, 1,2 bar abs) | ⚠️ estimativa do cliente — "não 100% confiantes" |
+| "Dor" principal | Estimar massa específica do gás | ↑ endereçado (com ressalva) |
 
 ### Granulometria do Char (amostra biomassa 3072-1/2025.0, coleta 17/07/2025)
 
@@ -60,6 +61,33 @@
 >    ciclone → material/espessura de parede).
 > 2. **Cloro 2,78%:** a 450°C forma **HCl** → corrosão. Reforça a **via seca** (ciclone) sobre as úmidas
 >    (quench/scrubber, onde HCl + água = ácido agressivo, e o líquido a filtrar fica corrosivo).
+
+---
+
+## Dimensionamento Preliminar (Lapple) — `dimensionamento/dimensionamento_lapple.py`
+
+Com **ρ_gás = 3,946 kg/m³** (cliente) e ṁ_gás ≈ 720 kg/h → **Q ≈ 182,5 m³/h**. Estimativas ⚠️ para
+μ (2,5e-5 Pa·s) e ρ_s (1500 kg/m³) a confirmar.
+
+| Grandeza | Valor preliminar | Nota |
+|---|---|---|
+| **D_c (corpo)** | **≈ 163 mm** | ciclone único (H_total ≈ 653 mm) |
+| v_i (entrada) | 15,2 m/s | dentro de 6–21 ✅ (n=1, sem bateria) |
+| **d\* (corte)** | **≈ 3,6 µm** | robusto: 2,8–4,4 µm na sensibilidade μ/ρ_s |
+| **ΔP** | **36,5 mbar** | < 40 do projeto ✅ (mas **perto do limite**) |
+| **η global (amostra extraída)** | **≈ 99,9%** | **Lapple = LIMITE SUPERIOR** |
+| Pot. soprador | ~264 W | pequeno |
+
+> **Leitura honesta (2 ressalvas que mandam):**
+> 1. Os ~99,9% são sobre a **amostra EXTRAÍDA** (grossa) e no **Lapple ideal**. O **char CARREADO é
+>    mais fino** — se tiver massa relevante **<20 µm**, a captura real cai. **→ precisamos da PSD do char
+>    carreado.**
+> 2. **Lapple superestima** (ignora turbulência, ressuspensão, bypass). O **CFD (fase discreta)** dará a
+>    eficiência realista — tipicamente **menor**, sobretudo nos finos. É onde o nosso estudo agrega valor.
+>
+> **ΔP perto de 40:** como ΔP ∝ ρ·v_i² e o ρ tem incerteza, vale margem — se ρ real for maior, ΔP sobe.
+> **Condensação (email Lucas):** o ciclone é pequeno/compacto → residência curta → pouca perda térmica →
+> **ajuda a manter acima do orvalho**. Confirmar o ΔT parede-gás no CFD.
 
 ---
 
