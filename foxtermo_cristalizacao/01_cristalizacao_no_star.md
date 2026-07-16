@@ -26,6 +26,23 @@ Cristalização no STAR é **Eulerian Multiphase (EMP)** com:
 
 **Crescimento (melt):** G = f(**sub-resfriamento** = T_sat(admixtura) − T), com prefator e expoente empíricos.
 
+## 2b. Detalhe analítico do MELT + o ELO com o AGITADOR (achado importante)
+- **Taxa de crescimento** = f(**sub-resfriamento** ΔT = T_sat − T). Como no solute, a **fusão é mais rápida
+  que o crescimento** → o STAR usa **dois conjuntos de parâmetros** (um p/ crescer, outro p/ fundir).
+- O crescimento depende da concentração do componente que congela **na superfície** do cristal; a fusão é
+  **independente de concentração** (cristal tratado como monocomponente). Simplificação atual: assume
+  C_superfície ≈ C (válido p/ alta transferência de massa ou crescimento lento).
+- **⭐ Correlações de Armenante-Kirwan (o elo com a agitação):** para **cristais pequenos**, o escorregamento
+  médio (slip) é baixo → a transferência de calor/massa **NÃO** é amplificada pelo slip (Ranz-Marshall falha),
+  e sim pela **TURBULÊNCIA**. O STAR usa Nusselt/Sherwood via um **Reynolds turbulento** que depende da
+  **potência dissipada por unidade de massa (ε)** — ou seja, **do AGITADOR**. Coeficientes ajustáveis (têm default).
+
+> **A consequência é forte pro nosso estudo:** a **rotação do agitador** não muda só as velocidades — ela muda
+> **ε → Re_turb → Sh/Nu → a própria taxa de cristalização**. Então os cenários de "variação de rotação"
+> (pedido do Álvaro) mexem na **cinética de cristalização**, não só no escoamento. **É o argumento central do
+> CFD:** só a simulação captura como a agitação governa a uniformidade E a taxa da cristalização. (Na Rota A,
+> isso aparece indiretamente via o resfriamento; na Rota B, diretamente na cinética.)
+
 ## 3. A reologia do slurry (crítico p/ óleo de palma)
 À medida que cristaliza, os cristais ficam **suspensos no óleo** → a mistura **engrossa** (vira pasta). O STAR
 tem **Suspension Rheology** (viscosidade função da fração sólida) — **exige regime LAMINAR**. Isso importa
