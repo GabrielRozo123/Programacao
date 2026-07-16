@@ -29,6 +29,13 @@ e **agitador**. Cliente **FOXTERMO Refrigeração e Aquecimento LTDA** (via CAEX
 | Doc | Conteúdo |
 |---|---|
 | [`00_proposta_tecnica.md`](00_proposta_tecnica.md) | Proposta: objetivo, escopo, metodologia, 4 cenários, entregáveis, dados a pedir |
+| [`01_cristalizacao_no_star.md`](01_cristalizacao_no_star.md) | **Como o STAR trata cristalização** (melt×solute, EMP+PBE, reologia de slurry) e o que pedir ao cliente |
+
+## Achado técnico-chave (define a proposta)
+Cristalização de óleo de palma = **MELT crystallization** (temperatura). Modelo completo = EMP + balanço
+populacional + reologia de slurry + calor latente — **caro e pesado em dados de cinética**. → Cotar
+**Rota A** (resfriamento + CHT + μ(T), entrega as **velocidades na serpentina** pedidas) como base, e
+**Rota B** (cristalização de verdade) como adicional **condicionado aos dados de cinética/reologia** do cliente.
 
 ## Log
 - **2026-07-16** — Repo aberto. Oportunidade do Álvaro (FOXTERMO). Proposta técnica rascunhada; comercial
