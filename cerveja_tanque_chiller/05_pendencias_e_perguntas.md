@@ -24,9 +24,13 @@ Alturas (ref. "0" = início da parede cilíndrica, do diagrama EGISA):
 - Líquido: **1,53 m** · Sucção chiller nova: **1,35 m** (antiga 0,85 m) · Retorno chiller: **fundo (~0)** ·
   Recirc: captação **fundo**, retorno **topo**.
 
-## ⏳ Único pendente relevante: **DN dos bocais**
-O diagrama não traz o DN dos bocais (sucção/retorno do chiller e da recirc). O **DN define a velocidade de
-jato** → a mistura. **Pedir ao Pedro/EGISA.** Enquanto isso, adotar um DN típico [SUPOSTO] e marcar.
+## ✅ DN dos bocais — RESOLVIDO (STEP do cliente v3_1)
+Todos os bocais são **DN 150 mm** (R=75, extraído do `chiller_tank_fluid_v3_1.step`). → v de jato ≈ **0,19 m/s**
+(lento). Geometria dos 2 sims gerada com DN150: `gen_sim_steps.py` → `cerveja_sim1_fluido.step`, `cerveja_sim2_fluido.step`.
+
+## ⏳ Pendências menores (não bloqueiam)
+- Altura EXATA dos bocais da recirc (adotado captação ~0,1 m / retorno ~1,5 m [SUPOSTO]).
+- Confirmar condições de processo do e-mail original (pergunta 5) e o formato da métrica (pergunta 6).
 
 ## Suposições ativas (marcadas [SUPOSTO] nos docs) — validar quando possível
 - Cone do fundo com altura ~0,27 m (ajuste para fechar 3.500 L ↔ 1,53 m no paramétrico → 3.510 L).

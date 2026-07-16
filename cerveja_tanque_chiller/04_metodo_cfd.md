@@ -26,14 +26,14 @@ lógica do loop do chiller, que também são só BCs.)
    **captação** e **retorno** da recirc. Malha: refino local + prism layer nos stubs.
 2. **Bocal de RETORNO (recalque):** *Velocity/Mass Flow Inlet*
    - Vazão mássica: **ṁ = ρ·Q = 932,65 × (12/3600) = 3,11 kg/s**
-   - ou velocidade **v = Q/A** conforme o DN:
+   - **DN = 150 mm** (✅ extraído do STEP do cliente v3_1) → **v = Q/A = (12/3600)/(π·0,075²) ≈ 0,19 m/s**.
+     Jato **lento** (0,19 m/s) → mistura suave; a estratificação vai depender muito da posição (fundo→topo).
 
-   | DN | v de entrada |
-   |---|---|
-   | DN40 | 2,65 m/s |
-   | DN50 | 1,70 m/s |
-   | DN65 | 1,00 m/s |
-   | DN80 | 0,66 m/s |
+   | DN | v de entrada | |
+   |---|---|---|
+   | **DN150 (real)** | **0,19 m/s** | ← usar este |
+   | DN80 | 0,66 m/s | (referência) |
+   | DN50 | 1,70 m/s | (referência) |
 
 3. **Bocal de CAPTAÇÃO (sucção):** *Velocity Inlet* com **velocidade apontando para FORA** do
    domínio, mesma vazão. Isso força a extração fixa e fecha o balanço de massa do loop (entra
