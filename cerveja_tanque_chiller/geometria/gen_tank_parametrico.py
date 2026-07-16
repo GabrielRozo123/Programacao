@@ -14,8 +14,10 @@ R_APEX     = 40.0            # raio do apice/saida do cone <-- ASSUMIDO (confirm
 # alturas dos bocais (relativas ao datum z=0):
 Z_SUC_CHILLER = 1350.0       # succao ao chiller: NOVA posicao 1,35 m (confirmado no e-mail)
 Z_SUC_BASE    = 850.0        # succao ao chiller: posicao original 0,85 m (baseline)
-Z_RET_CHILLER = 50.0         # retorno do chiller (perto do fundo) <-- ASSUMIDO
-# recirc: posicoes/DN PENDENTES do Pedro -> nao desenho stub ainda
+Z_RET_CHILLER = 50.0         # retorno do chiller: FUNDO (CONFIRMADO no diagrama EGISA 16/07)
+# recirc (Sim 2): captacao no FUNDO, retorno no TOPO (CONFIRMADO 16/07). Alturas exatas [SUPOSTO]; DN pendente.
+Z_RECIRC_CAPT = 100.0        # captacao da recirc: fundo <-- altura exata a confirmar
+Z_RECIRC_RET  = 1500.0       # retorno da recirc: topo (~nivel de liquido) <-- altura exata a confirmar
 
 # ================= SOLIDO (dominio de liquido: cone + cilindro ate 1,53 m) =================
 cyl  = cq.Solid.makeCylinder(R, H_LIQ, pnt=cq.Vector(0,0,0),      dir=cq.Vector(0,0,1))
@@ -55,7 +57,9 @@ def bocal(z,txt,col,side=-1):
     ax.text(x0+side*0.20,z,txt,ha=ha,va='center',fontsize=8.5,color=col,fontweight='bold')
 bocal(Z_SUC_CHILLER/1000.0,'succao chiller\n1,35 m (NOVO)',RED,side=-1)
 bocal(Z_SUC_BASE/1000.0,   'succao chiller\n0,85 m (baseline)',AMBER,side=-1)
-bocal(Z_RET_CHILLER/1000.0,'retorno chiller\n~fundo (assumido)',GREEN,side=1)
+bocal(Z_RET_CHILLER/1000.0,'retorno chiller\nfundo (confirmado)',GREEN,side=1)
+bocal(Z_RECIRC_CAPT/1000.0,'recirc: captacao\nfundo (Sim 2)','#8E44AD',side=1)
+bocal(Z_RECIRC_RET/1000.0, 'recirc: retorno\ntopo (Sim 2)','#8E44AD',side=-1)
 ax.text(0,-hc-0.12,'saida cone (apice)',ha='center',fontsize=8,color=GREY)
 ax.text(0.0,hl*0.5,'RECIRC:\nbocais + DN\nPENDENTES\n(Pedro)',ha='center',va='center',
         fontsize=9,color=RED,style='italic',bbox=dict(boxstyle='round',fc='white',ec=RED,alpha=0.9))
