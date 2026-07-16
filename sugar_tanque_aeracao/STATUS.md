@@ -11,10 +11,10 @@
 - **APRESENTAÇÃO AO ITO — ENTREGUE (14/07), feedback positivo.** Fabricante alega bolha 5 µm no
   nascimento vs CFD ~1,2 mm (física de formação em meio viscoso — reforça a conclusão).
 - **FASE 2 — em execução:**
-  - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm (decisão Ito, 1 design vs base). No STAR: import→subtract→
-    named faces→rotação 12,59 rad/s OK (`Marcos_Ito_Bolhas_segunda_fase.sim`). **Falta:** malhar→steady MRF→torque.
-  - **Ejetor** (venturi): metodologia fechada e verificada (dois-passos + VOF; laminar; quebra por Ca).
-    Sim separado, **esperando a vazão da bomba motriz** do cliente.
+  - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm — ✅ **RODADO (16/07):** T=−786,6 N·m → **P=9,90 kW** (2,43× a
+    base 4,07; dentro da meta <25 kW), Np/est~0,86. **Falta só o Nq** (report de vazão). Ver `execucao_star.md`.
+  - **Ejetor** (venturi): metodologia fechada e verificada. Vazão motriz **130 m³/h confirmada** (Ito) → v_bico
+    20–27 m/s, ainda laminar. Falta **σ ar-xarope** (Gabriel busca correlação de xarope de cana).
 
 ## Conclusão central do Aerador (o recado pro Ito)
 Triplicar a pressão (1→3 kgf/cm²) não muda o essencial: bolha ~2,4–2,5 mm (**~12× a meta** de

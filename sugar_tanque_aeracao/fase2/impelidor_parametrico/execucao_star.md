@@ -34,6 +34,27 @@ Geometria: `impelidor_NOVO_D880_ang31.5_4pas_POSICIONADO.step` (1 corpo fundido,
    - Np = P/(ρ·N³·D⁵), N=2,003 rev/s, **D=0,880 m** (mudou! antes 0,800). Nq = Q/(N·D³).
 5. **Comparar** com a base (4,07 kW / 0,345 / 0,76). Meta: **P < 25 kW**.
 
+## ✅ RESULTADO (16/07) — rodada concluída
+**Torque = −786,6 N·m** (convergido, ~600 it). Campo de velocidades correto (dois jatos do impelidor duplo, ~4,1 m/s).
+
+| Grandeza | Base (Fase 1) Ø800/3pás/109,3rpm | **NOVO Ø880/31,5°/4pás/120,2rpm** |
+|---|---|---|
+| Torque | −355,7 N·m | **−786,6 N·m** |
+| **Potência P = T·ω** | 4,07 kW | **9,90 kW** (2,43×) |
+| Np/estágio | 0,76 | **~0,86** (sobe com 4 pás) |
+| Nq | 0,345 | *pendente (report de vazão)* |
+| Meta P < 25 kW | ✅ | **✅ (9,9 kW, folga grande)** |
+
+**Leitura:** o impelidor maior/mais rápido/4 pás **~2,4× a potência**, mas **bem dentro da meta <25 kW** — melhora o
+bombeamento sem estourar. Falta o **Nq** (Surface Integral da vazão através do impelidor, como na Fase 1).
+
+### 🔑 Lições do setup (2 bugs resolvidos)
+1. **Report de torque:** tem de somar **todas** as faces do impelidor (cubo+eixo+pás), senão subconta.
+2. **MRF (o principal):** a rotação vai na **REGIÃO** (`Motion Specification → Reference Frame = rotativo, 12,59 rad/s`),
+   **NÃO** nas paredes das pás (Wall Relative Rotation nelas = 0; elas giram com o frame). Só o **eixo no reator
+   estático** (`reator.haste`) precisa de Wall Relative Rotation explícito. *(Rotating-wall numa pá só faz película
+   viscosa fina, não bombeia — foi o "torque −8 / velocidade 0,01" que assustou.)*
+
 ## ⚠️ Heads-ups
 - Output deu *"Zero-area face(s); area adjusted for 108 faces in Dominio.Reator"* — STAR corrigiu sozinho
   (faces-sliver); só ficar de olho se a malha reclamar perto do reator.
