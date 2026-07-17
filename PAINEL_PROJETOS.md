@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 🧪 **Ito** (sugar) | CAEXPERTS | 🟢 | Fase 1 entregue. Impelidor rodado; **fechando torque/Nq**. Ejetor: falta σ. |
 | 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟡 | Setup CFD verificado + geometria. **Travado: reconciliar vazão 800 vs 1900** + orvalho. |
-| 🍺 **Cerveja** (chiller) | GreyLogix | 🟢 | **Sim 1 + baseline 0,85 m rodados** (1,35 m resfria ~3× mais rápido; ambos homogeneízam). **Rodando Sim 2 (recirc)**. |
+| 🍺 **Cerveja** (chiller) | GreyLogix | 🟢 | **3 sims fechadas + verificadas** (baseline, Sim 1, Sim 2 recirc). Achado: recirc **uniformiza** (ΔT ½) mas **não acelera** (é trade-off). Faltam checagens de robustez. |
 | 🌴 **FOXTERMO** (cristalização) | novo (Álvaro) | 🔵 | Proposta + estudo prontos. **Falta comercial (Marcus) + dados do Álvaro.** |
 
 ---
@@ -32,9 +32,12 @@
 - **✅ Feito:** 6 perguntas respondidas; **2 simulações definidas**; **2 STEPs** (DN150) + guia; **Sim 1 RODADO e
   analisado** (`08_resultado_sim1.md`): pico ΔT 9,6 °C @12 min → **homogeneíza em ~33 min**, **T_bulk −5 °C atingido**;
   estratificação **transitória** (vs persistente do preliminar), sensor de saída **converge** no fim.
-- **✅ Baseline 0,85 m rodado** (`09_resultado_baseline_085.md`): homogeneíza igual, mas **~3× mais lento** que o
-  Sim 1 (1,35 m) → o ganho da altura da sucção é **velocidade**, não warm lid. *(Pegou um probe bugado — ver lição.)*
-- **👉 Próximo:** **Sim 2 (recirc)** — ver se a recirc fundo→topo acelera ainda mais o cooldown.
+- **✅ Baseline 0,85 m** (`09_...md`): homogeneíza, mas ~3× mais lento (curto-circuito). *(Pegou probe bugado — lição.)*
+- **✅ Sim 2 recirc RODADO + VERIFICADO** (`10_resultado_sim2.md`, 3 lentes adversariais → coerente): recirc **reduz
+  o pico de ΔT pela metade** (9,6→4,7 °C) MAS **resfria ~2× mais devagar** (armazenamento térmico estratificado —
+  misturar destrói o deslocamento). **Recirc = uniformidade, não velocidade** (trade-off pro cliente).
+- **👉 Próximo:** checagens de robustez (recirc adiabática, fechamento de energia, T_sucção vs bulk, Δt/Courant);
+  depois **montar a comparação pro cliente** (Pedro/GreyLogix).
 - **⏳ Esperando (não bloqueia):** altura exata dos bocais recirc; confirmar condições/métrica (Pedro).
 - **📄 Chave:** `06_setup_sim_star.md` · `geometria/cerveja_sim1_fluido.step` + `_sim2_`
 
@@ -68,5 +71,8 @@
 - **Cerveja:** bomba de recirc = **par de BCs** (sem malhar); recirc **adiabática** (T da captação → retorno).
 - **Sensor de ponto (STAR):** ❌ **nunca Maximum/Minimum report** (agarra célula parada → falso ΔT) — use
   **Point Probe** ou **Volume Average**. A **Line Probe** é a fonte confiável (pegou o probe bugado do baseline 0,85).
+- **Cerveja (contraintuitivo):** com frio no fundo + sucção alta, **misturar NÃO resfria mais rápido** — a
+  estratificação faz resfriamento por **deslocamento** (mais eficiente); a recirc homogeneíza → tende ao **CSTR**
+  (mais lento). Recirc entrega **uniformidade**, não velocidade. Verificado por benchmark CSTR (τ=V/Q).
 - **FOXTERMO:** cristalização óleo palma = **melt**; a **rotação do agitador muda a TAXA de cristalização** (Armenante-Kirwan).
 - **Git:** commitar só **fatos** (nunca PDFs proprietários do cliente).
