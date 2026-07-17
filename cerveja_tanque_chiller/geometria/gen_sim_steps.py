@@ -21,7 +21,9 @@ Z_SUC   = 1350.0       # sucção chiller (NOVO)
 Z_SUC_BASE = 850.0     # sucção chiller ANTIGA (baseline p/ isolar o efeito da altura)
 Z_RETC  = 50.0         # retorno chiller (fundo)
 Z_RCAP  = 100.0        # recirc captação (fundo)
-Z_RRET  = 1500.0       # recirc retorno (topo)
+Z_RRET  = 1430.0       # recirc retorno (topo) — ADOTADO. Rebaixado de 1500: com DN150 (R=75) a 1500 a borda
+#                        superior ia a 1575 > 1530 (superfície) → furava o topo. A 1430 a borda fica em 1505,
+#                        ~25 mm submersa. (Cliente não deu a altura exata da recirc — valor SUPOSTO.)
 
 
 def tank():
@@ -87,3 +89,14 @@ if __name__ == "__main__":
     for nm, s in [("Sim1", sim1), ("Sim2", sim2), ("Baseline085", base)]:
         print(f"{nm}: valido={s.isValid()}  vol={s.Volume()/1e6:.0f} L  bocais DN{int(DN)}")
     print("STEPs: cerveja_sim1_fluido.step, cerveja_sim2_fluido.step, cerveja_baseline_085_fluido.step")
+
+    # ── Verificação geométrica dos bocais (borda do DN150 vs. superfície e base) ──
+    print("\nVerificacao dos bocais (z +- R_N vs. [0, H_LIQ=1530]):")
+    checks = [("succao_chiller", Z_SUC), ("retorno_chiller", Z_RETC),
+              ("recirc_captacao", Z_RCAP), ("recirc_retorno", Z_RRET)]
+    for nome, z in checks:
+        lo, hi = z - R_N, z + R_N
+        topo_ok = hi <= H_LIQ
+        flag = "OK" if topo_ok else "!! FURA O TOPO"
+        base_note = "  (borda inferior no cone, <0)" if lo < 0 else ""
+        print(f"  {nome:16s} z={z:6.0f}  borda=[{lo:6.0f},{hi:6.0f}]  topo(<=1530): {flag}{base_note}")
