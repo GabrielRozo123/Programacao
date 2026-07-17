@@ -1,6 +1,6 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
-> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-16**.
+> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-17**.
 > Cada projeto tem seu `STATUS.md`/`README.md` detalhado — este painel é o **resumo de uma olhada**.
 
 ## Semáforo (uma linha por projeto)
@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 🧪 **Ito** (sugar) | CAEXPERTS | 🟢 | Fase 1 entregue. Impelidor rodado; **fechando torque/Nq**. Ejetor: falta σ. |
 | 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟡 | Setup CFD verificado + geometria. **Travado: reconciliar vazão 800 vs 1900** + orvalho. |
-| 🍺 **Cerveja** (chiller) | GreyLogix | 🟢 | 2 STEPs + guia prontos. **Rodar Sim 1** (você toca); Sim 2 recirc comigo. |
+| 🍺 **Cerveja** (chiller) | GreyLogix | 🟢 | **Sim 1 rodado e analisado** (resfria a −5 °C em ~35 min, estratificação transitória). Falta **Sim 2 (recirc)**. |
 | 🌴 **FOXTERMO** (cristalização) | novo (Álvaro) | 🔵 | Proposta + estudo prontos. **Falta comercial (Marcus) + dados do Álvaro.** |
 
 ---
@@ -29,9 +29,10 @@
 - **📄 Chave:** `dados_cliente/dados_recebidos_15jul.md` · `simulacao/aprendizado_tutorial_ciclone.md` · `dimensionamento/`
 
 ## 🍺 CERVEJA — Tanque Chiller (estratificação)  (`cerveja_tanque_chiller/`)
-- **✅ Feito:** 6 perguntas respondidas; **2 simulações definidas**; **2 STEPs** (DN150) + **guia passo-a-passo** prontos.
-- **👉 Próximo (VOCÊ):** **rodar o Sim 1** (só o loop do chiller = 2 BCs + monitores ΔT topo-fundo — self-service pelo guia).
-- **🤝 Comigo:** **Sim 2 (recirc)** — o loop adiabático com T carregada por field function (eu te oriento ao vivo).
+- **✅ Feito:** 6 perguntas respondidas; **2 simulações definidas**; **2 STEPs** (DN150) + guia; **Sim 1 RODADO e
+  analisado** (`08_resultado_sim1.md`): pico ΔT 9,6 °C @12 min → **homogeneíza em ~33 min**, **T_bulk −5 °C atingido**;
+  estratificação **transitória** (vs persistente do preliminar), sensor de saída **converge** no fim.
+- **👉 Próximo:** **Sim 2 (recirc)** — deve picar menos; comparar pico/tempo de homogeneização Sim 1 × Sim 2.
 - **⏳ Esperando (não bloqueia):** altura exata dos bocais recirc; confirmar condições/métrica (Pedro).
 - **📄 Chave:** `06_setup_sim_star.md` · `geometria/cerveja_sim1_fluido.step` + `_sim2_`
 
@@ -46,7 +47,7 @@
 
 ## ✅ O QUE FAZER AGORA (prioridade)
 1. **🧪 Ito:** rodar o report de vazão do impelidor → mandar o **Q** (fecha o Nq).
-2. **🍺 Cerveja:** rodar o **Sim 1** (guia pronto, self-service).
+2. **🍺 Cerveja:** Sim 1 ✅ fechado — rodar o **Sim 2 (recirc)** e comparar com o Sim 1.
 3. **🌀 Valgroup:** falar com o **Marcus** — reconciliar a **vazão (800 vs 1900)**.
 4. **🌴 FOXTERMO:** **pedir os dados ao Álvaro** + Marcus montar o comercial.
 
