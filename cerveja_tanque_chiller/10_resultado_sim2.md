@@ -56,3 +56,9 @@ o "nível a mais" de uniformidade, se o cliente priorizar isso.
 5. **Critério único de "resfriado"** (ex.: −4,99 °C) pros 3, p/ comparação justa.
 
 > Nenhuma inverte o achado (ancorado no benchmark CSTR + fechamento na ponta) — são p/ robustez na apresentação.
+
+## Confirmação parcial já feita (figura)
+`figuras/sim2_capta_vs_saida.png`: T_captação (fundo ~0,1 m) e T_saída (sucção 1,35 m) na **cauda** (9300–12320 s)
+coincidem a **<0,001 °C** (máx 0,62 mC) → **tanque totalmente homogêneo** no fim, assentando em −5 °C (consistente
+com recirc adiabática limpa). **Ressalva:** é só a cauda (tudo já a −5 °C); **falta o transiente 0–4500 s** para
+(a) o gráfico do mecanismo (T_saída × T_bulk) e (b) a checagem adiabática rigorosa (T_recirc_retorno × T_captação).
