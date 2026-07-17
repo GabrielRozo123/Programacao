@@ -65,13 +65,15 @@ def render(solid, path, title):
 
 
 if __name__ == "__main__":
-    # Sim 1: sucção chiller (1,35m, az 0) + retorno chiller (fundo, az 180)
-    sim1 = build([(Z_SUC, 0), (Z_RETC, 180)])
+    # CHILLER: sucção (1,35m) e retorno (fundo) no MESMO lado (az 0) — confirmado pelo lead/diagrama EGISA.
+    # RECIRC: no lado OPOSTO (az 180), como no diagrama (bomba do outro lado).
+    # Sim 1: só o loop do chiller (mesmo lado)
+    sim1 = build([(Z_SUC, 0), (Z_RETC, 0)])
     cq.exporters.export(cq.Workplane(obj=sim1), "cerveja_sim1_fluido.step")
-    render(sim1, "preview_sim1.png", "Sim 1 — sucção 1,35m + retorno fundo")
+    render(sim1, "preview_sim1.png", "Sim 1 — chiller (succao 1,35m + retorno fundo, MESMO lado)")
 
-    # Sim 2: + recirc captação (fundo, az 90) + recirc retorno (topo, az 270)
-    sim2 = build([(Z_SUC, 0), (Z_RETC, 180), (Z_RCAP, 90), (Z_RRET, 270)])
+    # Sim 2: + recirc (captação fundo + retorno topo) no lado oposto
+    sim2 = build([(Z_SUC, 0), (Z_RETC, 0), (Z_RCAP, 180), (Z_RRET, 180)])
     cq.exporters.export(cq.Workplane(obj=sim2), "cerveja_sim2_fluido.step")
     render(sim2, "preview_sim2.png", "Sim 2 — + recirc (fundo→topo)")
 
