@@ -1,0 +1,163 @@
+<title>Proposta CFD — Cristalização de Óleo de Palma · FOXTERMO</title>
+<style>
+  :root{
+    --bg:#f6f8fb; --surf:#ffffff; --ink:#16233a; --muted:#5c6b82; --line:#e4e9f2;
+    --brand:#1f5fa8; --brand2:#2e86c1; --accent:#e08a2b; --good:#2e8b57;
+    --shadow:0 1px 3px rgba(20,35,58,.06),0 8px 24px rgba(20,35,58,.06);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e1420;--surf:#161f2e;--ink:#e7edf6;--muted:#9fb0c6;--line:#26324a;
+      --brand:#5aa0e0;--brand2:#78b6ef;--accent:#f0a850;--good:#5cc98c;
+      --shadow:0 1px 3px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);}
+  }
+  :root[data-theme="dark"]{--bg:#0e1420;--surf:#161f2e;--ink:#e7edf6;--muted:#9fb0c6;--line:#26324a;--brand:#5aa0e0;--brand2:#78b6ef;--accent:#f0a850;--good:#5cc98c;}
+  :root[data-theme="light"]{--bg:#f6f8fb;--surf:#ffffff;--ink:#16233a;--muted:#5c6b82;--line:#e4e9f2;--brand:#1f5fa8;--brand2:#2e86c1;--accent:#e08a2b;--good:#2e8b57;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 60px;}
+  header{border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--brand2));
+    color:#fff;padding:26px 28px;box-shadow:var(--shadow);}
+  .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;opacity:.85;font-weight:700}
+  header h1{margin:.3em 0 .15em;font-size:26px;line-height:1.2}
+  header .sub{opacity:.92;font-size:15px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:16px;font-size:13px;opacity:.95}
+  .meta b{font-weight:700}
+  section{background:var(--surf);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;margin-top:18px;box-shadow:var(--shadow);}
+  h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);
+    margin:0 0 12px;font-weight:800}
+  p{margin:.4em 0}
+  .lead{font-size:16px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:620px){.grid{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:11px;padding:14px 15px;background:var(--bg)}
+  .card .n{display:inline-flex;width:26px;height:26px;border-radius:8px;background:var(--brand);
+    color:#fff;font-weight:800;align-items:center;justify-content:center;font-size:13px;margin-bottom:8px}
+  .card h3{margin:0 0 4px;font-size:15px}
+  .card p{margin:0;font-size:13.5px;color:var(--muted)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;background:var(--bg)}
+  .chip b{color:var(--brand)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .bar{height:10px;border-radius:6px;background:var(--brand);opacity:.9}
+  .team{display:flex;flex-wrap:wrap;gap:12px}
+  .who{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:10px 14px;background:var(--bg)}
+  .who .av{width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800}
+  .who small{color:var(--muted);display:block}
+  .pill{display:inline-block;background:color-mix(in srgb,var(--good) 15%,transparent);
+    color:var(--good);border:1px solid color-mix(in srgb,var(--good) 35%,transparent);
+    border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
+  .foot{color:var(--muted);font-size:12.5px;text-align:center;margin-top:22px}
+  ul{margin:.3em 0;padding-left:1.2em}li{margin:.2em 0}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">CAEXPERTS · Proposta Técnica de Simulação CFD</div>
+    <h1>Tanque de Cristalização de Óleo de Palma</h1>
+    <div class="sub">Estudo CFD do tanque com serpentina de imersão e agitador — velocidades internas na serpentina e uniformidade do resfriamento</div>
+    <div class="meta">
+      <span><b>Cliente:</b> FOXTERMO Refrigeração e Aquecimento LTDA</span>
+      <span><b>Contato:</b> Álvaro Salla</span>
+      <span><b>Ferramenta:</b> Simcenter STAR-CCM+</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Objetivo</h2>
+    <p class="lead">Prever, via CFD, o <b>campo de velocidades e a transferência de calor</b> no tanque —
+    com foco nas <b>velocidades na região da serpentina</b>, que governam a uniformidade do resfriamento e,
+    portanto, a qualidade e o controle da cristalização. Zonas de baixa velocidade levam a
+    <b>cristalização desigual e incrustação</b> na serpentina — é o que o estudo antecipa e ajuda a evitar.</p>
+  </section>
+
+  <section>
+    <h2>Escopo — 4 etapas</h2>
+    <div class="grid">
+      <div class="card"><span class="n">1</span><h3>Geometria &amp; Modelo</h3><p>Recebimento de dados; simplificação do CAD (tanque, serpentina helicoidal, agitador); malha.</p></div>
+      <div class="card"><span class="n">2</span><h3>Configuração CFD</h3><p>Agitador em MRF; transferência de calor conjugada óleo↔serpentina↔água; propriedades ρ(T), μ(T).</p></div>
+      <div class="card"><span class="n">3</span><h3>4 Simulações</h3><p>Variando propriedades (temperatura) e rotação do agitador — os cenários abaixo.</p></div>
+      <div class="card"><span class="n">4</span><h3>Análise &amp; Relatório</h3><p>Velocidades na serpentina, campo térmico, zonas de baixa velocidade e efeito da rotação.</p></div>
+    </div>
+    <p style="margin-top:12px;font-size:13.5px;color:var(--muted)"><b>Opcional:</b> cristalização detalhada
+    (nucleação/crescimento via balanço populacional + reologia de <i>slurry</i>), condicionada aos dados de
+    cinética e reologia do cliente.</p>
+  </section>
+
+  <section>
+    <h2>Metodologia (STAR-CCM+)</h2>
+    <div class="chips">
+      <span class="chip"><b>MRF</b> agitador rotativo</span>
+      <span class="chip"><b>CHT</b> óleo ↔ metal ↔ água</span>
+      <span class="chip"><b>ρ(T), μ(T)</b> óleo de palma</span>
+      <span class="chip"><b>Empuxo</b> + gravidade</span>
+      <span class="chip">Regime <b>laminar/transição</b> (óleo viscoso)</span>
+      <span class="chip">Malha refinada na <b>serpentina</b></span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Os 4 cenários</h2>
+    <table>
+      <tr><th>#</th><th>Propriedades / Temperatura</th><th>Rotação do agitador</th></tr>
+      <tr><td>1</td><td>Óleo quente (início, μ baixa)</td><td>nominal</td></tr>
+      <tr><td>2</td><td>Óleo resfriado (μ alta, perto da cristalização)</td><td>nominal</td></tr>
+      <tr><td>3</td><td>Óleo resfriado (μ alta)</td><td>reduzida</td></tr>
+      <tr><td>4</td><td>Óleo resfriado (μ alta)</td><td>aumentada</td></tr>
+    </table>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px">A rotação não muda só as velocidades — muda a
+    <b>taxa de cristalização</b> (transferência turbulenta, correlações de Armenante–Kirwan). É o que só o CFD captura.</p>
+  </section>
+
+  <section>
+    <h2>Cronograma — 45 dias</h2>
+    <table>
+      <tr><th style="width:42%">Etapa</th><th style="width:16%">Dias</th><th>Linha do tempo</th></tr>
+      <tr><td>1 · Geometria &amp; modelo</td><td>10</td><td><div class="bar" style="width:22%"></div></td></tr>
+      <tr><td>2 · Simulações dos cenários</td><td>20</td><td><div class="bar" style="width:44%"></div></td></tr>
+      <tr><td>3 · Finalização</td><td>10</td><td><div class="bar" style="width:22%"></div></td></tr>
+      <tr><td>4 · Reunião final online</td><td>5</td><td><div class="bar" style="width:11%"></div></td></tr>
+    </table>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">Início oficial no dia subsequente ao recebimento dos dados.</p>
+  </section>
+
+  <section>
+    <h2>Entregáveis</h2>
+    <ul>
+      <li>Relatório (.ppt) com metodologia e resultados das 4 simulações.</li>
+      <li>Campos de <b>velocidade</b> — destaque nas velocidades na serpentina.</li>
+      <li>Campo de <b>temperatura</b> e fluxo de calor óleo→água.</li>
+      <li>Mapa de <b>zonas de baixa velocidade / estagnação</b> (risco de incrustação).</li>
+      <li>Efeito da <b>rotação</b> e das <b>propriedades (T)</b> no resfriamento e na uniformidade.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Equipe</h2>
+    <div class="team">
+      <div class="who"><div class="av">M</div><div><b>Marcus Castro Neves</b><small>Sênior · coordenação</small></div></div>
+      <div class="who"><div class="av">G</div><div><b>Gabriel Rozo</b><small>Engenheiro CFD · execução</small></div></div>
+      <div class="who"><div class="av">H</div><div><b>Humberto Junior</b><small>Engenheiro · execução</small></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Dados necessários do cliente</h2>
+    <div class="grid">
+      <div class="card"><h3>Geometria</h3><p>CAD 3D do tanque, serpentina (Ø tubo, passo, nº voltas, material) e agitador (tipo, Ø, nº pás, rotações).</p></div>
+      <div class="card"><h3>Fluidos</h3><p>Óleo de palma ρ(T) e μ(T); água de resfriamento (vazão, T, DN).</p></div>
+      <div class="card"><h3>Operação</h3><p>T inicial do óleo, meta de resfriamento, tempo de batelada; regime (transiente/permanente).</p></div>
+      <div class="card"><h3>Opcional (cristalização)</h3><p>T e calor latente de cristalização, curva de fração sólida, cinética de nucleação/crescimento.</p></div>
+    </div>
+  </section>
+
+  <section style="text-align:center">
+    <span class="pill">Investimento e prazo comercial: conforme planilha de proposta (a confirmar)</span>
+  </section>
+
+  <div class="foot">CAEXPERTS — Digitalização da Engenharia · Parceira SIEMENS Digital Industries Software · Proposta técnica para FOXTERMO Refrigeração e Aquecimento LTDA</div>
+</div>
