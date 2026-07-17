@@ -18,6 +18,7 @@ R_N    = DN/2          # 75
 STUB   = 130.0         # comprimento do stub p/ fora da parede (face externa = BC)
 
 Z_SUC   = 1350.0       # sucção chiller (NOVO)
+Z_SUC_BASE = 850.0     # sucção chiller ANTIGA (baseline p/ isolar o efeito da altura)
 Z_RETC  = 50.0         # retorno chiller (fundo)
 Z_RCAP  = 100.0        # recirc captação (fundo)
 Z_RRET  = 1500.0       # recirc retorno (topo)
@@ -77,6 +78,12 @@ if __name__ == "__main__":
     cq.exporters.export(cq.Workplane(obj=sim2), "cerveja_sim2_fluido.step")
     render(sim2, "preview_sim2.png", "Sim 2 — + recirc (fundo→topo)")
 
-    for nm, s in [("Sim1", sim1), ("Sim2", sim2)]:
+    # BASELINE: mesmo tanque, sucção ANTIGA (0,85 m) + retorno no fundo, MESMO lado, SEM recirc.
+    # Serve p/ isolar SÓ o efeito da altura da sucção (comparar com o Sim 1 a 1,35 m).
+    base = build([(Z_SUC_BASE, 0), (Z_RETC, 0)])
+    cq.exporters.export(cq.Workplane(obj=base), "cerveja_baseline_085_fluido.step")
+    render(base, "preview_baseline_085.png", "Baseline — chiller (succao 0,85m + retorno fundo)")
+
+    for nm, s in [("Sim1", sim1), ("Sim2", sim2), ("Baseline085", base)]:
         print(f"{nm}: valido={s.isValid()}  vol={s.Volume()/1e6:.0f} L  bocais DN{int(DN)}")
-    print("STEPs: cerveja_sim1_fluido.step, cerveja_sim2_fluido.step")
+    print("STEPs: cerveja_sim1_fluido.step, cerveja_sim2_fluido.step, cerveja_baseline_085_fluido.step")
