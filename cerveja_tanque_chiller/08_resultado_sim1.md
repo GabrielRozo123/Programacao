@@ -10,7 +10,7 @@
 | **Pico de estratificação (ΔT topo−fundo)** | **9,6 °C** @ ~700 s (~12 min) |
 | **Homogeneíza (ΔT → 0)** | **~2000 s (~33 min)** |
 | T_bulk cruza 0 °C | ~1050 s (~18 min) |
-| **T_bulk atinge o alvo (−5 °C)** | **~2000–2500 s (~35–40 min)** — final **−4,999 °C** |
+| **T_bulk atinge −4,9 °C (99%)** | **3040 s** (transiente real — ver `12`; "−5 °C" é assíntota) — final **−4,999 °C** |
 | **Duty do chiller** | **~−115 kW** (patamar) → **0** ao equilibrar |
 | T_saída (p/ o chiller) final | **−4,89 °C** ≈ T_bulk (−5,0) |
 | T_inicial | +5 °C |
