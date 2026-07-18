@@ -22,11 +22,13 @@ na sucção, resfria, devolve a **−5 °C no fundo**, 12 m³/h. Início +5 °C.
 ## 3. Os resultados (o "o quê")
 | Métrica | Baseline 0,85 m | **Sim 1** 1,35 m | **Sim 2** + recirc |
 |---|---|---|---|
-| T_bulk → −4,9 °C (99%) | ~7500 s* | **3040 s** ⚡ | ~4500 s* |
+| T_bulk → −4,9 °C (99%) | ~7500 s* | **3040 s** ⚡ | **4930 s** |
 | Pico de estratificação (ΔT topo–fundo) | — | 9,6 °C | **4,7 °C** 🎯 |
+| Regime (vs CSTR ideal = 4849 s) | pior que CSTR | **bate CSTR −37%** | **≈ CSTR** |
 
-> *Sim 1 = **transiente real** (`12_verificacao_transiente.md`); CSTR ideal = 4849 s → **Sim 1 bate a mistura em ~40%**.
-> Baseline e Sim 2 ainda estimados (falta o T_bulk completo). Critério: T_bulk = −4,9 °C ("−5 °C" é assíntota).
+> Sim 1 e Sim 2 = **transiente real** (`12_verificacao_transiente.md`). **Sim 1 (deslocamento) bate a mistura;
+> Sim 2 (recirc) assenta no limite CSTR** → confirma que a recirc destrói a vantagem do deslocamento.
+> *Baseline ainda estimado (falta T_bulk completo). Critério: T_bulk = −4,9 °C ("−5 °C" é assíntota).
 | Estado final | uniforme −5 °C | uniforme −5 °C | uniforme −5 °C |
 | Regime de resfriamento | **curto-circuito** | **deslocamento** (plug-flow) | **~mistura** (CSTR) |
 

@@ -10,7 +10,7 @@
 |---|---|
 | **Pico de estratificação (ΔT topo−fundo)** | **4,7 °C @ ~500 s** (≈ **metade** do Sim 1) |
 | Homogeneíza (ΔT → 0) | ~3000–3500 s |
-| **T_bulk atinge o alvo (−5 °C)** | **~4000–4500 s** (final −4,992 °C) |
+| **T_bulk atinge −4,9 °C (99%)** | **4930 s** (transiente real — ver `12`) → **≈ CSTR ideal (4849 s)** |
 | Balanço de energia (chiller) | −115 kW → **0** (final −0,072 kW) em ~4500–5000 s |
 | Oscilações no ΔT (1500–2500 s) | **Rayleigh-Taylor** (frio denso injetado no topo → overturning) |
 
