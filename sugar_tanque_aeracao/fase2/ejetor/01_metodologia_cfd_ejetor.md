@@ -171,9 +171,11 @@ ejetor → tanque → eficiência de flotação.
 - **✅ RESOLVIDO — Vazão motriz = 130 m³/h** (Colombo; = 100% do fluxo de xarope; Ito 15/07). → v_bico 20–27 m/s,
   Re~40 (laminar), γ̇ ~2250–3000 /s, Ca ~125–167. *(Confirmar nº de lanças p/ o split exato: 3 ou 4.)*
 - **Curva vazão×pressão do ar** (já pedida no kick-off).
-- **⚠️ σ ar-xarope — dado nº 1 agora** (crítico no setup do ejetor; entra ~linear no Ca/tamanho). Ito **não tem**;
-  Gabriel busca **correlação de literatura p/ xarope de cana** (tem Brix + densidade → estimar σ(Brix,T)).
-  Placeholder ~0,07 N/m até fechar. *(σ de xarope de cana ~72→~78 mN/m com Brix; confirmar na literatura.)*
+- **✅ σ ar-xarope — REVISÃO FECHADA** (`02_tensao_superficial_xarope.md`): **usar σ = 0,058 N/m** (base), faixa
+  0,050-0,065, **sweep 0,045-0,072**. O placeholder 0,072 é **LIMITE SUPERIOR** (água fria/sacarose pura), não o
+  central. Cadeia: sacarose pura *sobe* σ (~78 a 20 °C) → temperatura (60-85 °C) tira ~6-11 → **impurezas
+  tensoativas** (saponinas) tiram mais ~6-20 → real ~55-60. σ é sensibilidade **moderada** (viscosidade domina).
+  *Confiança média — confirmar com pendant drop do xarope real.*
 - **ρ do xarope concentrado** (~1300 vs 1350) — do Brix/densidade que o cliente tem.
 - **Geometria exata:** Ø da garganta, posição/nº dos furos de ar, e confirmar se são **7 bicos Ø9** ou um venturi único (o esquema `venturi_o_que_medir.png` mostra garganta única; as medidas citam 7 bicos).
 
