@@ -1,6 +1,6 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
-> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-17**.
+> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-20**.
 > Cada projeto tem seu `STATUS.md`/`README.md` detalhado — este painel é o **resumo de uma olhada**.
 
 ## Semáforo (uma linha por projeto)
@@ -8,7 +8,7 @@
 |---|---|---|---|
 | 🧪 **Ito** (sugar) | CAEXPERTS | 🟢 | Fase 1 entregue. Impelidor rodado; **fechando torque/Nq**. Ejetor: falta σ. |
 | 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟡 | Setup CFD verificado + geometria. **Travado: reconciliar vazão 800 vs 1900** + orvalho. |
-| 🍺 **Cerveja** (chiller) | GreyLogix | 🟢 | **3 sims fechadas + verificadas** (baseline, Sim 1, Sim 2 recirc). Achado: recirc **uniformiza** (ΔT ½) mas **não acelera** (é trade-off). Faltam checagens de robustez. |
+| 🍺 **Cerveja** (chiller) | GreyLogix | ✅ | **CONCLUÍDO** (até 2ª ordem). 3 sims verificadas + álgebra + **página** + **PPTX**. Slides entregues pelo Gabriel. Achado: recirc **uniformiza, não acelera**. |
 | 🌴 **FOXTERMO** (cristalização) | novo (Álvaro) | 🔵 | Proposta + estudo prontos. **Falta comercial (Marcus) + dados do Álvaro.** |
 
 ---
@@ -28,18 +28,15 @@
 - **⏳ Esperando:** **PSD do char CARREADO** (Marcus) · confirmar µ, ρ_s (partícula, não bulk), T operação (~343 vs 400).
 - **📄 Chave:** `dados_cliente/dados_recebidos_15jul.md` · `simulacao/aprendizado_tutorial_ciclone.md` · `dimensionamento/`
 
-## 🍺 CERVEJA — Tanque Chiller (estratificação)  (`cerveja_tanque_chiller/`)
-- **✅ Feito:** 6 perguntas respondidas; **2 simulações definidas**; **2 STEPs** (DN150) + guia; **Sim 1 RODADO e
-  analisado** (`08_resultado_sim1.md`): pico ΔT 9,6 °C @12 min → **homogeneíza em ~33 min**, **T_bulk −5 °C atingido**;
-  estratificação **transitória** (vs persistente do preliminar), sensor de saída **converge** no fim.
-- **✅ Baseline 0,85 m** (`09_...md`): homogeneíza, mas ~3× mais lento (curto-circuito). *(Pegou probe bugado — lição.)*
-- **✅ Sim 2 recirc RODADO + VERIFICADO** (`10_resultado_sim2.md`, 3 lentes adversariais → coerente): recirc **reduz
-  o pico de ΔT pela metade** (9,6→4,7 °C) MAS **resfria ~2× mais devagar** (armazenamento térmico estratificado —
-  misturar destrói o deslocamento). **Recirc = uniformidade, não velocidade** (trade-off pro cliente).
-- **👉 Próximo:** checagens de robustez (recirc adiabática, fechamento de energia, T_sucção vs bulk, Δt/Courant);
-  depois **montar a comparação pro cliente** (Pedro/GreyLogix).
-- **⏳ Esperando (não bloqueia):** altura exata dos bocais recirc; confirmar condições/métrica (Pedro).
-- **📄 Chave:** `06_setup_sim_star.md` · `geometria/cerveja_sim1_fluido.step` + `_sim2_`
+## 🍺 CERVEJA — Tanque Chiller (estratificação)  (`cerveja_tanque_chiller/`)  ✅ CONCLUÍDO
+- **✅ Estudo completo e verificado:** 3 sims (baseline 0,85 m · Sim 1 1,35 m · Sim 2 +recirc), verificação por
+  **3 lentes adversariais + benchmark CSTR** (`10`, `12`). **Achado:** recirc **uniformiza** (ΔT 9,6→4,7 °C) mas
+  **não acelera** (assenta no limite CSTR); Sim 1 **bate a mistura em −37%** (deslocamento). Recirc adiabática (+0,3%).
+- **✅ Entregáveis:** álgebra (`13`), **página HTML** (`apresentacao_cerveja.html`), **PPTX** (`Cerveja_Estudo_3casos.pptx`)
+  + 4 figuras. **Gabriel finalizou os slides.**
+- **⏳ Pendências OPCIONAIS (não reabrem):** integrar ∫duty→119,5 MJ nos 3 casos; T_bulk completo do baseline;
+  sensibilidade Δt/Courant. *(Só se voltar o assunto com a GreyLogix.)*
+- **📄 Chave:** `11_sintese_estudo.md` · `12_verificacao_transiente.md` · `13_quantificacao_analitica.md`
 
 ## 🌴 FOXTERMO — Cristalização de óleo de palma  (`foxtermo_cristalizacao/`)
 - **✅ Feito:** repo + **proposta técnica** (Rota A base / Rota B avançada, 4 cenários) + **aprendizado de
@@ -51,10 +48,10 @@
 ---
 
 ## ✅ O QUE FAZER AGORA (prioridade)
-1. **🧪 Ito:** rodar o report de vazão do impelidor → mandar o **Q** (fecha o Nq).
-2. **🍺 Cerveja:** Sim 1 ✅ fechado — rodar o **Sim 2 (recirc)** e comparar com o Sim 1.
-3. **🌀 Valgroup:** falar com o **Marcus** — reconciliar a **vazão (800 vs 1900)**.
-4. **🌴 FOXTERMO:** **pedir os dados ao Álvaro** + Marcus montar o comercial.
+1. **🧪 Ito:** esperar o **Nq** estabilizar na workstation → mandar o **Q** que eu fecho a tabela do impelidor. Depois: **ejetor** (falta σ).
+2. **🌀 Valgroup:** falar com o **Marcus** — reconciliar a **vazão (800 vs 1900)**.
+3. **🌴 FOXTERMO:** **pedir os dados ao Álvaro** + Marcus montar o comercial.
+4. ~~🍺 Cerveja~~ — **✅ CONCLUÍDO** (até 2ª ordem da GreyLogix).
 
 ## 📨 QUEM DEVE O QUÊ (esperando de terceiros)
 | De quem | O quê | Projeto |
