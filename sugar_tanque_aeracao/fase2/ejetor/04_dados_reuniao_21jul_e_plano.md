@@ -8,10 +8,16 @@
 2. **Já existe uma CONTRAÇÃO** — razão diâmetro entrada:saída = **2:1** (ex.: entrada Ø20 → saída Ø10). → **CONFIRMA
    a álgebra do §5 do `03`** (bocal convergente é o que gera extensão/quebra). O cliente e a física estão alinhados.
 3. **Ito quer MELHORAR a razão** (mais contração) → mais velocidade → mais cisalhamento/quebra.
-4. **Alvo de velocidade: "1,3–2"** — ⚠️ **CONFIRMAR unidade e local:** no contexto supersônico é quase certo
-   **Mach 1,3–2** (m/s seria lento demais/subsônico). Se for líquido num tubo, aí sim m/s. **Perguntar.**
-5. **Workflow combinado:** o **colega do Ito faz a geometria**; nós fazemos o **estudo analítico primeiro** (sem CFD por hora).
-6. **Ar ≈ 30 m³/h/ejetor** (120/4) · motriz ≈ 130 m³/h.
+4. **Alvo: velocidade de AR ≈ 1,3–2 m/s NO EJETOR** (na figura, no **tubo/lança de ar** — não no aerador). É o
+   **critério de projeto baseline** do Ito. **Podemos PROPOR maior — só se justificado pela LITERATURA** (mais
+   velocidade → mais cisalhamento → bolha menor). *(CLARIFICADO 21/07 — era m/s no tubo, não Mach.)*
+   - **Reconcilia com o "supersônico":** 30 m³/h num tubo ~Ø63 → **~2–3 m/s** (bate com 1,3–2). Nos **furos de
+     injeção** (pequenos, ~Ø1,3), o mesmo ar acelera a **~300 m/s ≈ sônico/supersônico**. Os dois são verdade,
+     em locais diferentes: **1,3–2 m/s no tubo · supersônico na injeção.** ✔
+5. **4 ejetores** justamente pra **dividir o ar** (120 m³/h total → 30/ejetor) e manter a velocidade no tubo na faixa.
+6. **Tarefa AGORA:** **propor a geometria do BICO na lança de AR** (justificada por literatura+matemática) — **não**
+   é simular o ejetor mostrado (esse simula quando a geometria nova fechar). O colega do Ito modela a proposta.
+7. **Ar ≈ 30 m³/h/ejetor** (120/4) · motriz ≈ 130 m³/h.
 
 ## ⚠️ Confirmar (decidem o modelo)
 - **O que contrai — o TUBO DE AR ou o BICO DE XAROPE?** ("diminuir o diâmetro do tubo" → provável **ar** (acelerar
