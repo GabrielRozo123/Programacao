@@ -11,8 +11,9 @@
 - **APRESENTAÇÃO AO ITO — ENTREGUE (14/07), feedback positivo.** Fabricante alega bolha 5 µm no
   nascimento vs CFD ~1,2 mm (física de formação em meio viscoso — reforça a conclusão).
 - **FASE 2 — em execução:**
-  - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm — ✅ **RODADO (16/07):** T=−786,6 N·m → **P=9,90 kW** (2,43× a
-    base 4,07; dentro da meta <25 kW), Np/est~0,86. **Falta só o Nq** (report de vazão). Ver `execucao_star.md`.
+  - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm — ✅ **FECHADO (Nq convergido 21/07):** P=**9,90 kW** (2,43× base,
+    40% do orçamento de 25 kW ✅) · **Nq=0,32** · Np/est~0,86 · **bombeamento +37%** (1.588 vs 1.158 m³/h) →
+    mistura ~27% mais rápida. Upgrade **viável** (cabe no motor com folga). Ver `impelidor_parametrico/tabela_final_impelidor.md`.
   - **Ejetor** (venturi): metodologia fechada e verificada. Vazão motriz **130 m³/h confirmada** (Ito) → v_bico
     20–27 m/s, ainda laminar. Falta **σ ar-xarope** (Gabriel busca correlação de xarope de cana).
 
