@@ -16,7 +16,7 @@ ele focou a pergunta certa: **"quais condições favorecem o cisalhamento?"** (a
 | Álgebra fina do cisalhamento no bico | ✅ | `03` |
 | Dados da reunião 21/07 + plano 2 trilhos | ✅ | `04` |
 | Literatura velocidade→bolha (proposta do bico) | ✅ **justificada** | `05` |
-| Geometria v2 (STEP paramétrico) | ✅ topologia (7 bicos hex); **falta cotas finas** | `../geometria/eductor_v2_notas` |
+| Geometria **v3 (STEP do desenho NATIVO cotado)** | ✅ **FECHADA** — desenhos oficiais chegaram 22/07 | `../geometria/bico_v3_notas` |
 | Impelidor do reator (Np/Nq/potência) | ✅ **FECHADO** (9,9 kW, +37% bombeamento) | `../impelidor_parametrico/tabela_final_impelidor` |
 
 ## 🔑 As 6 conclusões consolidadas (o núcleo do estudo)
@@ -39,11 +39,10 @@ ele focou a pergunta certa: **"quais condições favorecem o cisalhamento?"** (a
 ## ⏳ Pendências (o que falta)
 | O quê | De quem |
 |---|---|
-| **STEP/Parasolid (.x_t) nativo** ou desenho cotado (DWG→IGES degradou as cotas finas) | cadista do Ito |
-| Confirmar: **o que contrai** (tubo de ar × bico de xarope), **Ø exatos** do bico/furos, o **alvo** | Ito |
-| **Geometria nova do bico** (proposta nossa → o colega do Ito modela) | Ito + nós |
+| ~~STEP/desenho cotado nativo~~ ✅ **CHEGOU (22/07)** → STEP v3 gerado (`../geometria/bico_v3_notas`) | — |
+| ⚠️ **Confirmar padrão de furo vigente: 4×Ø15 (peça, novo) × 7×Ø9 (conjunto)** — muda a bolha! | **Ito** |
+| Confirmar **vazão real por ejetor** (ar + motriz) e se o alvo é o bico **como está** ou a **proposta** | Ito |
 | Fechar a **matemática do dimensionamento** do furo (Ø p/ velocidade/We alvo com 30 m³/h) | nós (rápido) |
-| Novo diagrama detalhado do ejetor (conferir vs v2) | Ito |
 
 ## 📊 Dados-chave (referência rápida)
 - Ar **~30 m³/h/ejetor** (120/4, 4 ejetores) · motriz **~130 m³/h** · µ=6,5 Pa·s · ρ~1300 · σ=0,058 N/m.
