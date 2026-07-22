@@ -1,12 +1,12 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
-> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-20**.
+> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-21**.
 > Cada projeto tem seu `STATUS.md`/`README.md` detalhado — este painel é o **resumo de uma olhada**.
 
 ## Semáforo (uma linha por projeto)
 | Projeto | Cliente | 🚦 | Onde está |
 |---|---|---|---|
-| 🧪 **Ito** (sugar) | CAEXPERTS | 🟢 | Fase 1 entregue. Impelidor rodado; **fechando torque/Nq**. Ejetor: falta σ. |
+| 🧪 **Ito** (sugar) | CAEXPERTS | 🟢 | **Impelidor FECHADO** (9,9 kW, Nq=0,32). **Ejetor Trilho 1 (analítico) feito** — proposta do bico justificada. Falta STEP nativo p/ o CFD. |
 | 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟡 | Setup CFD verificado + geometria. **Travado: reconciliar vazão 800 vs 1900** + orvalho. |
 | 🍺 **Cerveja** (chiller) | GreyLogix | ✅ | **CONCLUÍDO** (até 2ª ordem). 3 sims verificadas + álgebra + **página** + **PPTX**. Slides entregues pelo Gabriel. Achado: recirc **uniformiza, não acelera**. |
 | 🌴 **FOXTERMO** (cristalização) | novo (Álvaro) | 🔵 | Proposta + estudo prontos. **Falta comercial (Marcus) + dados do Álvaro.** |
@@ -14,12 +14,14 @@
 ---
 
 ## 🧪 ITO — Aeração + Reator + Ejetor  (`sugar_tanque_aeracao/`)
-- **✅ Feito:** Fase 1 fechada e **apresentada** (reator OK; aerador — *pressão não é a alavanca*). Fase 2:
-  **impelidor novo Ø880/31,5°/4pás/120,2rpm RODADO** → T=−786,6 N·m → **P=9,90 kW** (2,43× base, <25 kW), Np/est~0,86.
-  Ejetor: metodologia fechada+verificada; vazão motriz **130 m³/h** confirmada.
-- **👉 Próximo (VOCÊ):** fechar torque/Nq (report de vazão) → **me mandar o Q** que eu calculo o Nq e a tabela.
-- **⏳ Esperando:** **σ ar-xarope** (você busca correlação de *xarope de cana*, tem Brix+densidade).
-- **📄 Chave:** `STATUS.md` · `fase2/impelidor_parametrico/execucao_star.md` · `fase2/ejetor/01_metodologia_cfd_ejetor.md`
+- **✅ Impelidor FECHADO** (Nq 21/07): **P=9,90 kW** (40% do orçamento de 25 kW), **Nq=0,32**, **bombeamento +37%**
+  → upgrade viável. Tabela: `fase2/impelidor_parametrico/tabela_final_impelidor.md`.
+- **✅ Ejetor — Trilho 1 (analítico) fechado** (reunião 21/07, feedback positivo): σ=0,058 (literatura); a quebra é
+  **extensão/atomização** (λ→0, cisalhamento simples não quebra); **<300 µm exige JATEAMENTO** e o **ar supersônico
+  já está nele**; **bolha↓ = jato↑** (furo menor/bico convergente, justificado por literatura). **Proposta do bico entregue.**
+- **👉 Próximo:** **CFD do ejetor (Trilho 2)** quando a geometria nova fechar; fechar a conta do Ø do furo.
+- **⏳ Esperando (Ito):** **STEP/Parasolid nativo** + desenho cotado (DWG→IGES degradou); confirmar o que contrai + Ø exatos.
+- **📄 Chave:** **`fase2/ejetor/00_RESUMO_EJETOR.md`** (índice) · `STATUS.md`
 
 ## 🌀 VALGROUP — Ciclone gás-sólido  (`valgroup_ciclone/`)
 - **✅ Feito:** matriz de decisão revisada (**ciclone +11**), Lapple preliminar (D_c≈163mm), **geometria STEP**,
@@ -48,7 +50,7 @@
 ---
 
 ## ✅ O QUE FAZER AGORA (prioridade)
-1. **🧪 Ito:** esperar o **Nq** estabilizar na workstation → mandar o **Q** que eu fecho a tabela do impelidor. Depois: **ejetor** (falta σ).
+1. **🧪 Ito:** impelidor ✅ e ejetor Trilho 1 ✅ — **esperar o STEP/x_t nativo do cadista** p/ o CFD do ejetor (Trilho 2).
 2. **🌀 Valgroup:** falar com o **Marcus** — reconciliar a **vazão (800 vs 1900)**.
 3. **🌴 FOXTERMO:** **pedir os dados ao Álvaro** + Marcus montar o comercial.
 4. ~~🍺 Cerveja~~ — **✅ CONCLUÍDO** (até 2ª ordem da GreyLogix).
@@ -57,13 +59,14 @@
 | De quem | O quê | Projeto |
 |---|---|---|
 | **Marcus** | Reconciliar vazão 800 vs 1900 · PSD char carreado · comercial FOXTERMO | Valgroup, FOXTERMO |
-| **Ito / literatura** | σ ar-xarope (você busca: xarope de cana) | Ito (ejetor) |
+| **Cadista do Ito** | **STEP/Parasolid (.x_t) nativo** + desenho cotado do ejetor (DWG→IGES degradou) | Ito (ejetor) |
 | **Álvaro (FOXTERMO)** | Geometria, ρ(T)/µ(T), cinética/reologia | FOXTERMO |
 | **Pedro/EGISA** | Confirmar condições de processo/métrica (não bloqueia) | Cerveja |
 
 ## 🧠 "NÃO ESQUECER" (lições e pegadinhas do que já resolvemos)
 - **MRF (Ito):** rotação vai na **REGIÃO** (Reference Frame), **não** nas pás. Report de torque = **todas** as faces.
-- **Ejetor (Ito):** é **laminar** (Re~40) → sem quebra turbulenta; quebra por cisalhamento **extensional**.
+- **Ejetor (Ito):** **laminar** (Re~40); λ→0 → cisalhamento simples **não quebra**, só **extensão/atomização**; a
+  "1,3–2 m/s" é o **tubo** (não a bolha); **<300 µm exige JATEAMENTO** (We≫350) — ar supersônico já está nele; **bolha↓=jato↑** (d∝1/U).
 - **Valgroup:** condensação é de **PAREDE**, não do bulk (resposta ao Humberto). RSM, não K-ω. Vazão 800 vs 1900 **é o nó**.
 - **Cerveja:** bomba de recirc = **par de BCs** (sem malhar); recirc **adiabática** (T da captação → retorno).
 - **Sensor de ponto (STAR):** ❌ **nunca Maximum/Minimum report** (agarra célula parada → falso ΔT) — use

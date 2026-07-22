@@ -14,8 +14,11 @@
   - **Impelidor novo** Ø880/31,5°/4pás/120,2 rpm — ✅ **FECHADO (Nq convergido 21/07):** P=**9,90 kW** (2,43× base,
     40% do orçamento de 25 kW ✅) · **Nq=0,32** · Np/est~0,86 · **bombeamento +37%** (1.588 vs 1.158 m³/h) →
     mistura ~27% mais rápida. Upgrade **viável** (cabe no motor com folga). Ver `impelidor_parametrico/tabela_final_impelidor.md`.
-  - **Ejetor** (venturi): metodologia fechada e verificada. Vazão motriz **130 m³/h confirmada** (Ito) → v_bico
-    20–27 m/s, ainda laminar. Falta **σ ar-xarope** (Gabriel busca correlação de xarope de cana).
+  - **Ejetor** (venturi) — **Trilho 1 (analítico) FECHADO; Trilho 2 (CFD) espera geometria nova.** Ver
+    **`ejetor/00_RESUMO_EJETOR.md`** (índice). Núcleo: laminar (Re~40); λ→0 → só **extensão/atomização** quebra;
+    **σ=0,058** (literatura); a "1,3–2 m/s" é o **tubo** (não a bolha); borbulhar→mm (Tate), **<300 µm exige
+    JATEAMENTO** e o **ar supersônico já está nele**; **bolha↓ = jato↑** (d∝1/U) → furo menor/bico convergente
+    (justificado por literatura). **Proposta do bico entregue.** Falta: **STEP/x_t nativo** + cotas finas (cadista Ito).
 
 ## Conclusão central do Aerador (o recado pro Ito)
 Triplicar a pressão (1→3 kgf/cm²) não muda o essencial: bolha ~2,4–2,5 mm (**~12× a meta** de
