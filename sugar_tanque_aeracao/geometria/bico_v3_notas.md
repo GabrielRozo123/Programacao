@@ -43,6 +43,33 @@ O **corpo** do bico é idêntico nos dois desenhos; muda **só o padrão de furo
   vazão; no CFD são **tampados** (não entram no domínio de fluido).
 - "6,3" no desenho = **rugosidade Ra 6,3 µm** (não é cota).
 
+## 3b. ⚠️ Furo RETO × CÔNICO — cruzamento desenho × IGES (resolvido)
+
+O Ito descreveu no vídeo um **"furo cônico" que acelera o ar (subsônico→sônico)** e **suga o ar por
+depressão** (efeito eductor). Isso **não bate** com o desenho de fabricação. Cruzei as duas fontes:
+
+- **Desenho (CSA01-300-001, alta resolução):** as paredes do furo de vazão são **paralelas de topo a base
+  → Ø15 RETO**. O cone "45°/22°/Ø7" do Det. B tem **eixo radial** = **escareado do parafuso cab. chata
+  (item 19) de fixação**, não é furo de vazão.
+- **IGES do conjunto (cruzamento independente):** dos **272 furos** do tamanho de vazão, **todos com
+  conicidade 0–2° (retos)**. Os **únicos cones** são **4× Ø7 radiais a 36° de meia-abertura** = os
+  **escareados dos parafusos de fixação**, um por lança. **As duas fontes concordam.**
+
+**Conclusão:** o bico **as-built é RETO Ø15**. O **"furo cônico" do Ito é a PROPOSTA** (o que ele quer) —
+que é **exatamente a recomendação do Trilho 1** (bocal convergente → jato rápido → cisalhamento/atomização).
+
+### Proposta cônica (Trilho 1) — quantificada
+Modelei a proposta: furo **Ø15 reto** convergindo a **Ø7 na saída** num cone de **meia-abertura 22°**
+(o próprio 22° do desenho → cone de ~10 mm). Ganho, na mesma vazão:
+
+| | Área de saída (4 furos) | Velocidade de saída | Cisalhamento (∝ U/d) |
+|---|---|---|---|
+| RETO Ø15 | 707 mm² | 1,0× (base) | 1,0× |
+| CÔNICO Ø15→Ø7 | 154 mm² | **≈ 4,6×** | **≈ 9,8×** |
+
+> É o **número que prova pro Ito**, quantitativamente, por que o cônico bate o reto para microbolha.
+> Ø de saída e ângulo são **premissa** (22° do desenho) — o Ito crava os valores finais.
+
 ## 4. Como o bico monta (caminho do fluido)
 
 `lança 2½" → redução 4"→2" → tubo 2" Sch160 (ID ≈ 49,25 mm) → BICO → xarope`
@@ -58,7 +85,9 @@ O **corpo** do bico é idêntico nos dois desenhos; muda **só o padrão de furo
 |---|---|---|
 | `bico_4furos_D15_CSA01-300-001.step` | **Sólido do bico — ATUAL (4×Ø15)** | 44,2 cm³ |
 | `bico_7furos_D9_CSA01-300-000.step` | Sólido do bico — variante (7×Ø9) | 56,4 cm³ |
-| `dominio_fluido_bico_4furos.step` | **Volume de FLUIDO p/ CFD**: plenum 2" (⌀49,25×40) + 4 furos + descarga (⌀120×120) | 1465 cm³ |
+| `bico_4furos_conico_D15-D7_PROPOSTA.step` | **Proposta T1**: furos convergindo Ø15→Ø7 (22°) | 47,3 cm³ |
+| `dominio_fluido_bico_4furos.step` | **Volume de FLUIDO p/ CFD (reto)**: plenum 2" (⌀49,25×40) + 4 furos + descarga (⌀120×120) | 1465 cm³ |
+| `dominio_fluido_conico_D15-D7.step` | **Volume de FLUIDO p/ CFD (cônico)** — mesmo domínio, furos convergentes | 1462 cm³ |
 
 **Convenção (z-up):** z=0 face da base Ø43 (**lado do tubo = entrada**); z=45 face de topo Ø50
 (**descarga no xarope = saída**). Trocar sentido no STAR é trivial.

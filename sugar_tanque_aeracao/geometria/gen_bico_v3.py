@@ -108,6 +108,46 @@ def bico_solido(pat, fix=True):
     return b
 
 
+def bico_conico_proposta(pat=PAT_4, d_saida=7.0, ang_meia=22.0):
+    """PROPOSTA (Trilho 1): furos convergentes Ø(entrada)->Ø(saida) na descarga.
+    Corpo idêntico; cada furo é Ø15 reto e converge a Ø7 na saída (topo) num
+    cone de meia-abertura 22° (o próprio 22° do desenho -> cone de ~10 mm)."""
+    b = corpo()
+    r_in = pat["d"] / 2.0
+    r_out = d_saida / 2.0
+    L_cone = (r_in - r_out) / math.tan(math.radians(ang_meia))   # ~10 mm p/ 22°
+    z_cone0 = H_TOT - L_cone
+    for (x, y) in furos_vazao_positions(pat):
+        # bore reto Ø15 de z=0 até z=z_cone0
+        bore = cq.Solid.makeCylinder(r_in, z_cone0, pnt=cq.Vector(x, y, 0), dir=cq.Vector(0, 0, 1))
+        # cone convergente Ø15->Ø7 de z_cone0 até H_TOT
+        cone = cq.Solid.makeCone(r_in, r_out, L_cone, pnt=cq.Vector(x, y, z_cone0), dir=cq.Vector(0, 0, 1))
+        b = b.cut(bore).cut(cone)
+    # furos de fixação (iguais)
+    off = 45.0
+    for k in range(4):
+        a = math.radians(off + 90.0 * k)
+        dir_x, dir_y = math.cos(a), math.sin(a)
+        hole = cq.Solid.makeCylinder(D_FIX/2, D_HEAD/2 + 2,
+                                     pnt=cq.Vector(dir_x*(D_HEAD/2+1), dir_y*(D_HEAD/2+1), Z_FIX),
+                                     dir=cq.Vector(-dir_x, -dir_y, 0))
+        b = b.cut(hole)
+    return b
+
+
+def dominio_fluido_conico(pat=PAT_4, d_saida=7.0, ang_meia=22.0):
+    ID_PIPE, L_PLENUM, D_DISCH, L_DISCH = 49.25, 40.0, 120.0, 120.0
+    r_in, r_out = pat["d"]/2.0, d_saida/2.0
+    L_cone = (r_in - r_out)/math.tan(math.radians(ang_meia)); z_cone0 = H_TOT - L_cone
+    fl = cq.Workplane("XY").workplane(offset=-L_PLENUM).circle(ID_PIPE/2).extrude(L_PLENUM)
+    for (x, y) in furos_vazao_positions(pat):
+        bore = cq.Solid.makeCylinder(r_in, z_cone0, pnt=cq.Vector(x, y, 0), dir=cq.Vector(0,0,1))
+        cone = cq.Solid.makeCone(r_in, r_out, L_cone, pnt=cq.Vector(x, y, z_cone0), dir=cq.Vector(0,0,1))
+        fl = fl.union(cq.Workplane(obj=bore)).union(cq.Workplane(obj=cone))
+    fl = fl.union(cq.Workplane("XY").workplane(offset=H_TOT).circle(D_DISCH/2).extrude(L_DISCH))
+    return fl
+
+
 def dominio_fluido(pat):
     """Volume de FLUIDO p/ CFD (padrão 4×Ø15): plenum 2"Sch160 + furos + descarga."""
     ID_PIPE = 49.25     # 2" Sch160 (OD 60,33 / par. 5,54)
@@ -144,16 +184,24 @@ b4 = bico_solido(PAT_4, fix=True)
 b7 = bico_solido(PAT_7, fix=True)
 fd = dominio_fluido(PAT_4)
 
-report("bico 4xØ15 (CSA01-300-001, ATUAL)", b4)
-report("bico 7xØ9  (CSA01-300-000, variante)", b7)
-report("dominio fluido 4xØ15 (CFD)", fd)
+bc = bico_conico_proposta(PAT_4)
+fdc = dominio_fluido_conico(PAT_4)
 
-p1 = os.path.join(OUT, "bico_4furos_D15_CSA01-300-001.step")
-p2 = os.path.join(OUT, "bico_7furos_D9_CSA01-300-000.step")
-p3 = os.path.join(OUT, "dominio_fluido_bico_4furos.step")
-cq.exporters.export(b4, p1)
-cq.exporters.export(b7, p2)
-cq.exporters.export(fd, p3)
+report("bico 4xØ15 RETO (CSA01-300-001, ATUAL)", b4)
+report("bico 7xØ9  RETO (CSA01-300-000, variante)", b7)
+report("bico 4x conico Ø15->Ø7 (PROPOSTA T1)", bc)
+report("dominio fluido 4xØ15 RETO (CFD)", fd)
+report("dominio fluido conico Ø15->Ø7 (CFD)", fdc)
+
+exports = {
+    "bico_4furos_D15_CSA01-300-001.step": b4,
+    "bico_7furos_D9_CSA01-300-000.step": b7,
+    "bico_4furos_conico_D15-D7_PROPOSTA.step": bc,
+    "dominio_fluido_bico_4furos.step": fd,
+    "dominio_fluido_conico_D15-D7.step": fdc,
+}
 print("STEP exportados:")
-for p in (p1, p2, p3):
-    print("  ", p, f"({os.path.getsize(p)} bytes)")
+for name, obj in exports.items():
+    p = os.path.join(OUT, name)
+    cq.exporters.export(obj, p)
+    print("  ", name, f"({os.path.getsize(p)} bytes)")
