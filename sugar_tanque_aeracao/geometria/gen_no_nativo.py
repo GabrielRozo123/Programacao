@@ -28,7 +28,7 @@ R_HOLE = 4.5    # Ø9 furos de xarope (medido)
 PCD_R = 13.5    # 6 furos a r13,5 (PCD Ø27) + 1 central (medido)
 R_DISCH = 60.0  # descarga Ø120
 
-L_IN   = 80.0
+L_IN   = 280.0   # air->reducer ~240mm (fiel ao nativo: Y542->Y302)
 Z_AR   = 40.0
 L_RED  = 50.0   # redução 4"->assento (~27° como no nativo)
 L_SEAT = 5.0
@@ -47,8 +47,8 @@ def hole_positions():
 def no_nativo():
     z=0.0; parts=[]
     parts.append(cyl(R_4,z,z+L_IN)); z+=L_IN                    # 4" motriz
-    # porta de ar 1½" radial (ao longo de X) em z=Z_AR
-    ar=cq.Solid.makeCylinder(R_AR,70.0,pnt=cq.Vector(R_4+70,0,Z_AR),dir=cq.Vector(-1,0,0))
+    # porta de ar 1½" radial (ao longo de X) em z=Z_AR — PENETRA 15 mm no furo 4" p/ conectar o fluido
+    ar=cq.Solid.makeCylinder(R_AR,70.0,pnt=cq.Vector(R_4+55,0,Z_AR),dir=cq.Vector(-1,0,0))
     parts.append(cone(R_4,R_SEAT,z,z+L_RED)); z+=L_RED          # redução 4"->assento
     parts.append(cyl(R_SEAT,z,z+L_SEAT)); z+=L_SEAT            # assento (alimenta furos)
     z_bico=z
