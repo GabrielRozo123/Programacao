@@ -29,7 +29,14 @@ E o **Reynolds do furo escala com 1/μ**:
 
 👉 **Perguntar ao Ito/cliente:** (1) a **temperatura** em que 6,5 Pa·s foi medido, (2) a **temperatura real
 de operação**, (3) o **°Bx** do xarope. Sem isso, o número de μ (e todo o regime) fica no ar.
-*(Enquanto não vem, rodamos com 6,5 Pa·s — é o dado oficial — mas com essa ressalva anotada.)*
+
+### ✅ RESOLVIDO (Ito, via Gabriel, 23/07)
+- **μ = 6,5 Pa·s é DADO MEDIDO no processo deles** (a 75 °C) → **governa** (medido > correlação genérica).
+- **°Bx > 70** (o "70" era limite inferior; real ~**85 °Bx**). A ~85 °Bx / 75 °C, **6,5 Pa·s é coerente** com a
+  literatura (a 20 °C seria ~0,49 Pa·s só a 70 °Bx; a ~85 °Bx sobe muito, e a viscosidade a 75 °C ainda fica na
+  casa de vários Pa·s). **Sem inconsistência.**
+- **Conclusão:** mantém **μ=6,5 Pa·s, ρ=1300, Re≈37 → LAMINAR**. Metodologia (VOF laminar, sem kernel
+  turbulento) **confirmada, sem ressalva**. O alerta valeu como verificação; o dado medido fecha.
 
 ## Notas
 - **σ:** o xarope técnico tem **impurezas surfactantes** (gorduras, gomas) que **abaixam** σ vs sacarose pura.
