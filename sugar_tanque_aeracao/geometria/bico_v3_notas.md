@@ -70,6 +70,38 @@ Modelei a proposta: furo **Ø15 reto** convergindo a **Ø7 na saída** num cone 
 > É o **número que prova pro Ito**, quantitativamente, por que o cônico bate o reto para microbolha.
 > Ø de saída e ângulo são **premissa** (22° do desenho) — o Ito crava os valores finais.
 
+## 3c. ✅ RESOLVIDO: por onde o AR entra (revisão adversarial de 5 leitores + medição em pixel)
+
+Rodada de verificação (5 leitores independentes dos desenhos nativos + síntese, 23/07). **Unânime, alta confiança:**
+
+- **O ar NÃO entra pelos furos laterais Ø7 do bico.** Ele entra **no TOPO de cada lança**, pela
+  **VÁLVULA ESFERA 1½" (item 18, qtd 4 = 1/lança)** + **CONECTOR 1½" (item 5)**, **teada RADIALMENTE
+  na parede da GARGANTA 2" Sch160 (item 11)**, logo após a **REDUÇÃO 4"→2" (item 9)**. A garganta acelera
+  o xarope (venturi) → depressão → **aspira o ar** ("puxado por vácuo" do Ito) → o **bico cisalha em microbolha**.
+- **Os furos Ø7 laterais são ASSENTOS DE PARAFUSO** ("PARA FIXAÇÃO"), **cegos**: medição em pixel do
+  **Det. E (2:1, 23,6 px/mm)** → Ø7 entra **3,9 mm** (bate com a cota "4") e sobra **3,0 mm de metal maciço**
+  até o furo de vazão (parede contínua, sem quebra). **Item 19 = 8× parafuso cab. chata ¼"-20 = 2/bico**;
+  "**SOLDAR SOMENTE POR FORA**" fecha a junta. Os **45°/22°** são **ângulos do escareado**, não inclinação do
+  eixo — o eixo do Ø7 é **radial**. (Isso corrige meu modelo `bico_eductor_arlateral_*`, que angulava 22°.)
+
+### 🔑 A reconciliação com o vídeo (ninguém errou a física)
+O Ito falou "**quatro furinhos**" e "**entra pelas laterais**". **Bate** — só que os "quatro furinhos" são as
+**quatro válvulas 1½" laterais (uma por lança)**, teadas na **lateral do TUBO** (garganta), **não** os Ø7 do
+bico. O mecanismo (venturi aspira o ar) é exatamente o que ele descreveu. **Erramos só a peça, não a física.**
+
+### ⚠️ O que os desenhos NÃO fecham (perguntar ao Ito)
+1. **Sentido do escoamento** (qual header 8" é entrada/saída) — nunca rotulado (só a nota "ALTERADO ENTRADA E SAIDA PARA ø8").
+2. A **aspiração é inferida da geometria**, não escrita — a válvula 1½" não tem mangueira/soprador desenhado
+   (poderia ser respiro/dreno). **A pergunta única que fecha tudo:** *"os seus 'quatro furinhos' são as 4 válvulas
+   1½" laterais (uma por lança), ou vocês furaram o Ø7 do bico passante de fato (desvio do desenho)?"*
+3. **Co-localização:** leitura mais forte (relatórios 1&3) = bico **junto à garganta** (item 11 = 0,20 m/4 ≈
+   50 mm/lança = o próprio suporte do bico); leitura alternativa = bico 3 m abaixo. Não muda a zona de bolha.
+
+### Geometria corrigida
+`dominio_fluido_no_aeracao.step` (`gen_no_aeracao.py`) — **nó compacto**: 4" → redução 4"→2" (venturi) →
+garganta 2" **[porta de ar 1½" lateral]** → bico 4×Ø15 → descarga. Válido, 2,37 L. **É a zona da física da
+bolha, agora com o ar no lugar certo.** (Supersede `bico_eductor_arlateral_*` — ar no bico estava errado.)
+
 ## 4. Como o bico monta (caminho do fluido)
 
 `lança 2½" → redução 4"→2" → tubo 2" Sch160 (ID ≈ 49,25 mm) → BICO → xarope`
