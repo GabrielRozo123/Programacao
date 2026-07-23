@@ -92,6 +92,23 @@ Modelei a proposta: furo **Ø15 reto** convergindo a **Ø7 na saída** num cone 
 **Convenção (z-up):** z=0 face da base Ø43 (**lado do tubo = entrada**); z=45 face de topo Ø50
 (**descarga no xarope = saída**). Trocar sentido no STAR é trivial.
 
+### 5b. Domínio da LANÇA INTEIRA (o ejetor completo) — `gen_lanca_dominio.py`
+
+`dominio_fluido_lanca_completa.step` — volume interno de **1 lança** (das 4), fiel ao caminho do fluido:
+
+`motriz 4" → VENTURI (redução 4"→2½") → PORTA DE AR 1½" (item 18/5, ~50 abaixo do venturi) →
+lança 2½" × 3000 → redução 2½"→2" → BICO 4×Ø15 → descarga (Ø120)`
+
+- **Válido**, 14,6 L, **3722 mm** de altura. Marcos (z, mm): venturi 392–482 · porta de ar 532 ·
+  topo do bico 3557 · descarga 3602.
+- **É o ejetor venturi auto-aspirante:** a redução acelera o motriz → depressão → **suga o ar** pela
+  válvula 1½" → mistura descendo os 3 m → o bico atomiza. (Confirma a descrição do Ito.)
+- **Premissas** (spools retos e cotas finas de redução/porta de ar = fitting padrão; não mudam a física):
+  redução 4"→2½" ~90 mm, ar 1½" ID 40,9 a ~50 mm do venturi. Ito crava se quiser.
+- **Nota de malha:** razão de aspecto ~50:1 (3 m de tubo entre 2 zonas ativas). Para rodar, o melhor é
+  **partir em 2 domínios** (cabeça/venturi p/ entranhamento · bico p/ formação de bolha) e acoplar pelo
+  tubo — mas o STEP inteiro está aqui como pediu, e dá pra malhar direto se quiser o quadro completo.
+
 ## 6. Próximo (a discutir a modelagem no STAR)
 
 - Domínio de fluido pronto p/ malhar. Sugestão de setup: **Passo 1 monofásico** (xarope, laminar Re~40) p/
