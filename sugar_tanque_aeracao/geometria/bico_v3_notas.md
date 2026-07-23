@@ -102,6 +102,28 @@ bico. O mecanismo (venturi aspira o ar) é exatamente o que ele descreveu. **Err
 garganta 2" **[porta de ar 1½" lateral]** → bico 4×Ø15 → descarga. Válido, 2,37 L. **É a zona da física da
 bolha, agora com o ar no lugar certo.** (Supersede `bico_eductor_arlateral_*` — ar no bico estava errado.)
 
+## 3d. ✅✅ STEP NATIVO recebido (cadista Brendo, 23/07) — confirma TUDO
+
+`00__CONJUNTO_EJETOR.stp` — sólido **analítico limpo** (490 sólidos; 2594 cil., 2850 cones, 16 esferas =
+válvulas). Medições diretas (`gen_no_nativo.py` extrai da lança X=0):
+
+- **Layout:** header 8" ao longo de **X** · lanças 2½" ao longo de **Y** (4 lanças a X=0/350/700/1050) ·
+  **portas de ar 1½" ao longo de Z (laterais)**. A seta do Brendo aponta a **válvula 1½" lateral** →
+  *"a única entrada que tem é essa"*. **Confirma o ar pela lateral do TUBO.** ✅
+- **Furos Ø7 do bico:** 16 no total, eixos **radiais (X/Z)** = **4 por bico, FIXAÇÃO**. ✅ (nem passam pelo Y)
+- **BICO nativo = 7 × Ø9 (r4,5) hexagonal, PCD Ø27** (1 central + 6 a r13,5) — **medido exato**.
+  ⚠️ O desenho de peça CSA01-300-001 trazia **4×Ø15**; o **modelo nativo do conjunto usa 7×Ø9**.
+  → **perguntar ao Ito qual é o de produção.** (O nó paramétrico troca 7×Ø9 ↔ 4×Ø15 num flag.)
+- **Topologia da lança (medida):** 8" → 4" (r51,15) → borboleta → **AR 1½" (Y≈542)** → redução 27,9° →
+  **BICO 7×Ø9 (Y≈174–224)** → borboleta → 4" → redução 22° → **2½" (r31,4) × 3 m** → redução → 8" inferior.
+  O bico é uma **placa multiorifício inline** (não descarrega em tanque aberto); o ar é injetado a montante.
+
+### Geometria (do nativo)
+`dominio_fluido_no_NATIVO_7furos.step` (`gen_no_nativo.py`) — **nó de aeração** com cotas exatas do STEP:
+4" (r51,15) + ar 1½" (r19,05) lateral + redução 4"→assento(Ø52) + **bico 7×Ø9 PCD Ø27** + descarga Ø120.
+Válido, 2,37 L. **É a zona da física da bolha, com toda cota conferida contra o sólido nativo.**
+(STEP nativo do cliente **NÃO** vai pro git.)
+
 ## 4. Como o bico monta (caminho do fluido)
 
 `lança 2½" → redução 4"→2" → tubo 2" Sch160 (ID ≈ 49,25 mm) → BICO → xarope`
