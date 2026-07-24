@@ -24,9 +24,17 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 R_4  = 51.15    # 4" ID (medido)
 R_AR = 19.05    # 1½" bore da válvula de ar (medido)
 R_SEAT = 26.0   # assento do bico (Ø52) — recebe o bico Ø50
-R_HOLE = 4.5    # Ø9 furos de xarope (medido)
-PCD_R = 13.5    # 6 furos a r13,5 (PCD Ø27) + 1 central (medido)
 R_DISCH = 60.0  # descarga Ø120
+
+# --- os DOIS padrões de furo (a divergência dos desenhos) ---
+BICOS = {
+    # medido no STEP nativo do conjunto: 1 central + 6 a r13,5 (hex, PCD Ø27)
+    "7xD9":  dict(r_hole=4.5, pcd_r=13.5, n=6, center=True,
+                  desc="7xØ9 PCD Ø27 (modelo 3D nativo)"),
+    # desenho de peça CSA01-300-001 Rev00 (22/07/2023, o mais NOVO): 4xØ15 PCD Ø24
+    "4xD15": dict(r_hole=7.5, pcd_r=12.0, n=4, center=False,
+                  desc="4xØ15 PCD Ø24 (desenho de peça, mais novo)"),
+}
 
 L_IN   = 280.0   # air->reducer ~240mm (fiel ao nativo: Y542->Y302)
 Z_AR   = 40.0
@@ -38,13 +46,15 @@ L_DISCH= 120.0
 def cyl(r,z0,z1): return cq.Solid.makeCylinder(r,z1-z0,pnt=cq.Vector(0,0,z0),dir=cq.Vector(0,0,1))
 def cone(r0,r1,z0,z1): return cq.Solid.makeCone(r0,r1,z1-z0,pnt=cq.Vector(0,0,z0),dir=cq.Vector(0,0,1))
 
-def hole_positions():
-    pos=[(0.0,0.0)]
-    for k in range(6):
-        a=math.radians(60*k); pos.append((PCD_R*math.cos(a),PCD_R*math.sin(a)))
+def hole_positions(b):
+    pos=[(0.0,0.0)] if b["center"] else []
+    for k in range(b["n"]):
+        a=math.radians(360.0/b["n"]*k)
+        pos.append((b["pcd_r"]*math.cos(a), b["pcd_r"]*math.sin(a)))
     return pos
 
-def no_nativo():
+def no_nativo(bico="7xD9"):
+    b=BICOS[bico]; R_HOLE=b["r_hole"]
     z=0.0; parts=[]
     parts.append(cyl(R_4,z,z+L_IN)); z+=L_IN                    # 4" motriz
     # porta de ar 1½" radial (ao longo de X) em z=Z_AR — PENETRA 15 mm no furo 4" p/ conectar o fluido
@@ -52,7 +62,7 @@ def no_nativo():
     parts.append(cone(R_4,R_SEAT,z,z+L_RED)); z+=L_RED          # redução 4"->assento
     parts.append(cyl(R_SEAT,z,z+L_SEAT)); z+=L_SEAT            # assento (alimenta furos)
     z_bico=z
-    for (x,y) in hole_positions():                             # BICO 7×Ø9
+    for (x,y) in hole_positions(b):                            # BICO (padrão escolhido)
         parts.append(cq.Solid.makeCylinder(R_HOLE,L_PLUG,pnt=cq.Vector(x,y,z_bico),dir=cq.Vector(0,0,1)))
     z+=L_PLUG
     parts.append(cyl(R_DISCH,z,z+L_DISCH)); z+=L_DISCH          # descarga
@@ -61,10 +71,19 @@ def no_nativo():
     fl=fl.fuse(ar).clean()
     return fl, dict(z_ar=Z_AR, z_red=L_IN, z_bico=z_bico, z_total=z)
 
-print("== NÓ DE AERAÇÃO (do STEP nativo) — 4\" + ar 1½\" + reducao + BICO 7×Ø9 + descarga ==")
-fl,m=no_nativo()
-bb=fl.BoundingBox()
-print(f"  valid={fl.isValid()} vol={fl.Volume()/1e3:.1f} cm3 altura={bb.zlen:.0f} Ø_max={max(bb.xlen,bb.ylen):.0f}")
-print("  marcos:",{k:round(v,1) for k,v in m.items()})
-p=os.path.join(OUT,"dominio_fluido_no_NATIVO_7furos.step")
-cq.exporters.export(fl,p); print("STEP:",os.path.basename(p),f"({os.path.getsize(p)} bytes)")
+print("== NÓ DE AERAÇÃO (cotas do STEP nativo) — 4\" + ar 1½\" + reducao + BICO + descarga ==")
+saidas={"7xD9":"dominio_fluido_no_NATIVO_7furos.step",
+        "4xD15":"dominio_fluido_no_4furosD15.step"}
+for key,fname in saidas.items():
+    b=BICOS[key]
+    fl,m=no_nativo(key)
+    bb=fl.BoundingBox()
+    nh=b["n"]+(1 if b["center"] else 0)
+    Ah=nh*math.pi*b["r_hole"]**2
+    ND4=nh*(2*b["r_hole"])**4
+    print(f"\n  [{key}] {b['desc']}")
+    print(f"    valid={fl.isValid()} vol={fl.Volume()/1e3:.1f} cm3 altura={bb.zlen:.0f} mm")
+    print(f"    {nh} furos | area aberta={Ah:.0f} mm2 | N.D^4={ND4:,.0f} mm^4")
+    p_=os.path.join(OUT,fname)
+    cq.exporters.export(fl,p_)
+    print(f"    -> {fname} ({os.path.getsize(p_)} bytes)")
