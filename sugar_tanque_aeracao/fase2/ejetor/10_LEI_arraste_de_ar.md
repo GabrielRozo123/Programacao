@@ -146,3 +146,41 @@ pois furos maiores têm menos perda de entrada relativa.)*
 Mesmo com 4×Ø15, na **vazão de projeto** (32,5 m³/h/lança) a contrapressão é **~5–6 bar** — ainda acima
 de 1–3 kgf. Para o ar entrar, a vazão precisa cair para **~5–6 m³/h/lança (21–24 total)** — 5–6× menos
 que os 130 m³/h. **Confirmar com o Ito a vazão real de operação por lança.**
+
+---
+
+# 7. ✅ CFD do 4×Ø15 — modelo validado e a recomendação
+
+## 7.1 Resultado (1 kgf, v_x=0,05 m/s, t até 0,309 s)
+**v_ar = 0,921 m/s** (previsto pela fórmula: **0,936** → **erro 2%** ✅)
+**Q_tot medido = 1461 mL/s = 4,36× o do 7×Ø9** (previsto por N·D⁴: 4,41×) ✅
+
+## 7.2 "Não seria só o v_x=0,05?" — o CONTROLE que fecha a questão
+Com o **7×Ø9** a v_x=0,05: Q_xarope = **411 mL/s** vs capacidade do bico **335 mL/s** →
+**o xarope sozinho já excede o que o bico passa → sobra ZERO para o ar.**
+O corte do 7×Ø9 é **41 mm/s**; 50 mm/s está **1,2× acima**. **Com 7×Ø9 a 0,05 o ar simplesmente NÃO entra.**
+→ **A diferença é 100% da geometria, não do ponto de operação.**
+
+## 7.3 Teto do 4×Ø15 e a recomendação
+Teto medido: **v_ar_max = 1,28 m/s** (xarope zero) — **encosta na borda inferior** da meta (1,3–2,0),
+mas com xarope real fica abaixo. **1 kgf não basta.** Como Q ∝ P_ar:
+
+| P_ar | v_ar @ v_x=0,05 (1,5 m³/h/lança) | v_ar @ v_x=0,10 (3,0 m³/h/lança) |
+|---|---|---|
+| 1,0 kgf | 0,92 | 0,56 |
+| **1,5 kgf** | **1,56 ✅** | **1,20** |
+| **2,0 kgf** | **2,20 ✅** | **1,84 ✅** |
+| 3,0 kgf | 3,48 | 3,12 |
+
+> **RECOMENDAÇÃO: bico 4×Ø15 + ar a ~1,5–2,0 kgf/cm²** põe a velocidade de ar **dentro da meta
+> (1,3–2,0 m/s)** com xarope escoando. Ambos já existem no projeto — é combinar a revisão nova do bico
+> com a pressão de ar do meio/topo da faixa.
+
+## 7.4 Comparativo final
+| | corte de xarope | teto de v_ar @1 kgf |
+|---|---|---|
+| 7×Ø9 | 41 mm/s (1,21 m³/h/lança) | 0,29 m/s |
+| **4×Ø15** | **178 mm/s (5,26 m³/h/lança)** | **1,28 m/s** |
+
+⚠️ **A verificar no run:** confirmar que o ar **atravessa os furos** em regime permanente
+(balanço de massa fechado + hold-up estabilizado) e não apenas se acumula na região da porta.
