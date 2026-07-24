@@ -1,4 +1,4 @@
-# 10 — A LEI do arraste de ar (álgebra calibrada por CFD) e a JANELA VAZIA
+# 10 — A LEI do arraste de ar (álgebra calibrada por CFD)
 
 > Derivado de 2 pontos de CFD a **1 kgf/cm²** (bico nativo 7×Ø9, xarope 6,5 Pa·s).
 > Responde: **qual v_xarope dá a velocidade de ar de 1,3–2 m/s que o Ito pede?** → **nenhuma.**
@@ -39,24 +39,41 @@ Pressão de ar necessária (Q ∝ ΔP no laminar), **ainda com xarope ~zero**:
 | 1,3 m/s | **431 kPa ≈ 4,4 kgf/cm²** |
 | 2,0 m/s | **663 kPa ≈ 6,8 kgf/cm²** |
 
-## 4. A JANELA VAZIA (o achado decisivo)
+## 4. ❌ RETRATAÇÃO — a "janela vazia" estava ERRADA
 
-Duas condições precisam valer ao mesmo tempo — e **não se cruzam**:
+> Numa versão anterior deste doc eu afirmei que o ar **subiria** de volta pelo tubo (bolha de Taylor a
+> 0,284 m/s) e que existiria uma "janela vazia" de 7×. **Isso está errado.** O Gabriel observou na
+> simulação que **o ar desce claramente até o bico** — e ele está certo.
 
-| Condição | Requisito | Origem |
+**Onde errei:** assumi que o ar formaria uma **bolha de Taylor** (ocupando todo o tubo Ø102). A velocidade
+de subida escala com **d²** (Stokes), então o tamanho manda:
+
+| d da bolha | v_subida | vs xarope a 10 mm/s |
 |---|---|---|
-| **(a) o ar ENTRA** | v_xarope **< 0,041 m/s** | contrapressão do bico < P_ar |
-| **(b) o ar é ARRASTADO até o bico** | v_xarope **> 0,284 m/s** | bolha de Taylor **sobe** a 0,284 m/s no tubo 4" (Nf=20,5 → Fr=0,283) |
+| 2 mm | 0,4 mm/s | **desce** |
+| 5 mm | 2,7 mm/s | **desce** |
+| 10 mm | 11 mm/s | limiar |
+| ≥20 mm | 44–284 mm/s | subiria |
 
-**Gap de 7×.** Na faixa onde o ar entra, ele **sobe de volta pelo tubo** em vez de descer ao bico —
-exatamente o que a cena `VF de Ar` mostra (dedo de ar subindo contra o escoamento).
-A v_x=0,284 m/s (para arrastar), a contrapressão seria **6,3 bar** — 6× o suprimento de ar.
+O ar entra como **jato/dedo contínuo** pela porta (com quantidade de movimento própria), não como bolhas
+grandes soltas — e o escoamento **acelera** na direção do bico (10 → 18 → 39 mm/s na redução → **758 mm/s
+dentro dos furos**), arrastando tudo para baixo.
 
-## 5. Conclusão para o cliente
+**Pior: eu ignorei meu próprio dado.** O `Q_tot = Q_xarope + Q_ar` ficou **constante (0,7%)** nos dois casos
+— isso só fecha em **regime permanente com todo o ar saindo pelo bico**. Se o ar subisse, ele **acumularia**
+(o `Xarope_in` é velocity inlet, não deixa sair) e o hold-up cresceria sem parar. **O dado já dizia que o ar
+desce; eu não cruzei essa informação.** Lição: cruzar conclusão nova com o balanço de massa antes de publicar.
 
-Com **esta geometria** (bico 7×Ø9) e **este xarope** (6,5 Pa·s), o ejetor **não consegue** operar como
-auto-aspirante: ou o ar não entra (vazão de projeto), ou entra mas não é levado ao bico (vazão baixa).
-**Não é ajuste de operação — é limite físico da combinação bico × viscosidade × pressão de ar.**
+## 5. Conclusão para o cliente (corrigida)
+
+O ar **entra e chega ao bico** — mas só num regime muito distante do projeto:
+
+- Na vazão de projeto (v_x=1,10 m/s / 130 m³/h) o ar **não entra**: contrapressão ~30 bar vs 1–3 kgf.
+- Na vazão em que entra (v_x < 0,041 m/s, ~24× menor), o ar chega ao bico e é cisalhado ✅ —
+  **mas a velocidade de ar satura em 0,296 m/s**, contra a meta de 1,3–2,0 m/s do Ito (4,4–6,8× abaixo).
+
+**O limite não é o transporte do ar — é a pressão.** Para ter simultaneamente vazão de processo e ar na
+velocidade-alvo, faltam pressão de ar e/ou área de passagem no bico.
 
 ### Alavancas (o que mudaria o quadro)
 1. **Furos maiores** (4×Ø15 já dá +59% de área → contrapressão cai ~; recalcular) ou mais furos.
