@@ -22,16 +22,25 @@ Há **dois** subsistemas distintos no cliente (Colombo – Santa Albertina, "Cla
 
 O **corpo** do bico é idêntico nos dois desenhos; muda **só o padrão de furos**:
 
-| | Furos de vazão | PCD | Padrão | Área aberta | Fonte | Data |
-|---|---|---|---|---|---|---|
-| **A (governa)** | **4 × Ø15** | Ø24 | 90° | **707 mm²** | CSA01-300-**001** (peça) | **22/07/2023** |
-| B (variante) | 7 × Ø9 | Ø27 | hex 6+1 | 445 mm² | CSA01-300-**000** (conjunto) | 13/03/2023 |
+| Fonte | Padrão | Data | Peso |
+|---|---|---|---|
+| **CAD original do Ito** (DWG→IGES, medido ASME: 7 faces cilíndricas Ø9) | **7 × Ø9** | pré-2026 | forte (medido) |
+| **CSA01-300-000** conjunto Rev 01 | **7 × Ø9** | 13/03/2023 | forte |
+| **STEP NATIVO do cadista (Brendo)** — o modelo VIGENTE | **7 × Ø9** | 2026 (atual) | **o mais forte** |
+| CSA01-300-001 peça "BICO Ø15mm" Rev 00 | 4 × Ø15 | 22/07/2023 | isolado |
 
-- O desenho **de peça (‑001) é 4 meses mais novo e é o que governa** → adotei **4×Ø15 como default**.
-- Consequência física relevante: **4×Ø15 tem +59% de área** que 7×Ø9 → para a mesma vazão, **menor
-  velocidade no furo → bolha MAIOR**. Isso é o oposto do objetivo (microbolha). Vale **confirmar com o
-  Ito qual é o vigente** — se o rumo é furo menor/mais rápido, a variante 7×Ø9 (ou menor) vai na direção certa.
-- Entreguei **os dois STEP** para não travar; é trocar um flag no script.
+### ⚠️ CORREÇÃO da avaliação anterior
+Eu havia escrito que o **4×Ø15 "governa"** só porque o desenho é 4 meses mais novo que o do conjunto.
+**Com o quadro completo isso não se sustenta:** **três** fontes independentes dizem **7×Ø9** — incluindo o
+**CAD original do próprio Ito** (anterior ao cadista) e o **modelo 3D nativo atual (2026)**. O 4×Ø15 é
+**um desenho isolado de 2023** que não aparece em nenhum modelo 3D.
+
+**Leitura mais provável:** o **instalado é 7×Ø9**; o 4×Ø15 foi um **estudo/alternativa que não foi adotada**
+(ou peça de outra aplicação). **A confirmar com o Ito/Brendo — mas a aposta mudou de lado.**
+
+**Consequência prática:** o bico que está no campo é justamente o que **NÃO** atinge a meta de ar
+(teto 0,29 m/s vs meta 1,3–2,0). Em compensação, **o 4×Ø15 já existe desenhado e liberado para fabricação**
+→ é um caminho de melhoria **já engenheirado por eles**, não uma invenção nossa.
 
 ## 3. Cotas do bico (corpo comum) — CORTE A-A / D-D, ESC 1:1
 
