@@ -47,3 +47,37 @@ P_garganta = k · v_xarope           k = 128·µ·L·(A_4/N) / (π·D⁴)
 ## Figura
 `lei_mestra_P_vs_v.png` — as duas retas (7×Ø9 e 4×Ø15), as linhas de ar 1/2/3 kgf, e o ponto de projeto.
 **O ar entra onde a reta do bico passa ABAIXO da linha do ar.**
+
+---
+
+## 12. O "vácuo" do Ito — faz diferença? **Não na vazão de projeto.**
+
+### O argumento que fecha: vácuo tem TETO FÍSICO de 1 bar
+Vácuo é pressão abaixo da atmosférica. O limite absoluto é o **vácuo perfeito = −1,013 bar** manométrico.
+**Não existe menos que isso.**
+
+| | valor |
+|---|---|
+| Contrapressão na vazão de projeto | **23,5 bar** |
+| Vácuo perfeito (máximo que a física permite) | −1,0 bar |
+| Resultado se houvesse vácuo perfeito | **22,5 bar** |
+
+→ mudaria **4,3%**. O ar de 1–3 kgf continuaria **23× fraco**.
+**O vácuo NÃO PODE mudar a conclusão na vazão de projeto** — as escalas estão 23× separadas.
+
+### Onde o vácuo importaria: só em vazão muito baixa
+| cenário | corte | vazão total |
+|---|---|---|
+| sem vácuo (nosso modelo) | 46 mm/s | 5,4 m³/h |
+| coluna de 3 m (−0,38 bar) | 64 mm/s | 7,5 m³/h |
+| vácuo PERFEITO (−1,01 bar) | 93 mm/s | 11,1 m³/h |
+
+*Mesmo com vácuo perfeito, o projeto (130 m³/h) fica **12× acima**.*
+
+### 🔑 A reconciliação: o "vácuo" do Ito é uma PISTA, não uma contradição
+Para haver vácuo **de fato** na porta de ar (P < 0), mesmo com a ajuda da coluna de 3 m:
+**v_xarope < 18 mm/s → vazão total < ~2 m³/h**.
+
+> **Se o Ito realmente observa vácuo, a vazão real NÃO pode ser 130 m³/h** — teria de ser ~60× menor.
+> **A observação dele CONFIRMA a hipótese da bomba** (o ponto de operação real é muito mais baixo que o
+> nominal), em vez de contradizer o nosso resultado. As duas coisas se encaixam.
