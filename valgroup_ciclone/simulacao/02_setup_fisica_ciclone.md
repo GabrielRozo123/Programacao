@@ -85,3 +85,35 @@ muito bem o núcleo de baixa pressão do vórtice. (Tutorial "Preparing a Scalar
 | **CHT** (parede > orvalho ~250°C) | ⏳ requisito do e-mail do Lucas |
 | **Erosão** (char com 21% de minerais) | ⏳ desejável |
 | **Turndown 50%** | nosso escopo, não do tutorial |
+
+---
+
+## 10. Transiente + Curvature Correction (tutoriais "Running Unsteady" e "Streamlines")
+
+### O que o tutorial faz
+1. Desativa `Steady` → ativa **`Implicit Unsteady`**
+2. No nó **`SST (Menter) K-Omega`** → **`Curvature Correction = On`**
+3. Solvers: **Time-Step 5,0e-4 s** · Under-Relaxation **Velocity 0,9 · Pressure 0,4**
+   *(note: MAIORES que no steady — o transiente é mais estável)*
+4. Stopping: `Maximum Steps` **desativado** · **Max Inner Iterations = 8** · **Max Physical Time = 0,5 s**
+5. Compara steady × transiente com **Solution History + Linked Views** (layout 1 Left / 1 Right)
+
+### ⚠️ Ajuste para a NOSSA geometria (maior que a do tutorial)
+| | tutorial | **nosso** |
+|---|---|---|
+| Time-step | 5,0e-4 s | **2,0e-4 s** (célula 5 mm no núcleo, v ~30 m/s no vórtice → CFL ~1) |
+| Inner iterations | 8 | 5–8 |
+| Tempo físico | 0,5 s | **≥ 1,5 s** |
+
+**Por que ≥1,5 s:** o **tempo de residência** do nosso ciclone é **V/Q = 61,8 L / 128,1 L/s ≈ 0,48 s**.
+0,5 s = apenas **1 residência** — insuficiente para estatística. **3 residências ≈ 1,5 s.**
+
+### Streamlines (ótimo para o relatório ao cliente)
+- `Derived Parts → New → Streamline` · **Seed Parts = boundary `inlet`** · U-Res 2 · V-Res 8
+- `Streamline Stream 1 → Mode = **Ribbons**` · Scalar Field = **Velocity Magnitude**
+- `2nd Order Integrator → Maximum Propagation = **15**` (senão a linha não chega à saída)
+- Animação: `Animation Mode = Tracers` · delay 6 · head 0,01 · tail 1
+- Superfície do corpo com **Opacity 0,3** para ver por dentro
+
+> A cena de streamlines em fita, colorida por velocidade, é **o visual que vende o resultado** —
+> mostra a dupla hélice (vórtice externo descendo, interno subindo). Vale para a apresentação à Valgroup.
