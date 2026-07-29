@@ -52,6 +52,54 @@ Ambos **muito abaixo** do limite de 40 mbar. A 50% sobra folga enorme (84%).
 
 ---
 
+## RODADA 3 — 100% da vazão **COM ENERGIA** (gás ideal + CHT) ✅
+
+**Contexto:** primeira tentativa com `Ideal Gas` deu **ΔP = 381 Pa** (contra 2.823,9 do constant-density).
+**Causa:** `Molecular Weight` ficou no default do ar (**28,96**) → ρ = 0,621 em vez de 3,946
+(**6,35× baixo**). Diagnóstico previu 444 Pa; observado 381 → confirmado.
+**Correção:** `Molecular Weight = 184,0 kg/kmol` (o gás de pirólise, não ar).
+
+| | valor |
+|---|---|
+| **ΔP (CFD, gás ideal, M=184)** | **2.893,98 Pa = 28,94 mbar** (it. 9.526) |
+| ΔP (constant density) | 2.823,9 Pa |
+| ΔP (analítico Stairmand ξ=6,4) | 2.928,9 Pa |
+| **Erro × analítico** | **−1,2 %** ✅ *(melhor que os 3,6 % do constant-density)* |
+| **ξ extraído** | **6,32** (tabelado: 6,40) |
+| Limite do cliente | 40 mbar → **folga de 28 %** ✅ |
+
+> A energia **subiu** o ΔP em 2,5 % (o gás resfria junto à parede → densifica localmente).
+> Confirma a previsão de que a térmica **não invalida** a validação hidrodinâmica.
+
+### 🌡️ Temperatura de parede — a pergunta do Lucas, respondida
+
+| | valor |
+|---|---|
+| **T_parede (CFD)** | **654,142 K = 381,0 °C** (it. 8.882) |
+| Estimativa analítica prévia (sem isolamento) | ~356 °C |
+| **Ponto de orvalho dos pesados (C12–C15)** | ~250 °C |
+| **MARGEM** | **+131 °C** ✅ |
+
+> ✅ **Sem condensação.** E a estimativa analítica (356 °C) errou por só 25 °C para menos —
+> ou seja, era **conservadora**, como deveria ser.
+
+### Resumo das três rodadas
+| Rodada | Modelo | v_i | **ΔP CFD** | analítico | erro | ξ |
+|---|---|---|---|---|---|---|
+| 1 · 100 % | K-ω SST, ρ const | 15,23 m/s | 2.823,9 Pa | 2.928,9 | 3,6 % | 6,17 |
+| 2 · 50 % | K-ω SST, ρ const | 7,62 m/s | 642,8 Pa | 733,2 | 12,3 % | 5,61 |
+| **3 · 100 %** | **K-ω SST + energia (ideal, M=184)** | 15,23 m/s | **2.893,98 Pa** | 2.928,9 | **1,2 %** | **6,32** |
+
+> 🏁 **ETAPA A (hidrodinâmica + térmica) ENCERRADA E VALIDADA.**
+> A base está pronta para receber as partículas.
+
+### 📌 Armadilha registrada (nº 5)
+**`Ideal Gas` sem ajustar `Molecular Weight`** → o STAR usa o default do ar (28,96) e a densidade sai
+errada por um fator, silenciosamente. **Sempre setar M junto com o modelo de gás ideal.**
+Aqui: **M = 184 kg/kmol**.
+
+---
+
 ## 🌡️ E a TEMPERATURA? (pergunta do Gabriel — resposta com número)
 
 **Sim, vamos fazer CHT — mas depois, e por bons motivos.**
@@ -89,9 +137,10 @@ Estimativa preliminar (h_int≈75 W/m²K pelo swirl forte):
 
 ## 📋 Sequência do estudo
 - [x] **1.** Gás steady 100% → **ΔP validado (3,6%)** ✅
-- [ ] **2.** Gás steady 50% → 2º ponto de validação
-- [ ] **3.** Lagrangeano 100% e 50% → **curva de eficiência η × d** ⭐ *(entregável principal)*
-- [ ] **4.** Transiente (URANS + Curvature Correction) → PVC e seu efeito nos finos
-- [ ] **5.** RSM → confirmar/refinar o campo de swirl
-- [ ] **6.** **CHT** → T_parede > orvalho (~250°C) + espessura de parede
-- [ ] **7.** Erosão → mapa de desgaste (char com 21% de minerais)
+- [x] **2.** Gás steady 50% → **2º ponto validado (12,3%)** ✅
+- [x] **3.** **Energia/CHT** → **ΔP 1,2% · T_parede 381 °C > orvalho 250 °C** ✅
+- [ ] **4.** Lagrangeano 100% e 50% → **curva de eficiência η × d** ⭐ *(entregável principal)* ← **AGORA**
+- [ ] **5.** Transiente (URANS + Curvature Correction) → PVC e seu efeito nos finos
+- [ ] **6.** RSM → confirmar/refinar o campo de swirl
+- [ ] **7.** Espessura de parede (corrosão HCl + erosão) + decisão de isolamento
+- [ ] **8.** Erosão → mapa de desgaste (char com 21% de minerais)

@@ -175,3 +175,37 @@ Char com **21% de minerais** (Ti 14,9 + Si 3,5 + Fe 3,2) → mapa de desgaste do
 2. **Maximum Residence Time curto** → partícula deletada antes de captar. **10 s, não 0,1.**
 3. **ρ_s = 776,75 (bulk)** → subestima a inércia. **Use 1500 (partícula).**
 4. **Sem Turbulent Dispersion** → finos captados demais. **Ligar.**
+
+---
+
+## 📌 Armadilha nº 5 (descoberta na rodada com energia)
+**`Ideal Gas` sem ajustar `Molecular Weight`.** O STAR assume o default do **ar (28,96 kg/kmol)** —
+a densidade sai errada por um fator inteiro, **sem nenhum aviso**.
+Nosso gás de pirólise: **M = 184,0 kg/kmol**. Com o default, ρ deu 0,621 em vez de 3,946 (6,35× baixo)
+e o ΔP despencou de 2.824 para 381 Pa.
+> **Regra:** ao ligar Ideal Gas, setar `Molecular Weight` **na mesma hora**, e conferir ρ com um
+> report de Volume Average de Density antes de rodar.
+
+---
+
+## ▶️ FASE 2 — plano de execução do Lagrangeano (validar antes de soltar tudo)
+
+**Não crie os 8 injetores de uma vez.** Ordem recomendada:
+
+### Passo 1 — dois injetores só, para validar o workflow
+| Injetor | d | Mass Flow | esperado |
+|---|---|---|---|
+| `inj_050um` | 5,0e-5 m | 0,002778 kg/s | η **alta** (≫ d* — deve captar quase tudo) |
+| `inj_010um` | 1,0e-5 m | 0,002778 kg/s | η **intermediária** (perto do d* teórico) |
+
+Se o de 50 µm **não** captar quase tudo, há erro de setup — pare e revise antes de gastar as 8 classes.
+
+### Passo 2 — checagens obrigatórias antes de aceitar o resultado
+- [ ] `outlet_dust` = **Wall** para o gás **E Escape** para a fase Lagrangeana (são coisas separadas)
+- [ ] `Maximum Residence Time = 10 s` (não os 0,1 s do tutorial)
+- [ ] ρ_partícula = **1500** (não os 776,75 de bulk)
+- [ ] **Turbulent Dispersion ligado** (senão os finos são captados demais)
+- [ ] Report de **parcelas encerradas por tempo limite** → se >poucos %, subir o Max Residence Time
+- [ ] **Balanço de massa das parcelas:** ṁ(outlet_dust) + ṁ(Outlet_gas) ≈ ṁ(injetado)
+
+### Passo 3 — só então liberar as 8 classes e plotar η × d
