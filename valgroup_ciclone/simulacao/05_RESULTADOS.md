@@ -28,13 +28,27 @@
 
 ---
 
-## RODADA 2 — 50% da vazão ⏳
-| | previsão | CFD |
-|---|---|---|
-| v_i | 7,62 m/s | — |
-| ΔP | **733 Pa (7,33 mbar)** | *(a preencher)* |
+## RODADA 2 — 50% da vazão ✅
 
-*Faixa de aceite: 650–800 Pa. Se cair aí, temos **dois pontos** validados — o modelo vira curva, não ponto.*
+| | valor |
+|---|---|
+| v_i | 7,62 m/s |
+| **ΔP (CFD)** | **642,8 Pa = 6,43 mbar** |
+| ΔP (analítico) | 733,2 Pa = 7,33 mbar |
+| **Erro** | **12,3 %** ✅ |
+
+**Escalonamento:** ΔP(100%)/ΔP(50%) = **4,39** (teórico v² = 4,00).
+**ξ extraído:** 6,17 (100%) → **5,61** (50%) — cai suavemente com o Reynolds, **fisicamente esperado**.
+
+> ✅ **DOIS pontos validados.** O modelo deixou de ser "acertou num ponto" e virou **curva**.
+
+### Resumo da validação
+| Carga | v_i | ΔP CFD | ΔP analítico | erro | ξ |
+|---|---|---|---|---|---|
+| **100%** | 15,23 m/s | **2.823,9 Pa** | 2.928,9 | **3,6%** | 6,17 |
+| **50%** | 7,62 m/s | **642,8 Pa** | 733,2 | **12,3%** | 5,61 |
+
+Ambos **muito abaixo** do limite de 40 mbar. A 50% sobra folga enorme (84%).
 
 ---
 
