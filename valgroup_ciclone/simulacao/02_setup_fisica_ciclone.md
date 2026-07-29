@@ -117,3 +117,36 @@ muito bem o núcleo de baixa pressão do vórtice. (Tutorial "Preparing a Scalar
 
 > A cena de streamlines em fita, colorida por velocidade, é **o visual que vende o resultado** —
 > mostra a dupla hélice (vórtice externo descendo, interno subindo). Vale para a apresentação à Valgroup.
+
+---
+
+# ✅ 11. VALIDAÇÃO DA BASE — CFD × analítico (RODADO)
+
+**Rodada:** 100% da vazão · K-Omega SST steady · convergido (~6.400 iterações, ΔP plano).
+
+| | valor |
+|---|---|
+| **ΔP do CFD** | **2.823,9 Pa = 28,24 mbar** |
+| ΔP analítico (Stairmand, ξ=6,4) | 2.928,9 Pa = 29,29 mbar |
+| **ERRO** | **3,6 %** ✅ |
+
+### Checagem cruzada: o fator de perda ξ
+Extraindo do CFD: `ξ = ΔP/(½ρv_i²) = ` **6,17**
+Tabelado para Stairmand HE: **6,40**
+→ **A geometria se comporta como um Stairmand de verdade.** Confirma proporções + malha + BCs.
+
+### Margem de projeto
+Limite do cliente: **40 mbar**. Obtido: **28,24 mbar** → **folga de 29%**. ✅
+
+### Campo de pressão (Scalar Scene)
+A cena de Total Pressure mostra o padrão clássico e correto:
+- **Alta pressão no anel externo** (onde o vórtice desce, junto à parede)
+- **Núcleo de baixa pressão no eixo** e dentro do vortex finder (mín. −251 Pa)
+- Gradiente radial forte = swirl bem resolvido
+
+> **O que isso valida de uma vez:** geometria · malha · condições de contorno · modelo físico ·
+> **e o próprio dimensionamento analítico**. A base está confiável para receber as partículas.
+
+### Próximo ponto de validação
+Rodar **50%** (v_i = 7,62 m/s). Previsão: **733 Pa (7,33 mbar)**.
+Se o CFD cair em **650–800 Pa**, temos **dois pontos** validados — muito mais forte que um.
