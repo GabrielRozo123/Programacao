@@ -396,3 +396,72 @@ folga, e o número global fica **insensível à física** que estamos simulando.
 > **PSD amostrada NA CORRENTE GASOSA**, não no char extraído.
 
 *(Script: `dimensionamento/convolucao_eficiencia.py` — troca a PSD e recalcula.)*
+
+---
+
+# PARTE 14 — Relatórios e cenas (o que medir e o que mostrar)
+
+## 14.1 Os QUATRO reports por classe (não dois)
+
+`Reports → botão direito → New Report`
+
+| # | Tipo | Nome | Configuração |
+|---|---|---|---|
+| 1 | **Lagrangian Mass Flow** | `mdot_dust_050` | Parts = **`outlet_dust`** · Phase = `char_050um` |
+| 2 | **Lagrangian Mass Flow** | `mdot_gas_050` | Parts = **`Outlet_gas`** · Phase = `char_050um` |
+| 3 | **Expression** | **`eta_050`** | `abs(${mdot_dust_050}) / 2.7778e-3` |
+| 4 | **Expression** | **`balanco_050`** | `(abs(${mdot_dust_050}) + abs(${mdot_gas_050})) / 2.7778e-3` |
+
+### ⚠️ O `abs()` não é preciosismo — é o erro nº 1 aqui
+O `Lagrangian Mass Flow` é assinado pela **normal da boundary**. Dependendo da orientação, a massa
+**saindo** aparece **negativa**. Se você dividir sem `abs()`, obtém uma eficiência **negativa** e
+acha que quebrou tudo — quando o resultado estava certo.
+> **Antes de montar as expressões:** rode e olhe os dois reports crus. Anote o sinal de cada um.
+> Se ambos vierem negativos, o `abs()` resolve. Se vierem com **sinais opostos**, PARE — significa
+> que uma das boundaries está deixando partícula **entrar**, e aí há erro de BC.
+
+### O `balanco_050` é o seu detector de fraude
+```
+balanco_050 = 1,00  → toda a massa injetada foi contabilizada ✅
+balanco_050 < 1,00  → há parcela SUMINDO
+```
+**Massa que some = parcela deletada** (Maximum Residence Time curto) **ou ainda em voo**
+(não convergiu). Nos dois casos o `eta` está **subestimado**.
+
+> 🚨 **Regra:** não interprete `eta` nenhum enquanto `balanco` não estiver em **0,98–1,02**.
+> Um η de 60% com balanço de 0,70 não quer dizer "60% de eficiência" — quer dizer que 30% da massa
+> evaporou do modelo.
+
+## 14.2 Monitores
+Em **cada** um dos 4 reports: botão direito → **`Create Monitor and Plot from Report`**.
+
+O que você quer ver: `eta_050` **estabilizando num platô**, igual ao ΔP estabilizou. Se ele ainda
+sobe no fim da rodada, faltam iterações (ou parcelas ainda em voo).
+
+## 14.3 Cena de trajetórias
+
+1. `Scenes → New Scene → **Geometry**`
+2. Superfície do corpo → `Opacity` = **0,3** (para enxergar por dentro)
+3. `Displayers → botão direito → New Displayer → **Particle Tracks**`
+4. `Parts` = a fase `char_050um` (ou o track file gerado)
+5. `Scalar Field` → escolha conforme a mensagem:
+
+| Colorir por | O que isso mostra |
+|---|---|
+| **Particle Diameter** | ⭐ a separação por tamanho — grossas na parede, finas no núcleo |
+| **Residence Time** | quem fica preso em recirculação (as vermelhas são as problemáticas) |
+| Velocity Magnitude | o campo de aceleração no vórtice |
+
+> Se a lista de `Parts` vier **vazia**: o `Track File` não estava marcado nos modelos da fase quando
+> você rodou. Remarque e rode de novo — as trajetórias não são recuperáveis a posteriori.
+
+### 🎯 A imagem que vende o resultado
+Duas classes na **mesma cena**: **50 µm** (desce em espiral colada na parede até o `outlet_dust`) e
+**5 µm** (sobe pelo vortex finder e escapa). Lado a lado, isso **explica a curva de eficiência sem
+uma única equação** — vale mais que qualquer slide de texto na apresentação à Valgroup.
+
+## 14.4 O gráfico final η × d
+Não vale a pena montar no STAR (são 8 fases, cada uma com o seu report). Colete os 8 valores de
+`eta` e plote fora — eixo **d em escala log**, η linear, as duas cargas (100% e 50%) sobrepostas,
+e a **curva de Lapple tracejada** por trás para comparação.
+> Esse gráfico **é** o entregável principal do estudo.
