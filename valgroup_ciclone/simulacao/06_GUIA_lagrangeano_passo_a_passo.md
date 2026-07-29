@@ -537,3 +537,48 @@ finos.
 > **reproduzir 2 ou 3 classes no transiente** (5 µm, 10 µm, 50 µm). Se o η dos finos mudar muito,
 > a curva final vai para o transiente. Isso transforma o custo em **verificação declarada** em vez
 > de uma escolha não justificada.
+
+---
+
+# PARTE 17 — 🔴 CASO REAL: a armadilha nº1 aconteceu (e o que ela produz)
+
+**Sintoma:** η(50 µm) ≈ **1 %** (deveria ser >95 %). Balanço de massa **fechando** em 0,983.
+Trajetórias formando uma **panqueca no cilindro superior**, sem descer o cone.
+
+**Diagnóstico:** `Regions → Ciclone → Boundaries → outlet_dust → Properties → **Type = Outlet**`.
+Tinha de ser **`Wall`**.
+
+## O mecanismo — e é o CONTRÁRIO do que se imagina
+A intuição diz "se o fundo está aberto, o gás sai por baixo e leva o pó junto → η alta".
+**Errado.** O ápice do cone fica **na zona do núcleo de baixa pressão** do vórtice
+(a nossa própria cena de Total Pressure mostra mínimo de **−239 Pa**).
+
+Um Pressure Outlet a **0 Pa** naquele ponto não deixa o gás sair — **faz o ambiente EMPURRAR gás
+para dentro**:
+
+| Gradiente no ápice | Jato **entrando** | Vazão parasita |
+|---|---|---|
+| 50 Pa | **5,0 m/s** | 168 m³/h |
+| 100 Pa | **7,1 m/s** | 238 m³/h |
+| 239 Pa | **11,0 m/s** | 368 m³/h |
+
+E a velocidade de queda de uma partícula de 50 µm é **21,5 mm/s**.
+
+> **Razão jato/queda ≈ 330×.** O jato ascendente parasita **aniquila** a sedimentação: a partícula
+> chega ao cone, é soprada de volta para cima e sai pelo vortex finder.
+> **É exatamente isso que a panqueca de trajetórias mostra** — elas não *escolhem* ficar no topo,
+> elas **não conseguem descer**.
+
+## Por que o balanço de massa fecha e engana
+`balanco = 0,983` ✅ — porque **nenhuma massa foi perdida**: toda ela saiu, só que **pela porta
+errada**. O balanço detecta parcela deletada, **não** detecta física errada.
+> **Lição:** balanço fechado é condição **necessária**, não suficiente. Confira também se o
+> **resultado é fisicamente possível** — 50 µm escapando 97 % num Stairmand não é.
+
+## A correção e a verificação
+1. `outlet_dust → Type` = **`Wall`**
+2. `outlet_dust → Phase Conditions → char_050um → Mode` = **`Escape`** *(esse já estava certo)*
+3. **Reconvergir o gás** — a BC mudou, o campo atual não vale. `ΔP tem de voltar a ~2.894 Pa.`
+4. ⚠️ **Verificar a Etapa A:** se o ΔP com `Wall` **não** voltar aos 2.894 Pa, então os resultados
+   da Etapa A foram obtidos com `Outlet` e precisam ser refeitos. Se voltar, a Etapa A está de pé.
+5. Rodar 1 iteração Lagrangeana. **η(50 µm) esperado: 95–99 %.**
