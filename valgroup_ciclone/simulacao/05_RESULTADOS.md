@@ -144,3 +144,29 @@ Estimativa preliminar (h_int≈75 W/m²K pelo swirl forte):
 - [ ] **6.** RSM → confirmar/refinar o campo de swirl
 - [ ] **7.** Espessura de parede (corrosão HCl + erosão) + decisão de isolamento
 - [ ] **8.** Erosão → mapa de desgaste (char com 21% de minerais)
+
+---
+
+## ▶️ RODADA 4 (a rodar) — 50 % da vazão **COM ENERGIA**
+
+**Por que ela é necessária e não é redundante:** a 50 % o tempo de residência **DOBRA**
+(0,48 → 0,96 s) e o coeficiente de troca interno **CAI** (h ∝ Re^0,8 → ×0,57). O gás fica mais
+tempo trocando calor e troca com um filme mais fraco → **a parede esfria**.
+**O caso de 50 % é o caso GOVERNANTE para a pergunta do orvalho**, não o de 100 %.
+
+Setup: **só mudar `Inlet → Velocity Magnitude` de 15,23 para 7,62 m/s** e a intensidade
+turbulenta (0,041 → 0,045). Tudo o mais permanece. Reiniciar do campo convergido a 100 %.
+
+### Previsões (registradas ANTES de rodar — falseáveis)
+| | previsto |
+|---|---|
+| **ΔP** | **655–670 Pa** (642,8 do constant-density × 1,025 da energia = **659 Pa**) |
+| **T_parede** | **355–370 °C** (queda de ~15–25 °C vs os 381 °C a 100 %) |
+| Queda de T do gás ao longo do ciclone | ~6 °C (era ~5 °C a 100 %) |
+
+> ✅ Se a T_parede cair para essa faixa → **margem sobre o orvalho continua > 100 °C** e a
+> resposta ao Lucas fica fechada **nos dois extremos de operação**: *não condensa em nenhum ponto
+> do turndown*. Aí sim o isolamento vira decisão de eficiência energética, não de integridade.
+>
+> ⚠️ Se cair **abaixo de 300 °C**, o quadro muda: o isolamento deixa de ser opcional e passa a ser
+> requisito de projeto. Vale a pena saber disso **antes** de gastar o Lagrangeano.
