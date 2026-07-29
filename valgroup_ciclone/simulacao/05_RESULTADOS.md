@@ -138,16 +138,66 @@ Estimativa preliminar (h_int≈75 W/m²K pelo swirl forte):
 ## 📋 Sequência do estudo
 - [x] **1.** Gás steady 100% → **ΔP validado (3,6%)** ✅
 - [x] **2.** Gás steady 50% → **2º ponto validado (12,3%)** ✅
-- [x] **3.** **Energia/CHT** → **ΔP 1,2% · T_parede 381 °C > orvalho 250 °C** ✅
-- [ ] **4.** Lagrangeano 100% e 50% → **curva de eficiência η × d** ⭐ *(entregável principal)* ← **AGORA**
-- [ ] **5.** Transiente (URANS + Curvature Correction) → PVC e seu efeito nos finos
-- [ ] **6.** RSM → confirmar/refinar o campo de swirl
-- [ ] **7.** Espessura de parede (corrosão HCl + erosão) + decisão de isolamento
-- [ ] **8.** Erosão → mapa de desgaste (char com 21% de minerais)
+- [x] **3.** **Energia/CHT 100%** → **ΔP 1,2% · T_parede 381 °C** ✅
+- [x] **4.** **Energia/CHT 50%** → **ΔP −1,0% da previsão · T_parede 367 °C** ✅ *(caso governante do orvalho)*
+- [ ] **5.** Lagrangeano 100% e 50% → **curva de eficiência η × d** ⭐ *(entregável principal)* ← **AGORA**
+- [ ] **6.** Transiente (URANS + Curvature Correction) → PVC e seu efeito nos finos
+- [ ] **7.** RSM → confirmar/refinar o campo de swirl
+- [ ] **8.** Espessura de parede (corrosão HCl + erosão) + decisão de isolamento
+- [ ] **9.** Erosão → mapa de desgaste (char com 21% de minerais)
 
 ---
 
-## ▶️ RODADA 4 (a rodar) — 50 % da vazão **COM ENERGIA**
+## RODADA 4 — 50 % da vazão **COM ENERGIA** ✅ **PREVISÕES CONFIRMADAS**
+
+Convergida: ΔP plano desde ~it. 2.500 (leitura em 4.248) · T_parede plana desde ~it. 1.000 (leitura em 4.337).
+
+| | **previsto (registrado antes)** | **OBTIDO** | |
+|---|---|---|---|
+| **ΔP** | 655–670 Pa | **652,58 Pa = 6,53 mbar** | ✅ **−1,0 % do centro da faixa** |
+| **T_parede** | 355–370 °C | **640,238 K = 367,1 °C** | ✅ **dentro da faixa** |
+
+### O que isso fecha
+| | valor |
+|---|---|
+| ξ extraído (v_i = 7,62) | **5,70** *(100 % com energia: 6,32 — razão 0,90)* |
+| Efeito da energia no ΔP | **+1,5 %** *(a 100 % foi +2,5 % — cai com o Re, coerente)* |
+| Erro × analítico (733,2 Pa) | **−11,0 %** *(era −12,3 % sem energia)* |
+| Limite do cliente (40 mbar) | **folga de 84 %** ✅ |
+| **Queda da T_parede vs 100 %** | **−13,9 °C** (381,0 → 367,1) |
+| **MARGEM sobre o orvalho (250 °C)** | **+117 °C** ✅ |
+
+> 🏁 **A pergunta do Lucas está ENCERRADA nos dois extremos do turndown.**
+> Parede a **381 °C @ 100 %** e **367 °C @ 50 %** → **não condensa em nenhuma condição de operação**,
+> **mesmo sem isolamento**. O isolamento passa a ser decisão de **eficiência energética**, não de
+> integridade do equipamento. Este é um resultado entregável ao cliente.
+
+> 📉 **A queda foi menor que o teto que eu estimei (−13,9 °C contra os −15 a −25 previstos)** —
+> ou seja, o sistema é **menos sensível ao turndown** do que a estimativa conservadora sugeria.
+> Mecanismo: a residência dobra, mas h_int cai (∝Re^0,8), e os dois efeitos **se cancelam em parte**.
+
+### ⚠️ Ponto a confirmar
+O relato veio como *"7,42 m/s"*, mas a especificação é **7,62 m/s**. Evidência de que a caixa tinha
+**7,62**: a razão ξ_50/ξ_100 dá **0,901**, praticamente idêntica aos **0,909** medidos entre as
+rodadas 1 e 2 (constant density). Com 7,42 a razão daria 0,951 — uma queda de ξ **mais fraca** com um
+Reynolds **menor**, o que contraria a tendência já estabelecida. **Conferir o campo antes de publicar
+o número.** (Se for 7,42 mesmo, é 48,7 % da nominal e o ΔP a 50 % real sobe ~5 %, para ~687 Pa —
+nada muda qualitativamente.)
+
+### 📊 Resumo consolidado — as 4 rodadas
+| # | Carga | Modelo | v_i | **ΔP CFD** | analítico | erro | ξ | T_parede |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 100 % | ρ const | 15,23 | 2.823,9 Pa | 2.928,9 | 3,6 % | 6,17 | — |
+| 2 | 50 % | ρ const | 7,62 | 642,8 Pa | 733,2 | 12,3 % | 5,61 | — |
+| 3 | 100 % | **+ energia** | 15,23 | **2.893,98 Pa** | 2.928,9 | **1,2 %** | 6,32 | **381,0 °C** |
+| 4 | 50 % | **+ energia** | 7,62 | **652,58 Pa** | 733,2 | **11,0 %** | 5,70 | **367,1 °C** |
+
+> **ETAPA A ENCERRADA.** Quatro pontos, duas cargas, com e sem energia, todos coerentes entre si e
+> com o analítico. A base hidrodinâmica e térmica está validada — **pronta para as partículas**.
+
+---
+
+## ▶️ (histórico) RODADA 4 — previsões registradas ANTES de rodar
 
 **Por que ela é necessária e não é redundante:** a 50 % o tempo de residência **DOBRA**
 (0,48 → 0,96 s) e o coeficiente de troca interno **CAI** (h ∝ Re^0,8 → ×0,57). O gás fica mais
