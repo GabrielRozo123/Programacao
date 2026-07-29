@@ -337,3 +337,62 @@ Eficiência por classe pelo modelo de Lapple `η = 1/(1 + (d*/d)²)`:
 3. **ρ_s = 776,75 (bulk)** → subestima a inércia. **Use 1500 (partícula).**
 4. **Sem Turbulent Dispersion** → finos captados demais. **Ligar.**
 5. **`Ideal Gas` sem `Molecular Weight`** → o STAR usa o default do ar. **M = 184 kg/kmol.**
+
+---
+
+# PARTE 13 — Distribuição de tamanho (Rosin-Rammler) × classes monodispersas
+
+O STAR oferece, no injetor, `Conditions → Particle Size Specification`, a opção de injetar uma
+**distribuição** em vez de um diâmetro fixo — a **Rosin-Rammler** é a mais usada
+(`R(d) = exp(−(d/d′)ⁿ)` = fração mássica **acima** de d; parâmetros: *Reference Size* d′ e *Exponent* n).
+
+## ❌ Para o NOSSO entregável, NÃO usar distribuição. Três motivos.
+
+**1. Você perderia justamente a curva.**
+O report `Lagrangian Mass Flow` integra **por fase**. Injetando uma distribuição numa fase, o
+`outlet_dust` devolve **um número só** — a captura global. A curva **η × d** simplesmente não existe
+nesse resultado. E a curva é o entregável.
+
+**2. η(d) é propriedade do CICLONE; η_global é propriedade da ALIMENTAÇÃO.**
+A curva de grade depende só de geometria + escoamento. Medida uma vez, serve para **qualquer** PSD:
+```
+η_global = Σ fᵢ · η(dᵢ)        ← conta de planilha, segundos
+```
+Com a distribuição embutida no CFD, cada PSD nova = **uma rodada nova**.
+
+**3. 🚨 O motivo decisivo: a nossa PSD é INCERTA.**
+A amostra que a Valgroup mandou é do char **extraído (fundo)** — 28 % dela é **>1 mm**, que
+fisicamente **não pode** ser arrastada a 1,03 m/s (v_terminal 1,3–13,4 m/s). O que temos é uma
+**estimativa** (reponderação pelo corte de arraste ~346 µm).
+> Embutir uma PSD estimada dentro do CFD **contamina um resultado sólido com um input frágil**.
+> Mantendo separado: a incerteza fica **isolada numa linha de planilha**, e quando a PSD real
+> chegar, a resposta se atualiza **sem CFD nenhum**.
+
+## ✅ Quando a distribuição É útil (depois, não agora)
+1. **Rodada de confirmação:** injetar a PSD real e verificar que η_global(CFD) ≈ Σfᵢ·η(dᵢ).
+   Valida a própria convolução.
+2. **Cena de trajetórias para o cliente:** uma nuvem com dispersão realista de tamanhos.
+3. **Erosão:** o desgaste é dominado pela cauda grossa, que a distribuição amostra naturalmente.
+
+## 📐 Se/quando for usar: os parâmetros da nossa PSD estimada
+Ajuste Rosin-Rammler sobre a estimativa do char arrastado
+(150–425 µm → 35,8 % · 75–150 → 51,2 % · 20–75 → 13,1 %):
+
+| Campo no STAR | Valor |
+|---|---|
+| **Reference Size (d′)** | **1,486e-4 m** (148,6 µm) |
+| **Exponent (n)** | **2,88** |
+
+## ⚠️ E a leitura que esses números já entregam
+Convoluindo com Lapple: **η_global ≈ 99,3 % @100 %** e **98,6 % @50 %** (emissão 0,54 e 1,15 kg/h).
+
+Parece ótimo — **e é exatamente por isso que é preciso desconfiar**: toda a PSD estimada está
+**acima de 20 µm**, ou seja, **muito acima do corte de 7,6 µm**. O ciclone captura tudo isso com
+folga, e o número global fica **insensível à física** que estamos simulando.
+**Toda a ação da curva está ABAIXO de 20 µm — exatamente onde não há dado amostrado.**
+
+> ➜ **Entregar a CURVA η(d) como resultado** (robusta) e a **η_global como cenário declarado**
+> (frágil, depende da PSD). E manter a pendência aberta com a Valgroup:
+> **PSD amostrada NA CORRENTE GASOSA**, não no char extraído.
+
+*(Script: `dimensionamento/convolucao_eficiencia.py` — troca a PSD e recalcula.)*
