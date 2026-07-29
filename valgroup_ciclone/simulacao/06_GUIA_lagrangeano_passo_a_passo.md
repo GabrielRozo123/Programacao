@@ -465,3 +465,75 @@ Não vale a pena montar no STAR (são 8 fases, cada uma com o seu report). Colet
 `eta` e plote fora — eixo **d em escala log**, η linear, as duas cargas (100% e 50%) sobrepostas,
 e a **curva de Lapple tracejada** por trás para comparação.
 > Esse gráfico **é** o entregável principal do estudo.
+
+---
+
+# PARTE 15 — ⚠️ CORREÇÃO: o método OFICIAL da Siemens para a eficiência
+
+> Fonte: Siemens KB **KB000033060** ("How can I calculate the efficiency in a Lagrangian Cyclone
+> Separator?") e **KB000040310** ("Best Practices for Cyclone Separators").
+
+## 15.1 O erro do meu método (Parte 14)
+Eu mandei medir a captura com **`Lagrangian Mass Flow`** na boundary `outlet_dust`.
+**A Siemens não usa esse report para o fundo — e por um motivo estrutural:**
+`outlet_dust` é uma **WALL**. Report de vazão mede fluxo **atravessando** uma superfície, e por uma
+parede não atravessa nada. A massa é removida pelo *Escape* da fase, não por fluxo.
+
+## 15.2 O método oficial
+1. Criar uma **Field Function** (User Field Function):
+```
+$IncidentMassFluxPhase1 * mag($$Area)
+```
+   `Incident Mass Flux of Phase` = fluxo de massa de partículas **incidindo** na face (kg/m²·s);
+   `mag($$Area)` = área da face → o produto dá **kg/s por face**.
+   *(Ajustar o nome da fase: `...Phase1` → o índice da nossa `char_050um`.)*
+
+2. Criar um report **`Sum`** (não Lagrangian Mass Flow!) dessa field function,
+   com **Parts = boundary `outlet_dust`** → esse é o **MFR_bottom**.
+
+3. Eficiência por **Expression Report**:
+```
+η = 1 − (MFR_inlet − MFR_bottom) / MFR_inlet        ( = MFR_bottom / MFR_inlet )
+```
+   com **MFR_inlet = 0,0027778 kg/s** (o que injetamos).
+
+4. ⚠️ **Ativar `Boundary Sampling`** nos modelos da fase — a KB diz explicitamente que é o que
+   salva *"information at the boundaries"*. Eu tinha dito que não precisava. **Precisa.**
+
+## 15.3 Balanço de massa (também da KB)
+Field function **`injectedmass`** → report **`sumInjectedMass`** (Field Sum) → **Total Injected Mass**
+= valor **Max** do field sum. E no `Outlet_gas`, um Field Sum de `Incident Mass Flux` mede a emissão.
+Fecha o balanço com instrumentos do mesmo tipo nas duas pontas (melhor que misturar report de fluxo
+com report de incidência).
+
+---
+
+# PARTE 16 — O que as Best Practices da Siemens confirmam e o que contrariam
+
+## ✅ Confirmam o que fizemos
+| Prática Siemens | Nosso caso |
+|---|---|
+| *"run a steady state solution first to get a stable flow field prior to Lagrangian injection"* | ✅ exatamente a nossa Etapa A |
+| Refinar a **região central** (núcleo do vórtice precessante) | ✅ nosso volumetric control cilíndrico |
+| **Mass Flow / Pressure Outlet** como BCs recomendadas | ✅ |
+| LMP em vez de **DEM** quando α < 10 % | ✅ nosso α = 1,16e-4 |
+| *"k-omega with curvature correction may be sufficient for simpler cases"* | ✅ sanciona o nosso caminho K-ω SST + CC |
+| Critério de parada extra por velocidade **tangencial** estável | ⏳ vale adicionar |
+
+## ⚠️ Contrariam / apontam melhoria
+| Prática Siemens | Nós fizemos | Peso |
+|---|---|---|
+| **Trimmed mesher (hexaédrico)** — *"the best type of mesh for cyclones"*, células alinhadas ao escoamento, **minimiza difusão numérica** | **Polyhedral** (Surface Remesher + Polyhedral) | ⚠️ real, mas a nossa malha já validou ΔP em 1,2 % — não invalida, entra como **melhoria futura / teste de malha** |
+| **RST (Reynolds Stress Transport)** com **Elliptic Blending** é *"most appropriate"*; modelos isotrópicos *"over predict turbulent viscosity and exaggerate the forced vortex"* | K-ω SST | ⚠️ já estava no plano (item 7). A KB **nomeia a variante**: **Elliptic Blending**, não o RST clássico |
+| **Injeção Lagrangeana no TRANSIENTE** (*"prior to transient / Lagrangian injection"*, *"before running the unsteady simulation"*) | Lagrangeano **steady** | ⚠️ ver §16.1 |
+
+## 16.1 Steady × transiente para o Lagrangeano — a decisão
+A Siemens enquadra o ciclone Lagrangeano como **transiente**. O nosso steady com campo congelado é
+uma primeira passada **legítima** (é o padrão da literatura para levantar curva de grade, e é ~50×
+mais barato), **mas** ele não vê o **PVC** (vórtice precessante), que é justamente o que mexe nos
+finos.
+
+> **Plano:** levantar a curva η×d no **steady** (barato, 8 classes, tendência confiável) e depois
+> **reproduzir 2 ou 3 classes no transiente** (5 µm, 10 µm, 50 µm). Se o η dos finos mudar muito,
+> a curva final vai para o transiente. Isso transforma o custo em **verificação declarada** em vez
+> de uma escolha não justificada.
