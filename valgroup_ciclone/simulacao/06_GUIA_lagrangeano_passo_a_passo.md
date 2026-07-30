@@ -691,3 +691,63 @@ direto** — o cuidado é só com a tabela manual.)*
 
 Nosso caso: célula ~5 mm × partícula 50 µm = razão **100:1 linear (10⁶ em volume)** → a hipótese
 vale com folga enorme. **Não precisamos do two-grid.**
+
+---
+
+# PARTE 19 — 🔑 `Track File` × `Boundary Sampling`: são coisas DIFERENTES
+
+> Este foi o bloqueio real para ler a eficiência. Fonte: blog VOLUPE (parceiro Siemens) +
+> KB000040310. Explica também por que o report no `Outlet_gas` funcionava e o do `outlet_dust` não.
+
+## 19.1 As duas opções de `Track Sampling` fazem coisas opostas
+
+| | **Track File** | **Boundary Sampling** |
+|---|---|---|
+| O que grava | a **trajetória inteira** de cada parcela | o que acontece **quando a parcela toca uma boundary** |
+| Onde vive | **arquivo em disco** | **na memória, durante a rodada** |
+| Para que serve | **visualização** (cena de trajetórias) | **reports e monitores** ⭐ |
+| Precisa salvar/carregar? | **sim** | **não** |
+
+Citação (VOLUPE):
+> *"Boundary sampling is a way of tracking Lagrangian parcels and their interaction with specific
+> boundaries and can be used as an **alternative to using track files**. Contrary to using track files,
+> the boundary sampling function allows you to **monitor the progression of particle properties as
+> your simulation is running without having to save the simulation or loading track files**."*
+
+> 🚨 **O `Track File` NÃO alimenta report nenhum.** Ele é um arquivo de desenho. O objeto
+> `Particle Tracks` da árvore é um **leitor** desse arquivo — por isso clicar nele só redesenha
+> linhas e nunca mexe num número.
+
+## 19.2 Isso explica TODO o comportamento estranho que vimos
+
+| Report | Boundary | Funcionou? | Por quê |
+|---|---|---|---|
+| `mdot_gas_050` | `Outlet_gas` (**Pressure Outlet** = fronteira de escoamento) | ✅ platô limpo em 0,0027 | há **fluxo atravessando**; o report de vazão mede isso nativamente |
+| `mdot_dust_050` | `outlet_dust` (**Wall**) | ❌ ruído entre 0 e 1,2e-4 | por uma parede **não atravessa fluxo**. O dado de partícula na parede só existe **se Boundary Sampling estiver ligado** |
+
+**Não era bug nem sorte: eram dois instrumentos diferentes, um deles desligado.**
+
+## 19.3 A correção
+1. `char_050um → Models → Select Models…` → **☑ `Boundary Sampling`**
+   *(fica no group box `Track Sampling`, ao lado do `Track File` — pode deixar os dois ligados)*
+2. Aparece um nó **`Boundary Sampling`** sob os modelos da fase → **selecionar as boundaries a
+   amostrar**: `outlet_dust` ⭐ e `Outlet_gas`.
+3. Agora o field function **`Incident Mass Flux of Phase`** tem dado nessas faces.
+4. Criar a Field Function e o report **`Sum`** conforme a KB (Parte 15):
+```
+   User Field Function:  $IncidentMassFluxPhase1 * mag($$Area)      [kg/s por face]
+   Report:  Sum  ·  Parts = outlet_dust                            = MFR_bottom
+   η = MFR_bottom / 0,0027778
+```
+5. **`Step` ×1** (com Flow/Energy/Turbulence congelados) → o report tem valor.
+
+## 19.4 A frase da Best Practices que já dizia isso
+> *"By enabling **the particle tracks AND boundary sampling** the trajectory of particles in the domain
+> **and information at the boundaries** would be saved."*
+
+São **dois** itens para **duas** finalidades. Ligar só o Track File dá **trajetória sem número**.
+
+## 19.5 📌 Armadilha nº7
+**`Track File` ligado e `Boundary Sampling` desligado** → você enxerga as partículas, a cena fica
+linda, e **nenhum report de captura funciona**. O sintoma é exatamente "vejo a trajetória mas não
+consigo ler a eficiência".
