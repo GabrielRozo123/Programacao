@@ -1239,3 +1239,81 @@ elástico"), mas num ciclone a partícula impacta ~1.250×/s e a perda **acumula
 partícula. Sintoma: parcelas lentas coladas na parede, sub-steps esgotados, e nenhuma captura.
 **Para a componente tangencial, comece em 1,0** e trate valores menores como estudo de sensibilidade
 — **nunca como default.**
+
+---
+
+# PARTE 27 — ⚠️ BCs Lagrangeanas: `Walls` e `outlet_dust` são o MESMO TIPO
+
+> Fontes: *Setting Default Lagrangian Phase Boundary Conditions* e *Setting Lagrangian Phase
+> Boundary Conditions for a Specific Boundary*.
+
+## 27.1 Existem DOIS níveis de configuração
+| Nível | Onde | Alcance |
+|---|---|---|
+| **Default por TIPO** | `char_050um → Boundary Conditions → [Wall / Pressure Outlet / …]` | **todas** as boundaries daquele tipo |
+| **Override por BOUNDARY** | `[boundary] → Physics Conditions → **Lagrangian Specification** → Method = **Specify for Boundary**` | só aquela boundary |
+
+Doc:
+> *"The properties of a boundary type sub-node define the interaction mode of the Lagrangian phase
+> for boundaries of that type, **unless the mode is over-ridden at a specific boundary**."*
+> *"**Specify for Boundary** — Specifies that specific boundary conditions are provided… A **Phase
+> Conditions** sub-node is added as a child to the **Physics Values** node for this boundary."*
+
+## 27.2 🚨 A armadilha do NOSSO caso
+```
+Walls        →  Type = Wall     →  queremos REBOUND
+outlet_dust  →  Type = Wall     →  queremos ESCAPE
+                       ↑
+              MESMO TIPO. O default é UM SÓ.
+```
+
+> **Um dos dois OBRIGATORIAMENTE precisa de override.** Se `outlet_dust` estiver herdando o default
+> do tipo `Wall` (que é **Rebound**), **o pó QUICA no fundo e volta para o vórtice** — e a
+> eficiência sai perto de zero, sem nenhum aviso.
+
+## 27.3 ✅ Checklist de verificação (uma a uma)
+
+### `Walls` — deixe no DEFAULT do tipo
+`char_050um → Boundary Conditions → **Wall** → Mode`
+| | valor |
+|---|---|
+| Mode | **Rebound** |
+| Normal Restitution Coefficient | **0,8** |
+| **Tangential Restitution Coefficient** | **1,0** ⬅️ *(corrigido — ver Parte 26)* |
+
+### `outlet_dust` — PRECISA de override ⭐
+```
+Regions → Ciclone → Boundaries → outlet_dust → Physics Conditions → Lagrangian Specification
+    Method = **Specify for Boundary**            ⬅️ sem isto, o resto nem existe
+→ aparece Phase Conditions → char_050um → Physics Conditions → Mode
+    Active Mode = **Escape**                     ⬅️ = CAPTURADA
+```
+E no nível do gás: `outlet_dust → Type = **Wall**` *(não mexer)*
+
+### `Outlet_gas` — nada a fazer
+`Type = Pressure Outlet` → único modo possível para Material Particle é **Escape**, automático.
+`Phase Conditions → char_050um → Type` deve estar em **`Pressure Outlet`**, **não** em
+`Phase Impermeable`.
+
+### `Inlet` — nada a fazer
+`Type = Velocity Inlet` → único modo é **Escape**, automático.
+`Phase Conditions → char_050um → Type` deve estar em **`Velocity Inlet`**, **não** em
+`Phase Impermeable`.
+
+## 27.4 O teste que confirma sem depender de report
+Se `outlet_dust` estiver com **Escape**, as parcelas **desaparecem** ao chegar no ápice.
+Se estiver herdando **Rebound**, elas **acumulam** ali e voltam a subir.
+> **Olhe o ápice do cone na cena de parcelas.** Sumiram = Escape ✅ · Acumularam = herdou Rebound ❌
+
+## 27.5 📌 Armadilha nº15
+**Duas boundaries do mesmo TIPO com comportamentos Lagrangeanos opostos.** No ciclone isso é
+inevitável: a saída de pó é `Wall` para o gás (airlock) mas `Escape` para a partícula, enquanto o
+corpo é `Wall`+`Rebound`. **A que difere do default precisa de `Specify for Boundary` explícito.**
+Herdar silenciosamente é o modo de falha.
+
+## 27.6 Nota sobre "o escoamento de partícula não se desenvolveu"
+Em **steady**, cada iteração **regenera a solução Lagrangeana inteira do zero** (Parte 18.4).
+Não existe "desenvolvimento" ao longo das iterações.
+> **N iterações = N realizações estatísticas independentes**, não N passos de desenvolvimento.
+> Isso é útil (média para as classes finas, onde a dispersão turbulenta é estocástica),
+> mas **uma** iteração já contém a resposta completa para as classes grossas.
