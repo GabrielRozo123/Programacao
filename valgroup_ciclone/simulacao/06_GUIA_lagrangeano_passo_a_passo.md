@@ -1105,3 +1105,74 @@ values during the calculation."*
 reescrito, e **todos os reports respondem zero — que é a resposta correta para "não há dado"**.
 Nenhuma mensagem de erro aparece. **Conferir `Frozen` é o primeiro passo de qualquer depuração
 Lagrangeana**, antes de mexer em qualquer parâmetro físico.
+
+---
+
+# PARTE 25 — 💰 A economia do sub-passo: Courant, não força bruta
+
+**Confirmado experimentalmente:** `Maximum Sub-Steps` **é** o limitante. Com **200.000** o voo chegou a
+**13,4 s** (legenda de residência) e as trajetórias avançaram — mas ainda não descem o cone.
+
+## 25.1 Não aumente N. Aumente o dt.
+```
+sub-passo médio medido = 13,4 s / 200.000 = 6,70e-5 s   (~1,14 mm por passo a 17 m/s)
+```
+
+| Caminho | Como | Custo |
+|---|---|---|
+| ❌ **Força bruta** | 30 s → 448.000 sub-steps | **2,2× CPU** |
+| | 60 s → 896.000 | **4,5× CPU** |
+| | 100 s → 1.493.000 | **7,5× CPU** |
+| ✅ **Courant** | ×2 → 27 s com os mesmos 200.000 | **CPU igual** |
+| | ×4 → 54 s | **CPU igual** |
+| | ×8 → 107 s | **CPU igual** |
+
+## 25.2 Os dois botões (Lagrangian Multiphase Solver Reference)
+> **Maximum Courant Number** — *"provides an upper bound for the local time-step.
+> **Reducing** this value can increase accuracy, at the expense of CPU time."*
+> **Minimum Courant Number** — *"provides a **lower bound** for the local time-step."*
+
+| Botão | O que faz | Por que importa aqui |
+|---|---|---|
+| **Maximum Courant Number ↑** | permite passos maiores em geral | ganho global de velocidade |
+| **Minimum Courant Number ↑** ⭐ | **impede o dt de colapsar em célula minúscula** | ⭐ a parcela vive na **camada de prismas** (0,1–0,3 mm), dimensionada para o **y+ do GÁS** — resolução **100× mais fina do que a partícula precisa**. É ali que os sub-passos são queimados |
+
+> 🎯 **A prism layer existe para resolver a camada-limite do gás.** Para a trajetória da partícula
+> ela é **desperdício puro** de sub-passos. O `Minimum Courant Number` é o botão feito exatamente
+> para isso: põe um **piso** no dt quando a célula é pequena demais para importar.
+
+**Sugestão:** subir **Maximum Courant** para ~2–5 e **Minimum Courant** junto. Rodar e comparar a η
+com a rodada de Courant baixo — se mudar <2 %, está documentado como verificação de convergência
+temporal. *(Já estamos em `2nd-order`, que tolera passo maior.)*
+
+## 25.3 ⭐ A alternativa estratégica: entregar a η como FAIXA
+Em vez de brigar para resolver a esteira de parede, rodar **as duas convenções** e entregar o
+intervalo. É o que a literatura de ciclones faz.
+
+| Convenção | Config | Significado | Custo |
+|---|---|---|---|
+| **Captura na moega** *(atual)* | `Walls` **Rebound** + `outlet_dust` **Escape** | partícula tem de **chegar** ao fundo | caro — precisa resolver o quique na parede |
+| **Captura na parede** | `Walls` → **Escape** | **tocou a parede = capturada** | **barato** — a parcela termina no 1º contato |
+
+```
+η(captura na parede)  ≥  η_real  ≥  η(captura na moega)
+```
+- **Limite superior:** ignora re-entrainment → otimista
+- **Limite inferior:** parcela que fica presa na esteira e é deletada conta como perdida → pessimista
+
+> **A rodada de "captura na parede" é rápida** (sem quique, sem esteira) e sozinha já dá o
+> **limite superior** da curva η×d. Vale rodar **primeiro**: em minutos você tem a forma da curva
+> e sabe se o joelho está em ~8 µm como o analítico prevê.
+
+## 25.4 Ordem recomendada
+1. **Courant ↑** (Max ~2–5, Min junto) → refaz a rodada atual com o mesmo CPU
+2. Se ainda não descer: rodar **`Walls → Escape`** (captura na parede) → curva η×d **completa e rápida**
+3. Voltar ao `Rebound` só para as 2–3 classes críticas → **a faixa**
+4. Relatório: **declarar as duas convenções** e entregar o intervalo
+
+## 25.5 📌 Sobre os reports ainda em zero / NaN
+`Total: NaN — no data, incomplete computation` e `Outlet_gas = 0` são **coerentes** com o estado
+atual: se as parcelas ainda são deletadas por sub-steps **antes** de tocar qualquer boundary de
+Escape, **nenhuma** chega — nem embaixo nem em cima. Os reports estão certos; falta a parcela chegar.
+> ⚠️ Notar também: o report saiu como *"Sum of User Field Function 1 **on Volume Mesh**"*.
+> `Incident Mass Flux` é função de **BOUNDARY** — conferir se `Parts` está na boundary e não no volume.
