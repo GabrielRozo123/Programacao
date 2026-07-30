@@ -967,3 +967,47 @@ depois de reler com **track file fresco** (Auto-Load ligado + sim salva).
 você "corrige" parâmetros olhando um resultado velho. Combinada com a nº7 (Boundary Sampling
 desligado) e a nº11 (`Temporary Storage Retained` desligado), formam o trio que faz o Lagrangeano
 "rodar sem produzir nada".
+
+---
+
+# PARTE 23 — ✅ RETRATAÇÃO da Parte 21: estava tudo saudável, era o arquivo errado
+
+**O que aconteceu:** existiam **DOIS** track files na pasta —
+`ciclone_100_lagrangeano.trk` (velho) e `ciclone_100_lagrangeano_Copy.trk` (novo).
+A cena estava apontada para o **velho**. Ao trocar o arquivo, a legenda de residência mudou de
+**0–10 s** para **0–1,38 s**.
+
+## 23.1 O número correto muda o diagnóstico por completo
+| | valor |
+|---|---|
+| Residência do **gás** | 0,48 s |
+| **Residência MÁXIMA das parcelas** | **1,38 s** |
+| Razão partícula/gás | **2,9×** |
+| Teto configurado | 100 s → **usado só 1,4 %** |
+
+> ✅ **Nenhuma parcela está sendo morta pelo limite de tempo.**
+> ✅ **2,9× a residência do gás é exatamente o esperado** para partícula grossa em espiral.
+> ❌ **A "esteira de parede a 43,5 mm/s" da Parte 21 está RETRATADA** — foi calculada
+> supondo 10 s de travessia, e os 10 s eram o **teto da rodada anterior**, lido de arquivo velho.
+
+## 23.2 E por que as trajetórias "não descem o cone" na imagem
+Se as parcelas terminam em 1,38 s sem bater no teto, **elas terminaram numa boundary de Escape**
+— ou seja, **chegaram** ao `outlet_dust` ou ao `Outlet_gas`.
+**As trajetórias no cone provavelmente estão ESCONDIDAS atrás da superfície opaca do cone.**
+
+**Correção:** superfície do corpo → **`Opacity = 0,2`**.
+
+## 23.3 📌 Armadilha nº12 — mais de um track file na pasta
+Cada `Save As` gera um `.trk` com o nome do arquivo. Se você salvou com nomes diferentes ao longo
+do estudo, sobram vários `.trk`, e o nó `Particle Tracks` fica apontado para **um deles**, não
+necessariamente o mais recente.
+> **Antes de interpretar qualquer cena de trajetória:** confira **qual arquivo** está carregado em
+> `Tools → Track Files`, e confira a **data** dele. Foi o que produziu três diagnósticos errados
+> em sequência (Partes 17, 20 e 21) — todos lidos de um arquivo congelado.
+
+## 23.4 A lição metodológica
+Passamos três rodadas ajustando parâmetros (`Maximum Residence Time`, `Maximum Sub-Steps`,
+`Tracking Integration Method`) **olhando um resultado que não mudava porque não podia mudar**.
+> **Regra:** quando uma mudança de parâmetro **não produz nenhuma mudança** no resultado, a primeira
+> hipótese não é "o parâmetro não era esse" — é **"eu não estou olhando o resultado novo"**.
+> Verificar a frescura do dado **antes** de reinterpretar a física.
