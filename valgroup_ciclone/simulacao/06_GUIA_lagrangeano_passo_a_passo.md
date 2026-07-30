@@ -888,3 +888,82 @@ o `Maximum Residence Time` pela residência do **gás** (0,48 s × 20 = 10 s) **
 tem de ser dimensionado pela **velocidade de descida da esteira**, que só se conhece **depois** de
 uma primeira rodada. **Rode uma vez, meça a velocidade de descida na cena de residência, e só então
 fixe o teto.**
+
+---
+
+# PARTE 22 — 🔑 As duas frases que destravam a leitura
+
+> Fontes: *Track File Model Reference*, *Boundary Sampling Model Reference*,
+> *Lagrangian Multiphase Solver Reference* (STAR-CCM+ User Guide).
+
+## 22.1 Por que a cena "não atualiza" — o track file é TEMPORÁRIO até você salvar
+
+> *"A **temporary** track file is created while the simulation runs. **You are required to SAVE the
+> simulation** so that this temporary track file is moved to a final file having the same name as the
+> simulation. **Only the final file can be brought into Simcenter STAR-CCM+ for analysis.**"*
+
+E:
+> **Auto-Load** — *"When activated, the track file is automatically reloaded whenever the file is written
+> to hard disk by the Track File solver. **By default, this property is DEACTIVATED.**"*
+
+**O ciclo obrigatório é de três passos, não dois:**
+```
+1. Step            → o solver escreve um track file TEMPORÁRIO
+2. SALVAR a .sim   → o temporário vira o arquivo FINAL (.trk)
+3. recarregar      → o Particle Tracks lê o final  ← só automático se Auto-Load = On
+```
+
+> 🚨 **Sem o passo 2 você fica olhando o track file da rodada ANTERIOR, indefinidamente.**
+> Sintoma: você muda um parâmetro, dá Step, e a cena fica **idêntica** — inclusive a **legenda**.
+> *(Foi o que aconteceu: `Maximum Residence Time` foi para 100 s e a legenda continuou 0–10 s.
+> 10 s era o teto da rodada anterior — a cena era do arquivo velho.)*
+
+**Correção:** `Tools → Track Files → [arquivo] → **Auto-Load = On**`, e **salvar após cada Step**.
+
+## 22.2 Por que os reports leem zero — `Temporary Storage Retained`
+
+Do *Lagrangian Multiphase Solver Reference*:
+> **Temporary Storage Retained** — *"When On, **retains** or deactivates temporary storage at the end of
+> the iteration… **These quantities become available as field functions during subsequent iterations**."*
+
+**Por default o STAR DESCARTA os dados Lagrangeanos ao fim da iteração.** O field function
+`Incident Mass Flux of Phase` fica sem dado no momento em que você roda o report — e o report
+responde **zero**, corretamente, para "não há dado".
+
+**Correção:** `Solvers → Lagrangian Multiphase → **Temporary Storage Retained = On**`
+
+## 22.3 Como o Boundary Sampling realmente entrega o dado
+> *"The Boundary Sampling model differs from the Track File model in that **it does not have a file
+> associated with it. Sampled quantities are stored in memory**, and are accessed through **particle
+> track PARTS that are added to the Particle Tracks node** when boundaries are added to the Boundaries
+> property. **One particle track part is added for each boundary** selected."*
+
+⭐ Ou seja: ao selecionar `outlet_dust` e `Outlet_gas` no Boundary Sampling, **nasceram duas novas
+parts** sob `Particle Tracks`. **São ELAS que vão como `Parts` do report** — não a boundary.
+
+E o modelo grava **automaticamente**, sem você pedir:
+`Parcel Index` · `Particle Residence Time` (steady) · **`Particle Flow Rate`** (steady) · `Parcel Centroid`
+
+### O caminho alternativo (independente do Incident Mass Flux)
+`Particle Flow Rate` = **partículas por segundo** de cada parcela. Como o diâmetro é único:
+```
+m_particula = ρ_p · (π/6) · d³ = 1500 · (π/6) · (5e-5)³ = 9,817e-11 kg
+Report: Sum
+   Scalar = ${TrackParticleFlowRate} * 9.817e-11
+   Parts  = [a particle track part do outlet_dust]
+→ kg/s capturados
+```
+**Dois instrumentos independentes** para o mesmo número — se baterem, o resultado é sólido.
+
+## 22.4 ⚠️ Consequência: o diagnóstico da Parte 21 precisa ser RECONFERIDO
+A cena que embasou a conclusão da "esteira de parede a 43,5 mm/s" foi lida de um track file
+**da rodada com teto de 10 s**. Era válida **para aquela rodada**, mas a conclusão só se sustenta
+depois de reler com **track file fresco** (Auto-Load ligado + sim salva).
+> **Primeiro consertar a leitura, depois reinterpretar a física.** Não dá para diagnosticar
+> escoamento com instrumento congelado.
+
+## 22.5 📌 Armadilha nº10
+**Track file temporário + `Auto-Load` desligado** → a cena mostra a rodada anterior para sempre, e
+você "corrige" parâmetros olhando um resultado velho. Combinada com a nº7 (Boundary Sampling
+desligado) e a nº11 (`Temporary Storage Retained` desligado), formam o trio que faz o Lagrangeano
+"rodar sem produzir nada".
