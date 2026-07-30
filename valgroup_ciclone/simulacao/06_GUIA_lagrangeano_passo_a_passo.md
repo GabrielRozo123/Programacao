@@ -582,3 +582,112 @@ errada**. O balanço detecta parcela deletada, **não** detecta física errada.
 4. ⚠️ **Verificar a Etapa A:** se o ΔP com `Wall` **não** voltar aos 2.894 Pa, então os resultados
    da Etapa A foram obtidos com `Outlet` e precisam ser refeitos. Se voltar, a Etapa A está de pé.
 5. Rodar 1 iteração Lagrangeana. **η(50 µm) esperado: 95–99 %.**
+
+---
+
+# PARTE 18 — 📖 O que a documentação oficial resolve (4 páginas do User Guide)
+
+> Fontes: *Boundary Interaction Modes Reference* · *Setting a Phase Impermeable Boundary* ·
+> *Solution Methodology* · *Particle Injection* (STAR-CCM+ 21.02 User Guide).
+
+## 18.1 ❌ `Phase Impermeable` no `Outlet_gas` — REVERTER
+
+**O que `Phase Impermeable` faz** (citação):
+> *"particles **do not pass through** the boundary; instead they interact with the boundary **as if it
+> were a wall**. Fluid in the continuous phase continues to pass through as normal."*
+
+Ou seja: o gás sai, **a partícula bate numa parede**. É o oposto do que queremos na saída de gás.
+
+**E não é necessário.** A tabela oficial de modos:
+
+| Boundary Type | Material Particle Interaction Modes |
+|---|---|
+| **Pressure Outlet** | **Escape** *(único — automático)* |
+| Velocity Inlet / Mass Flow Inlet / Outlet | Escape *(único)* |
+| **Wall** | Bai-Gosman · Bai-ONERA · Composite · **Escape** · Ice Accretion · **Rebound\*** · Satoh · Splash · Stick · VOF/MMP Conversion |
+| **Phase Impermeable** | Bai-Gosman · Bai-ONERA · Composite · **Escape** · **Rebound\*** · Satoh · Splash · Stick · Vaporize |
+
+`*` = **default**
+
+> **`Pressure Outlet` já tem Escape como único modo possível** — não existe nada para configurar,
+> a partícula sai sozinha. Não há motivo para tornar a fronteira impermeável.
+>
+> 🚨 **E o risco é concreto:** o default do `Phase Impermeable` é **Rebound**. Se o Mode reverter
+> (ou você esquecer de setar), as partículas **quicam de volta para dentro do ciclone** na saída de
+> gás, nunca são contadas como emissão, e a **η fica artificialmente ALTA**. Erro na direção
+> otimista — o pior tipo, porque o resultado "parece bom".
+
+**Ação:** `Outlet_gas → Phase Conditions → char_050um → Type` = **de volta ao default** (permeável).
+
+## 18.2 ✅ `outlet_dust` = Wall + Mode **Escape** — confirmado, mas ATENÇÃO ao default
+A tabela mostra que `Wall` **aceita** Escape ✅ — mas o **default de Wall é Rebound**.
+> **Escape em `outlet_dust` tem de ser setado à mão, sempre.** Se ficar no default, o pó quica no
+> fundo e volta para o vórtice → **η artificialmente baixa**.
+
+## 18.3 ✅ Para que serve o `Lagrangian Specification` (a dúvida que ficou aberta)
+> *"Select the `Physics Conditions > Lagrangian Specification` node of the parent boundary and set
+> **Method to `Specify for Boundary`**. The Physics Conditions and Physics Values manager nodes
+> appear beneath the impermeable boundary node for the phase."*
+
+É o **interruptor que expõe as opções por-boundary**. Sem `Specify for Boundary`, a boundary herda
+a configuração da fase.
+
+## 18.4 ✅ O MARCUS ESTÁ CERTO — e aqui está a citação
+
+**Steady Procedure**, textual:
+> *"The procedure in each iteration is: **Deactivate the Lagrangian Multiphase solution.** Generate the
+> Lagrangian Multiphase solution by time-marching each parcel **until it has left the computational
+> domain**, or has been removed, or until the user-specified maximum residence time is reached."*
+
+**Cada iteração JOGA FORA a solução Lagrangeana anterior e a regenera do zero, do nascimento ao
+Escape.** Não há acumulação entre iterações → **1 iteração após o campo convergir = a resposta
+completa.** Exatamente o que o Marcus disse.
+
+Dois detalhes que vêm de brinde:
+1. *"These two steps are executed in each iteration of the steady solver, **before the flow solver**."*
+   → o Lagrangeano de uma iteração usa o campo da **anterior**. Com campo convergido, indiferente.
+2. *"the steady solution consists of Tracks... Cell fields... **Boundary fields such as incident mass
+   flux**."* → **`Incident Mass Flux` é literalmente a solução steady do modelo.** Confirma que o
+   método da KB (Parte 15) é o instrumento correto, e não uma gambiarra.
+
+## 18.5 ⚠️ CORREÇÃO: o que `Parcel Streams` realmente é
+
+Eu descrevi como "quantas parcelas por face". **A definição oficial é outra:**
+> *"STAR-CCM+ generates parcel sizes by **dividing the distribution into ranges of equal mass**,
+> volume, or number. **The number of ranges IS the number of parcel streams** for the injector."*
+> *"Each parcel represents **a statistical sample**, one sample per parcel."*
+
+| Caso | Parcel Streams |
+|---|---|
+| **`Particle Diameter = Constant`** (o nosso agora) | **1 basta** — só existe um tamanho para amostrar |
+| **Distribuição** (Rosin-Rammler / Table CDF) | 🚨 **é a DISCRETIZAÇÃO da distribuição** |
+
+> 🚨 **Armadilha nº6 (para a rodada de confirmação):** com uma distribuição e `Parcel Streams = 1`,
+> o STAR divide a PSD em **UMA faixa** → você injeta **um tamanho só** e acha que injetou a
+> distribuição. Use **20–50 streams** quando a PSD entrar.
+
+## 18.6 📐 A CDF na forma que o STAR espera (para a rodada de confirmação)
+> *"When the **mass flow rate** is specified, the CDF gives the fraction of the mass flow rate of the
+> injector with a size **smaller** than d."*
+
+⚠️ **UNDERSIZE.** A nossa Rosin-Rammler R(d) era **oversize** → a tabela precisa de **F = 1 − R**.
+*(A RR do STAR é a forma Weibull `F(d)=1−exp(−(d/d′)ⁿ)`, então **d′=1,486e-4 m e n=2,88 servem
+direto** — o cuidado é só com a tabela manual.)*
+
+**Tabela pronta (dados brutos da PSD estimada, sem ajuste):**
+
+| d [m] | CDF (massa undersize) |
+|---|---|
+| 2,00e-5 | 0,000 |
+| 7,50e-5 | 0,131 |
+| 1,50e-4 | 0,643 |
+| 4,25e-4 | 1,000 |
+
+*(A doc exige valores **estritamente crescentes** — sem duplicatas.)*
+
+## 18.7 Nota sobre Two-Way Coupling (quando ligarmos)
+> *"Two-way coupling assumes that the fluid cell volume is large compared to the particle size...
+> a **two-grid procedure** clusters groups of contiguous cells."*
+
+Nosso caso: célula ~5 mm × partícula 50 µm = razão **100:1 linear (10⁶ em volume)** → a hipótese
+vale com folga enorme. **Não precisamos do two-grid.**
