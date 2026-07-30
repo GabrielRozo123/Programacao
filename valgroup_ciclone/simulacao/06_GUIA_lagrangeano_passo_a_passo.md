@@ -751,3 +751,65 @@ São **dois** itens para **duas** finalidades. Ligar só o Track File dá **traj
 **`Track File` ligado e `Boundary Sampling` desligado** → você enxerga as partículas, a cena fica
 linda, e **nenhum report de captura funciona**. O sintoma é exatamente "vejo a trajetória mas não
 consigo ler a eficiência".
+
+---
+
+# PARTE 20 — 🚨 O OUTRO limite de parada: `Maximum Sub-Steps`
+
+> `Maximum Residence Time` **não é o único** critério que mata uma parcela. No mesmo painel
+> (`Solvers → Lagrangian Multiphase → Steady`) existe **`Maximum Sub-Steps`**, default **20.000**.
+
+## 20.1 Por que 20.000 sub-passos podem valer só 0,1 s de voo
+A parcela é integrada com um **sub-passo LOCAL**, limitado pelo Courant **da célula em que ela está**:
+```
+dt = C · dx / v          tempo total de voo = N_sub_steps × dt
+```
+
+| célula dx | dt (C≈0,5, v=17 m/s) | voo com 20.000 sub-steps |
+|---|---|---|
+| 5,0 mm (núcleo) | 1,5e-4 s | 2,94 s |
+| 1,0 mm | 2,9e-5 s | 0,59 s |
+| 0,5 mm | 1,5e-5 s | 0,29 s |
+| **0,2 mm** (prism layer) | 5,9e-6 s | **0,118 s** ⬅️ |
+| 0,1 mm | 2,9e-6 s | 0,059 s |
+
+**E é justamente aí que a nossa partícula viaja.** O tempo de relaxação da partícula de 50 µm é
+**τ_p = 2,2 ms** — ela é jogada contra a parede quase instantaneamente e desce **dentro da camada de
+prismas**, onde as células são finíssimas. O sub-passo despenca e os 20.000 acabam em ~0,1 s.
+
+**Sintoma observado:** trajetórias param **no meio do ar** após ~2 voltas (≈0,107 s de arco),
+sem tocar boundary nenhuma → bate com célula de 0,1–0,2 mm.
+
+## 20.2 ⚠️ Por que isso engana mais que o Maximum Residence Time
+São **dois critérios independentes**, e configurar um **não protege** contra o outro:
+
+| Critério | Unidade | Intuitivo? |
+|---|---|---|
+| `Maximum Residence Time` | **segundos** | ✅ dá para estimar (residência do gás × N) |
+| **`Maximum Sub-Steps`** | **contagem** | ❌ o tempo que ele compra **depende da malha** |
+
+> Você pode setar 10 s corretamente e ainda assim a parcela morrer em 0,1 s — porque quem manda é
+> o **produto** `N × dt`, e o `dt` é escolhido pelo solver célula a célula. **Refinar a malha
+> ENCURTA o voo** para o mesmo `Maximum Sub-Steps`. É uma armadilha que piora quanto melhor
+> for a sua malha.
+
+## 20.3 A checagem decisiva (não é palpite)
+Com `Verbosity = High` e `Sub-Step Reporting Frequency = 1000`, o STAR **escreve no `Output` o motivo
+do encerramento de cada parcela**. Leia a mensagem: ela diz literalmente se foi
+*maximum residence time* ou *maximum number of sub-steps*.
+> **Sempre ler a mensagem antes de mexer no parâmetro.** Os dois sintomas são idênticos na cena.
+
+## 20.4 A correção
+```
+Solvers → Lagrangian Multiphase → Steady → Maximum Sub-Steps = 500000   (de 20000)
+```
+Custo: só aumenta o **teto**. Parcela que sai do domínio encerra na hora; o limite só age em quem
+ficaria preso mesmo.
+
+**Se ficar lento**, a alavanca seguinte é o Courant do sub-passo (deixa o `dt` maior), mas isso
+custa precisão — mexer só se necessário.
+
+## 20.5 📌 Armadilha nº8
+**`Maximum Sub-Steps` no default (20.000)** com malha refinada / prism layers finas → a parcela é
+deletada **antes de atravessar o equipamento**, sem aviso, mesmo com `Maximum Residence Time` correto.
+**Os dois têm de ser conferidos juntos.**
