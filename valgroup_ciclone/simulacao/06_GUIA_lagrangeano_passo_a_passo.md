@@ -1176,3 +1176,66 @@ atual: se as parcelas ainda são deletadas por sub-steps **antes** de tocar qual
 Escape, **nenhuma** chega — nem embaixo nem em cima. Os reports estão certos; falta a parcela chegar.
 > ⚠️ Notar também: o report saiu como *"Sum of User Field Function 1 **on Volume Mesh**"*.
 > `Incident Mass Flux` é função de **BOUNDARY** — conferir se `Parts` está na boundary e não no volume.
+
+---
+
+# PARTE 26 — 🎯 CAUSA RAIZ: a restituição TANGENCIAL de 0,9 freia a partícula até parar
+
+**Evidência (cena de parcelas coloridas por `Particle Velocity Magnitude`, 0,099–27,6 m/s):**
+anel denso de parcelas **azul-escuro (~0,1–2 m/s)** colado à parede, enquanto o gás ali passa a
+**15–27 m/s**. Elas **não estão descendo — estão freando.**
+**Output:** `2180 parcel(s) reached maximum number of sub-steps`.
+
+## 26.1 A aritmética do freio
+Cada impacto remove **10 %** da velocidade tangencial (`e_t = 0,9`):
+
+| queda para | impactos necessários |
+|---|---|
+| 50 % | **6,6** |
+| **10 %** | **21,9** |
+| 1 % | 43,7 |
+
+E a **frequência de impacto** é altíssima, porque a centrífuga devolve a parcela imediatamente:
+```
+excursão após o quique  = 0,16 mm       (sob 203 g)
+tempo de ida e volta    = 0,80 ms       → um impacto a cada 0,8 ms
+tempo do arrasto para reacelerar (τ_p)  = 2,19 ms
+```
+> **Os impactos são 2,7× mais frequentes que a recuperação pelo arrasto.**
+> O gás não consegue reacelerar a partícula entre um quique e o outro → **decaimento líquido**.
+> **Em ~18 ms a parcela está a 10 % da velocidade.** Depois disso só chacoalha parada, queimando
+> sub-steps até o limite. **É exatamente o anel azul da cena.**
+
+## 26.2 ⚠️ Isso é ARTEFATO DE MODELO, não física
+No ciclone real a partícula **desliza** pela parede continuamente reacelerada pelo gás. O modelo
+`Rebound` com `e_t < 1` aplica uma perda tangencial **a cada impacto**, e com ~1.250 impactos por
+segundo isso vira um freio que **não existe no equipamento**.
+
+**Eu escolhi 0,8/0,9 argumentando "char contra aço".** O argumento vale para a componente
+**NORMAL** (dissipação no choque). Para a **TANGENCIAL**, num escoamento rotativo com impacto
+contínuo, 0,9 **drena sistematicamente a quantidade de movimento** — e o tutorial da Siemens usa
+**1,0** justamente por isso.
+
+## 26.3 ✅ A correção
+`char_050um → Boundary Conditions → Walls → Physics Values`
+
+| Coeficiente | antes | **agora** | por quê |
+|---|---|---|---|
+| **Normal Restitution** | 0,8 | **0,8** *(mantém)* | dissipação no choque é real |
+| **Tangential Restitution** | 0,9 | **1,0** ⬅️ | evita o freio artificial acumulado |
+
+> **Sensibilidade a rodar depois:** `e_t = 0,95` como caso intermediário. A diferença em η entra
+> no relatório como **incerteza de modelo declarada**.
+
+## 26.4 Sobre o número de parcelas (dúvida do Gabriel)
+**2180 parcelas atingiram o limite** → há **pelo menos 2180 parcelas ativas**.
+Para levantar curva de eficiência, **>100 já dá estatística**. **2180 é folgado.** ✅
+*(A cena de "Local Instantaneous Data" mostra as parcelas **de um instante** — as que já terminaram
+não aparecem, por isso parecem poucas.)*
+
+## 26.5 📌 Armadilha nº14
+**Restituição tangencial < 1 em escoamento rotativo.** Parece um refinamento físico ("char não é
+elástico"), mas num ciclone a partícula impacta ~1.250×/s e a perda **acumula** até parar a
+partícula. Sintoma: parcelas lentas coladas na parede, sub-steps esgotados, e nenhuma captura.
+**Para a componente tangencial, comece em 1,0** e trate valores menores como estudo de sensibilidade
+— **nunca como default.**
