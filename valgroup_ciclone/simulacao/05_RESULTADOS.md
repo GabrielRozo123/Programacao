@@ -197,6 +197,56 @@ nada muda qualitativamente.)
 
 ---
 
+## RODADA 5 — 100 % **com a BC do fundo VERIFICADA** ✅ (a Etapa A está de pé)
+
+Rodada após corrigir `outlet_dust → Type = Wall` (estava como `Outlet` — ver
+`06_GUIA...md` Parte 17). Convergida: platô desde ~it. 4.000, leitura em **9.751**.
+
+| | valor |
+|---|---|
+| **ΔP** | **2.787,38 Pa = 27,87 mbar** |
+| **ξ extraído** | **6,09** (tabelado Stairmand HE: 6,40) |
+| vs analítico (2.928,9 Pa) | **−4,8 %** ✅ |
+| vs rodada 3 (2.893,98 Pa) | **−3,7 %** |
+| Folga vs limite do cliente (40 mbar) | **30 %** ✅ |
+
+### ✅ Isso PROVA que a Etapa A não foi contaminada
+Se a rodada 3 tivesse sido feita com `outlet_dust = Outlet`, o ΔP não mudaria 3,7 % — **mudaria de
+figura**. O ápice fica na zona de pressão negativa do vórtice, e um outlet a 0 Pa ali injetaria
+**37 a 52 % de vazão parasita** (168 a 238 m³/h contra os 461 nominais). Uma perturbação dessa
+ordem move o ΔP em dezenas de por cento, não em 3,7.
+
+> **Conclusão:** a rodada 3 (ΔP 2.893,98 · T_parede 381 °C) foi feita com `Wall`. O `Outlet` entrou
+> depois, durante a montagem do Lagrangeano, e só contaminou a rodada de partículas.
+> **Etapa A validada permanece válida.**
+
+### 📊 O ganho inesperado: agora temos a INCERTEZA NUMÉRICA medida
+Três rodadas convergidas do **mesmo caso a 100 %** deram:
+
+| Rodada | ΔP | ξ |
+|---|---|---|
+| 1 · ρ constante | 2.823,9 Pa | 6,17 |
+| 3 · energia | 2.893,98 Pa | 6,32 |
+| **5 · energia, BC verificada** | **2.787,38 Pa** | **6,09** |
+
+**Espalhamento pico a pico: 3,8 %.** Isso normalmente é difícil de obter — é a
+**reprodutibilidade numérica do setup** (escoamento com swirl forte em RANS steady tem múltiplos
+estados quase-estacionários; reconvergir de um campo perturbado assenta num atrator ligeiramente
+diferente).
+
+> **Como usar isso no relatório:** declarar **ΔP = 28,0 ± 1,1 mbar (±4 %)** em vez de um número seco.
+> Todos os três valores ficam dentro de **5 % do analítico** e **30 % abaixo do limite do cliente**.
+> Incerteza declarada é mais forte que precisão aparente.
+
+### Número de referência
+Adotar a **rodada 5 (2.787,38 Pa)** como valor de projeto: é a única com **todas as BCs
+verificadas uma a uma** após o diagnóstico.
+
+⏳ **Pendente:** confirmar a **T_parede** desta rodada (esperado ~381 °C, como na rodada 3 —
+a térmica não depende da BC do fundo enquanto ela é parede adiabática/convectiva).
+
+---
+
 ## ▶️ (histórico) RODADA 4 — previsões registradas ANTES de rodar
 
 **Por que ela é necessária e não é redundante:** a 50 % o tempo de residência **DOBRA**
