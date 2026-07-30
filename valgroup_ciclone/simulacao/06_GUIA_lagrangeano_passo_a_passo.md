@@ -813,3 +813,78 @@ custa precisão — mexer só se necessário.
 **`Maximum Sub-Steps` no default (20.000)** com malha refinada / prism layers finas → a parcela é
 deletada **antes de atravessar o equipamento**, sem aviso, mesmo com `Maximum Residence Time` correto.
 **Os dois têm de ser conferidos juntos.**
+
+---
+
+# PARTE 21 — ✅ DIAGNÓSTICO FECHADO: não é limite, é a ESTEIRA DE PAREDE
+
+> Medição decisiva: trajetórias coloridas por **Particle Residence Time** (escala 0–10 s).
+> Encerra a série de chutes das Partes 17/20.
+
+## 21.1 O que a cena mostra
+- Duto de entrada: **azul escuro** (t ≈ 0)
+- Hélice no cilindro: azul → ciano → amarelo
+- **Anel LARANJA/VERMELHO no fundo do cilindro** (≈ 10 s) ⬅️ a frente de onda em t = t_max
+- Pontos alaranjados junto ao **teto/anel do vortex finder** (armadilha clássica de topo)
+
+> ⭐ **As parcelas NÃO estão sendo deletadas cedo — elas sobrevivem os 10 s inteiros.**
+> `Maximum Residence Time` (10 s) e `Maximum Sub-Steps` (500.000) estavam **certos**.
+> O problema é outro: **elas descem devagar demais.**
+
+## 21.2 A física: a partícula fica presa na subcamada
+| medição | valor |
+|---|---|
+| Percorre o cilindro (435 mm) em | **~10 s** |
+| **Velocidade de descida** | **43,5 mm/s** |
+| Sedimentação em ar parado (50 µm) | 21,5 mm/s |
+| **Razão** | **2,0×** |
+
+> **A partícula está praticamente só SEDIMENTANDO.** O gás não a está transportando para baixo.
+> (Referência: o **gás** atravessa o ciclone inteiro em **0,48 s** — a partícula está **~20× mais lenta**.)
+
+**Por quê — a conta do quique:**
+```
+aceleração centrífuga junto à parede = v_t²/r = 17²/0,145 = 1.993 m/s²  =  203 g
+```
+
+| impacto normal | rebote (e=0,8) | excursão máxima |
+|---|---|---|
+| 0,5 m/s | 0,40 m/s | **0,04 mm** |
+| 1,0 m/s | 0,80 m/s | **0,16 mm** |
+| 2,0 m/s | 1,60 m/s | **0,64 mm** |
+
+Sob **203 g**, o rebote não tira a parcela da parede: ela chacoalha dentro de **0,1–0,6 mm**, ou seja
+**dentro da camada de prismas**, onde a velocidade do gás tende a **zero pelo no-slip**.
+**Não há gás ali para carregá-la.** Ela desce por gravidade e só.
+
+> Isso é **parcialmente físico** — pó real forma mesmo uma esteira lenta na parede do ciclone.
+> O modelo `Rebound` com restituição alta **exagera** o aprisionamento, mas o mecanismo é real.
+
+## 21.3 Correção — Plano A (tentar primeiro)
+```
+Solvers → Lagrangian Multiphase → Steady → Maximum Residence Time = 100 s
+```
+A 43,5 mm/s, descer os **1.160 mm** leva **27 s** — e isso é o **limite pessimista**, porque no cone
+o raio diminui, a velocidade tangencial sobe e a parcela acelera. **100 s dá folga de 4×.**
+
+**Critério:** se a η(50 µm) subir para 95–99 %, era só tempo de teto, e a física está correta.
+
+## 21.4 Plano B — a definição de "captura na parede"
+Se mesmo com 100 s elas não chegarem ao `outlet_dust`, adotar a convenção **padrão da literatura
+de ciclones**: **partícula que toca a parede do CONE = capturada** (`Walls` do cone → Mode `Escape`).
+
+| | prós | contras |
+|---|---|---|
+| Captura no `outlet_dust` (atual) | mede o trajeto real até a moega | depende de resolver a esteira de parede, que é cara e incerta |
+| **Captura na parede** | robusta, barata, é o que a literatura usa | **ignora re-entrainment** → **superestima** η |
+
+> Se for para o Plano B, **declarar a convenção no relatório** e rodar os dois para dar a **faixa**.
+> Duas definições explícitas valem mais que um número sem definição.
+
+## 21.5 📌 Armadilha nº9
+**A esteira de parede.** Num Lagrangeano de ciclone, a partícula grossa não "voa" até o fundo — ela é
+colada na parede por ~200 g e desce numa esteira **ordens de grandeza mais lenta que o gás**. Dimensionar
+o `Maximum Residence Time` pela residência do **gás** (0,48 s × 20 = 10 s) **é insuficiente**:
+tem de ser dimensionado pela **velocidade de descida da esteira**, que só se conhece **depois** de
+uma primeira rodada. **Rode uma vez, meça a velocidade de descida na cena de residência, e só então
+fixe o teto.**
