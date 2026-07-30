@@ -1011,3 +1011,97 @@ Passamos três rodadas ajustando parâmetros (`Maximum Residence Time`, `Maximum
 > **Regra:** quando uma mudança de parâmetro **não produz nenhuma mudança** no resultado, a primeira
 > hipótese não é "o parâmetro não era esse" — é **"eu não estou olhando o resultado novo"**.
 > Verificar a frescura do dado **antes** de reinterpretar a física.
+
+---
+
+# PARTE 24 — 📋 LISTA DEFINITIVA de reports e monitores (o que montar)
+
+> Consolidada de: *Lagrangian Post-Processing Reference*, *Post-Processing Lagrangian Data*,
+> KB000033060. Causa raiz de tudo que travou antes: **`Frozen` ligado no solver Lagrangeano**.
+
+## 24.0 ⚙️ Antes de tudo — o estado dos solvers
+| Nó | Valor |
+|---|---|
+| `Solvers → Lagrangian Multiphase → **Frozen**` | ❌ **DESMARCADO** ⬅️ era isto |
+| `Solvers → Lagrangian Multiphase → Temporary Storage Retained` | ✅ **On** |
+| `Solvers → Lagrangian Multiphase → Steady → Maximum Residence Time` | **100 s** |
+| `Solvers → Lagrangian Multiphase → Steady → Maximum Sub-Steps` | **500.000** |
+| `Solvers → Lagrangian Multiphase → Steady → Tracking Integration Method` | **2nd-order** |
+| `Solvers → Segregated Flow / Segregated Energy / K-Omega` → **Frozen** | ✅ **MARCADOS** *(congela o gás)* |
+| `Tools → Track Files → [arquivo] → Auto-Load` | ✅ **On** |
+
+> ⚠️ **`Frozen` no Lagrangeano ≠ `Frozen` no escoamento.** Queremos o **gás congelado** e o
+> **Lagrangeano livre**. Invertido, o solver não gera parcela nenhuma e **todo report responde zero
+> corretamente** — sem nenhum aviso.
+
+## 24.1 A constante que você vai usar
+```
+m_partícula (50 µm, ρ=1500) = 9,8175e-11 kg
+ṁ injetado                   = 2,7778e-03 kg/s
+```
+
+## 24.2 Os reports — monte nesta ordem
+
+### Grupo A — instrumento principal (método da KB)
+Field function já criada ✅: `mdot_face` = `${IncidentMassFluxchar_050um} * mag($$Area)` · Dimensions **Mass/Time**
+
+| # | Tipo | Nome | Scalar | Parts |
+|---|---|---|---|---|
+| 1 | **Sum** | **`MFR_bottom`** | `mdot_face` | boundary **`outlet_dust`** |
+| 2 | **Sum** | **`MFR_top`** | `mdot_face` | boundary **`Outlet_gas`** |
+
+> `Incident Mass Flux of <Phase>` — doc: *"computes the instantaneous mass flux of one Lagrangian
+> phase interacting with a boundary (**hitting it or escaping through it**)"* → serve para **parede**
+> e para **outlet**. É por isso que é o instrumento certo nos dois lados.
+
+### Grupo B — as duas contas
+| # | Tipo | Nome | Definição |
+|---|---|---|---|
+| 3 | **Expression** | **`eta_050`** ⭐ | `${MFR_bottom} / 2.7778e-3` |
+| 4 | **Expression** | **`balanco_050`** | `(${MFR_bottom} + ${MFR_top}) / 2.7778e-3` |
+
+### Grupo C — instrumento independente (cruzamento)
+Usa as **particle track parts** que o Boundary Sampling criou sob `Particle Tracks` (uma por boundary).
+
+| # | Tipo | Nome | Scalar | Parts |
+|---|---|---|---|---|
+| 5 | **Sum** | `check_bottom` | `${TrackParticleFlowRate} * 9.8175e-11` | *particle track part do `outlet_dust`* |
+| 6 | **Maximum** | `t_res_max` | `Track: Particle Residence Time` | *particle track part do `outlet_dust`* |
+
+> **#5 tem de bater com #1.** Dois caminhos independentes para o mesmo número.
+> **#6** confirma que ninguém encosta no teto (`t_res_max` ≪ 100 s).
+
+### Grupo D — nativo (já existe)
+| # | Tipo | Nome | Config |
+|---|---|---|---|
+| 7 | **Particle Mass Flow** | `pmf_gas` | Phase `char_050um` · Parts `Outlet_gas` |
+
+## 24.3 Monitores — **obrigatórios**, não opcionais
+Doc: *"The stored data is for **ONE Lagrangian step**, so it is necessary to **monitor** the desired
+values during the calculation."*
+
+> 🚨 **O dado do Boundary Sampling vale UM passo.** Rodar o report "depois" pode pegar o intervalo
+> vazio. **Crie monitor de todos os reports** (`botão direito → Create Monitor and Plot from Report`,
+> Trigger = **Iteration**) e leia o **valor do monitor**, não o report avulso.
+
+## 24.4 Critérios de aceite
+| Report | Esperado | Se falhar |
+|---|---|---|
+| **`balanco_050`** | **0,98 – 1,02** | massa sumindo → revisar limites de parada |
+| **`eta_050`** | **0,95 – 0,99** | ver Parte 21/23 |
+| `t_res_max` | **≪ 100 s** (esperado ~1,4 s) | teto ativo → aumentar |
+| `check_bottom` vs `MFR_bottom` | diferença < 5 % | instrumentos discordam → investigar |
+
+**Valores de referência (η × ṁ):**
+| η | MFR_bottom | MFR_top |
+|---|---|---|
+| **97,7 %** *(Lapple)* | **2,714e-03** | **6,39e-05** |
+| 95 % | 2,639e-03 | 1,389e-04 |
+| 90 % | 2,500e-03 | 2,778e-04 |
+| 3 % | 8,33e-05 | 2,694e-03 |
+
+## 24.5 📌 Armadilha nº13
+**`Frozen` no solver Lagrangeano.** O solver não roda, nenhuma parcela é criada, o track file não é
+reescrito, e **todos os reports respondem zero — que é a resposta correta para "não há dado"**.
+Nenhuma mensagem de erro aparece. **Conferir `Frozen` é o primeiro passo de qualquer depuração
+Lagrangeana**, antes de mexer em qualquer parâmetro físico.
