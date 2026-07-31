@@ -1317,3 +1317,69 @@ Não existe "desenvolvimento" ao longo das iterações.
 > **N iterações = N realizações estatísticas independentes**, não N passos de desenvolvimento.
 > Isso é útil (média para as classes finas, onde a dispersão turbulenta é estocástica),
 > mas **uma** iteração já contém a resposta completa para as classes grossas.
+
+---
+
+# PARTE 28 — 🛑 Avaliação crítica de uma recomendação de IA (chat da Siemens)
+
+> Registrado porque **duas das recomendações destruiriam trabalho já validado**, e uma delas é
+> contradita pela **própria documentação oficial da Siemens**.
+
+## 28.1 ❌ "Célula 5–10× MENOR que a partícula (~5 µm)" — INVERTIDO
+| célula | células no nosso domínio (61,77 L) |
+|---|---|
+| **5 µm** *(sugerido)* | **494.160.000.000.000** (494 **trilhões**) |
+| 1 mm | 61.770.000 |
+| **5 mm** *(a nossa)* | **494.160** ✅ |
+
+→ seria **1.014.723.095×** a nossa malha atual.
+
+**E o requisito é o CONTRÁRIO.** Doc oficial (*Solution Methodology* → Two-Grid Procedure):
+> *"Two-way coupling assumes that the fluid cell volume is **LARGE compared to the particle size**.
+> This assumption **fails** in cases where cells become small… a two-grid procedure clusters groups of
+> contiguous cells together to create a virtual grid of **LARGER** cells."*
+
+O modelo de **partícula pontual** exige **célula ≫ partícula** — a partícula é um ponto sem volume
+que amostra o campo da célula. Célula menor que a partícula **quebra a hipótese do modelo**.
+**Nossa razão: 5 mm / 50 µm = 100:1 linear (10⁶ em volume). Correta.**
+
+## 28.2 ❌ "`outlet_dust` → Pressure Outlet"
+**Foi exatamente o bug diagnosticado na Parte 17.** O ápice fica na zona de pressão negativa do
+vórtice; um outlet a 0 Pa ali **injeta 37–52 % de vazão parasita** (168–238 m³/h contra 461 nominais)
+e sopra o pó de volta para cima. **`outlet_dust` = `Wall`** (é um airlock na planta).
+
+## 28.3 ❌ "`Outlet_gas` → Phase Impermeable para evitar que partículas saiam"
+**Impedir a emissão não aumenta a eficiência — apenas impede de medi-la.**
+A massa que sai por cima **é o resultado que estamos procurando** (`η = 1 − ṁ_top/ṁ_inj`).
+Bloqueá-la produz η ≈ 100 % **por construção**. Erro na direção otimista.
+
+## 28.4 ⚠️ "y+ < 1 / refinar camada-limite"
+Usamos **All y+ Wall Treatment** (não exige y+<1). E **prism layer mais fina PIORA** a economia de
+sub-passos do Lagrangeano (Partes 20 e 25) — a parcela queima sub-steps resolvendo uma
+camada-limite que **não afeta a trajetória dela**.
+
+## 28.5 ✅ Onde a recomendação acerta
+- **Contagem de parcelas importa** — mas já temos **10.040 parcelas ativas** (Output), não 100.
+- **Boundary interaction mode importa** — já configurado (`Rebound` / `Escape`), verificado na Parte 27.
+  *(obs.: **"Slide" não existe** na lista oficial de modos — ver a tabela da Parte 18.)*
+
+## 28.6 ⚖️ E a malha, muda ou não?
+**NÃO agora.** Duas razões:
+
+1. **A malha atual está VALIDADA** por ΔP em **4 pontos**, 2 cargas, com e sem energia, todos dentro
+   de **5 % do analítico**, com **ξ = 6,09–6,32** contra **6,40** tabelado para Stairmand HE.
+   Trocar a malha **invalida essa validação** e custa dias.
+2. **Ainda não sabemos qual é o problema.** Faltam dois números (`MFR_bottom`, `MFR_top`).
+
+> 🚨 **Regra:** **nunca troque um componente validado para consertar um problema não diagnosticado.**
+> Isso troca um problema conhecido por dois desconhecidos.
+
+**O que fica na fila (legítimo, para depois):** a Best Practices da Siemens recomenda **Trimmed
+(hexaédrico)** em vez de Polyhedral para ciclones, por menor difusão numérica. Entra como **estudo
+de independência de malha** no fim — comparando ΔP e η entre as duas —, **não** como conserto.
+
+## 28.7 📌 Armadilha nº16
+**Recomendação de IA sem verificação dimensional.** O texto era fluente, plausível e continha uma
+sugestão de **494 trilhões de células** e duas reversões de bugs já diagnosticados. **Toda
+recomendação — de IA, fórum ou colega — passa por: (a) conta de ordem de grandeza, (b) confronto
+com a doc oficial, (c) teste contra o que já foi validado.**
