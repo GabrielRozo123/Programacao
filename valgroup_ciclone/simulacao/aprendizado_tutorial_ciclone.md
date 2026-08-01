@@ -213,3 +213,84 @@ Cada afirmação atacada por 2 céticos (física + CFD/literatura). Resultado:
 Tutorial oficial STAR-CCM+ 21.02: *Anisotropic Flow: Cyclone Separator* (Selecting Physics Models,
 Creating the Fluid Region, Setting Boundary Conditions, Generating the Volume Mesh). Companheiro:
 *3D-CAD: Cyclone Separator* (geometria — nós geramos a nossa via `gen_ciclone_lapple.py`).
+
+---
+
+# 🔎 RELEITURA DO TUTORIAL — o que passou batido (e importa agora)
+
+> Fontes: *Creating the Fluid Region* e *Generating the Volume Mesh* (tutorial Siemens do ciclone).
+> Revisitado depois de aparecer **`Reversed flow`** no `Outlet_gas` e desbalanço de massa de ~1 %.
+
+## 1. ⭐⭐ O tutorial usa DUAS regiões: `Main Body` + **`Outlet Pipe`**
+> *"multi-select the **Main Body** and **Outlet Pipe** nodes… Create a Region for Each Part"*
+
+**A saída de gás do tutorial NÃO fica no topo do vortex finder — fica no fim de um TUBO DE SAÍDA.**
+É extensão de domínio numérico para afastar a fronteira do vórtice.
+
+**O nosso domínio não tem essa extensão** → a `Outlet_gas` corta o escoamento **ainda girando, com
+núcleo de baixa pressão** → o Pressure Outlet impõe pressão uniforme onde ela não é uniforme →
+**`Reversed flow`**.
+
+**Ação:** estender o tubo em **2–3 × De = 290–435 mm**.
+⚠️ **Reportar o ΔP entre `Inlet` e o TOPO DO VORTEX FINDER**, não no fim da extensão — senão
+inclui atrito de um tubo que não existe no equipamento.
+
+## 2. ⭐⭐ Tipos de boundary ANTES de malhar
+> *"Before generating the volume mesh, one of the best practices is to **set the boundary types for
+> flow boundaries**. By default, the prism layer mesher **does not create prism layer cells across the
+> surface of flow boundaries**. Prism layer cells are generally only necessary on wall boundaries."*
+
+🚨 **Se a malha foi gerada com tudo ainda como `Wall`, existem camadas de prisma sobre `Inlet` e
+`Outlet_gas`.** Isso: (a) desperdiça células, (b) põe células finíssimas exatamente na fronteira
+onde ocorre o fluxo reverso, (c) **piora a estabilidade ali**.
+**Conferir na cena de malha se há prismas nas faces de entrada/saída.**
+
+## 3. ⭐ Interface do vortex finder como **`Baffle Interface`**
+> *"Select the Main Body/Outlet Pipe 2 node and set Type to **Baffle Interface**."*
+
+O tutorial modela a parede do vortex finder como **baffle de espessura zero**.
+**Nós modelamos com espessura física de 4 mm** — mais realista, mas custa células e cria duas
+camadas-limite. **Ambas as abordagens são válidas**; registrar a escolha no relatório.
+
+## 4. Parâmetros de malha do tutorial (comparar com os nossos)
+| Parâmetro | Tutorial |
+|---|---|
+| Meshers | Surface Remesher · **Polyhedral** · **Advancing Layer Mesher** |
+| Base Size | **0,0125 m** |
+| Target / Minimum Surface Size | 80 % / 30 % da base |
+| **Surface Curvature** | **72 pts/circle** |
+| Surface Growth Rate | 1,3 |
+| Prism Layers | **5** · stretching **1,2** · total **absoluto 0,012 m** |
+| **Volume Growth Rate** | **1,1** ⬅️ conservador |
+| Volumetric control 1 | cilindro **r = 0,03 m**, z de −0,3 a 0,9 (núcleo) |
+| Volumetric control 2 | refino **na entrada** |
+
+### 4.1 Dois pontos que merecem atenção
+- **`Advancing Layer Mesher`**, não o Prism Layer Mesher clássico. Ele cresce as camadas a partir da
+  superfície e costuma dar **qualidade melhor em geometria curva** — que é o nosso caso.
+- **`Volume Growth Rate = 1,1`** é **conservador** (default costuma ser 1,3–1,5). Crescimento lento =
+  transição suave = **menos células ruins**.
+  > 💡 O nosso **Volume Change mínimo de 1,1e-2** (exatamente no limite de aceitação) pode vir de um
+  > growth rate mais agressivo. **Vale conferir.**
+
+### 4.2 ⚠️ Correção de uma conta minha (Parte 20 do guia)
+Prism do tutorial: total 12 mm · 5 camadas · stretching 1,2 → **1ª camada = 1,61 mm**
+(camadas: 1,61 · 1,94 · 2,32 · 2,79 · 3,34 mm).
+**Eu supus 0,1–0,2 mm nas contas de sub-step** — **8 a 16× menor que o real**.
+→ **aquela aritmética estava pessimista demais.** O `Maximum Sub-Steps` não era tão crítico quanto
+calculei. *(A conclusão prática não muda — subir o teto é barato —, mas o número estava errado.)*
+
+## 5. O tutorial usa `Outlet`, não `Pressure Outlet`
+> *"set Type to **Outlet**"*
+
+`Outlet` é **flow-split** (divide a vazão), `Pressure Outlet` **impõe pressão**. Com uma só saída
+de gás, `Outlet` é mais robusto contra fluxo reverso — não há pressão imposta para empurrar gás de
+volta.
+> **Candidato a teste rápido:** trocar `Outlet_gas` de `Pressure Outlet` para `Outlet` e ver se o
+> `Reversed flow` some. É mais barato que remalhar com extensão de tubo.
+
+## 6. Observação do balanço de massa (rodada RST, t = 0,77 s)
+O desbalanço **parou de derivar e passou a OSCILAR**: centro ~0,0050 kg/s (**0,99 %**), amplitude
+±32 %, **período ≈ 0,058 s → f ≈ 17 Hz → St = 0,33**.
+> **O desbalanço PULSA** — coerente com o fluxo reverso pulsando junto com o vórtice precessante.
+> Confirma que a causa é a fronteira de saída, não erro de conservação do solver.
