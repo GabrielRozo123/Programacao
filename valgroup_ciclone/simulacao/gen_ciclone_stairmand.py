@@ -17,12 +17,13 @@ Convenção: z=0 no TETO do ciclone, z cresce para CIMA (a saída de gás sobe; 
 Entrada tangencial retangular (face externa tangente ao corpo).
 """
 import cadquery as cq
-import os
+import os, sys
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 
 # ── O ÚNICO PARÂMETRO ─────────────────────────────────────────────────────
-DC = 290.0                 # mm — diâmetro do corpo (mude só aqui)
+# uso:  python3 gen_ciclone_stairmand.py [Dc_em_mm]     (default 290)
+DC = float(sys.argv[1]) if len(sys.argv) > 1 else 290.0
 
 # ── proporções Stairmand (alta eficiência) ────────────────────────────────
 A  = 0.50  * DC            # altura da entrada
