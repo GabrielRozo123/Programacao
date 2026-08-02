@@ -1,13 +1,13 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
-> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-07-29**.
+> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-08-02**.
 > Cada projeto tem seu `STATUS.md`/`README.md` detalhado — este painel é o **resumo de uma olhada**.
 
 ## Semáforo (uma linha por projeto)
 | Projeto | Cliente | 🚦 | Onde está |
 |---|---|---|---|
 | 🧪 **Ito** (sugar) | CAEXPERTS | 🟡 | **Impelidor FECHADO** ✅ (9,9 kW, +37%). **Ejetor: CFD encerrado** — sucção existe mas é **1000× fraca**; causa geométrica (porta de ar a montante do bico). **Aguarda Ito.** |
-| 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟢 | **Matriz apresentada e aprovada** ✅. Stairmand Dc=290 dimensionado, malha 487k, **ΔP validado (3,6% e 12,3%)**. Próximo: **Lagrangeano**. |
+| 🌀 **Valgroup** (ciclone) | CAEXPERTS | 🟢 | **ΔP e T_parede ENTREGUES** ✅ (29–35 mbar vs limite 40 · parede 381/367 °C, **não condensa**). Rodando **transiente RST**. Falta **curva η×d**. 📄 `NOTA_TECNICA_parcial.md` |
 | 🍺 **Cerveja** (chiller) | GreyLogix | ✅ | **CONCLUÍDO** (até 2ª ordem). 3 sims verificadas + álgebra + **página** + **PPTX**. Slides entregues pelo Gabriel. Achado: recirc **uniformiza, não acelera**. |
 | 🌴 **FOXTERMO** (cristalização) | novo (Álvaro) | 🔵 | Proposta + estudo prontos. **Falta comercial (Marcus) + dados do Álvaro.** |
 
