@@ -139,8 +139,9 @@ a entrada de xarope é o único de **322,7 cm²** com normal +Z.
 ## 3.5 Controle
 | Report | Tipo |
 |---|---|
-| `mdot_xarope_in` | Mass Flow em `xarope_in` → deve dar **≈ 46,9 kg/s** (130 m³/h × 1300) |
-| `balanco_massa` | Expression: entradas − saídas ≈ 0 |
+| `mx_in` | **Phase Mass Flow** (Xarope) em `xarope_in` → **−46,9 kg/s** *(negativo = entrando)* |
+| `balanco_massa` | Expression — ver **§8.4**, que é a versão completa |
+| `Normalized Phase Mass Conservation Error` | nativo do EMP, um por fase — ver §8.4 Bloco 0 |
 
 **Crie monitor + plot de todos** (`botão direito → Create Monitor and Plot from Report`).
 
@@ -256,18 +257,24 @@ Threshold `bolha_fina` : scalar = Sauter Mean Diameter
 > **Verificação no passo 1:** `m_xarope_in` deve ler **−46,9 kg/s**. Se ler +46,9, a convenção
 > está invertida na sua instalação — troque os sinais. **Não avance sem conferir.**
 
-### Bloco 1 — balanço TOTAL
-| # | Report | Tipo | Scalar | Parts |
-|---|---|---|---|---|
-| a | `m_xarope_in` | **Mass Flow** | | `xarope_in` |
-| b | `m_ar_in_1..4` | **Mass Flow** ⚠️ *mistura, NÃO Phase* | | `ar_in_1` … `ar_in_4` |
-| c | `m_rea_out` | **Mass Flow** | | `superficie_reator` |
-| d | **`balanco_massa`** | **Expression** | | `(${m_xarope_in}+${m_ar_in_1}+${m_ar_in_2}+${m_ar_in_3}+${m_ar_in_4}+${m_rea_out}) / abs(${m_xarope_in})` |
+### Bloco 0 — o report NATIVO do EMP ⭐ *(critério primário)*
+`Reports → New → Flow/Energy → `**`Normalized Phase Mass Conservation Error`**
 
-> ⚠️ Em (b) tem de ser **`Mass Flow`** e não `Phase Mass Flow`: o balanço precisa da massa da
-> **mistura** — e é exatamente ali que o xarope pode sair pela linha de ar.
->
-> `superficie_aerador` **não entra** no balanço: agora é `Wall`.
+Crie **dois**: um para a fase **Xarope**, um para a fase **Ar**. É o balanço de massa que o
+próprio solver EMP calcula, por fase. **Aceite: < 1e-3.**
+
+### Bloco 1 — balanço TOTAL *(conferência que se entende termo a termo)*
+
+> ⚠️ **Com EMP ativo NÃO existe report de `Mass Flow` de mistura** — só `Phase Mass Flow`.
+> Verificado no software. Não é limitação: em Euleriano cada fase tem sua própria equação
+> de conservação. O total se monta **somando os reports dos Blocos 2 e 3** — nenhum report novo.
+
+| # | Report | Expression |
+|---|---|---|
+| a | **`balanco_massa`** | `(${mx_in}+${mx_fuga_ar}+${mx_out}+${mdot_ar_1}+${mdot_ar_2}+${mdot_ar_3}+${mdot_ar_4}+${m_ar_out}) / abs(${mx_in})` |
+
+> O `Phase Mass Flow` do **Ar** em `xarope_in` é exatamente zero pela BC (VF ar = 0) — não entra.
+> `superficie_aerador` **não entra**: agora é `Wall`.
 
 **Aceite: |`balanco_massa`| < 1 %.**
 
@@ -389,7 +396,7 @@ Mostra os 7 jatos saindo dos furos Ø9 e a esteira até a lança.
 ```
 Parts  = corte_vertical
 Scalar = Absolute Pressure
-Range  = Manual 195000 a 260000 Pa      (1 kgf/cm² man. = 199.392 Pa abs)
+Range  = Manual 1.0e5 a 2.5e6 Pa   ⚠️ CORRIGIDO (era 195.000-260.000, que satura)
 Câmera : Focal Point (0.025, -0.440, 2.20)
          Position    (0.025, -1.200, 2.20)
          Parallel Scale = 0.45          ← enquadra do bico ao header
@@ -408,17 +415,30 @@ Câmera : Focal Point (0.025, -0.440, 2.20)
 | Item | Valor | Por quê |
 |---|---|---|
 | **Gravidade** | `(0, 0, −9,81)` ⚠️ **LIGADA** | sem empuxo o estudo de bolha não tem sentido |
-| Reference Pressure | 101.325 Pa | |
-| **Reference Density** | **0** | pressão de trabalho = manométrica real → `P_porta_ar` lê direto contra 98.067 Pa |
+| Reference Pressure | **101.325 Pa** — deixe o padrão | |
+| **Reference Density** | **1,2 kg/m³** — ⭐ **deixe o padrão** | ver nota abaixo |
+| Maximum Allowable Absolute Pressure | conferir se está **> 3e6 Pa** | vamos chegar a ~2,4 MPa na cabeça |
 | **Regime** | **LAMINAR** | Re: lança 37 · furo do bico 36 · reator ~300–400 |
 | Turbulent Dispersion | **OFF** | não há turbulência |
 | Multifásico | EMP + Multiphase Segregated Flow + **S-Gamma** (quebra + coalescência) | |
 | Arraste | Schiller-Naumann (ou Tomiyama) | |
 | Tempo | **Implicit Unsteady**, 2ª ordem | S-Gamma é intrinsecamente transiente |
 
-> ⚠️ **Se ρ_ref = 0 não for aceito:** use 1300 kg/m³, e então `ar_in_1..4` tem de ser prescrito
-> como **88.763 Pa**, não 98.067 — a porta está 0,7295 m acima da referência
-> (98.067 − 1300·9,81·0,7295 = 88.763).
+> ### ⚠️ RETRATAÇÃO — a exigência de `Reference Density = 0` era desnecessária
+> **`Absolute Pressure` é INVARIANTE com ρ_ref:** se ρ_ref muda, a pressão de trabalho muda do
+> valor exatamente oposto e a soma não se altera. `P_porta_ar` se lê direto com qualquer ρ_ref.
+>
+> ρ_ref entra só na **prescrição das BCs**, que são dadas em pressão de trabalho. Com ρ_ref = 1,2:
+>
+> | BC | erro de bookkeeping |
+> |---|---|
+> | `superficie_reator` @ z=1,220 | 1,2·9,81·1,220 = **14 Pa** |
+> | `ar_in` @ z=2,2085 | 1,2·9,81·2,2085 = **26 Pa** |
+>
+> 26 Pa em 98.067 Pa = **0,03 %**. Irrelevante. ⇒ **deixe 1,2 e prescreva 0 Pa / 98.067 Pa.**
+>
+> **O que NÃO se pode fazer** é usar ρ_ref = 1300 sem corrigir a `Reference Altitude` — aí o erro
+> vai a dezenas de kPa. *(Nesse caso `ar_in` teria de ser 88.763 Pa com altitude em z=0.)*
 
 > ⚠️ **Não use k-ε/k-ω.** Em Re ~40 o modelo gera µ_t espúrio que suprime justamente o gradiente
 > viscoso que quebra a bolha — e a quebra é o que estamos medindo.
@@ -498,3 +518,44 @@ pergunta do Ito. São necessários dois casos.
    a BC está errada antes de qualquer física — e se der **+**46,9, a convenção de sinal da sua
    instalação é a oposta: inverta os sinais das expressões de balanço (§8.4).
 6. **Não interprete nada** enquanto `balanco_massa` ou `balanco_xarope` > 1 %.
+
+
+---
+
+# 14. O "VÁCUO" DO ITO — no acoplado ele deixa de ser premissa
+
+## 14.1 O que mudou
+No modelo do **ejetor isolado**, a pressão na saída da lança era **arbitrada** — era a última
+premissa livre do estudo. Por isso o `fase2/ejetor/11_LEI_MESTRA_P_vs_v.md` §12 teve de varrer
+cenários (−0,38 bar de coluna de 3 m; −1,013 bar de vácuo perfeito).
+
+**No domínio acoplado essa premissa desaparece.** A lança descarrega dentro do tanque real, na
+profundidade real (**6,47 m de submergência**, boca em z = −5,2465 e superfície em z = +1,220).
+Sifão e contrapressão hidrostática passam a ser **resultado**, não entrada.
+
+> É o argumento mais forte a favor do acoplamento que o Marcus pediu — e vale dito com essas
+> palavras: *"removemos a última premissa livre do estudo."*
+
+## 14.2 O resultado já é previsível analiticamente
+Tudo é **Poiseuille laminar** (µ = 6,5 Pa·s; Re = 36–37):
+
+| trecho | conta | Δp |
+|---|---|---|
+| bico 7×Ø9, L = 24,7 mm, v = 20,27 m/s | 32·6,5·0,0247·20,27 / 0,009² | **+12,9 bar** |
+| lança Ø62,7, L = 7,087 m, v = 2,924 m/s | 32·6,5·7,087·2,924 / 0,0627² | **+11,0 bar** |
+| ganho de gravidade na descida | 1300·9,81·7,087 | −0,90 bar |
+| hidrostática no fundo do aerador | 1300·9,81·6,4665 | +0,82 bar |
+| **⇒ na porta de ar** | | **≈ +23,8 bar** |
+
+Fecha com os **23,5 bar** obtidos por outro caminho no `11_LEI_MESTRA`. Contra **0,98 bar** de
+suprimento de ar.
+
+> **Não há vácuo na porta — há +23 bar.** A causa é a viscosidade: a 6,5 Pa·s o atrito laminar
+> domina qualquer efeito de Bernoulli. É por isso que o venturi não funciona aqui **independente
+> de onde a porta esteja** — a posição 318 mm a montante da contração agrava, mas não é a causa raiz.
+
+## 14.3 Precisa mudar alguma BC? **Não.**
+Se o Ito se referir a vácuo no **céu do tanque** (coisa diferente da depressão na porta), é um
+único número: `superficie_reator` de 0 Pa para o manométrico negativo. Mas o teto físico do vácuo
+é −1,013 bar contra 23,8 bar de contrapressão ⇒ muda **~4 %**. Não altera conclusão nenhuma e
+**não vale segurar a rodada**.
