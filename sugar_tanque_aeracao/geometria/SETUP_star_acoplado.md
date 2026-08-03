@@ -14,9 +14,28 @@
 | 3 | **`ar_in_2`** | idem em x = **0,025** | idem | idem |
 | 4 | **`ar_in_3`** | idem em x = **0,375** | idem | idem |
 | 5 | **`ar_in_4`** | idem em x = **0,725** | idem | idem |
-| 6 | **`superficie_aerador`** | disco **Ø2,032** em **z = 1,220** | **Pressure Outlet** | 0 Pa · backflow VF ar=1 |
+| 6 | **`superficie_aerador`** | disco **Ø2,032** em **z = 1,220** | **Pressure Outlet** 0 Pa | ⭐ **`Phase Impermeable` = ON só na fase XAROPE** |
 | 7 | **`superficie_reator`** | disco **Ø5,08** no topo do reator | **Pressure Outlet** | 0 Pa · backflow VF ar=1 |
 | 8 | **`paredes`** | **todo o resto** | **Wall** no-slip | |
+
+> ### ⭐ Decisão do Marcus: "o topo do aerador é wall"
+> Implementada como **Pressure Outlet + `Phase Impermeable` no xarope** — parede para o líquido,
+> saída livre para o gás. É a definição de um contorno de **degassing**.
+>
+> **Por que não `Wall` puro:** o ar sobe pelo aerador e, sem via de saída, acumula sob a tampa
+> (VF de ar → 1 numa camada de células). É modo de falha clássico do EMP.
+> **Por que é melhor que `Wall`:** impermeável ≠ no-slip. Numa superfície livre, no-slip no
+> líquido seria fisicamente errado.
+>
+> **O topo do REATOR continua saída** — é por onde o líquido fecha o balanço. Velocidade de
+> saída = 0,036 m³/s ÷ 20,3 m² ≈ **1,8 mm/s**: sorvedouro lento demais para distorcer o aerador.
+>
+> **Efeito nos reports:** `m_sai_aer` passa a devolver **só massa de gás** (número pequeno) —
+> não é bug. `balanco_massa` continua válido, já que soma as duas saídas.
+>
+> *Pendência adiada (combinado com o Marcus/Ito): a sucção da bomba não está no domínio.
+> O caminho de retorno global do tanque é, portanto, aproximado. Os entregáveis que NÃO dependem
+> disso — o ar que entra e a bolha na boca — são governados pela cabeça do ejetor e pela lança.*
 
 > ⚠️ **A boca da lança NÃO é boundary.** Ela é interior — o CFD calcula o que sai. É o ganho do
 > acoplado: no modelo antigo você tinha que prescrever VF de ar e tamanho de bolha ali.
@@ -304,3 +323,102 @@ Câmera : Focal Point (0.025, -0.440, 2.20)
 > **A imagem que fecha meses de discussão:** se a porta de ar aparecer em **vermelho/laranja**
 > (pressão ACIMA de 199.392 Pa) em vez de azul, fica visível que **o ar não tem como entrar** —
 > sem precisar de uma equação. Some com a Cena 4 e você tem a explicação completa em duas figuras.
+
+---
+
+# 11. PLANO DE RODADA
+
+## 11.1 Física
+
+| Item | Valor | Por quê |
+|---|---|---|
+| **Gravidade** | `(0, 0, −9,81)` ⚠️ **LIGADA** | sem empuxo o estudo de bolha não tem sentido |
+| Reference Pressure | 101.325 Pa | |
+| **Reference Density** | **0** | pressão de trabalho = manométrica real → `P_porta_ar` lê direto contra 98.067 Pa |
+| **Regime** | **LAMINAR** | Re: lança 37 · furo do bico 36 · reator ~300–400 |
+| Turbulent Dispersion | **OFF** | não há turbulência |
+| Multifásico | EMP + Multiphase Segregated Flow + **S-Gamma** (quebra + coalescência) | |
+| Arraste | Schiller-Naumann (ou Tomiyama) | |
+| Tempo | **Implicit Unsteady**, 2ª ordem | S-Gamma é intrinsecamente transiente |
+
+> ⚠️ **Se ρ_ref = 0 não for aceito:** use 1300 kg/m³, e então `ar_in_1..4` tem de ser prescrito
+> como **88.763 Pa**, não 98.067 — a porta está 0,7295 m acima da referência
+> (98.067 − 1300·9,81·0,7295 = 88.763).
+
+> ⚠️ **Não use k-ε/k-ω.** Em Re ~40 o modelo gera µ_t espúrio que suprime justamente o gradiente
+> viscoso que quebra a bolha — e a quebra é o que estamos medindo.
+
+## 11.2 Solver
+
+| Item | Valor |
+|---|---|
+| **Adaptive Time-Step** | CFL médio 1 · CFL máx 10 · Δt ∈ [2e-5 ; 5e-4] s |
+| Iterações internas | 6–8 |
+| URF velocidade | 0,5 |
+| URF pressão | 0,25 |
+| URF fração volumétrica | 0,4 |
+| URF S-Gamma | 0,6 |
+
+## 11.3 Partida limpa
+1. Inicializar: VF ar = 0 em todo o domínio · velocidade 0 · pressão 0
+2. Rodar os **primeiros ~0,05 s com as 4 `ar_in` como `Wall`** (só xarope, estabelece o campo)
+3. Trocar para `Pressure Inlet` 98.067 Pa e seguir
+
+*Evita o pulso inicial de ar num campo parado — é onde este tipo de caso costuma divergir.*
+
+## 11.4 ⭐ Quando cada report passa a valer
+
+| t físico | Válido a partir daqui | Escala de tempo que manda |
+|---|---|---|
+| **~0,5 s** | `P_porta_ar` · `v_bico` · Cena 5 | difusão de momento no ramal 4": R²/ν = 0,5 s |
+| **~1,0 s** | `Qar_total` · `mdot_ar_1..4` | varredura da cabeça: 0,073 m³ ÷ 0,036 m³/s = 2,0 s |
+| **~3,0 s** | `SMD_boca` · `VF_ar_boca` · **histograma** | trânsito na lança: 7,087 m ÷ 2,924 m/s = **2,42 s** |
+| ~30–60 s | `holdup_aerador` · `frac_flotavel` | recirculação no tanque |
+
+> ⚠️ **`SMD_boca` antes de ~3 s é lixo** — a boca ainda entrega o xarope da inicialização.
+
+**Primeira parada sugerida: `Maximum Physical Time = 1,0 s`.**
+
+---
+
+# 12. OS DOIS CASOS
+
+O ponto de projeto **não gera bolha nenhuma** (o ar não entra) — logo não responde sozinho à
+pergunta do Ito. São necessários dois casos.
+
+| | **Caso A — projeto** | **Caso B — cruzamento** |
+|---|---|---|
+| `xarope_in` | **1,12 m/s** (130 m³/h) | **0,046 m/s** (5,4 m³/h) |
+| Base | vazão da bomba confirmada (Ito, 15/07) | limiar do bico 7×Ø9 as-built, `fase2/ejetor/10_LEI_arraste_de_ar.md` |
+| Entrega | Cena 5 + `Qar_total` ≈ 0 → **prova 3D de que o ar não entra** | `SMD_boca` · `frac_flotavel` · histograma |
+| Custo | alto | baixo (vazão 24× menor → Δt bem maior) |
+
+## 12.1 Resultado ESPERADO do Caso A
+
+*(já deduzido em `fase2/ejetor/11_LEI_MESTRA_P_vs_v.md` — serve para reconhecer sucesso, não bug)*
+
+| Report | Esperado |
+|---|---|
+| `mdot_xarope_in` | **46,9 kg/s** ✅ |
+| **`P_porta_ar`** | **~20–26 bar man.** (contrapressão do bico + atrito laminar da lança) |
+| **`Qar_total`** | **≈ 0**, possivelmente **negativo** (xarope subindo pela linha de ar) |
+| `SMD_boca` | indefinido — não há ar |
+
+> **Fluxo reverso nas 4 `ar_in` É O RESULTADO, não um erro.** A porta de ar está ~24× abaixo
+> da pressão local do xarope.
+
+---
+
+# 13. CHECAGENS DE 30 SEGUNDOS ANTES DO RUN
+
+1. **Nenhum solver `Frozen`** — foi a armadilha mais cara do ciclone (nenhum erro, todos os
+   reports devolvem zero corretamente).
+2. **`Phase Impermeable` está no XAROPE**, não no ar, e só em `superficie_aerador`.
+3. **Gravidade ligada** e apontando em **−Z**.
+4. **VC1 = 1,0 mm ABSOLUTO**, não % da base. A base caiu de 30 mm → 100 mm; se os volumetric
+   controls estiverem em porcentagem, VC1 virou 3,3 mm e o furo Ø9 ficou com **2,7 células**
+   em vez de 9. *(A malha de 5,16 M é consistente com 1,0 mm absoluto — VC1 sozinho dá ~4,0 M —
+   mas confirme no nó.)*
+5. **`m_xarope` = 46,9 kg/s** no primeiro passo. Se der outro número, a BC está errada antes
+   de qualquer física.
+6. **Não interprete nada** enquanto `balanco_massa` > 1 %.
