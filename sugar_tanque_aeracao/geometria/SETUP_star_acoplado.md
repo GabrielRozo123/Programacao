@@ -124,3 +124,183 @@ a entrada de xarope é o único de **322,7 cm²** com normal +Z.
 | | ~1–2 mm | ❌ mesma conclusão do estudo anterior |
 | `holdup_aerador` | — | quanto ar fica retido no tanque |
 | `balanco_massa` | < 1 % | pré-requisito para acreditar em qualquer número acima |
+
+---
+
+# 6. ⚠️ PRIMEIRO: o domínio é UMA região fundida
+
+Não existe "região do aerador" separada. Para os reports de volume, crie **derived parts de volume**:
+
+| Nome | Tipo | Start | End | Radius |
+|---|---|---|---|---|
+| **`vol_aerador`** | **Cylinder** | (0.200, −0.440, **−5.892**) | (0.200, −0.440, **1.220**) | **1.016** |
+| `vol_reator` | Cylinder | (0.196, −6.278, −6.171) | (0.196, −6.278, 1.479) | 2.540 |
+
+*(o cilindro do aerador tem 23,06 m³ geométricos e o sólido real 20,18 — ele cobre com folga,
+e as células fora do fluido simplesmente não existem)*
+
+---
+
+# 7. FIELD FUNCTIONS auxiliares (criar antes dos reports)
+
+| Nome | Definição | Para que |
+|---|---|---|
+| **`ar_vol`** | `${VolumeFractionAr} * ${Volume}` | volume **de ar** em cada célula |
+| **`SMD_x_ar`** | `${SauterMeanDiameter} * ${VolumeFractionAr} * ${Volume}` | para média ponderada |
+
+> ⚠️ **Ajuste os nomes** conforme aparecem no seu autocompletar — dependem de como a fase de ar
+> foi nomeada (ex.: `VolumeFractionofAr`, `Ar_VolumeFraction`).
+
+---
+
+# 8. OS 4 REPORTS PEDIDOS
+
+## 8.1 `holdup_aerador` — quanto ar fica retido
+```
+Tipo   : Volume Average
+Scalar : Volume Fraction of Ar
+Parts  : vol_aerador
+```
+**Unidade:** fração (0 a 1). Multiplique por 100 para %.
+**Referência:** aeração industrial típica fica em **2 a 10 %**.
+
+## 8.2 `SMD_aerador` — tamanho médio de bolha ⭐
+**Não use Volume Average direto** — ele média sobre células SEM ar e o número perde sentido.
+Use a **média ponderada pelo ar**:
+
+| # | Report | Tipo | Scalar | Parts |
+|---|---|---|---|---|
+| a | `int_SMDxAr` | **Volume Integral** | `SMD_x_ar` | `vol_aerador` |
+| b | `int_Ar` | **Volume Integral** | `ar_vol` | `vol_aerador` |
+| c | **`SMD_aerador`** | **Expression** | `${int_SMDxAr} / ${int_Ar}` | |
+
+**Referência (estudo anterior, lanças passivas): SMD = 2,53 mm.**
+
+## 8.3 `frac_flotavel` — a resposta do estudo ⭐⭐
+Fração do **AR** que está em bolhas menores que 200 µm.
+
+**1)** Derived part:
+```
+Threshold `bolha_fina` : scalar = Sauter Mean Diameter
+                         All Below · 2.0e-4 m
+                         Input Parts = vol_aerador
+```
+**2)** Reports:
+
+| # | Report | Tipo | Scalar | Parts |
+|---|---|---|---|---|
+| a | `ar_fino` | Volume Integral | `ar_vol` | **`bolha_fina`** |
+| b | `ar_total` | Volume Integral | `ar_vol` | `vol_aerador` |
+| c | **`frac_flotavel`** | **Expression** | `${ar_fino} / ${ar_total}` | |
+
+**Referência anterior: ~0 %.** É este número que diz se o ejetor resolve o problema.
+
+## 8.4 `balanco_massa` — pré-requisito de credibilidade
+| # | Report | Tipo | Parts |
+|---|---|---|---|
+| a | `m_xarope` | Mass Flow | `xarope_in` |
+| b | `m_ar_tot` | Expression | `${mdot_ar_1}+${mdot_ar_2}+${mdot_ar_3}+${mdot_ar_4}` |
+| c | `m_sai_aer` | Mass Flow | `superficie_aerador` |
+| d | `m_sai_rea` | Mass Flow | `superficie_reator` |
+| e | **`balanco_massa`** | Expression | `(abs(${m_xarope})+abs(${m_ar_tot})-abs(${m_sai_aer})-abs(${m_sai_rea})) / abs(${m_xarope})` |
+
+**Aceite: < 1 %.** `m_xarope` tem de dar **46,9 kg/s**.
+> **Não interprete nenhum dos outros três reports enquanto este não fechar.**
+
+---
+
+# 9. HISTOGRAMA de tamanho de bolha ⭐
+
+`Plots → New Plot → Histogram`
+
+| Propriedade | Valor |
+|---|---|
+| **Parts** | **`vol_aerador`** |
+| **X-Axis Scalar** | **Sauter Mean Diameter** |
+| **Number of Bins** | **40** |
+| **Range** | Manual: **0 a 4.0e-3 m** |
+| **⭐ Weighting Function** | **`ar_vol`** |
+
+## ⚠️ A ponderação é o ponto crítico
+Sem ponderar, o histograma conta **células** — e a maioria das células do aerador **não tem ar
+nenhum**. O resultado seria a distribuição espacial da malha, não da bolha.
+
+> Ponderando por **`ar_vol` (= VF de ar × volume da célula)**, cada barra passa a significar
+> **"quanto VOLUME DE AR existe nessa faixa de tamanho"** — que é a distribuição física.
+>
+> *É a mesma advertência da KB000033031 da Siemens sobre histogramas de parcels: "the histograms
+> are weighted with particle count" para mostrar a distribuição de partículas e não de parcelas.*
+
+## Leitura
+Da curva acumulada saem **D10 · D50 · D90**, comparáveis direto com o estudo anterior:
+
+| | lanças passivas (anterior) | ejetor (este estudo) |
+|---|---|---|
+| SMD médio | 2,53 mm | ? |
+| moda | 1,90 mm | ? |
+| D10 | 1,43 mm | ? |
+| D50 | 2,32 mm | ? |
+| D90 | 3,57 mm | ? |
+| **<200 µm** | **~0 %** | **?** ⭐ |
+
+---
+
+# 10. SCENES — configuração detalhada
+
+## Cena 1 — `VF_ar` ⭐ *(a principal)*
+```
+Scenes → New Scene → Scalar
+  Displayer 1 (o ar):
+     Parts        = ar_no_tanque   (threshold VF_ar > 0,01)
+     Scalar Field = Volume Fraction of Ar
+     Color Map    = blue-red balanced
+     Range        = Manual 0 a 0,3
+     Contour Style= Smooth Filled
+  Displayer 2 (o contorno):
+     New Displayer → Geometry
+     Parts        = superfície do tanque (todas as boundaries de parede)
+     Opacity      = 0,15
+     Color        = cinza
+```
+
+## Cena 2 — `SMD` no corte
+```
+Scalar Scene
+  Parts        = corte_vertical
+  Scalar Field = Sauter Mean Diameter
+  Range        = Manual 0 a 3.0e-3
+  Color Map    = blue-red balanced
+  + Geometry displayer com Opacity 0,15
+```
+> Coloque uma **linha de referência em 2,0e-4** no color bar (o alvo de 200 µm) — assim se
+> enxerga na hora se alguma região atinge a meta.
+
+## Cena 3 — `velocidade`
+```
+Parts = corte_vertical · Scalar = Velocity Magnitude
+Range = Manual 0 a 25 m/s   (o bico dá ~20 m/s)
+```
+
+## Cena 4 — `bico_zoom` ⭐ *(mostra o jato)*
+```
+Parts  = corte_vertical
+Scalar = Velocity Magnitude · Range 0 a 25
+Câmera : Focal Point (0.025, -0.440, 1.855)
+         Position    (0.025, -0.940, 1.855)
+         Parallel Scale = 0.06     ← enquadra ~120 mm
+```
+Mostra os 7 jatos saindo dos furos Ø9 e a esteira até a lança.
+
+## Cena 5 — `pressao_ejetor` ⭐⭐ *(a que explica a causa)*
+```
+Parts  = corte_vertical
+Scalar = Absolute Pressure
+Range  = Manual 195000 a 260000 Pa      (1 kgf/cm² man. = 199.392 Pa abs)
+Câmera : Focal Point (0.025, -0.440, 2.20)
+         Position    (0.025, -1.200, 2.20)
+         Parallel Scale = 0.45          ← enquadra do bico ao header
++ Anotação de texto na cota da porta de ar
+```
+> **A imagem que fecha meses de discussão:** se a porta de ar aparecer em **vermelho/laranja**
+> (pressão ACIMA de 199.392 Pa) em vez de azul, fica visível que **o ar não tem como entrar** —
+> sem precisar de uma equação. Some com a Cena 4 e você tem a explicação completa em duas figuras.
