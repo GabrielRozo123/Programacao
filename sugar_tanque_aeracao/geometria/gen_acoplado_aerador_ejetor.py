@@ -1,147 +1,147 @@
 """
-gen_acoplado_aerador_ejetor.py — DOMÍNIO FLUIDO ACOPLADO: aerador + reator + EJETOR
+gen_acoplado_aerador_ejetor.py — DOMÍNIO FLUIDO ACOPLADO: aerador + reator + EJETOR COMPLETO
 
-O cliente enviou o ejetor (`00__CONJUNTO_EJETOR.stp`) SEPARADO do conjunto aerador+reator.
-Este script MONTA os dois num único domínio fluido de CFD.
-
-═══════════════════════════════════════════════════════════════════════════
-COTAS MEDIDAS (não estimadas) — fonte de cada uma:
-═══════════════════════════════════════════════════════════════════════════
-DO CONJUNTO AERADOR+REATOR  (`sugar_dominio_fluido_completo.step`, 4 sólidos, 169,7 m³):
-    sólido 1 : reator          V = 139,86 m³ · Ø5080 · centro (196, −6278)
-    sólido 2 : passagem        V =   4,35 m³ · Ø1100
-    sólido 3 : AERADOR         V =  20,18 m³ · Ø2032 · eixo (200, −440) · z −5892 a +1220
-    sólido 4 : canal do topo   V =   5,31 m³ · 1524 × 2692 × 1295
-
-DO CONJUNTO EJETOR  (`00__CONJUNTO_EJETOR.stp`, 490 sólidos de hardware):
-    lanças  : 4 × Ø73,0 OD × 3000 mm  ·  x = 0 / 350 / 700 / 1050  (passo 350, vão 1050)
-    header  : 2 × Ø219,1 (8") × 1400 mm  ·  x de −175 a +1225
-    Ø73,0 OD  ⇒  tubo 2½"  ⇒  ID 62,7 (Sch40)
+O cliente enviou o ejetor (`00__CONJUNTO_EJETOR.stp`, CAD do Brendo) SEPARADO do conjunto
+aerador+reator. Este script monta os dois num único domínio fluido de CFD, com o perfil
+interno do ejetor MEDIDO sólido a sólido no CAD nativo.
 
 ═══════════════════════════════════════════════════════════════════════════
-⚠️ AS DUAS PREMISSAS DE MONTAGEM (o CAD do conjunto NÃO veio — declarar no relatório)
+1) COTAS DO TANQUE  (`sugar_dominio_fluido_completo.step`, 4 sólidos)
 ═══════════════════════════════════════════════════════════════════════════
- (1) POSIÇÃO RADIAL: a fileira de 4 lanças é centrada no eixo do aerador e alinhada com X.
-     → vão de 1050 mm num tanque de Ø2032 (raio 1016) ⇒ lanças em r = 175 e 525 mm. CABE.
- (2) PROFUNDIDADE: a descarga fica a Z_DESCARGA (parâmetro abaixo).
-     ⇒ PEDIR AO ITO: penetração real das lanças / cota da descarga.
+    reator 139,86 m³ Ø5080 · passagem 4,35 m³ · canal do topo 5,31 m³
+    AERADOR 20,18 m³ · Ø2032 · eixo (200, −440) · z de −5892 a +1220
+
+═══════════════════════════════════════════════════════════════════════════
+2) PERFIL INTERNO DO EJETOR  — MEDIDO no CAD nativo (coordenada Y do CAD)
+═══════════════════════════════════════════════════════════════════════════
+    Y = 858   header 8"          (OD 219,1 · ID 202,7)
+    Y = 764   início do ramal 4" (OD 114,3 · ID 102,3)
+    Y = 542   ⭐ PORTA DE AR 1½"  (ID 38,1) — LATERAL
+    Y = 224,3 fim do 4"
+    Y = 199   ⭐ CONTRAÇÃO 4"→2"  (ID 102,3 → 52,5) = assento do BICO
+    Y = 174,3 fim do 2"          → BICO: 7 furos Ø9 em PCD Ø27
+    Y = 0     topo da lança 2½"  (OD 73,0 · ID 62,7)
+    Y = −3000 fim da lança no CAD
+
+    ⚠️ ACHADO: a porta de ar está **318 mm A MONTANTE** da contração — ou seja, no trecho de
+    4", onde a pressão é MÁXIMA. Num eductor correto ela fica NA GARGANTA (pressão mínima).
+    Razão de contração 4"→2" = 3,80:1 (82,2 → 21,6 cm²).
+    ⇒ É a explicação geométrica da sucção 1000× fraca medida no CFD do ejetor isolado.
+
+═══════════════════════════════════════════════════════════════════════════
+3) MONTAGEM  (decisão do Marcus, chat 11:10)
+═══════════════════════════════════════════════════════════════════════════
+    "manter a mesma altura de descarga da anterior · manter a proporção do CAD"
+    → boca em z = −5246,5 (a mesma das 3 lanças antigas, que foram REMOVIDAS)
+    → cabeça do ejetor (header→ar→contração→bico) com as cotas EXATAS do CAD
+    → só a LANÇA é alongada (é tubo de entrega) para alcançar a boca
+
+    ⚠️ ÚNICA PREMISSA restante: POSIÇÃO RADIAL — fileira de 4 lanças centrada no eixo do
+       aerador e alinhada com X (o CAD do conjunto não define orientação).
+       Raios resultantes: 175 e 525 mm, contra 1016 de raio do tanque. Cabe.
 
 Convenção: mm, mesmo sistema do `sugar_dominio_fluido_completo.step`.
 """
 import cadquery as cq
-import os
+import math, os
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 TANQUE = os.path.join(OUT, "sugar_dominio_fluido_completo.step")
 
-# ── Aerador (medido) ──────────────────────────────────────────────────────
-AER_X, AER_Y = 200.0, -440.0      # eixo
-AER_ZTOP     = 1220.0             # topo do fluido
+# ── Tanque ────────────────────────────────────────────────────────────────
+AER_X, AER_Y = 200.0, -440.0
+AER_ZTOP     = 1220.0
 
-# ── Ejetor (medido no STEP nativo) ────────────────────────────────────────
-N_LANCAS   = 4
-PASSO      = 350.0                # espaçamento entre lanças
-LANCA_OD   = 73.0                 # 2½"
-LANCA_ID   = 62.7                 # 2½" Sch40
-HEADER_OD  = 219.1                # 8"
-HEADER_ID  = 202.7                # 8" Sch40
-HEADER_L   = 1400.0
+# ── Lanças antigas (a remover) ────────────────────────────────────────────
+OLD_OD, OLD_ZTOP, OLD_ZBOT = 84.8, 1865.5, -5246.5
+OLD_POS = [(464.0, -288.0), (-64.0, -288.0), (200.0, -745.0)]
 
-# ── LANÇAS ANTIGAS (3) — a serem REMOVIDAS (furos tapados) ────────────────
-#    medidas em `injetor_1/2/3.step`: OD 84,8 · ID 70,8 · L 7112 mm
-OLD_OD   = 84.8
-OLD_ZTOP = 1865.5
-OLD_ZBOT = -5246.5                # ⭐ a cota de descarga que o Marcus mandou MANTER
-OLD_POS  = [(464.0, -288.0), (-64.0, -288.0), (200.0, -745.0)]   # r=305 mm, 120°
+# ── Ejetor: diâmetros INTERNOS (o que o CFD precisa) ──────────────────────
+HEADER_ID = 202.7    # 8"  Sch40
+RAMAL_ID  = 102.3    # 4"  Sch40
+AR_ID     =  38.1    # 1½"
+GARG_ID   =  52.5    # 2"  Sch40  (assento do bico)
+LANCA_ID  =  62.7    # 2½" Sch40
+LANCA_OD  =  73.0
+N_FUROS, D_FURO, PCD = 7, 9.0, 27.0     # bico
 
-# ── MONTAGEM DO EJETOR NOVO (decisão do Marcus, 11:10) ────────────────────
-#    "mantém a mesma altura de descarga da anterior · mantém a proporção do CAD"
-#    → mesma boca (z=-5246,5) e mesmo topo (z=+1865,5) das antigas;
-#      muda só a lança: 4 × Ø73 (ID 62,7) em fileira de passo 350, no lugar de 3 × Ø84,8 a 120°
-Z_DESCARGA = OLD_ZBOT
-Z_BICO     = OLD_ZTOP             # o BICO fica no TOPO da lança (ver mapa abaixo)
+N_LANCAS, PASSO = 4, 350.0
 
-L_LANCA = Z_BICO - Z_DESCARGA     # = 7112 mm
+# ── Mapeamento Y(CAD) → z(modelo): bico (Y=199) na cota do topo antigo ────
+Z_BICO = OLD_ZTOP                       # 1865,5
+zc = lambda Y: Z_BICO + (Y - 199.0)
 
-# ── ARQUITETURA VERTICAL DO EJETOR (medida no CAD nativo, coord. Y) ───────
-#    header 8" (Y=858) → PORTA DE AR 1½" (Y=542) → redução (Y=302) → BICO (Y=199) → lança
-#    ⇒ relativo ao BICO:  porta de ar +343 mm · header +659 mm
-DZ_AR      = 343.0
-DZ_HEADER  = 659.0
-Z_AR       = Z_BICO + DZ_AR       # = 2208,5
-Z_HEADER   = Z_BICO + DZ_HEADER   # = 2524,5
+Z_HEADER   = zc(858.0)     # 2524,5
+Z_RAMAL_T  = zc(764.0)     # 2430,5
+Z_AR       = zc(542.0)     # 2208,5
+Z_CONTR_T  = zc(224.3)     # 1890,8   topo da contração
+Z_CONTR_B  = zc(199.0)     # 1865,5   fim da contração = assento
+Z_BICO_B   = zc(174.3)     # 1840,8   saída do bico
+Z_DESCARGA = OLD_ZBOT      # −5246,5
 
-# ── ENTRADA DE AR (1½", 1 kgf/cm²) — uma por lança, lateral ──────────────
-AR_ID      = 38.1                 # 1½" (r = 19,05 medido no CAD)
-AR_STUB    = 250.0                # stub p/ afastar a BC da junção
+AR_STUB, XAROPE_STUB = 250.0, 300.0
 
 
-def posicoes_lancas():
-    """x de cada lança, fileira centrada no eixo do aerador."""
+def xs_lancas():
     vao = (N_LANCAS - 1) * PASSO
     return [AER_X - vao/2 + i*PASSO for i in range(N_LANCAS)]
+
+
+def cil(d, h, x, y, z, dr=(0, 0, 1)):
+    return cq.Solid.makeCylinder(d/2, h, cq.Vector(x, y, z), cq.Vector(*dr))
+
+
+def cabeca_ejetor(x):
+    """Um ramal completo: 4" → porta de ar → contração → bico (7 furos) → lança."""
+    p = cil(RAMAL_ID, Z_RAMAL_T - Z_CONTR_T, x, AER_Y, Z_CONTR_T)          # ramal 4"
+    p = p.fuse(cil(AR_ID, AR_STUB, x, AER_Y, Z_AR, (0, 1, 0)))              # ⭐ porta de ar
+    p = p.fuse(cq.Solid.makeCone(RAMAL_ID/2, GARG_ID/2, Z_CONTR_T - Z_CONTR_B,
+                                 cq.Vector(x, AER_Y, Z_CONTR_B), cq.Vector(0, 0, 1)))  # contração
+    # BICO: 7 furos Ø9 (1 central + 6 no PCD Ø27)
+    for k in range(N_FUROS):
+        if k == 0:
+            fx, fy = x, AER_Y
+        else:
+            a = 2*math.pi*(k-1)/(N_FUROS-1)
+            fx, fy = x + PCD/2*math.cos(a), AER_Y + PCD/2*math.sin(a)
+        p = p.fuse(cil(D_FURO, Z_CONTR_B - Z_BICO_B, fx, fy, Z_BICO_B))
+    p = p.fuse(cil(LANCA_ID, Z_BICO_B - Z_DESCARGA, x, AER_Y, Z_DESCARGA))  # lança
+    return p
 
 
 def build():
     tanque = cq.importers.importStep(TANQUE)
     solidos = tanque.solids().vals()
-    print(f"  tanque importado: {len(solidos)} sólidos, "
-          f"{sum(s.Volume() for s in solidos)/1e9:.2f} m³")
+    print(f"  tanque: {len(solidos)} sólidos, {sum(s.Volume() for s in solidos)/1e9:.2f} m³")
+    xs = xs_lancas()
 
-    xs = posicoes_lancas()
-
-    # 0) TAPAR os furos das 3 lanças ANTIGAS (elas estavam subtraídas do fluido)
+    # tapar as 3 lanças antigas
     tapa = None
     for (x, y) in OLD_POS:
-        t = cq.Solid.makeCylinder(OLD_OD/2, OLD_ZTOP - OLD_ZBOT,
-                                  cq.Vector(x, y, OLD_ZBOT), cq.Vector(0,0,1))
+        t = cil(OLD_OD, OLD_ZTOP - OLD_ZBOT, x, y, OLD_ZBOT)
         tapa = t if tapa is None else tapa.fuse(t)
 
-    # 1) o TUBO das lanças DESLOCA líquido → subtrair o OD do fluido do tanque
-    tubos_od = None
+    # as novas lanças deslocam líquido (OD)
+    od = None
     for x in xs:
-        t = cq.Solid.makeCylinder(LANCA_OD/2, L_LANCA,
-                                  cq.Vector(x, AER_Y, Z_DESCARGA), cq.Vector(0,0,1))
-        tubos_od = t if tubos_od is None else tubos_od.fuse(t)
+        t = cil(LANCA_OD, Z_BICO_B - Z_DESCARGA, x, AER_Y, Z_DESCARGA)
+        od = t if od is None else od.fuse(t)
 
-    novos = []
-    for s in solidos:
-        b = s.BoundingBox()
-        # só o aerador é atravessado pelas lanças
-        if 15e9 < s.Volume() < 26e9:
-            novos.append(s.fuse(tapa).cut(tubos_od))   # tapa as antigas, abre as novas
-        else:
-            novos.append(s)
+    novos = [s.fuse(tapa).cut(od) if 15e9 < s.Volume() < 26e9 else s for s in solidos]
 
-    # 2) o INTERIOR das lanças é domínio fluido (o xarope desce por dentro)
-    interior = None
+    # ejetor: 4 cabeças + header 8" + stub de entrada do xarope
+    ej = None
     for x in xs:
-        t = cq.Solid.makeCylinder(LANCA_ID/2, L_LANCA,
-                                  cq.Vector(x, AER_Y, Z_DESCARGA), cq.Vector(0,0,1))
-        interior = t if interior is None else interior.fuse(t)
-
-    # 2b) trecho VERTICAL acima do bico: bico → porta de ar → header
-    for x in xs:
-        t = cq.Solid.makeCylinder(LANCA_ID/2, DZ_HEADER,
-                                  cq.Vector(x, AER_Y, Z_BICO), cq.Vector(0,0,1))
-        interior = interior.fuse(t)
-
-    # 2c) ⭐ ENTRADA DE AR 1½" — uma por lança, lateral, na cota da porta
-    for x in xs:
-        ar = cq.Solid.makeCylinder(AR_ID/2, AR_STUB,
-                                   cq.Vector(x, AER_Y, Z_AR), cq.Vector(0,1,0))
-        interior = interior.fuse(ar)
-
-    # 3) header 8" horizontal alimentando as 4 lanças
+        c = cabeca_ejetor(x)
+        ej = c if ej is None else ej.fuse(c)
     hx0 = min(xs) - 175.0
-    header = cq.Solid.makeCylinder(HEADER_ID/2, HEADER_L,
-                                   cq.Vector(hx0, AER_Y, Z_HEADER), cq.Vector(1,0,0))
+    hL  = (max(xs) - min(xs)) + 350.0
+    ej = ej.fuse(cil(HEADER_ID, hL, hx0, AER_Y, Z_HEADER, (1, 0, 0)))
+    ej = ej.fuse(cil(HEADER_ID, XAROPE_STUB, hx0 - XAROPE_STUB, AER_Y, Z_HEADER, (1, 0, 0)))
+    print(f"  ejetor construído: V = {ej.Volume()/1e6:.2f} L")
 
-    ejetor = interior.fuse(header)
-
-    todos = novos + [ejetor]
-    comp = todos[0]
-    for s in todos[1:]:
+    comp = novos[0]
+    for s in novos[1:] + [ej]:
         comp = comp.fuse(s)
     return comp.clean(), xs
 
@@ -149,20 +149,23 @@ def build():
 if __name__ == "__main__":
     fl, xs = build()
     bb = fl.BoundingBox()
-    print("="*72)
-    print("  DOMÍNIO ACOPLADO — aerador + reator + ejetor")
-    print("="*72)
-    print(f"  lanças em x = {['%.0f' % x for x in xs]}  (y = {AER_Y:.0f})")
-    print(f"  raio de cada lança ao eixo: "
-          f"{[round(abs(x-AER_X)) for x in xs]} mm   (raio do aerador = 1016)")
-    print(f"  comprimento da lança  = {L_LANCA:.0f} mm")
-    print(f"  descarga em z         = {Z_DESCARGA:.0f} mm   (MESMA das 3 antigas ✅)")
-    print(f"  BICO em z             = {Z_BICO:.0f} mm  (topo da lança)")
-    print(f"  PORTA DE AR 1½\" em z  = {Z_AR:.0f} mm  ({DZ_AR:.0f} mm acima do bico) ⭐")
-    print(f"  header 8\" em z        = {Z_HEADER:.0f} mm  ({DZ_HEADER:.0f} mm acima do bico)")
-    print(f"  submergência          = {AER_ZTOP - Z_DESCARGA:.0f} mm de líquido acima da descarga")
-    print(f"  3 lanças antigas      : REMOVIDAS (furos tapados)")
-    print(f"\n  válido = {fl.isValid()} | volume = {fl.Volume()/1e9:.3f} m³")
+    print("="*74)
+    print("  DOMÍNIO ACOPLADO COMPLETO — aerador + reator + ejetor")
+    print("="*74)
+    print(f"  4 lanças em x = {['%.0f' % x for x in xs]} · y = {AER_Y:.0f}")
+    print(f"  raios ao eixo do aerador: {[round(abs(x-AER_X)) for x in xs]} mm  (raio = 1016)")
+    print()
+    print("  CAMINHO DO FLUIDO (de cima para baixo):")
+    print(f"    entrada do XAROPE  Ø{HEADER_ID:.1f}  z = {Z_HEADER:.0f}   ⭐ BC de velocidade")
+    print(f"    header 8\"                       z = {Z_HEADER:.0f}")
+    print(f"    ramal 4\"           Ø{RAMAL_ID:.1f}  z = {Z_RAMAL_T:.0f} → {Z_CONTR_T:.0f}")
+    print(f"    PORTA DE AR 1½\"    Ø{AR_ID:.1f}   z = {Z_AR:.0f}   ⭐ BC de ar (1 kgf/cm²)")
+    print(f"    CONTRAÇÃO 4\"→2\"                 z = {Z_CONTR_T:.0f} → {Z_CONTR_B:.0f}  (3,80:1)")
+    print(f"    BICO {N_FUROS}×Ø{D_FURO:.0f} PCD Ø{PCD:.0f}          z = {Z_CONTR_B:.0f} → {Z_BICO_B:.0f}")
+    print(f"    lança 2½\"          Ø{LANCA_ID:.1f}   z = {Z_BICO_B:.0f} → {Z_DESCARGA:.0f}")
+    print(f"    DESCARGA no aerador             z = {Z_DESCARGA:.0f}   ({AER_ZTOP-Z_DESCARGA:.0f} mm submersa)")
+    print()
+    print(f"  válido = {fl.isValid()} | volume = {fl.Volume()/1e9:.3f} m³")
     print(f"  bbox X[{bb.xmin:.0f},{bb.xmax:.0f}] Y[{bb.ymin:.0f},{bb.ymax:.0f}] Z[{bb.zmin:.0f},{bb.zmax:.0f}]")
     p = os.path.join(OUT, "ACOPLADO_aerador_reator_ejetor_fluido.step")
     cq.exporters.export(fl, p)
