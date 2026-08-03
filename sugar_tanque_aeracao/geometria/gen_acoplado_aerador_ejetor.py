@@ -47,11 +47,21 @@ HEADER_OD  = 219.1                # 8"
 HEADER_ID  = 202.7                # 8" Sch40
 HEADER_L   = 1400.0
 
-# ── ⚠️ PREMISSA DE MONTAGEM (ajustar quando o Ito confirmar) ──────────────
-Z_DESCARGA = -1580.0              # cota da saída do bico
-Z_HEADER   = AER_ZTOP + 200.0     # header 200 mm acima do nível de líquido
+# ── LANÇAS ANTIGAS (3) — a serem REMOVIDAS (furos tapados) ────────────────
+#    medidas em `injetor_1/2/3.step`: OD 84,8 · ID 70,8 · L 7112 mm
+OLD_OD   = 84.8
+OLD_ZTOP = 1865.5
+OLD_ZBOT = -5246.5                # ⭐ a cota de descarga que o Marcus mandou MANTER
+OLD_POS  = [(464.0, -288.0), (-64.0, -288.0), (200.0, -745.0)]   # r=305 mm, 120°
 
-L_LANCA = Z_HEADER - Z_DESCARGA   # comprimento submerso+emerso da lança
+# ── MONTAGEM DO EJETOR NOVO (decisão do Marcus, 11:10) ────────────────────
+#    "mantém a mesma altura de descarga da anterior · mantém a proporção do CAD"
+#    → mesma boca (z=-5246,5) e mesmo topo (z=+1865,5) das antigas;
+#      muda só a lança: 4 × Ø73 (ID 62,7) em fileira de passo 350, no lugar de 3 × Ø84,8 a 120°
+Z_DESCARGA = OLD_ZBOT
+Z_HEADER   = OLD_ZTOP
+
+L_LANCA = Z_HEADER - Z_DESCARGA   # = 7112 mm
 
 
 def posicoes_lancas():
@@ -68,6 +78,13 @@ def build():
 
     xs = posicoes_lancas()
 
+    # 0) TAPAR os furos das 3 lanças ANTIGAS (elas estavam subtraídas do fluido)
+    tapa = None
+    for (x, y) in OLD_POS:
+        t = cq.Solid.makeCylinder(OLD_OD/2, OLD_ZTOP - OLD_ZBOT,
+                                  cq.Vector(x, y, OLD_ZBOT), cq.Vector(0,0,1))
+        tapa = t if tapa is None else tapa.fuse(t)
+
     # 1) o TUBO das lanças DESLOCA líquido → subtrair o OD do fluido do tanque
     tubos_od = None
     for x in xs:
@@ -80,7 +97,7 @@ def build():
         b = s.BoundingBox()
         # só o aerador é atravessado pelas lanças
         if 15e9 < s.Volume() < 26e9:
-            novos.append(s.cut(tubos_od))
+            novos.append(s.fuse(tapa).cut(tubos_od))   # tapa as antigas, abre as novas
         else:
             novos.append(s)
 
@@ -115,8 +132,10 @@ if __name__ == "__main__":
     print(f"  raio de cada lança ao eixo: "
           f"{[round(abs(x-AER_X)) for x in xs]} mm   (raio do aerador = 1016)")
     print(f"  comprimento da lança  = {L_LANCA:.0f} mm")
-    print(f"  descarga em z         = {Z_DESCARGA:.0f} mm")
+    print(f"  descarga em z         = {Z_DESCARGA:.0f} mm   (MESMA das 3 antigas ✅)")
+    print(f"  topo/header em z      = {Z_HEADER:.0f} mm")
     print(f"  submergência          = {AER_ZTOP - Z_DESCARGA:.0f} mm de líquido acima da descarga")
+    print(f"  3 lanças antigas      : REMOVIDAS (furos tapados)")
     print(f"\n  válido = {fl.isValid()} | volume = {fl.Volume()/1e9:.3f} m³")
     print(f"  bbox X[{bb.xmin:.0f},{bb.xmax:.0f}] Y[{bb.ymin:.0f},{bb.ymax:.0f}] Z[{bb.zmin:.0f},{bb.zmax:.0f}]")
     p = os.path.join(OUT, "ACOPLADO_aerador_reator_ejetor_fluido.step")
