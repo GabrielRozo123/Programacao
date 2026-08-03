@@ -675,3 +675,63 @@ produzir o fenômeno que o Ito descreve, e qualquer conclusão sobre isso seria 
 **não resolve um jato subexpandido**. Ideal Gas acerta a expansão em densidade, não a estrutura
 de choque. Se a tese do Ito virar o ponto central, ela merece um **estudo compressível separado
 só da porta** — pequeno e barato, mas próprio.
+
+
+---
+
+# 17. ⛔ DIVERGÊNCIA DA 1ª TENTATIVA — e a etapa que faltava
+
+## 17.1 O diagnóstico (03/08)
+| medido | referência | leitura |
+|---|---|---|
+| **P_porta_ar = 4,8e10 Pa (48 GPa)** | tensão de escoamento do aço ≈ 0,5 GPa | o tubo "contém" **100× a resistência do aço** |
+| **`mx_fuga_ar` = +3,92e3 kg/s** | entrada de xarope = 46,9 kg/s | **84×** toda a vazão, por 4 furos de Ø15,8 |
+| ⇒ **v = 3847 m/s** de xarope | som na água ≈ 1500 m/s | líquido a **Mach 2,5** |
+
+`3922,65 / 1300 / (4·π/4·0,0158²) = 3847 m/s`
+
+Eixo do gráfico: 2,000e-4 → 2,085e-4 s = **8,5 µs**, com espaçamento irregular ⇒
+**Adaptive Time-Step ainda ligado e colapsado para ~5e-7 s** (o cenário previsto em §15.4).
+
+**Solução divergida. Campo irrecuperável** — a 48 GPa o Ideal Gas dá ρ_ar = 557.000 kg/m³ e
+realimenta. Não continuar deste estado; reinicializar.
+
+## 17.2 Causa provável (combinação)
+1. **Adaptive Time-Step ligado** — colapso do passo (§15.4)
+2. **Partida impulsiva** com `ar_in` viva contra um campo parado — a §11.3 mandava rodar os
+   primeiros 0,05 s com as portas como `Wall`; essa etapa foi pulada
+3. **Ideal Gas** realimentando a pressão pela densidade
+
+## 17.3 ⭐ A ETAPA 0 QUE FALTAVA — o entregável nº 1 NÃO precisa da fase ar
+A pergunta principal é: *qual a pressão do xarope na cota da porta de ar?* Se ela exceder muito
+os 199.392 Pa abs do suprimento, **o ar não entra** — e isso se decide antes de qualquer bolha.
+
+Com as portas como parede, isso é **monofásico · laminar · ESTACIONÁRIO**. Sem EMP, sem S-Gamma,
+sem fase fantasma, sem gás comprimível — nenhum dos mecanismos que explodiram.
+
+```
+1. Duplicar a sim. Na cópia, DELETAR a fase Ar (Physics → Models).
+   Fica: monofásico · Laminar · Segregated Flow · Gravity · STEADY
+2. ar_in              → Wall
+3. superficie_aerador → Wall + Slip          (sem mudança)
+4. superficie_reator  → Pressure Outlet 0 Pa
+5. xarope_in          → 1,12 m/s
+6. Reports: P_porta_ar · P_garganta · v_bico · mx_in
+7. Run
+```
+
+**Critério de aceite: `P_porta_ar` ≈ 2,4e6 Pa abs**, que é o previsto pela conta de Poiseuille
+(§14.2 — bico 12,9 bar + lança 11,0 bar). CFD e analítico fechando ⇒ **validação por dois
+caminhos independentes**, e o resultado vai ao Marcus com segurança.
+
+Se divergir muito de 24 bar, há algo novo a investigar — e teremos descoberto num caso limpo,
+não dentro de um EMP instável.
+
+> **Lição de método:** o caso multifásico transiente completo foi montado antes do caso simples
+> que responde à pergunta central. A ordem correta é o inverso.
+
+## 17.4 Etapa 1 (só depois da Etapa 0 fechar)
+Volta o ar, com as três proteções que faltaram:
+- **Adaptive Time-Step DESLIGADO**, Δt fixo
+- Partida com `ar_in` = `Wall` nos primeiros 0,05 s (§11.3)
+- **Rampa** da pressão de ar de 0 a 98.067 Pa por expressão no tempo físico
