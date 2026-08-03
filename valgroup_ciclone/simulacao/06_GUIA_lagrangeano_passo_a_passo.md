@@ -1383,3 +1383,47 @@ de independência de malha** no fim — comparando ΔP e η entre as duas —, *
 sugestão de **494 trilhões de células** e duas reversões de bugs já diagnosticados. **Toda
 recomendação — de IA, fórum ou colega — passa por: (a) conta de ordem de grandeza, (b) confronto
 com a doc oficial, (c) teste contra o que já foi validado.**
+
+---
+
+# PARTE 29 — 📊 INDEPENDÊNCIA DE PARCELAS (o análogo lagrangeano da malha)
+
+> Fonte: Siemens KB **KB000033031**, *An illustration of the parcel approach in the Lagrangian model
+> using histograms*.
+
+## 29.1 A citação que transforma isso em item obrigatório
+> *"**Similarly to the recommendation to converge a case to a grid-independent solution, it is
+> recommended to have enough parcels to have statistically converged results.**"*
+
+**Independência de parcelas está para o Lagrangeano como independência de malha está para o
+Euleriano.** É item de relatório, não refinamento opcional.
+
+E o porquê:
+> *"The surface and body forces acting on the particles **depend on their size**, so in order to get
+> **statistically reliable** results, enough parcels must be considered."*
+> *"The higher the number of parcels, the better the resolution, to the expense of computational
+> resources."*
+
+## 29.2 Como demonstrar (o método do próprio artigo)
+1. Rodar o mesmo caso com **N**, **2N** e **4N** parcelas
+2. Plotar o **histograma da distribuição de massa de partículas na saída**
+   ⚠️ **ponderado por particle count**, não por parcel count — senão você mostra a distribuição das
+   *parcelas*, não a das *partículas*
+3. **Convergido** quando o histograma (e a η) param de mudar
+
+O artigo mostra que o **monitor de particle mass flow na saída** também denuncia: com poucas
+parcelas ele fica **ruidoso**.
+
+## 29.3 Aplicação ao nosso caso
+| | |
+|---|---|
+| Parcelas atuais | **~10.040 ativas** (do Output) |
+| Onde importa mais | **classes finas** — a dispersão turbulenta é estocástica |
+| Onde importa menos | 50–150 µm — trajetória quase determinística |
+
+**Procedimento:** para a classe de **5 µm** (a mais sensível), rodar com `Parcel Streams` = **1, 2 e 4**.
+- **Δη < 1–2 %** entre os dois últimos → independente ✅
+- Registrar no relatório junto com a independência de malha
+
+> ⚠️ Lembrar da **Parte 18.5**: com **distribuição** de tamanhos, `Parcel Streams` é também a
+> **discretização da PSD** — os dois papéis se somam, e o número mínimo sobe.
