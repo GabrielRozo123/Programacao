@@ -247,6 +247,47 @@ a térmica não depende da BC do fundo enquanto ela é parede adiabática/convec
 
 ---
 
+## RODADA 7 — **Dc = 307 mm** · k-ω steady + `Outlet` ✅ **CONVERGIU PERFEITAMENTE**
+
+Geometria nova (`ciclone_stairmand_Dc307_fluido.step`, 73,30 L) · v_i = **13,59 m/s** ·
+`Outlet_gas` = **`Outlet` (flow-split)** · `outlet_dust` = `Wall`.
+
+| | valor |
+|---|---|
+| **ΔP** | **2.487,3 Pa = 24,87 mbar** |
+| **Desvio-padrão** | **0,0 Pa ao longo de 20.000 iterações** |
+| **v_max** | **30,29 m/s** (sd 0,00) → **v_max/v_i = 2,23** ✅ |
+| **ξ** | **6,83** (tabelado 6,40) |
+| vs analítico (2.333 Pa) | **+6,6 %** |
+| **Folga vs 40 mbar** | **38 %** ✅ |
+
+Convergência em ~8.000 iterações e **desvio-padrão exatamente zero** depois disso.
+
+### 🔍 Achado: a BC `Outlet` também estabilizou o STEADY
+As rodadas steady no Dc=290 usavam `Pressure Outlet` — e a R6 **não convergiu** (razão 0,985).
+Esta, com `Outlet`, converge a **sd = 0,0**.
+> **Refina o nosso diagnóstico anterior:** atribuímos a não-convergência do steady só ao PVC.
+> Com o flow-split, o k-ω steady fecha perfeitamente. **A BC era um contribuinte importante** —
+> o `Pressure Outlet` com fluxo reverso desestabilizava o solver.
+> *(A parte do PVC continua válida: o k-ω amortece a instabilidade, e é por isso que ele consegue
+> um ponto fixo enquanto o RST não consegue.)*
+
+### ⚠️ E é justamente por isso que este número é um PISO
+sd = 0,0 significa **nenhuma oscilação** → o PVC foi suprimido → **ΔP subestimado**, como já medimos
+no Dc=290 (k-ω 31,3 mbar × RST 37,0 mbar).
+
+### 📊 A comparação que decide o diâmetro
+| Cenário de modelo | **Dc = 290** | **Dc = 307** |
+|---|---|---|
+| k-ω (piso) | 31,3 mbar (folga 22 %) | **24,9 mbar (38 %)** |
+| RST steady | 37,0 mbar (folga **7 %**) | **29,5 mbar (26 %)** |
+| RST assíntota pessimista | **43,5 mbar (folga −9 %)** 🔴 | **34,7 mbar (13 %)** ✅ |
+
+> **Dc = 307 atende em TODOS os cenários de modelo. Dc = 290 estoura no pessimista.**
+> Custo: **≤ 4 pontos percentuais** de eficiência em 10 µm, e **≤ 2 pp** acima de 20 µm.
+
+---
+
 ## ▶️ (histórico) RODADA 4 — previsões registradas ANTES de rodar
 
 **Por que ela é necessária e não é redundante:** a 50 % o tempo de residência **DOBRA**
