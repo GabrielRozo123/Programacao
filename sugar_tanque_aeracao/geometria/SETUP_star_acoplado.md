@@ -447,7 +447,7 @@ Câmera : Focal Point (0.025, -0.440, 2.20)
 
 | Item | Valor |
 |---|---|
-| **Adaptive Time-Step** | CFL médio 1 · CFL máx 10 · Δt ∈ [2e-5 ; 5e-4] s |
+| **Passo de tempo** | ⚠️ **FIXO, Δt = 2e-4 s** — ver §15, o Adaptive Time-Step é destruído pela fase fantasma |
 | Iterações internas | 6–8 |
 | URF velocidade | 0,5 |
 | URF pressão | 0,25 |
@@ -559,3 +559,59 @@ Se o Ito se referir a vácuo no **céu do tanque** (coisa diferente da depressã
 único número: `superficie_reator` de 0 Pa para o manométrico negativo. Mas o teto físico do vácuo
 é −1,013 bar contra 23,8 bar de contrapressão ⇒ muda **~4 %**. Não altera conclusão nenhuma e
 **não vale segurar a rodada**.
+
+
+---
+
+# 15. ⚠️ ARMADILHA — a FASE FANTASMA em EMP
+
+## 15.1 O sintoma
+Cena de `Velocity of Ar` mostra estrutura e `Auto Max = 4583 m/s`, **enquanto**
+`Volume Fraction of Ar` vai de 1,67e-15 a 8,61e-4 — ou seja, **não há ar em lugar nenhum**.
+Parece contradição. Não é.
+
+## 15.2 A causa
+Em EMP **toda fase existe em toda célula**, nem que seja com fração 1e-15. O campo de velocidade
+de cada fase é definido em todo o domínio, inclusive onde a fase é ausente. Onde VF → 0 a equação
+de momento daquela fase fica **mal-condicionada**: quase não há massa, logo quase não há inércia,
+e qualquer resíduo de força gera velocidade enorme.
+
+**O teste que denuncia:** 4583 m/s é **13× a velocidade do som**. Ar comprimido a 2 bar, mesmo
+blocado, faria ~340 m/s. A impossibilidade física *é* a assinatura do artefato.
+
+> ### REGRA
+> **`Velocity of Ar` só tem significado onde `Volume Fraction of Ar` é apreciável.**
+> Gás em EMP se olha **sempre mascarado pela fração volumétrica**, nunca cru.
+
+## 15.3 A correção de visualização
+Field function:
+```
+VelAr_real = ${VolumeFractionAr} > 1.0e-3 ? mag(${VelocityofAr}) : 0.0
+```
+Usar `VelAr_real` na cena `bico_zoom` no lugar de `Velocity of Ar`.
+
+## 15.4 ⚠️ O risco PRÁTICO — não é só cosmético
+O **Adaptive Time-Step** calcula o CFL a partir da **maior velocidade do domínio** — que passa a
+ser a velocidade fantasma de 4583 m/s. O passo de tempo é esmagado até quase zero e a rodada
+não avança.
+
+⇒ **Usar passo de tempo FIXO (Δt = 2e-4 s, 6–8 iterações internas)** até o campo estabilizar.
+
+## 15.5 ⚠️ Antes de concluir "o ar não entra": descartar a causa trivial
+VF de ar ≈ 0 **dentro do próprio tubo de ar** tem DUAS explicações que dão a MESMA imagem:
+
+| | causa | como se distingue |
+|---|---|---|
+| **(a)** | a `Volume Fraction` na BC `ar_in` não foi setada (padrão: xarope=1, ar=0) | `mx_fuga_ar` ≈ 0 |
+| **(b)** | fluxo reverso — o xarope sai pela linha de ar; com fluxo de saída o STAR **ignora** a VF prescrita | **`mx_fuga_ar` > 0** ⭐ |
+
+Conferir: `ar_in_1..4 → Phase Conditions → Ar → Physics Values → Volume Fraction` = **Ar 1 / Xarope 0**.
+
+| Report | se (a) BC errada | se (b) física confirmada |
+|---|---|---|
+| **`mx_fuga_ar`** | ≈ 0 | **positivo** ⭐ desempate |
+| **`P_porta_ar`** | qualquer | **~2,4e6 Pa abs** |
+| `mdot_ar_1..4` | ≈ 0 | ≈ 0 ou negativo |
+
+> **Não entregar o resultado sem descartar (a).** Seria a mesma armadilha do `Frozen` do ciclone:
+> número certo pelo motivo errado.
