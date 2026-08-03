@@ -294,3 +294,49 @@ O desbalanço **parou de derivar e passou a OSCILAR**: centro ~0,0050 kg/s (**0,
 ±32 %, **período ≈ 0,058 s → f ≈ 17 Hz → St = 0,33**.
 > **O desbalanço PULSA** — coerente com o fluxo reverso pulsando junto com o vórtice precessante.
 > Confirma que a causa é a fronteira de saída, não erro de conservação do solver.
+
+---
+
+# 📌 Simulation Assistant do ciclone (KB000042266) — o que aproveitar
+
+> Fonte: Siemens KB **KB000042266**, *Example Simulation Assistant: Cyclone Separator Analysis*
+> (atualizado fev/2026, aplicável a partir da v9.06). Usa o mesmo ciclone do Tutorial Guide.
+
+## 1. ⭐ Terceira confirmação: o Lagrangeano fica no TRANSIENTE
+O workflow que a Siemens codificou é, textualmente:
+> *"A **steady state** simulation is conducted, followed by an **unsteady** simulation. The user is
+> given the choice of **unsteady with or without Lagrangian**."*
+
+**Steady → transiente → Lagrangeano dentro do transiente.**
+É a **terceira** fonte independente dizendo a mesma coisa:
+1. *Best Practices* (KB000040310): *"run a steady state solution first… prior to transient / Lagrangian injection"*
+2. *Post-Processing Lagrangian Data*: track files como abordagem para steady, mas o fluxo principal é transiente
+3. **este Simulation Assistant**
+
+> Reforça o que a física já dizia: **Stk das partículas em relação ao PVC é ≪ 0,1** — elas seguem o
+> vórtice precessante, não o campo médio.
+
+## 2. ⭐ A erosão vem junto com o Lagrangeano
+> *"When selecting Lagrangian, **the erosion model is also employed** and the appropriate field
+> functions generated."*
+
+Confirma o que já tínhamos notado: **erosão é praticamente de graça** depois que a fase Lagrangeana
+existe — é um checkbox em `Optional Models` mais os field functions. Para o nosso caso (char com
+**21 % de minerais**: Ti 14,9 + Si 3,5 + Fe 3,2), **entra no mesmo pacote da curva η×d**, não como
+etapa separada.
+
+## 3. ⚠️ E a ressalva, que é do próprio documento
+> *"The example attached is a **demonstration and NOT an endorsement of a best practice**. It is
+> provided to showcase the use of simulation features."*
+
+**Não usar como referência de boa prática.** A referência normativa continua sendo a
+**KB000040310** (Best Practices) e a literatura revisada por pares (Hoekstra et al., 1999).
+O valor deste documento é a **estrutura do workflow**, não os parâmetros.
+
+## 4. 💡 Observação lateral (para a CAEXPERTS)
+O *Simulation Assistant* é um **framework para codificar um workflow** e distribuí-lo (`.jar`
+carregado por `File > Load Simulation Assistant`), com o fonte em projeto NetBeans.
+
+> O nosso `06_GUIA_lagrangeano_passo_a_passo.md` — com as 28 partes, as **18 armadilhas** e os
+> critérios de aceite — **já é um Simulation Assistant em prosa**. Se o ciclone virar produto
+> recorrente na CAEXPERTS, vale formalizar: o conteúdo está pronto, faltaria só empacotar.
