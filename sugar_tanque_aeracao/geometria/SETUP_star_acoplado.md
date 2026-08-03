@@ -607,11 +607,71 @@ VF de ar ≈ 0 **dentro do próprio tubo de ar** tem DUAS explicações que dão
 
 Conferir: `ar_in_1..4 → Phase Conditions → Ar → Physics Values → Volume Fraction` = **Ar 1 / Xarope 0**.
 
-| Report | se (a) BC errada | se (b) física confirmada |
-|---|---|---|
-| **`mx_fuga_ar`** | ≈ 0 | **positivo** ⭐ desempate |
-| **`P_porta_ar`** | qualquer | **~2,4e6 Pa abs** |
-| `mdot_ar_1..4` | ≈ 0 | ≈ 0 ou negativo |
+| Report | se (a) BC errada | se (b) física confirmada | **se (c) cedo demais** |
+|---|---|---|---|
+| **`mx_fuga_ar`** | ≈ 0 | **positivo** (saindo) | **negativo e minúsculo** |
+| **`P_porta_ar`** | qualquer | **~2,4e6 Pa abs** | ainda subindo |
+| `mdot_ar_1..4` | ≈ 0 | ≈ 0 ou positivo | negativo (ar entrando) |
+
+### ⭐ (c) — a terceira possibilidade, e a mais provável no início
+**Medido (03/08): `mx_fuga_ar` = −4,43e-04 kg/s** com a VF da BC conferida em ar = 1.
+
+Negativo = **entrando**. Logo não há reversão. E 4,43e-4 ÷ 46,9 = **9,4e-6** — uma parte em cem
+mil do escoamento de xarope: **ruído numérico da discretização da equação de VF**, não física.
+
+⇒ **A porta de ar não está fazendo nada, em direção nenhuma.** No instante zero o campo está
+parado (p ≈ 0 man.) e o ar a 0,98 bar teria via livre; a contrapressão de 24 bar só existe
+**depois** que o escoamento de xarope se estabelece (~0,5 a 2 s, §11.4).
+
+> **A evidência não é o valor instantâneo — é a HISTÓRIA.** O que demonstra a tese é
+> `P_porta_ar` **subindo** enquanto `Qar_total` **decai a zero** ao cruzar 0,98 bar.
+> Um gráfico dessas duas curvas vale mais que qualquer número isolado.
 
 > **Não entregar o resultado sem descartar (a).** Seria a mesma armadilha do `Frozen` do ciclone:
 > número certo pelo motivo errado.
+
+
+---
+
+# 16. O SUPERSÔNICO DO ITO — o que é verdade e o que é artefato
+
+## 16.1 O mecanismo do Ito é fisicamente coerente — em OUTRO regime
+Ar comprimido por orifício **bloca** (Mach 1 na garganta) quando a razão de pressão passa do
+crítico. Para ar (γ = 1,4):
+```
+p₀/p* = ((γ+1)/2)^(γ/(γ−1)) = 1,2^3,5 = 1,893
+```
+Com suprimento de 199.392 Pa abs, a porta blocaria se a pressão local do xarope caísse abaixo de
+**105.330 Pa abs = +0,04 bar man.** Aí: sônico na garganta (~317 m/s a T* = 250 K) e, expandindo
+como **jato subexpandido**, supersônico logo depois. **É exatamente o que o Ito descreve.**
+
+Mas exige pressão quase atmosférica (ou menor) na porta, contra os **+24 bar** previstos (§14.2)
+— 600× de distância. É a mesma reconciliação do `11_LEI_MESTRA` §12:
+*se o Ito observa isso de fato, a vazão real não é 130 m³/h.*
+
+## 16.2 ⭐ O TETO FÍSICO — 776 m/s
+Se toda a entalpia total virasse energia cinética (expansão isentrópica para pressão zero):
+```
+v_max = √(2·cp·T₀) = √(2 · 1005 · 300) = 776 m/s
+```
+**776 m/s é o máximo que ar a 300 K pode atingir sob QUALQUER razão de pressão, com QUALQUER
+bocal.** Não é estimativa — é conservação de energia.
+
+Os **4583 m/s** da cena `Velocity of Ar` estão **5,9× acima** desse teto ⇒ é a fase fantasma
+(§15), não o fenômeno do Ito.
+
+> É o mesmo tipo de argumento que fechou a questão do vácuo (teto de 1 bar): **quando o número
+> passa do teto termodinâmico, não é o fenômeno — é o artefato.**
+
+## 16.3 ⚠️ Limitação de modelo que agora importa
+```
+Continua → Physics → Models → fase Ar → Equation of State
+```
+Se estiver **`Constant Density`**, blocagem é **impossível por construção** — o modelo não pode
+produzir o fenômeno que o Ito descreve, e qualquer conclusão sobre isso seria vazia.
+⇒ trocar para **`Ideal Gas`**.
+
+**Ressalva honesta:** mesmo com Ideal Gas, o EMP segregado com célula de 8 mm numa porta Ø15,8
+**não resolve um jato subexpandido**. Ideal Gas acerta a expansão em densidade, não a estrutura
+de choque. Se a tese do Ito virar o ponto central, ela merece um **estudo compressível separado
+só da porta** — pequeno e barato, mas próprio.
