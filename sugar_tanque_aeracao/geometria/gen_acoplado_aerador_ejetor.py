@@ -59,9 +59,21 @@ OLD_POS  = [(464.0, -288.0), (-64.0, -288.0), (200.0, -745.0)]   # r=305 mm, 120
 #    → mesma boca (z=-5246,5) e mesmo topo (z=+1865,5) das antigas;
 #      muda só a lança: 4 × Ø73 (ID 62,7) em fileira de passo 350, no lugar de 3 × Ø84,8 a 120°
 Z_DESCARGA = OLD_ZBOT
-Z_HEADER   = OLD_ZTOP
+Z_BICO     = OLD_ZTOP             # o BICO fica no TOPO da lança (ver mapa abaixo)
 
-L_LANCA = Z_HEADER - Z_DESCARGA   # = 7112 mm
+L_LANCA = Z_BICO - Z_DESCARGA     # = 7112 mm
+
+# ── ARQUITETURA VERTICAL DO EJETOR (medida no CAD nativo, coord. Y) ───────
+#    header 8" (Y=858) → PORTA DE AR 1½" (Y=542) → redução (Y=302) → BICO (Y=199) → lança
+#    ⇒ relativo ao BICO:  porta de ar +343 mm · header +659 mm
+DZ_AR      = 343.0
+DZ_HEADER  = 659.0
+Z_AR       = Z_BICO + DZ_AR       # = 2208,5
+Z_HEADER   = Z_BICO + DZ_HEADER   # = 2524,5
+
+# ── ENTRADA DE AR (1½", 1 kgf/cm²) — uma por lança, lateral ──────────────
+AR_ID      = 38.1                 # 1½" (r = 19,05 medido no CAD)
+AR_STUB    = 250.0                # stub p/ afastar a BC da junção
 
 
 def posicoes_lancas():
@@ -108,6 +120,18 @@ def build():
                                   cq.Vector(x, AER_Y, Z_DESCARGA), cq.Vector(0,0,1))
         interior = t if interior is None else interior.fuse(t)
 
+    # 2b) trecho VERTICAL acima do bico: bico → porta de ar → header
+    for x in xs:
+        t = cq.Solid.makeCylinder(LANCA_ID/2, DZ_HEADER,
+                                  cq.Vector(x, AER_Y, Z_BICO), cq.Vector(0,0,1))
+        interior = interior.fuse(t)
+
+    # 2c) ⭐ ENTRADA DE AR 1½" — uma por lança, lateral, na cota da porta
+    for x in xs:
+        ar = cq.Solid.makeCylinder(AR_ID/2, AR_STUB,
+                                   cq.Vector(x, AER_Y, Z_AR), cq.Vector(0,1,0))
+        interior = interior.fuse(ar)
+
     # 3) header 8" horizontal alimentando as 4 lanças
     hx0 = min(xs) - 175.0
     header = cq.Solid.makeCylinder(HEADER_ID/2, HEADER_L,
@@ -133,7 +157,9 @@ if __name__ == "__main__":
           f"{[round(abs(x-AER_X)) for x in xs]} mm   (raio do aerador = 1016)")
     print(f"  comprimento da lança  = {L_LANCA:.0f} mm")
     print(f"  descarga em z         = {Z_DESCARGA:.0f} mm   (MESMA das 3 antigas ✅)")
-    print(f"  topo/header em z      = {Z_HEADER:.0f} mm")
+    print(f"  BICO em z             = {Z_BICO:.0f} mm  (topo da lança)")
+    print(f"  PORTA DE AR 1½\" em z  = {Z_AR:.0f} mm  ({DZ_AR:.0f} mm acima do bico) ⭐")
+    print(f"  header 8\" em z        = {Z_HEADER:.0f} mm  ({DZ_HEADER:.0f} mm acima do bico)")
     print(f"  submergência          = {AER_ZTOP - Z_DESCARGA:.0f} mm de líquido acima da descarga")
     print(f"  3 lanças antigas      : REMOVIDAS (furos tapados)")
     print(f"\n  válido = {fl.isValid()} | volume = {fl.Volume()/1e9:.3f} m³")
