@@ -16,16 +16,16 @@ interno do ejetor MEDIDO sólido a sólido no CAD nativo.
 ═══════════════════════════════════════════════════════════════════════════
     Y = 858   header 8"          (OD 219,1 · ID 202,7)
     Y = 764   início do ramal 4" (OD 114,3 · ID 102,3)
-    Y = 542   ⭐ PORTA DE AR 1½"  (ID 38,1) — LATERAL
+    Y = 542   ⭐ PORTA DE AR 1/2" (ID 15,8 · válvula esfera 1/2" BSP, item 18) — LATERAL
     Y = 224,3 fim do 4"
-    Y = 199   ⭐ CONTRAÇÃO 4"→2"  (ID 102,3 → 52,5) = assento do BICO
+    Y = 199   ⭐ CONTRAÇÃO 4"→2" Sch160 (ID 102,3 → 42,8) = assento do BICO
     Y = 174,3 fim do 2"          → BICO: 7 furos Ø9 em PCD Ø27
     Y = 0     topo da lança 2½"  (OD 73,0 · ID 62,7)
     Y = −3000 fim da lança no CAD
 
     ⚠️ ACHADO: a porta de ar está **318 mm A MONTANTE** da contração — ou seja, no trecho de
     4", onde a pressão é MÁXIMA. Num eductor correto ela fica NA GARGANTA (pressão mínima).
-    Razão de contração 4"→2" = 3,80:1 (82,2 → 21,6 cm²).
+    Razão de contração 4"→2"Sch160 = 5,71:1 (82,2 → 14,4 cm²).
     ⇒ É a explicação geométrica da sucção 1000× fraca medida no CFD do ejetor isolado.
 
 ═══════════════════════════════════════════════════════════════════════════
@@ -57,10 +57,15 @@ OLD_OD, OLD_ZTOP, OLD_ZBOT = 84.8, 1865.5, -5246.5
 OLD_POS = [(464.0, -288.0), (-64.0, -288.0), (200.0, -745.0)]
 
 # ── Ejetor: diâmetros INTERNOS (o que o CFD precisa) ──────────────────────
+# ⚠️ REVISADO pela LISTA DE PEÇAS do desenho CSA01-300-000-01:
+#    item 14 TUBO N.8"  Sch40  · item 13 TUBO N.4"  Sch40
+#    item 11 TUBO N.2"  Sch160 ⬅️ garganta é Sch160 (ID 42,8), NÃO Sch40
+#    item 18 VÁLVULA ESFERA MONO 1/2" BSP ×4 ⬅️ a linha de AR é 1/2", NÃO 1½"
+#    item 25 FLANGE SOLTO N.8" ⬅️ entrada do XAROPE, POR CIMA do header
 HEADER_ID = 202.7    # 8"  Sch40
 RAMAL_ID  = 102.3    # 4"  Sch40
-AR_ID     =  38.1    # 1½"
-GARG_ID   =  52.5    # 2"  Sch40  (assento do bico)
+AR_ID     =  15.8    # 1/2" Sch40  (válvula esfera 1/2" BSP, item 18)
+GARG_ID   =  42.8    # 2"  Sch160  (item 11) — assento do bico
 LANCA_ID  =  62.7    # 2½" Sch40
 LANCA_OD  =  73.0
 N_FUROS, D_FURO, PCD = 7, 9.0, 27.0     # bico
@@ -118,7 +123,8 @@ def build():
     # tapar as 3 lanças antigas
     tapa = None
     for (x, y) in OLD_POS:
-        t = cil(OLD_OD, OLD_ZTOP - OLD_ZBOT, x, y, OLD_ZBOT)
+        # ⚠️ limitar ao topo do fluido: senão sobram 3 "bastões" acima do tanque
+        t = cil(OLD_OD, AER_ZTOP - OLD_ZBOT, x, y, OLD_ZBOT)
         tapa = t if tapa is None else tapa.fuse(t)
 
     # as novas lanças deslocam líquido (OD)
@@ -137,7 +143,8 @@ def build():
     hx0 = min(xs) - 175.0
     hL  = (max(xs) - min(xs)) + 350.0
     ej = ej.fuse(cil(HEADER_ID, hL, hx0, AER_Y, Z_HEADER, (1, 0, 0)))
-    ej = ej.fuse(cil(HEADER_ID, XAROPE_STUB, hx0 - XAROPE_STUB, AER_Y, Z_HEADER, (1, 0, 0)))
+    # ⭐ ENTRADA DE XAROPE: bocal 8" VERTICAL sobre o header (item 25 do desenho)
+    ej = ej.fuse(cil(HEADER_ID, XAROPE_STUB, AER_X, AER_Y, Z_HEADER, (0, 0, 1)))
     print(f"  ejetor construído: V = {ej.Volume()/1e6:.2f} L")
 
     comp = novos[0]
@@ -156,11 +163,11 @@ if __name__ == "__main__":
     print(f"  raios ao eixo do aerador: {[round(abs(x-AER_X)) for x in xs]} mm  (raio = 1016)")
     print()
     print("  CAMINHO DO FLUIDO (de cima para baixo):")
-    print(f"    entrada do XAROPE  Ø{HEADER_ID:.1f}  z = {Z_HEADER:.0f}   ⭐ BC de velocidade")
+    print(f"    entrada XAROPE 8\" (POR CIMA) Ø{HEADER_ID:.1f} · topo z = {Z_HEADER+XAROPE_STUB:.0f}  ⭐ BC velocidade")
     print(f"    header 8\"                       z = {Z_HEADER:.0f}")
     print(f"    ramal 4\"           Ø{RAMAL_ID:.1f}  z = {Z_RAMAL_T:.0f} → {Z_CONTR_T:.0f}")
-    print(f"    PORTA DE AR 1½\"    Ø{AR_ID:.1f}   z = {Z_AR:.0f}   ⭐ BC de ar (1 kgf/cm²)")
-    print(f"    CONTRAÇÃO 4\"→2\"                 z = {Z_CONTR_T:.0f} → {Z_CONTR_B:.0f}  (3,80:1)")
+    print(f"    PORTA DE AR 1/2\"   Ø{AR_ID:.1f}   z = {Z_AR:.0f}   ⭐ BC de ar (1 kgf/cm²)")
+    print(f"    CONTRAÇÃO 4\"→2\"Sch160           z = {Z_CONTR_T:.0f} → {Z_CONTR_B:.0f}  (5,71:1)")
     print(f"    BICO {N_FUROS}×Ø{D_FURO:.0f} PCD Ø{PCD:.0f}          z = {Z_CONTR_B:.0f} → {Z_BICO_B:.0f}")
     print(f"    lança 2½\"          Ø{LANCA_ID:.1f}   z = {Z_BICO_B:.0f} → {Z_DESCARGA:.0f}")
     print(f"    DESCARGA no aerador             z = {Z_DESCARGA:.0f}   ({AER_ZTOP-Z_DESCARGA:.0f} mm submersa)")
