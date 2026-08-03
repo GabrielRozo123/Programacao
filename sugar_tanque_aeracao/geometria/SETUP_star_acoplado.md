@@ -14,24 +14,53 @@
 | 3 | **`ar_in_2`** | idem em x = **0,025** | idem | idem |
 | 4 | **`ar_in_3`** | idem em x = **0,375** | idem | idem |
 | 5 | **`ar_in_4`** | idem em x = **0,725** | idem | idem |
-| 6 | **`superficie_aerador`** | disco **Ø2,032** em **z = 1,220** | **Pressure Outlet** 0 Pa | ⭐ **`Phase Impermeable` = ON só na fase XAROPE** |
-| 7 | **`superficie_reator`** | disco **Ø5,08** no topo do reator | **Pressure Outlet** | 0 Pa · backflow VF ar=1 |
+| 6 | **`superficie_aerador`** | disco **Ø2,032** em **z = 1,220** | **Wall** | ⭐ **`Shear Stress Specification = Slip`** |
+| 7 | **`superficie_reator`** | disco **Ø5,08** em **z = 1,220** | **Pressure Outlet** | 0 Pa · backflow VF ar=1 |
 | 8 | **`paredes`** | **todo o resto** | **Wall** no-slip | |
 
-> ### ⭐ Decisão do Marcus: "o topo do aerador é wall"
-> Implementada como **Pressure Outlet + `Phase Impermeable` no xarope** — parede para o líquido,
-> saída livre para o gás. É a definição de um contorno de **degassing**.
+> ### ⭐ Decisão do Marcus: "o topo do aerador é wall" — implementada literalmente
 >
-> **Por que não `Wall` puro:** o ar sobe pelo aerador e, sem via de saída, acumula sob a tampa
-> (VF de ar → 1 numa camada de células). É modo de falha clássico do EMP.
-> **Por que é melhor que `Wall`:** impermeável ≠ no-slip. Numa superfície livre, no-slip no
-> líquido seria fisicamente errado.
+> **`Wall` + `Shear Stress Specification = Slip`** = aproximação **rigid-lid** de superfície livre
+> plana. Método clássico e nomeado. Slip (e não no-slip) porque no-slip frearia artificialmente
+> a circulação superficial do aerador.
 >
-> **O topo do REATOR continua saída** — é por onde o líquido fecha o balanço. Velocidade de
+> **Por que NÃO usar `Outlet` + `Phase Impermeable`:** essa opção só aparece no tipo `Outlet`
+> (flow-split), não em `Pressure Outlet` — verificado no software. E `Outlet` flow-split
+> misturado com `Pressure Outlet` na mesma região tem semântica de *split ratio* ambígua.
+> Risco desnecessário: ver abaixo por que não precisamos dele.
+>
+> #### Por que o gás preso sob a tampa NÃO é problema — topologia + duas contas
+>
+> Bounding boxes dos 4 sólidos de `sugar_dominio_fluido_completo.step`:
+>
+> | sólido | V | Z |
+> |---|---|---|
+> | reator | 139,86 m³ | −6431 a **+1220** |
+> | passagem | 4,35 m³ | −4850 a −250 |
+> | **aerador** | 20,18 m³ | −5892 a **+1220** |
+> | canal do topo | 5,31 m³ | −211 a **+1084** |
+>
+> ⚠️ **As duas superfícies livres estão na MESMA cota z = 1220.** *(correção: o doc dizia 1479
+> para o reator.)*
+>
+> ⚠️ O canal do topo termina em **z = 1084 — 136 mm ABAIXO da superfície livre**. É um duto
+> submerso. Logo **não existe via de escape lateral para o gás do aerador**.
+>
+> **Conta 1 — tempo de encher o bolsão:** π/4·2,032²·0,136 = **0,441 m³**. No Caso B o ar na
+> superfície (expandido a 1 atm) seria ~10,6 m³/h → **150 s**. Rodadas de 3–5 s ⇒ margem 30×.
+>
+> **Conta 2 — a bolha sequer chega lá.** Stokes no xarope:
+> `v = (ρl−ρg)·g·d²/18µ = 1300·9,81·(2,5e-3)²/(18·6,5) =` **0,68 mm/s** (Re_bolha = 3,4e-4 ✅).
+> Subir os 6,5 m da boca até a superfície leva **9.500 s ≈ 2,6 h**. Em 5 s de rodada
+> **não chega gás nenhum ao teto do aerador**.
+>
+> *(Esse 0,68 mm/s é também a explicação física de por que o estudo anterior não achou flotação.)*
+>
+> **Limite declarado:** vale até ~30 s de tempo físico. A rodada longa de holdup (30–60 s) exige
+> revisitar. O report `ar_retido` (§8.4c) monitora isso em tempo real.
+>
+> **O topo do REATOR é a única saída de líquido** — é ele que fecha o balanço. Velocidade de
 > saída = 0,036 m³/s ÷ 20,3 m² ≈ **1,8 mm/s**: sorvedouro lento demais para distorcer o aerador.
->
-> **Efeito nos reports:** `m_sai_aer` passa a devolver **só massa de gás** (número pequeno) —
-> não é bug. `balanco_massa` continua válido, já que soma as duas saídas.
 >
 > *Pendência adiada (combinado com o Marcus/Ito): a sucção da bomba não está no domínio.
 > O caminho de retorno global do tanque é, portanto, aproximado. Os entregáveis que NÃO dependem
@@ -153,7 +182,7 @@ Não existe "região do aerador" separada. Para os reports de volume, crie **der
 | Nome | Tipo | Start | End | Radius |
 |---|---|---|---|---|
 | **`vol_aerador`** | **Cylinder** | (0.200, −0.440, **−5.892**) | (0.200, −0.440, **1.220**) | **1.016** |
-| `vol_reator` | Cylinder | (0.196, −6.278, −6.171) | (0.196, −6.278, 1.479) | 2.540 |
+| `vol_reator` | Cylinder | (0.196, −6.278, −6.431) | (0.196, −6.278, **1.220**) | 2.540 |
 
 *(o cilindro do aerador tem 23,06 m³ geométricos e o sólido real 20,18 — ele cobre com folga,
 e as células fora do fluido simplesmente não existem)*
@@ -214,17 +243,63 @@ Threshold `bolha_fina` : scalar = Sauter Mean Diameter
 
 **Referência anterior: ~0 %.** É este número que diz se o ejetor resolve o problema.
 
-## 8.4 `balanco_massa` — pré-requisito de credibilidade
-| # | Report | Tipo | Parts |
-|---|---|---|---|
-| a | `m_xarope` | Mass Flow | `xarope_in` |
-| b | `m_ar_tot` | Expression | `${mdot_ar_1}+${mdot_ar_2}+${mdot_ar_3}+${mdot_ar_4}` |
-| c | `m_sai_aer` | Mass Flow | `superficie_aerador` |
-| d | `m_sai_rea` | Mass Flow | `superficie_reator` |
-| e | **`balanco_massa`** | Expression | `(abs(${m_xarope})+abs(${m_ar_tot})-abs(${m_sai_aer})-abs(${m_sai_rea})) / abs(${m_xarope})` |
+## 8.4 BALANÇO DE MASSA — pré-requisito de credibilidade
 
-**Aceite: < 1 %.** `m_xarope` tem de dar **46,9 kg/s**.
-> **Não interprete nenhum dos outros três reports enquanto este não fechar.**
+> ### ⚠️ Convenção de sinal
+> No STAR-CCM+ a normal da face aponta para **FORA** da região.
+> **Entrada é NEGATIVA, saída é POSITIVA.** O balanço é *"a soma de tudo dá zero"* — **sem `abs()`**.
+>
+> **Correção da versão anterior deste doc:** a expressão usava `abs()` em cada termo. Isso quebra
+> no **Caso A**, onde ESPERAMOS fluxo reverso nas portas de ar (xarope subindo pela linha):
+> com `abs()`, uma saída seria contada como entrada e o balanço fecharia **falsamente**.
+>
+> **Verificação no passo 1:** `m_xarope_in` deve ler **−46,9 kg/s**. Se ler +46,9, a convenção
+> está invertida na sua instalação — troque os sinais. **Não avance sem conferir.**
+
+### Bloco 1 — balanço TOTAL
+| # | Report | Tipo | Scalar | Parts |
+|---|---|---|---|---|
+| a | `m_xarope_in` | **Mass Flow** | | `xarope_in` |
+| b | `m_ar_in_1..4` | **Mass Flow** ⚠️ *mistura, NÃO Phase* | | `ar_in_1` … `ar_in_4` |
+| c | `m_rea_out` | **Mass Flow** | | `superficie_reator` |
+| d | **`balanco_massa`** | **Expression** | | `(${m_xarope_in}+${m_ar_in_1}+${m_ar_in_2}+${m_ar_in_3}+${m_ar_in_4}+${m_rea_out}) / abs(${m_xarope_in})` |
+
+> ⚠️ Em (b) tem de ser **`Mass Flow`** e não `Phase Mass Flow`: o balanço precisa da massa da
+> **mistura** — e é exatamente ali que o xarope pode sair pela linha de ar.
+>
+> `superficie_aerador` **não entra** no balanço: agora é `Wall`.
+
+**Aceite: |`balanco_massa`| < 1 %.**
+
+### Bloco 2 — balanço só do XAROPE *(o rigoroso)*
+O balanço total não fecha exatamente em transiente se o ar acumula (gás é compressível).
+O do xarope fecha sempre.
+
+| # | Report | Tipo | Scalar | Parts |
+|---|---|---|---|---|
+| a | `mx_in` | **Phase Mass Flow** | Xarope | `xarope_in` |
+| b | `mx_out` | **Phase Mass Flow** | Xarope | `superficie_reator` |
+| c | **`mx_fuga_ar`** | **Phase Mass Flow** | Xarope | `ar_in_1..4` *(soma os 4)* |
+| d | **`balanco_xarope`** | **Expression** | | `(${mx_in}+${mx_out}+${mx_fuga_ar}) / abs(${mx_in})` |
+
+> ⭐ **`mx_fuga_ar` vale como diagnóstico por si só.** Positivo = xarope saindo pela linha de ar:
+> a demonstração numérica mais direta de que a pressão na porta está acima do suprimento de ar.
+> É a versão em número do que a **Cena 5** mostra em imagem.
+
+### Bloco 3 — balanço do AR *(quanto fica retido)*
+| # | Report | Tipo | Scalar | Parts |
+|---|---|---|---|---|
+| a | `mdot_ar_1..4` | **Phase Mass Flow** | Ar | `ar_in_1..4` |
+| b | `m_ar_out` | **Phase Mass Flow** | Ar | `superficie_reator` |
+| c | **`ar_retido`** | **Expression** | | `-(${mdot_ar_1}+${mdot_ar_2}+${mdot_ar_3}+${mdot_ar_4}+${m_ar_out})` |
+
+**`ar_retido` [kg/s] = taxa de acúmulo de ar no domínio.** É o report que verifica na prática
+a estimativa dos 150 s de bolsão (§1): enquanto for pequeno, o `Wall` com slip está justificado.
+
+`Qar_total` (§3.1) continua usando os `mdot_ar_1..4` do Bloco 3 — sem mudança.
+
+> **Não interprete `SMD_boca`, `frac_flotavel` nem `holdup_aerador` enquanto os Blocos 1 e 2
+> não fecharem.**
 
 ---
 
@@ -413,12 +488,13 @@ pergunta do Ito. São necessários dois casos.
 
 1. **Nenhum solver `Frozen`** — foi a armadilha mais cara do ciclone (nenhum erro, todos os
    reports devolvem zero corretamente).
-2. **`Phase Impermeable` está no XAROPE**, não no ar, e só em `superficie_aerador`.
+2. **`superficie_aerador` = `Wall` com `Shear Stress Specification = Slip`** (não no-slip).
 3. **Gravidade ligada** e apontando em **−Z**.
 4. **VC1 = 1,0 mm ABSOLUTO**, não % da base. A base caiu de 30 mm → 100 mm; se os volumetric
    controls estiverem em porcentagem, VC1 virou 3,3 mm e o furo Ø9 ficou com **2,7 células**
    em vez de 9. *(A malha de 5,16 M é consistente com 1,0 mm absoluto — VC1 sozinho dá ~4,0 M —
    mas confirme no nó.)*
-5. **`m_xarope` = 46,9 kg/s** no primeiro passo. Se der outro número, a BC está errada antes
-   de qualquer física.
-6. **Não interprete nada** enquanto `balanco_massa` > 1 %.
+5. **`m_xarope_in` = −46,9 kg/s** no primeiro passo (negativo = entrando). Se der outro número,
+   a BC está errada antes de qualquer física — e se der **+**46,9, a convenção de sinal da sua
+   instalação é a oposta: inverta os sinais das expressões de balanço (§8.4).
+6. **Não interprete nada** enquanto `balanco_massa` ou `balanco_xarope` > 1 %.
