@@ -74,14 +74,23 @@ análise do ejetor isolado.
 
 A simulação quantifica o ganho de cada reposicionamento possível:
 
-| ponto de injeção | pressão local (bar man.) | ganho | recuperação do déficit |
-|---|---|---|---|
-| porta atual, ramal 4" | **26,9** | — | — |
-| garganta do cone (ainda a montante do bico) | **26,4** | 0,49 bar | 1,9 % |
-| **jusante do bico — posição de eductor correta** | **≈ 11** | ≈ 16 bar | ≈ 61 % |
-| *(referência: pressão de ar disponível)* | *0,98* | | |
+| ponto de injeção | pressão local (bar man.) | recuperação do déficit |
+|---|---|---|
+| porta atual, ramal 4" | **26,9** | — |
+| garganta do cone (ainda a montante do bico) | **26,4** | 1,9 % |
+| **logo a jusante do bico — posição de eductor correta** | **9,09** | **68 %** |
+| 90 mm abaixo do bico, jatos já misturados | 9,66 | 66 % |
+| *(referência: pressão de ar disponível)* | *0,98* | |
 
-**Mesmo na posição ideal, a pressão local é 11 vezes a pressão de ar disponível.**
+*Todos os valores medidos na simulação.*
+
+**Mesmo na posição de eductor correta, a pressão local é 9,3 vezes a pressão de ar disponível.**
+
+> **Nota física.** A pressão **sobe** de 9,09 para 9,66 bar entre os dois planos, contra o sentido
+> do escoamento: é recuperação de pressão estática enquanto os jatos desaceleram de 20,6 para
+> 2,9 m/s. A recuperação ideal seria `½ρ(v_jato² − v_lança²) = 2,48 bar`; a medida é **0,68 bar,
+> ou 27 %**. Os 73 % restantes são dissipados por viscosidade. **É exatamente a energia cinética
+> que um eductor precisa converter em sucção** — e ela se perde em calor antes de virar depressão.
 
 ### 3.2.1 Por que — a lança de entrega
 A perda de carga total se reparte assim:
@@ -105,6 +114,17 @@ melhor ponto concebível = 0,857 (hidrostática na boca)
 > **A lança de entrega, sozinha, inviabiliza a sucção natural.** Nenhum reposicionamento de porta
 > e nenhum redesenho de bico escapa dela, porque ela está a jusante de todo ponto de injeção
 > possível.
+
+### 3.2.2 Existe um ponto onde o ar entraria — e ele não serve
+A pressão continua caindo ao longo da lança, a cerca de **1,27 bar/m**. Na boca de descarga ela
+atinge a hidrostática do tanque, **0,76–0,86 bar** — abaixo dos 0,98 bar do suprimento de ar.
+
+Existe, portanto, um ponto de cruzamento: os **últimos ~20 cm da lança**, imediatamente antes da
+descarga no aerador.
+
+> Injetar ar nessa posição **não configura um ejetor** — não há comprimento remanescente para
+> cisalhar o ar em bolha. O equipamento degenera em um **sparger**, borbulhando ar diretamente
+> no aerador, com bolha grossa. A função de geração de microbolha se perde integralmente.
 >
 > **A causa raiz é a viscosidade do xarope.** A 6,5 Pa·s o escoamento é laminar em todo o
 > circuito (Re = 36–37) e a perda é governada por Poiseuille, `Δp = 32µLv/D²`. O efeito de
@@ -187,8 +207,8 @@ submergência real de 6,47 m — o termo de atrito da lança passa a ser **calcu
 
 **Consequência sobre a recomendação anterior.** O estudo isolado atribuía a causa à posição da
 porta de ar e recomendava mover a injeção para jusante do bico. A posição está de fato incorreta,
-e essa mudança recupera cerca de 61 % do déficit — mas o modelo acoplado mostra que **os 11 bar
-de atrito da lança permanecem** e mantêm o esquema inviável por um fator de 11.
+e essa mudança recupera **68 % do déficit** (medido) — mas o modelo acoplado mostra que o atrito
+da lança permanece e mantém o esquema inviável por um fator de **9,3**.
 
 ⇒ A recomendação se desloca: **de reposicionar a porta para reduzir a viscosidade efetiva do
 circuito** (temperatura, diluição) ou **rever a vazão e o diâmetro da lança**.
