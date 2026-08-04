@@ -116,11 +116,18 @@ melhor ponto concebível = 0,857 (hidrostática na boca)
 > possível.
 
 ### 3.2.2 Existe um ponto onde o ar entraria — e ele não serve
-A pressão continua caindo ao longo da lança, a cerca de **1,27 bar/m**. Na boca de descarga ela
-atinge a hidrostática do tanque, **0,76–0,86 bar** — abaixo dos 0,98 bar do suprimento de ar.
+A pressão continua caindo ao longo da lança, a **1,281 bar/m** (medido). Na boca de descarga ela
+vale **0,694 bar** — abaixo dos 0,98 bar do suprimento de ar.
 
-Existe, portanto, um ponto de cruzamento: os **últimos ~20 cm da lança**, imediatamente antes da
-descarga no aerador.
+Existe, portanto, um ponto de cruzamento: **22 cm acima da boca**, nos últimos centímetros da
+lança, imediatamente antes da descarga no aerador.
+
+| plano | z (m) | bar man. |
+|---|---|---|
+| logo abaixo do bico | 1,8395 | 9,09 |
+| 90 mm abaixo do bico | 1,750 | 9,66 |
+| **boca de descarga** | **−5,2465** | **0,694** |
+| *cruzamento com o ar (0,98 bar)* | *≈ −5,03* | *0,98* |
 
 > Injetar ar nessa posição **não configura um ejetor** — não há comprimento remanescente para
 > cisalhar o ar em bolha. O equipamento degenera em um **sparger**, borbulhando ar diretamente

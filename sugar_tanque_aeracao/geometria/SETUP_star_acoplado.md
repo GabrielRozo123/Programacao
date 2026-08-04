@@ -735,3 +735,71 @@ Volta o ar, com as três proteções que faltaram:
 - **Adaptive Time-Step DESLIGADO**, Δt fixo
 - Partida com `ar_in` = `Wall` nos primeiros 0,05 s (§11.3)
 - **Rampa** da pressão de ar de 0 a 98.067 Pa por expressão no tempo físico
+
+
+---
+
+# 18. ETAPA 1 — o multifásico entregável (decisão Marcus: rodar mesmo sem ar entrando)
+
+## 18.1 Por que este run tem valor próprio
+Com a porta aberta a 0,98 bar contra 21+ bar de xarope, **o xarope sai pela linha de ar**.
+Isso é uma **previsão de campo verificável**: se abrirem a linha de ar na planta, deve haver
+xarope nela.
+
+| achado em campo | conclusão |
+|---|---|
+| linha de ar **com xarope** | operam nos 130 m³/h; o ar nunca entrou |
+| linha de ar **seca** | vazão real bem menor — reconcilia com o vácuo relatado pela Ito |
+
+⇒ **Decide entre as duas condições de operação do §4 da nota técnica.**
+
+## 18.2 ⭐ PREVISÃO — anotar ANTES de rodar
+Poiseuille no tubo de ar (Ø15,8 × 250 mm) acoplado à realimentação (o refluxo alivia a pressão,
+que por sua vez reduz o refluxo):
+```
+Q_r = k·(P_porta − 0,98)   com k = 3,62e-4 m³/s/bar
+P_porta = 26,9·(1 − Q_r/0,036194)
+⇒ Q_r = 7,39e-3 m³/s = 10,0 kg/s ·  P_porta = 21,4 bar
+```
+
+| report | previsão |
+|---|---|
+| **`mx_fuga_ar`** | **+10,0 kg/s** (xarope saindo) |
+| **`P_porta_ar`** | **21–22 bar man.** |
+| `Qar_total` | ≈ 0 |
+| `mx_in` | **−48,8 kg/s** (ρ = 1350 confirmado) |
+
+> O estudo do ejetor isolado mediu **10,25 kg/s** nessa condição
+> (`fase2/ejetor/12_FECHAMENTO_CFD_ejetor.md`, config. 1). Concordância entre dois modelos
+> independentes ⇒ o resultado multifásico entra na nota com o mesmo peso do monofásico.
+
+## 18.3 Etapa 1a — campo de xarope primeiro
+```
+ar_in = Wall · VF ar = 0 inicializado · STEADY
+```
+Rodar até convergir. Deve reproduzir `P_porta_ar` ≈ 26,9 bar.
+**Valida o setup EMP contra o monofásico** — e já é resultado apresentável.
+
+> Foi a ausência desta etapa que causou a divergência de §17: partir do repouso com a porta de
+> ar viva. Agora sabemos a resposta, e isso torna a partida fácil.
+
+## 18.4 Etapa 1b — abre o ar
+```
+Implicit Unsteady · Δt FIXO = 1e-4 s · SEM Adaptive Time-Step
+ar_in = Pressure Inlet 98.067 Pa, com RAMPA nos primeiros 0,02 s
+Iterações internas: 8–10
+URF: velocidade 0,4 · pressão 0,2 · fração volumétrica 0,3 · S-Gamma 0,5
+```
+
+### ⭐ O protetor que faltava
+```
+Reference Values → Maximum Allowable Absolute Pressure = 5e6 Pa
+                 → Minimum Allowable Absolute Pressure = 5e3 Pa
+```
+Esperamos no máximo 2,9e6. Com o teto em 5e6 uma divergência é **cortada na hora**, em vez de
+chegar aos 48 GPa de §17. É a diferença entre perder 10 minutos e perder a noite.
+
+## 18.5 Custo — ~1000 passos
+O refluxo no tubo de 250 mm se estabelece em ~0,02 s (12,5 m/s de trânsito). **0,1 s de tempo
+físico basta.** Não são necessários os 3 s do estudo de bolha (§11.4) — **não há bolha para
+estudar**, e é justamente essa a conclusão.
