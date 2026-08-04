@@ -65,24 +65,50 @@ contração 4"→2" nem a distribuição do escoamento no coletor de 7 furos.
 A pressão do xarope na porta é **14 vezes** a pressão do ar disponível. Nessa condição, o
 escoamento na linha de ar seria no sentido inverso — xarope para dentro da tubulação de ar.
 
-### 3.2 Reposicionar a porta de ar não resolve
+### 3.2 A posição da porta de ar é incorreta — e corrigi-la não é suficiente
 
-A porta de ar está hoje **318 mm a montante** da contração, no trecho de 4" — onde a pressão é
-máxima. Num eductor convencional ela ficaria na garganta, onde a pressão é mínima.
+A porta de ar está hoje **318 mm a montante** da contração, no trecho de 4", onde a pressão é
+máxima. Num eductor convencional a injeção fica **a jusante do bocal**, na zona de baixa pressão
+dos jatos. A posição atual está, portanto, errada — este ponto já havia sido identificado na
+análise do ejetor isolado.
 
-A simulação quantifica o ganho dessa correção:
+A simulação quantifica o ganho de cada reposicionamento possível:
 
-| | bar |
+| ponto de injeção | pressão local (bar man.) | ganho | recuperação do déficit |
+|---|---|---|---|
+| porta atual, ramal 4" | **26,9** | — | — |
+| garganta do cone (ainda a montante do bico) | **26,4** | 0,49 bar | 1,9 % |
+| **jusante do bico — posição de eductor correta** | **≈ 11** | ≈ 16 bar | ≈ 61 % |
+| *(referência: pressão de ar disponível)* | *0,98* | | |
+
+**Mesmo na posição ideal, a pressão local é 11 vezes a pressão de ar disponível.**
+
+### 3.2.1 Por que — a lança de entrega
+A perda de carga total se reparte assim:
+
+| trecho | bar |
 |---|---|
-| Pressão na porta (posição atual) | 26,9 |
-| Pressão na garganta (posição correta) | 26,4 |
-| **Ganho de reposicionar a porta** | **0,49** |
-| Déficit a vencer | 26,0 |
-| **Recuperação** | **1,9 %** |
+| bico — 7 furos Ø9 mm | ~13,0 |
+| **lança — Ø62,7 mm × 7,09 m** | **11,0** |
+| hidrostática líquida (ganho de descida − submergência) | −0,08 |
 
-> **A posição da porta está incorreta, mas não é a causa raiz.** A causa é a **viscosidade do
-> xarope**: a 6,5 Pa·s o escoamento é laminar em todo o ejetor, a perda por atrito domina, e o
-> efeito de Bernoulli — que é o princípio de funcionamento de um eductor — não se estabelece.
+O ar precisa ser injetado **antes da lança** para ser entregue no aerador. Logo, **qualquer**
+ponto de injeção fisicamente possível está a montante de 11 bar de perda por atrito:
+
+```
+melhor ponto concebível = 0,857 (hidrostática na boca)
+                        + 11,0  (atrito da lança)
+                        − 0,939 (ganho de gravidade na descida)
+                        = 10,9 bar man.
+```
+
+> **A lança de entrega, sozinha, inviabiliza a sucção natural.** Nenhum reposicionamento de porta
+> e nenhum redesenho de bico escapa dela, porque ela está a jusante de todo ponto de injeção
+> possível.
+>
+> **A causa raiz é a viscosidade do xarope.** A 6,5 Pa·s o escoamento é laminar em todo o
+> circuito (Re = 36–37) e a perda é governada por Poiseuille, `Δp = 32µLv/D²`. O efeito de
+> Bernoulli — princípio de funcionamento de um eductor — não chega a se estabelecer.
 
 ### 3.3 Pressão de descarga requerida da bomba
 
@@ -93,9 +119,9 @@ Repartição da perda:
 
 | trecho | bar |
 |---|---|
-| bico — 7 furos Ø9 mm | 12,9 |
-| lança — Ø62,7 mm × 7,1 m | 11,0 |
-| demais trechos e hidrostática | 3,0 |
+| bico — 7 furos Ø9 mm | ~13,0 |
+| lança — Ø62,7 mm × 7,09 m | 11,0 |
+| demais trechos e hidrostática | ~2,9 |
 
 ---
 
@@ -141,3 +167,28 @@ que a de projeto.**
   pela lança.
 - Análise monofásica: quantifica **se** o ar entra, não o tamanho de bolha resultante. O estudo
   de bolha requer a etapa multifásica, que só faz sentido em condição na qual haja ar entrando.
+
+---
+
+## 7. Consistência com a análise anterior do ejetor isolado
+
+Esta análise **confirma e refina** as conclusões do estudo do ejetor isolado, que testou três
+configurações multifásicas independentes:
+
+| configuração anterior | resultado |
+|---|---|
+| ar soprado 1–3 kgf/cm² · 7×Ø9 · 130 m³/h | ar não entra; **xarope reflui a 10,25 kg/s** |
+| ar atmosférico, sucção natural | ar não entra (VF de ar = 0 no domínio) |
+| melhor caso possível (4×Ø15 · −0,38 bar · 5,9 m³/h) | ar entra, mas **1000× abaixo do alvo** |
+
+**O que muda com o acoplamento:** o estudo anterior modelava a lança com 3 m e **arbitrava** a
+pressão na descarga, por não dispor do tanque. O domínio acoplado tem a lança real de 7,09 m e a
+submergência real de 6,47 m — o termo de atrito da lança passa a ser **calculado**, não estimado.
+
+**Consequência sobre a recomendação anterior.** O estudo isolado atribuía a causa à posição da
+porta de ar e recomendava mover a injeção para jusante do bico. A posição está de fato incorreta,
+e essa mudança recupera cerca de 61 % do déficit — mas o modelo acoplado mostra que **os 11 bar
+de atrito da lança permanecem** e mantêm o esquema inviável por um fator de 11.
+
+⇒ A recomendação se desloca: **de reposicionar a porta para reduzir a viscosidade efetiva do
+circuito** (temperatura, diluição) ou **rever a vazão e o diâmetro da lança**.
