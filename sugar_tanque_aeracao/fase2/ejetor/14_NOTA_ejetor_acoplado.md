@@ -27,8 +27,27 @@ depende da modelagem de bolhas**. A análise foi portanto conduzida em regime **
 laminar e estacionário**, o que elimina as incertezas do modelo multifásico e permite verificação
 cruzada com solução analítica.
 
-O regime laminar não é uma simplificação: com µ = 6,5 Pa·s, o número de Reynolds é **37 na lança
-e 36 nos furos do bico**. Não há turbulência a modelar.
+O regime laminar não é uma simplificação — é o regime. Com µ = 6,5 Pa·s e ρ = 1350 kg/m³,
+`Re = ρvD/µ` em todo o circuito:
+
+| trecho | v (m/s) | D (m) | **Re** |
+|---|---|---|---|
+| bocal de xarope 8" | 1,12 | 0,2027 | **47** |
+| ramal 4" | 1,10 | 0,1023 | **23** |
+| garganta 2" Sch160 | 6,29 | 0,0428 | **56** |
+| **furos do bico Ø9** | 20,5 | 0,009 | **38** |
+| lança Ø62,7 | 2,93 | 0,0627 | **38** |
+
+**Máximo do domínio: Re = 56**, contra Re ≈ 2300 de transição em tubo — **40× abaixo**, inclusive
+no ponto de maior velocidade. Não há turbulência a modelar.
+
+> **Por que não se usou modelo de turbulência.** Além de não haver turbulência, um modelo RANS
+> seria contraproducente aqui: a taxa de deformação no bico é 8v/D = 18.200 s⁻¹, e nesse campo
+> qualquer resíduo de energia cinética turbulenta se auto-sustenta e gera viscosidade turbulenta
+> espúria, que **soma** aos 6,5 Pa·s e infla artificialmente a perda de carga — que é justamente
+> a grandeza medida. Além disso, a concordância de 13 % com a solução de Poiseuille
+> (`Δp = 32µLv/D²`, teoria estritamente laminar) **é a própria demonstração de que o regime é
+> laminar**; ligar turbulência invalidaria a única verificação independente da análise.
 
 ---
 
