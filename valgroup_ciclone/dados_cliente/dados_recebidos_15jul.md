@@ -76,3 +76,83 @@ diferentes**. As discrepâncias (importantes, a resolver antes de cravar):
 ## Fontes (não commitadas — só os fatos)
 Cromatografia AFK0948/25 Rev.01 (Afinko, GC-MS) · Planilha "Dimensionamento de Ciclone Lapple" (colegas) ·
 Relatório biomassa ComBio 3072-1/2025.0 · SCADA (TT-205/209/213/214/226/303/305).
+
+
+---
+
+# 5. ÁUDIO VALGROUP (04/08/2026) — resposta sobre a PSD do carreado
+
+## 5.1 O que foi dito
+1. A DT está na **planilha do projeto do ciclone** que eles já enviaram (~1 ano atrás),
+   **primeira ou segunda aba**. ⇒ ver §3: é a "planilha Lapple dos colegas" que **já temos**.
+2. Ajustaram **3 modelos de DT** e escolheram o de **maior R²**.
+3. A amostra é de **dados reais do char COLETADO** — o que ficou para trás. Distribuição
+   deslocada para **partículas mais grossas** que o que efetivamente passa adiante.
+4. O sistema **não opera com parâmetros estacionários** o tempo todo ⇒ há variação real na PSD.
+5. ⛔ **O carreado NÃO é amostrável:** só se recupera em manutenção, e vem **contaminado de
+   parafina**. Só o char separado/coletado é analisável de forma confiável.
+6. Ofereceram: (a) os **dados brutos** do analisador, (b) coletar material novo para análise.
+
+## 5.2 Confirma nossa leitura, por rota independente
+`dimensionamento/convolucao_eficiencia.py` já registrava que a amostra era do char extraído,
+porque **28 % dela é > 1 mm**, que não pode ser arrastado a 1,03 m/s (v_terminal 1,3–13,4 m/s).
+Chegamos por **velocidade terminal**; eles chegam por **procedência da amostra**.
+Mesma conclusão, dois caminhos. ✅
+
+⇒ A pendência "PSD amostrada na corrente gasosa" **fecha com um NÃO fundamentado**.
+Deixa de ser item aberto e passa a ser **premissa declarada**.
+
+## 5.3 ⚠️ O ACHADO MAIS GRAVE — o dado é PENEIRAMENTO
+As faixas da PSD (**150–425 · 75–150 · 20–75 µm**) são **peneiras ASTM padrão**
+(40 / 100 / 200 / 635 mesh). ⇒ análise granulométrica **por peneiramento**, que
+**não resolve abaixo de ~20 µm**.
+
+E é abaixo de 10 µm que mora **toda** a perda do ciclone (d* = 7,6 µm):
+
+| d (µm) | 250 | 100 | 39 | 20 | **10** | **6** | **3** |
+|---|---|---|---|---|---|---|---|
+| η | 99,9 % | 99,4 % | 96,3 % | 87,4 % | **63,4 %** | **38,4 %** | **13,5 %** |
+
+Pior: nossa PSD estimada **soma 100 % nas três faixas** ⇒ estamos assumindo **massa ZERO
+abaixo de 20 µm**, a hipótese mais otimista possível, embutida sem estar declarada.
+
+### Sensibilidade — `dimensionamento/sensibilidade_finos.py`
+| fração < 20 µm | η_global (finos a 6 µm) |
+|---|---|
+| **0 % (hipótese atual)** | **99,3 %** |
+| 5 % | 96,3 % |
+| 10 % | 93,2 % |
+| 20 % | 87,1 % |
+
+**Amplitude de 17 pontos percentuais**, inteira dentro do que o peneiramento não mede.
+
+> **Ajustar melhor a distribuição não resolve.** Os 3 modelos foram ajustados aos **mesmos
+> pontos de peneira**, e R² sobre curva acumulada é quase cego à cauda fina (a curva é monótona
+> e suave ali). Os três terão R² > 0,98 e divergirão exatamente onde a resposta mora.
+> **Não é problema de ajuste — é ausência de dado.**
+
+## 5.4 O pedido certo (e barato)
+⛔ **Não** coletar material novo — é justamente o carreado que está contaminado de parafina.
+
+✅ **Difração a laser (ou equivalente) na amostra de char que eles JÁ TÊM.**
+Mesmo material, equipamento que enxerga abaixo de 20 µm. Sem coleta, sem parafina, sem parada.
+
+**Ressalva honesta:** a amostra é o char **capturado**, cuja cauda fina já está depletada — não
+entrega a PSD da alimentação. Mas entrega duas coisas de valor real:
+
+1. **Piso para os finos.** Se o capturado tem 5 % < 20 µm, a alimentação tem **mais** (finos
+   escapam preferencialmente). Mata a hipótese de zero imediatamente.
+2. **Limite SUPERIOR rigoroso para η.** Convoluir com os finos do capturado dá o melhor caso
+   possível. Hoje o nosso número não tem limite nenhum — é otimismo sem cota.
+
+E se soubermos o **η(d) do separador atual**, dá para reconstruir a alimentação:
+`f(d) = c(d)/η(d)` — retrocálculo clássico de classificação. ⇒ **perguntar o que existe hoje
+na linha** (ciclone? cabeceira? nada?).
+
+## 5.5 Ações
+- [ ] Abrir as abas 1 e 2 da planilha do ciclone que **já temos** e conferir se é peneiramento
+- [ ] Pedir os **dados brutos** do analisador (oferecidos) — e o **método**: peneira ou laser?
+- [ ] Pedir **difração a laser na amostra existente** — com a justificativa da §5.3
+- [ ] Perguntar **qual separador existe hoje** na linha (para o retrocálculo)
+- [ ] **Entregar η(d), não só η_global.** A curva de grade independe da PSD; o número global
+      passa a ser reportado como **faixa declarada**, não valor único
