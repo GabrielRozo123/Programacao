@@ -332,3 +332,85 @@ para não mudar nada — é a maior economia de tempo disponível nesta campanha
 
 **Regra geral:** rodar até a fração ativa cair abaixo de **1 %**; nas classes que travam, até
 `mdot_gas` estabilizar (~20.000).
+
+
+---
+
+# 10. ⚠️ ACHADO — a DISPERSÃO TURBULENTA domina a ponta fina da curva
+
+## 10.1 O teste
+Mesma classe, mesmo campo, mesmos 150.000 sub-steps. Única diferença: o modelo
+`Turbulent Dispersion` na fase Lagrangeana.
+
+| 2 µm · 100 % | η |
+|---|---|
+| **com** dispersão turbulenta | **62,0 %** |
+| **sem** dispersão turbulenta | **19,9 %** |
+| *(Lapple, ρ_s = 1500, d\* = 8,28 µm)* | *5,5 %* |
+
+**Fator 3,1.** A dispersão isotrópica responde por dois terços da eficiência que o modelo
+atribui aos finos.
+
+## 10.2 Os dois extremos são errados por motivos OPOSTOS
+| | transporte radial turbulento | veredito |
+|---|---|---|
+| sem dispersão | **zero** | falso — existe turbulência |
+| dispersão isotrópica (k-ω, Boussinesq) | **igual ao axial** | falso — o gradiente centrífugo suprime o radial |
+
+⇒ A realidade é **anisotrópica**: reduzida no radial, não anulada. Fica **entre** as duas.
+
+> É a **mesma anisotropia** documentada em `literatura/00_defensabilidade_do_projeto.md` como
+> razão para o RST — agora aparecendo no Lagrangeano em vez de na queda de pressão.
+> Rodamos k-ω porque o RST não converge em steady (R6).
+
+## 10.3 Cada caso tem seu artefato de cauda
+| | escapou | ainda preso em 150.000 | **banda de η** |
+|---|---|---|---|
+| com dispersão | 38,0 % | 26,1 % | **36 a 62 %** |
+| sem dispersão | 80,1 % | 19,1 % | **0,9 a 19,9 %** |
+
+⚠️ **No caso SEM dispersão o contador trava:** 968 parcelas constantes de 78.000 a 150.000
+sub-steps. Trajetória determinística ⇒ **órbita de equilíbrio permanente** (anel visível no cone,
+residência 3,9–4,7 s). Nada a remove.
+**Nota prática: em rodadas sem dispersão, parar assim que o contador achatar (~80.000).**
+
+## 10.4 Impacto no entregável — menor do que parece
+```
+η_global = (1−φ)·η_grosso + φ·η_fino
+```
+Com φ = 10 % de finos e η_grosso ≈ 99 %:
+
+| η_fino | η_global |
+|---|---|
+| 5 % | 89,6 % |
+| 20 % | 91,1 % |
+| 62 % | 95,3 % |
+
+**5,7 pontos de espalhamento** — contra os **17 pontos** da incerteza da PSD abaixo de 61 µm
+(`dimensionamento/sensibilidade_finos.py`).
+
+⇒ **A PSD continua sendo a maior incerteza do projeto.** E as duas empurram no mesmo sentido:
+quanto mais alto o η dos finos, **menos** a PSD importa.
+
+## 10.5 Plano de rodadas — 11, não 16
+| conjunto | classes |
+|---|---|
+| **COM** dispersão | 1 · 2 · 5 · 10 · 20 · 50 · 75 · 150 µm |
+| **SEM** dispersão | **só 1 · 2 · 5 µm** |
+
+Para d ≥ 10 µm a inércia domina e os dois casos convergem — o 50 µm deu **100 %** com dispersão
+e daria 100 % sem ela.
+
+⇒ Entregável: **curva η×d com BANDA na ponta fina.** Mais honesto e mais defensável que um traço
+único que não conseguimos sustentar.
+
+## 10.6 Resultados acumulados
+| d (µm) | η com disp. | η sem disp. | Lapple (ρ=1500) |
+|---|---|---|---|
+| 2 | **62,0 %** | **19,9 %** | 5,5 % |
+| 5 | **31,3 %** | — | 26,7 % |
+| 50 | **100,0 %** | — | 97,3 % |
+
+⚠️ Note que em 5 µm o CFD com dispersão (31,3 %) fica **próximo** de Lapple (26,7 %), enquanto em
+2 µm ele dispara. A divergência **cresce à medida que a partícula fica mais leve** — coerente com
+o mecanismo: quanto menor a inércia, mais a partícula obedece ao chute turbulento espúrio.
