@@ -401,3 +401,62 @@ número confiável:
 composição C7–C15, e o cliente informou que a corrente real vai de C1 a C40 — a cromatografia
 que usamos era de uma amostra de **óleo**, já sem a fração pesada. Ver
 `dados_cliente/dados_recebidos_15jul.md` §5.
+
+
+---
+
+# RODADA 8b — 50 % com a BC térmica CORRIGIDA ✅ **modelo térmico calibrado**
+
+A T_parede de 50 % da R8 (399,6 °C) era parede adiabática. Corrigida para
+**Convection · h_e = 10 W/m²·K · T_amb = 298,15 K**, igual ao 100 %.
+
+| | previsto | **medido** |
+|---|---|---|
+| **T_parede 50 %** | **364 °C** | **363,7 °C** (636,866 K) ✅ **0,3 °C** |
+| ΔP 50 % | — | **467,5 Pa** (era 469,9 adiabático, −0,5 %) · ξ = **5,13** |
+
+O monitor mostra o diagnóstico: plano em 673 K até a iteração ~14.300, queda abrupta ao aplicar
+a BC, platô em 636,87 K a partir de ~18.000.
+
+## 1. O modelo de duas resistências está VALIDADO
+```
+T_parede = (h_i·T_gás + h_e·T_amb)/(h_i + h_e)
+
+h_i(100 %) = 10·(651,671 − 298,15)/(673,15 − 651,671) = 164,6 W/m²·K
+h_i( 50 %) = 10·(636,866 − 298,15)/(673,15 − 636,866) =  93,35 W/m²·K   (previsto 94,5 → 1,2 %)
+
+razão medida 93,35/164,6 = 0,567     contra Re^0,8 = 0,574
+```
+**Duas geometrias · duas cargas · previsão acertada em 0,3 °C.**
+
+## 2. Projeção — não precisa de rodada nova
+| | h_e = 1,5 (isolada) | h_e = 10 (medido) | **h_e = 31,6 (nua)** |
+|---|---|---|---|
+| 100 % | 397 °C | **378,5 °C** | 340 °C |
+| **50 %** | 394 °C | **363,7 °C** | **305 °C** |
+
+`h_e` nua = radiação 22,3 (ε = 0,8) + convecção natural 9,3 W/m²·K.
+
+⇒ **A parede fica entre 305 e 397 °C**, dependendo apenas do isolamento.
+
+## 3. ⚠️ O bloco térmico fechou. O CRITÉRIO não.
+Com o orvalho de 230–250 °C (estimado de C7–C15), mesmo o pior caso — **305 °C, nua, 50 %** —
+teria 55 °C de folga.
+
+**Mas essa estimativa caiu.** O cliente informou que a corrente na saída do reator vai de
+**C1 a C40**, e a cromatografia que usamos era de uma amostra de **óleo** — a fração pesada
+(parafina) já tinha condensado e sido cortada, e os leves não-condensáveis seguiram para o flare.
+**C20 ferve a 343 °C.** Ver `dados_cliente/dados_recebidos_15jul.md` §5.
+
+> **A conta térmica está certa e completa. O número contra o qual comparar é que está pendente.**
+> Quando a composição chegar, a resposta sai de uma comparação — não de uma nova simulação.
+
+## 4. Estado do ciclone
+| bloco | estado |
+|---|---|
+| ΔP · 100 % e 50 % · Dc = 307 | ✅ fechado (19,56 e 4,68 mbar · folga 51 %) |
+| Térmica · 100 % e 50 % | ✅ fechado e calibrado |
+| **Curva η × d (Lagrangeano)** | ⏳ **próximo — entregável principal** |
+| Orvalho (critério térmico) | ⏳ aguarda composição C1–C40 |
+| PSD < 61 µm | ⏳ aguarda difração a laser |
+| µ e ρ_s | ⏳ pendente — **pós-processamento**, não rodada (ver `07_EXECUCAO` §6) |
