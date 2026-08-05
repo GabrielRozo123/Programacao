@@ -172,3 +172,89 @@ O cliente vê que o resultado não depende dos números que ele ainda vai confir
 
 > **Não monte as 8 classes antes de o passo 1 fechar.** Se o balanço não der 1,00 numa classe,
 > não vai dar em nenhuma — e você terá gasto 8× o tempo para descobrir.
+
+
+---
+
+# 8. ⭐ REFORMULAÇÃO — medir a FUGA, não a coleta
+
+> Substitui o §1 (método da KB000033060) **nesta geometria**. O §1 continua correto
+> em geral; ele falha aqui por um motivo específico, registrado abaixo.
+
+## 8.1 Por que o método da KB não fecha neste ciclone
+A KB mede a coleta no fundo: `E = MFR_bottom / MFR_inlet`, com o fundo em `Escape`.
+Isso pressupõe que a partícula **chega ao fundo**.
+
+**Aqui ela não chega.** Medido: partícula de 50 µm com `Wall = Rebound` fica presa em **quina**
+(teto e junção cilindro-cone) — 5.075 de 5.082 parcelas ainda ativas em 50.000 sub-steps e 2,5 s
+de voo, com `Turbulent Dispersion` ATIVA. A causa é mecânica:
+
+```
+centrífuga a 830 g → empurra contra a parede
+Rebound (rest. normal 0,9) → devolve
+ciclo se fecha em fração de ms → partícula fica presa deslizando
+e em quina a velocidade axial do gás é ~zero → nada a transporta
+```
+
+Não há valor de restituição que conserte: o que ocorre de verdade na parede é o **strand**
+(corda densa descendo por atrito e gravidade), física que o rastreamento de partícula isolada
+não reproduz.
+
+E `Wall = Escape` em tudo resolve o travamento mas **cria coleta falsa** no duto de entrada, no
+teto e na externa do vortex finder — justamente onde os FINOS transitam, que é onde mora a resposta.
+
+## 8.2 A formulação que dispensa o problema
+```
+η = 1 − |mdot_gas| / mdot_inj
+```
+**Tudo o que não sai pelo gás foi retido.**
+
+| classe | comportamento | resultado |
+|---|---|---|
+| **50 µm** | trava na parede, não escapa | η = 100 % ✅ |
+| **5 µm** | escapa pelo vortex finder | medido direto ✅ |
+
+A partícula presa deixa de ser problema: **não é preciso saber onde ela parou, só que não saiu
+com o gás** — e fisicamente ela não sairia, está no strand. Duto, teto e vortex finder ficam
+todos em `Rebound` e não coletam nada indevidamente. **A questão do split da `Walls` evapora.**
+
+## 8.3 Setup completo
+
+### Parâmetro (1, global)
+`Tools → Parameters → New → Scalar` · **`mdot_inj` = 2,7778e-3 kg/s** *(a 50 % → 1,389e-3)*
+
+### Reports — por classe
+| # | Report | Tipo | Definição |
+|---|---|---|---|
+| 1 | `mdot_gas_XXX` | **Lagrangian Mass Flow** | Parts = `Outlet_Gas` · Phase = `char_XXXum` |
+| 2 | ⭐ **`eta_XXX`** | **Expression** | `1 - abs(${mdot_gas_XXX}) / ${mdot_inj}` |
+| 3 | `mdot_dust_XXX` | **Sum** | `mdot_face_XXX` · Parts = `Outlet_dust` — **só diagnóstico** |
+
+### Boundaries
+| boundary | Mode |
+|---|---|
+| `Walls` e as 5 do split | **Rebound** — default do tipo, **sem override** |
+| `Outlet_dust` · `Outlet_Gas` · `Inlet` | Escape |
+
+### Solver
+Maximum Sub-Steps **150.000** · Max Residence Time 10 s · Verbosity **High** ·
+Tracking Integration **2nd-order** · Active Parcel Fraction Cut-off 0,0 ·
+Maximum Courant **1,0** · Parcel Streams **11**
+
+## 8.4 Como ler a fração ainda ativa
+Ela **não invalida** o η — diz onde você está:
+
+| ainda ativas no fim | leitura |
+|---|---|
+| < 2 % | η cravado |
+| alto **e** partículas nos anéis de parede (cena) | normal no grosso — parede é coleta, o η já as conta como retidas ✅ |
+| alto **e** partículas circulando no miolo | número mole — mais sub-steps |
+
+## 8.5 📌 Armadilha nº17 — trocar de instrumento antes de consertar a medição
+Perdemos uma tarde tentando fazer a partícula chegar ao fundo (split da boundary, modos por
+superfície, identificação por área) para poder usar a fórmula da KB. **A fórmula é que não servia
+a esta geometria.**
+
+> Quando o instrumento não alcança a grandeza, **a primeira pergunta é se existe outra grandeza
+> equivalente que o instrumento alcança** — não como adaptar a geometria da medição.
+> Aqui: fuga e coleta são complementares, e a fuga é medível sem ambiguidade.
