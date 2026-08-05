@@ -258,3 +258,77 @@ a esta geometria.**
 > Quando o instrumento não alcança a grandeza, **a primeira pergunta é se existe outra grandeza
 > equivalente que o instrumento alcança** — não como adaptar a geometria da medição.
 > Aqui: fuga e coleta são complementares, e a fuga é medível sem ambiguidade.
+
+
+---
+
+# 9. ⚠️ CORREÇÃO — a densidade da partícula é **1500**, não 776,75
+
+Confirmado no material da fase Lagrangeana. **Toda a §5 (previsões com ρ_s = 776,75) está
+superada por esta seção.**
+
+## 9.1 Validação — CFD × Lapple no diâmetro de corte
+Primeira classe medida: **5 µm a 100 % → η = 31,34 %** (150.000 sub-steps · 19 de 5.082
+parcelas ativas no fim = 0,37 % ⇒ **η = 31,3 ± 0,4**).
+
+Invertendo a curva de Lapple para achar o corte implícito no CFD:
+```
+0,3134 = 1/(1+(d*/5)²)   →   d* = 7,40 µm
+```
+
+| | d\* |
+|---|---|
+| **CFD (implícito)** | **7,40 µm** |
+| Lapple com ρ_s = 1500 | **8,28 µm** |
+| **concordância** | **11 %** ✅ |
+| *(Lapple com ρ_s = 776,75)* | *11,51 µm — 64 %, incompatível* |
+
+E o η direto: Lapple(1500) prevê 26,7 % em 5 µm contra **31,3 % medidos** — 4,6 pontos acima,
+**na direção esperada**: a retenção de parede conta as presas como retidas, e Lapple embute
+reentranhamento.
+
+> **Dois métodos independentes dentro de 11 % no diâmetro de corte.** Mesmo padrão de validação
+> que fechou o ΔP (13 %) e a térmica (0,3 °C).
+
+## 9.2 Não refazer a 776,75 — conversão de Stokes
+```
+d_equivalente = d · √[ (ρ_novo/1500) · (9,5e-5/µ_novo) ]
+```
+| cenário | ρ_s | µ | **d\* a 100 %** |
+|---|---|---|---|
+| **RODADO** | **1500** | **9,5e-5** | **8,28 µm** |
+| planilha (bulk) | 776,75 | 9,5e-5 | 11,51 µm |
+| µ corrigido | 1500 | 2,5e-5 | 4,25 µm |
+| ambos corrigidos | 2000 | 2,5e-5 | 3,68 µm |
+
+**E 1500 é o valor mais defensável.** O 776,75 da planilha é densidade **aparente do leito** —
+inclui vazios e subestima a inércia. A própria tabela de "Valores Usuais" da planilha declara
+a faixa **1500–3000**, e o valor usado como projeto está **abaixo do mínimo dela**.
+
+## 9.3 Previsões corrigidas (Lapple, ρ_s = 1500)
+d\* = **8,28 µm** a 100 % · **11,70 µm** a 50 %
+
+| d (µm) | **η 100 %** | η 50 % |
+|---|---|---|
+| 1 | 1,4 % | 0,7 % |
+| 2 | 5,5 % | 2,8 % |
+| **5** | **26,7 %** → **medido 31,3 %** ✅ | 15,4 % |
+| 10 | 59,3 % | 42,2 % |
+| 20 | 85,4 % | 74,5 % |
+| 50 | 97,3 % | 94,8 % |
+| 75 | 98,8 % | 97,6 % |
+| 150 | 99,7 % | 99,4 % |
+
+## 9.4 Sub-steps por classe — o critério é a FRAÇÃO ATIVA, não o número
+| classe | comportamento | sub-steps |
+|---|---|---|
+| 1 · 2 µm | escapam rápido | ~50.000 |
+| **5 · 10 · 20 µm** | perto do corte, espiralam | **150.000** |
+| 50 · 75 · 150 µm | **travam na parede — a fração ativa NUNCA cai** | **20.000** |
+
+⚠️ **Nas grossas não espere a fração cair.** O η já está determinado cedo porque `mdot_gas` para
+de crescer depois de ~1 s. Rodar 150.000 com 5.082 parcelas ativas seria 7,6e8 de trabalho
+para não mudar nada — é a maior economia de tempo disponível nesta campanha.
+
+**Regra geral:** rodar até a fração ativa cair abaixo de **1 %**; nas classes que travam, até
+`mdot_gas` estabilizar (~20.000).
