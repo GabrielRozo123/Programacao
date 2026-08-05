@@ -311,3 +311,93 @@ turbulenta (0,041 → 0,045). Tudo o mais permanece. Reiniciar do campo convergi
 >
 > ⚠️ Se cair **abaixo de 300 °C**, o quadro muda: o isolamento deixa de ser opcional e passa a ser
 > requisito de projeto. Vale a pena saber disso **antes** de gastar o Lagrangeano.
+
+
+---
+
+# RODADA 8 — Dc = 307 · k-ω steady + `Outlet` + parede CONVECTIVA · 100 % e 50 %
+
+> `ciclone_307_100` · `Outlet_Gas` = **`Outlet`** (flow-split) · `outlet_dust` = `Wall`
+> Parede: **Convection**, h_e = **10 W/m²·K**, T_amb = **298,15 K**
+> ⚠️ **Substitui a Rodada 7**, que foi rodada a **15 m/s** e não a 13,59 (ver §correção abaixo).
+
+## 1. Resultados
+
+| | **100 %** | **50 %** |
+|---|---|---|
+| v_i | 13,59 m/s | 6,80 m/s |
+| **ΔP** | **1.955,6 Pa** (19,56 mbar) | **469,9 Pa** (4,70 mbar) |
+| **ξ** | **5,37** | **5,15** |
+| **v_max** | 26,573 m/s | 12,348 m/s |
+| **v_max/v_i** | **1,96** ✅ | **1,82** ✅ |
+| **T_parede** | **378,5 °C** ✅ | ⚠️ **399,6 °C — inválido**, ver §3 |
+
+Previsões registradas ANTES de rodar: ΔP 100 % em 1.960–1.990 (medido **1.955,6**) ·
+ΔP 50 % em 440–490 (medido **469,9**, centro da faixa) · T_parede 100 % ~381 °C
+(medido **378,5**). **As três confirmadas.**
+
+`v_max/v_i` de 1,96 e 1,82 estão dentro da faixa física de 1,5–2,5 — o k-ω não está inflando
+nem suprimindo o vórtice.
+
+## 2. ⚠️ CORREÇÃO DE REGISTRO — a Rodada 7
+
+A R7 está registrada como **2.487,3 Pa a 13,59 m/s · ξ = 6,83**. Está errado nos dois campos:
+ela foi rodada a **15 m/s**, e o ξ saiu de dividir aquele ΔP pelo v² de 13,59.
+
+```
+ξ real da R7 = 2487,3 / (½·3,946·15²)    = 5,60
+ξ da R8      = 1955,6 / (½·3,946·13,59²) = 5,37     ← 4 % de diferença: as duas concordam
+```
+
+⇒ **A R8 é o ponto de projeto. A R7 fica como histórico (110,4 % da vazão nominal).**
+
+### Consequência: a margem é bem maior que a registrada
+| cenário | ΔP | folga vs 40 mbar |
+|---|---|---|
+| k-ω (medido) | **19,56 mbar** | **51 %** |
+| RST steady (×1,182) | 23,1 mbar | 42 % |
+| RST pessimista (×1,390) | 27,2 mbar | **32 %** |
+
+*(Estava registrado 13 % no cenário pessimista, calculado sobre o ΔP de 110 % de vazão.)*
+
+## 3. ⚠️ A T_parede de 50 % é inválida — BC não aplicada
+
+**399,6 °C a 50 % contra 378,5 °C a 100 %.** A parede está mais quente na vazão MENOR, o que é
+fisicamente impossível: a 50 % o tempo de residência dobra e h_i cai (∝ Re^0,8, fator 0,574) —
+o gás troca calor por mais tempo através de um filme mais fraco, **e a parede esfria**.
+No Dc = 290 medimos exatamente isso: 381 → 367 °C.
+
+E o valor denuncia a causa: **399,6 °C ≈ os 400 °C de entrada** (0,4 K de diferença).
+⇒ **parede adiabática**, devolvendo a temperatura do gás. A BC convectiva não foi aplicada
+naquele arquivo.
+
+> **Terceira ocorrência do mesmo padrão nesta campanha** (antes: `P_porta_ar` devolvendo os
+> 98.067 Pa do ejetor; `T_parede` devolvendo os 400 °C na primeira tentativa deste caso).
+> ⇒ **Rotina:** antes de acreditar num report, perguntar *"este valor é calculado ou prescrito
+> neste lugar?"*
+
+**ΔP e v_max de 50 % continuam válidos** — a sensibilidade térmica da pressão é de ~0,3 %
+(o 100 % foi de 1.961,4 adiabático para 1.955,6 convectivo).
+
+## 4. Modelo de duas resistências — calibrado e previsão
+
+```
+T_parede = (h_i·T_gás + h_e·T_amb)/(h_i + h_e)
+h_i(100 %) = 10·(651,671 − 298,15)/(673,15 − 651,671) = 164,6 W/m²·K
+h_i( 50 %) = 164,6 × 0,574 = 94,5 W/m²·K
+```
+
+**Previsão para a T_parede a 50 %, ao corrigir a BC: 364 °C.**
+
+Se confirmar, o modelo está calibrado em duas geometrias e a projeção para parede nua vira
+número confiável:
+
+| | h_e = 10 (atual) | **h_e = 31,6 (nua: rad. 22,3 + conv. nat. 9,3)** |
+|---|---|---|
+| 100 % | 378,5 °C | 340 °C |
+| **50 %** | 364 °C *(prev.)* | **306 °C** |
+
+⚠️ **O critério contra o qual comparar está em revisão.** O orvalho de 230–250 °C veio de uma
+composição C7–C15, e o cliente informou que a corrente real vai de C1 a C40 — a cromatografia
+que usamos era de uma amostra de **óleo**, já sem a fração pesada. Ver
+`dados_cliente/dados_recebidos_15jul.md` §5.
