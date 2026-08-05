@@ -11,8 +11,9 @@
 | d (µm) | sub-steps | ativas no fim | **η c/ dispersão** | **η s/ dispersão** | Lapple (d\*=8,28) |
 |---|---|---|---|---|---|
 | **1** | 150.000 | 34 (0,67 %) ✅ | **22,70 %** | — | 1,4 % |
-| **2** | 50.000 ⚠️ | 1.325 (26,1 %) ⚠️ | *62,0 %* ⚠️ | — | 5,5 % |
-| **2** | 150.000 | 968 (19,1 %) | — | **19,9 %** | 5,5 % |
+| **2** | 150.000 | 28 (0,55 %) ✅ | **22,31 %** | — | 5,5 % |
+| **2** | 150.000 | 968 (19,1 %) ⚠️ | — | *19,9 %* | 5,5 % |
+| ~~2~~ | ~~50.000~~ ⚠️ | ~~1.325 (26,1 %)~~ | ~~62,0 %~~ | — | *descartada, §2* |
 | **5** | 150.000 | 19 (0,37 %) ✅ | **31,34 %** | — | 26,7 % |
 | **50** | 20.000 | 5.077 (travadas) ✅ | **100,00 %** | — | 97,3 % |
 
@@ -21,25 +22,48 @@ porque `mdot_gas` zera cedo; ver `07_EXECUCAO` §9.4)*
 
 ---
 
-## 2. ⚠️ INCONSISTÊNCIA A RESOLVER — o ponto de 2 µm
+## 2. ✅ RESOLVIDO — a inconsistência do 2 µm era sub-step
 
-| d (µm) | η |
-|---|---|
-| 1 | 22,7 % |
-| **2** | **62,0 %** ← |
-| 5 | 31,3 % |
+A sequência com dispersão dava **22,7 / 62,0 / 31,3 %** para 1 / 2 / 5 µm — impossível, porque
+eficiência de grade é monotônica.
 
-**Eficiência de grade tem de ser monotônica** — mais inércia, mais captura. 2 µm acima de 5 µm
-é fisicamente impossível.
+**Causa:** o 2 µm era o único a 50.000 sub-steps, com **26,1 % das parcelas sem resolver**, todas
+contadas como retidas.
 
-**Causa:** o 2 µm é o **único que rodou a 50.000 sub-steps** (antes da correção do §9.4), com
-**26,1 % das parcelas sem resolver** — todas contadas como retidas.
+**Refeito a 150.000: η = 22,31 %** (28 parcelas ativas = 0,55 %).
+*(previsão registrada antes: "entre 22,7 e 31,3 %, provavelmente 26–28" — o medido ficou logo
+abaixo da faixa)*
 
-⇒ **Refazer o 2 µm a 150.000.**
-⇒ **Previsão registrada: η(2 µm) entre 22,7 % e 31,3 %** — provavelmente **26 a 28 %**.
+### E os dois pontos finos são o MESMO número
+```
+1 µm: 22,70 %      SE = √[η(1−η)/N] = √(0,2231·0,7769/5082) = 0,58 ponto
+2 µm: 22,31 %      diferença = 0,39 ponto = 0,67 σ
+```
+**Estatisticamente indistinguíveis.** Não é dispersão de resultado — é um **PATAMAR**.
 
-Se cair nessa faixa, a curva fecha por **consistência interna**, o que vale tanto quanto a
-comparação com Lapple.
+Abaixo de ~2 µm a captura deixa de depender da inércia e passa a ser governada por **deposição
+turbulenta na parede**; a partícula vira quase um traçador e o tamanho para de importar. Regime
+real e reconhecido em ciclones.
+
+---
+
+## 2b. ⚠️ CORREÇÃO DO §10 DO `07_EXECUCAO` — o efeito da dispersão é MUITO menor
+
+O §10 registrou **fator 3,1** para a dispersão turbulenta, comparando 62,0 % (com) × 19,9 % (sem).
+**Comparação inválida:** o 62,0 % vinha da rodada de 50.000 sub-steps, não convergida.
+
+Comparação correta, **ambas a 150.000**:
+
+| 2 µm | η | não resolvidas |
+|---|---|---|
+| **com** dispersão | **22,31 %** | 0,55 % ✅ |
+| **sem** dispersão | *19,9 %* | 19,1 % ⚠️ órbitas permanentes |
+
+⇒ **2,4 pontos de diferença, não 42.**
+
+**Isso melhora o entregável:** a banda da ponta fina encolhe de ~5,7 pontos em η_global para
+cerca de **1,2 ponto**. O número confiável é o **com dispersão** — o caso sem dispersão tem
+ambiguidade insolúvel por construção (19,1 % em órbita determinística permanente).
 
 ---
 
@@ -67,7 +91,7 @@ inércia. O fenômeno é real; aqui está **exagerado pela isotropia** do k-ω.
 | classe | c/ dispersão | s/ dispersão |
 |---|---|---|
 | 1 µm | ✅ 22,70 % | ⏳ |
-| **2 µm** | ⚠️ **refazer a 150.000** | ✅ 19,9 % |
+| **2 µm** | ✅ **22,31 %** | ✅ 19,9 % *(com ressalva)* |
 | 5 µm | ✅ 31,34 % | ⏳ |
 | 10 µm | ⏳ 150.000 | — |
 | 20 µm | ⏳ 150.000 | — |
@@ -84,9 +108,9 @@ Depois: repetir a **50 % de vazão** (v_i = 6,80 m/s · `mdot_inj` = 1,389e-3).
 1. **η = 1 − fuga.** Partícula que trava na parede é contada como retida. Fisicamente correto
    (está no strand), mas **não representa reentranhamento** ⇒ viés levemente otimista, maior no
    grosso. Medido: +2,7 pts em 50 µm sobre Lapple.
-2. **Dispersão turbulenta isotrópica** (k-ω, Boussinesq) **superestima a captura de finos**. O
-   transporte radial real é suprimido pelo gradiente centrífugo. ⇒ **A ponta fina é reportada
-   como BANDA**, entre os casos com e sem dispersão.
+2. **Dispersão turbulenta isotrópica** (k-ω, Boussinesq) superestima o transporte radial, que na
+   realidade é suprimido pelo gradiente centrífugo. **Medido em 2 µm: 22,31 % com × 19,9 % sem —
+   apenas 2,4 pontos** (§2b). O efeito é pequeno; a ponta fina vai como **banda estreita**.
 3. **ρ_p = 1500 kg/m³.** A planilha do cliente usa 776,75 (densidade **aparente do leito**,
    abaixo do mínimo de 1500 que a própria tabela de valores usuais dela declara). Conversão para
    qualquer outra densidade ou viscosidade: `07_EXECUCAO` §9.2 (número de Stokes).
