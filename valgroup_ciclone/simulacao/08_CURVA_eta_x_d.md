@@ -119,3 +119,71 @@ Depois: repetir a **50 % de vazão** (v_i = 6,80 m/s · `mdot_inj` = 1,389e-3).
    medida** (peneiramento) e vale **17 pontos** de η_global —
    `dimensionamento/sensibilidade_finos.py`. **É a maior incerteza do projeto**, maior que a
    banda da dispersão (5,7 pontos).
+
+
+---
+
+# 6. CURVA A 50 % DE VAZÃO (v_i = 6,80 m/s · `mdot_inj` = 1,389e-3)
+
+| d (µm) | **η 50 %** | η 100 % | **Δ (turndown)** |
+|---|---|---|---|
+| 1 | **25,44 %** | 22,70 % | **+2,74** |
+| 2 | **24,52 %** | 22,31 % | +2,21 |
+| 5 | **26,19 %** | 31,34 % | −5,15 |
+| 7 | **33,08 %** | 51,35 % | −18,27 |
+| **10** | **50,49 %** | 79,14 % | **−28,65** ← pico |
+| 15 | ⏳ ~82 % | 97,70 % | |
+| 20 | ⏳ ~95 % | 99,98 % | |
+| 50 · 75 · 150 | ⏳ 100 % | 100,00 % | |
+
+**d\*(50 %) = 9,90 µm** (interpolado entre 7 e 10 µm).
+
+## 6.1 ⭐ VALIDAÇÃO — o escalonamento com a vazão bate com o analítico
+
+| | d\* |
+|---|---|
+| CFD a 100 % | 6,84 µm |
+| CFD a 50 % | 9,90 µm |
+| **razão CFD** | **1,447** |
+| **razão Lapple** (11,70/8,28) | **1,413** |
+| **diferença** | **2,4 %** |
+
+**Mais forte que a comparação absoluta.** O CFD discorda de Lapple em 17 % no **nível** de d\*,
+mas concorda em 2,4 % em **como** a separação responde à vazão. Um erro de modelo raramente
+preserva a derivada.
+
+## 6.2 O turndown NÃO degrada uniformemente
+A penalidade se concentra numa janela estreita — **5 a 15 µm** — e **atinge o pico em 10 µm,
+com −28,7 pontos**. Fora dela é quase nula, e **abaixo de 2,6 µm ela INVERTE**: o turndown
+melhora a captura.
+
+### O cruzamento das curvas, em 2,6 µm
+| faixa | mecanismo dominante | efeito de reduzir a vazão |
+|---|---|---|
+| **< 2,6 µm** | deposição turbulenta (depende de **tempo**) | **melhora** — a residência do gás dobra (0,48 → 0,96 s) |
+| **> 2,6 µm** | inércia centrífuga (depende de **v²**) | **piora** |
+
+⇒ Resultado com valor operacional direto: **em turndown o ciclone perde eficiência apenas numa
+faixa estreita de tamanho**, e ganha na ponta fina.
+
+## 6.3 O *fishhook* — aparece nas DUAS cargas
+```
+100 %:  η(1 µm) = 22,70 %  >  η(2 µm) = 22,31 %     (+0,39)
+ 50 %:  η(1 µm) = 25,44 %  >  η(2 µm) = 24,52 %     (+0,92)
+```
+**A eficiência sobe quando a partícula fica MAIS fina.** É o *fishhook*, fenômeno documentado em
+ciclones, e aqui com mecanismo explícito: abaixo do regime inercial, quanto menor a partícula
+mais difusiva ela é, e mais deposição turbulenta sofre. A inércia deixou de proteger; a difusão
+passou a capturar.
+
+**Significância:** 0,67 σ e 1,5 σ contra o erro estatístico de ~0,6 ponto (5.082 parcels).
+Individualmente fracos, **mas no mesmo sentido nas duas cargas** — o que torna bem mais provável
+feição real que ruído. Reportar com essa ressalva.
+
+## 6.4 Nota operacional — o limite que passa a valer a 50 %
+A rodada de 10 µm terminou em **134.515 sub-steps**, não em 150.000: foi o
+**`Maximum Residence Time` (10 s)** que limitou, não os sub-steps. A 50 % de vazão a partícula
+envelhece mais rápido em tempo físico por sub-step.
+
+**Não alterar o limite.** As parcelas cortadas tinham 10 s — mais de **dez vezes** o tempo de
+residência do gás (0,96 s). Se não escaparam em dez passagens, não escapariam. São 0,1 % do total.
