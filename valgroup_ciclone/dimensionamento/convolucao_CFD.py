@@ -31,6 +31,11 @@ def eta_l(d_um):
     return eta_lapple(np.asarray(d_um)*1e-6, D_STAR_LAPPLE)
 
 
+def eta_serie(d, n=2, carga="100"):
+    """n estágios idênticos em série: a PENETRAÇÃO multiplica."""
+    return 1 - (1 - eta_cfd(d, carga))**n
+
+
 if __name__ == "__main__":
     print("="*74)
     print("  EFICIÊNCIA GLOBAL — curva CFD × PSD peneirada da Valgroup")
@@ -52,12 +57,22 @@ if __name__ == "__main__":
         gl = eta_global(d, eta_l)
         print(f"  {d:>10} µm {eta_cfd(d)*100:>10.1f} % {gc*100:>13.2f} % {gl*100:>16.2f} %")
 
-    bc = [eta_global(d, lambda x: eta_cfd(x)) for d in (61, 1)]
+    bc = [eta_global(d, lambda x: eta_cfd(x, "100")) for d in (61, 1)]
+    b50 = [eta_global(d, lambda x: eta_cfd(x, "50")) for d in (61, 1)]
+    bs = [eta_global(d, lambda x: eta_serie(x, 2, "100")) for d in (61, 1)]
     bl = [eta_global(d, eta_l) for d in (61, 1)]
     print("\n" + "="*74)
-    print(f"  BANDA com a curva CFD    : {bc[1]*100:.1f} a {bc[0]*100:.1f} %   →  {(bc[0]-bc[1])*100:.1f} pontos")
-    print(f"  BANDA com Lapple         : {bl[1]*100:.1f} a {bl[0]*100:.1f} %   →  {(bl[0]-bl[1])*100:.1f} pontos")
+    print(f"  BANDA · 1 estágio · 100 % : {bc[1]*100:.1f} a {bc[0]*100:.1f} %   →  {(bc[0]-bc[1])*100:.1f} pontos")
+    print(f"  BANDA · 1 estágio ·  50 % : {b50[1]*100:.1f} a {b50[0]*100:.1f} %")
+    print(f"  BANDA · 2 EM SÉRIE · 100 %: {bs[1]*100:.1f} a {bs[0]*100:.1f} %   →  ganho de {(bs[1]-bc[1])*100:.1f} pt no pior caso")
+    print(f"  (referência: Lapple)      : {bl[1]*100:.1f} a {bl[0]*100:.1f} %")
     print("="*74)
+    print(f"""
+  ⚠️  DOIS EM SÉRIE — o custo
+     ΔP: 19,6 → 39,2 mbar contra limite de 40 (folga de 2 %).
+     No cenário pessimista de turbulência: 54,4 mbar, ESTOURA em 36 %.
+     Ganho: {(bs[1]-bc[1])*100:.1f} ponto no pior caso, porque 90,86 % da massa
+     JÁ está em 100 % — só os 9,14 % de fundo estão em jogo.""")
     print(f"""
   LEITURA
   -------
