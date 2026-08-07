@@ -503,18 +503,21 @@
           <tr><td class="name mono">Ground</td><td class="n mono">3</td><td>plano <span class="mono">z = 0</span>, em três pedaços: piso externo <span class="mono">2132,9 m²</span>, piso dentro da bacia A <span class="mono">93,3 m²</span>, piso dentro da bacia B <span class="mono">112,9 m²</span></td><td>Wall</td></tr>
           <tr><td class="name mono">Tank_T01_Source</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(−10, 0)</span></td><td>Wall</td></tr>
           <tr><td class="name mono target-t">Tank_T02_Target</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(+5, 0)</span></td><td>Wall — superfície de medição</td></tr>
-          <tr><td class="name mono">Bund_A_Fire</td><td class="n mono">8</td><td>mureta em volta da poça</td><td>Wall</td></tr>
-          <tr><td class="name mono">Bund_B_Target</td><td class="n mono">9</td><td>mureta em volta do alvo</td><td>Wall</td></tr>
-          <tr><td class="name mono fire-t">IF_Fire</td><td class="n mono">3</td><td>cilindro ⌀5,0 em <span class="mono">(−4,5, 0)</span>, <span class="mono">z ∈ [0; 5]</span></td><td>Interface com a região Fire</td></tr>
+          <tr><td class="name mono">Bund_A_Fire</td><td class="n mono">9</td><td>mureta em volta da poça — 4 paredes externas, 4 internas e o topo anular</td><td>Wall</td></tr>
+          <tr><td class="name mono">Bund_B_Target</td><td class="n mono">9</td><td>mureta em volta do alvo — idem</td><td>Wall</td></tr>
+          <tr><td class="name mono fire-t">IF_Fire</td><td class="n mono">2</td><td>cavidade do fogo: lateral <span class="mono">78,54 m²</span> + disco de cima <span class="mono">19,63 m²</span> = <span class="mono">98,17 m²</span></td><td>Interface com a região Fire</td></tr>
           <tr class="total"><td>Total em <span class="mono">Air</span></td><td class="n mono">32</td><td></td><td></td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="note">
-      <b>Bacia A tem 8 faces e bacia B tem 9</b> — as duas são geometricamente idênticas. A
-      diferença vem de como a operação booleana partiu uma das faces. Se no seu modelo esse par
-      sair 9 e 8, ou 9 e 9, não é erro: o que precisa fechar é o <b>total de 32</b>.
+      <b>A interface tem que ser nomeada dos dois lados.</b> A cavidade no <span class="mono">Air</span>
+      e a superfície do cilindro no <span class="mono">Fire</span> são superfícies distintas,
+      encostadas. Nomear só um lado deixa o outro em <span class="mono">Default</span> — e o
+      STAR-CCM+ cria <b>duas</b> interfaces em vez de uma. As áreas têm que bater:
+      <span class="mono">IF_Fire</span> e <span class="mono">IF_Air</span> valem
+      <span class="mono">98,17 m²</span> cada.
     </div>
 
     <div class="note">
@@ -540,8 +543,8 @@
           <tr><th>Nome</th><th class="n">Faces</th><th>Como identificar</th><th>Tipo de contorno</th></tr>
         </thead>
         <tbody>
-          <tr><td class="name mono">Pool_Surface</td><td class="n mono">1</td><td>disco inferior, <span class="mono">z = 0</span></td><td>Wall — superfície da poça</td></tr>
-          <tr><td class="name mono">IF_Air</td><td class="n mono">2</td><td>lateral cilíndrica + disco superior</td><td>Interface com a região Air</td></tr>
+          <tr><td class="name mono">Pool_Surface</td><td class="n mono">1</td><td>disco inferior, <span class="mono">z = 0</span> — <span class="mono">19,63 m²</span></td><td><b>Wall</b> — superfície da poça, <b>não</b> é interface</td></tr>
+          <tr><td class="name mono fire-t">IF_Air</td><td class="n mono">2</td><td>lateral <span class="mono">78,54 m²</span> + disco superior <span class="mono">19,63 m²</span> = <span class="mono">98,17 m²</span></td><td>Interface com a região Air</td></tr>
         </tbody>
       </table>
     </div>

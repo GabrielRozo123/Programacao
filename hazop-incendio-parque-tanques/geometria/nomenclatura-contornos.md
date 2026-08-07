@@ -85,16 +85,24 @@ caso contrário o campo de empuxo fica inconsistente nas bordas do domínio.
 |---|---|---|
 | `Tank_T01_Source` | Cilindro ⌀ 3,0 m em (−10, 0), h = 4,4 m + teto cônico | Wall |
 | **`Tank_T02_Target`** | Cilindro ⌀ 3,0 m em (+5, 0), h = 4,4 m + teto cônico | **Wall — superfície de medição** |
-| `Bund_A_Fire` | Mureta, externo x ∈ [−13,3; −0,7], y ∈ [−5,3; 5,3], h = 1,0 m | Wall |
-| `Bund_B_Target` | Mureta, externo x ∈ [1,7; 14,3], y ∈ [−5,3; 5,3], h = 1,0 m | Wall |
-| `Fire` (interface) | Cilindro ⌀ 5,0 m em (−4,5, 0), z ∈ [0; 5] | Interface com a região `Fire` |
+| `Bund_A_Fire` | Mureta, externo x ∈ [−13,3; −0,7], y ∈ [−5,3; 5,3], h = 1,0 m — **9 faces**, 104,0 m² | Wall |
+| `Bund_B_Target` | Mureta, externo x ∈ [1,7; 14,3], y ∈ [−5,3; 5,3], h = 1,0 m — **9 faces**, 104,0 m² | Wall |
+| `IF_Fire` | Cavidade do fogo: lateral 78,54 m² + disco superior 19,63 m² — **2 faces**, 98,17 m² | Interface com a região `Fire` |
 
 ### Corpo `Fire` (3 faces)
 
 | Face | Geometria | Tipo |
 |---|---|---|
-| `Pool_Surface` | Disco ⌀ 5,0 m em **z = 0** | Wall — superfície da poça |
-| lateral + topo | Cilindro e disco superior | Interface com `Air` |
+| `Pool_Surface` | Disco ⌀ 5,0 m em **z = 0** — 19,63 m² | **Wall** — superfície da poça, **não** é interface |
+| `IF_Air` | Lateral 78,54 m² + disco superior 19,63 m² — 98,17 m² | Interface com `Air` |
+
+> **A interface precisa ser nomeada dos dois lados.** A cavidade no `Air` e a superfície do
+> cilindro no `Fire` são superfícies distintas, encostadas. Nomear apenas um lado deixa o outro em
+> `Default`, e o STAR-CCM+ cria **duas** interfaces em vez de uma. Conferência: `IF_Fire` e
+> `IF_Air` valem **98,17 m²** cada.
+>
+> O disco inferior do corpo `Fire` fica coplanar com o `Ground`, mas o ar não existe abaixo de
+> z = 0 — ele é contorno externo da região `Fire`, não interface.
 
 ---
 
