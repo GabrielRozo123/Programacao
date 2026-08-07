@@ -500,7 +500,7 @@
           <tr><td class="name mono">Top</td><td class="n mono">1</td><td>plano <span class="mono">z = +30</span></td><td>Pressure Outlet</td></tr>
           <tr><td class="name mono">Side_Y_neg</td><td class="n mono">1</td><td>plano <span class="mono">y = −20</span></td><td>Pressure Outlet</td></tr>
           <tr><td class="name mono">Side_Y_pos</td><td class="n mono">1</td><td>plano <span class="mono">y = +20</span></td><td>Pressure Outlet</td></tr>
-          <tr><td class="name mono">Ground</td><td class="n mono">3</td><td>plano <span class="mono">z = 0</span> — vem partido pelos recortes</td><td>Wall</td></tr>
+          <tr><td class="name mono">Ground</td><td class="n mono">3</td><td>plano <span class="mono">z = 0</span>, em três pedaços: piso externo <span class="mono">2132,9 m²</span>, piso dentro da bacia A <span class="mono">93,3 m²</span>, piso dentro da bacia B <span class="mono">112,9 m²</span></td><td>Wall</td></tr>
           <tr><td class="name mono">Tank_T01_Source</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(−10, 0)</span></td><td>Wall</td></tr>
           <tr><td class="name mono target-t">Tank_T02_Target</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(+5, 0)</span></td><td>Wall — superfície de medição</td></tr>
           <tr><td class="name mono">Bund_A_Fire</td><td class="n mono">8</td><td>mureta em volta da poça</td><td>Wall</td></tr>
@@ -515,6 +515,20 @@
       <b>Bacia A tem 8 faces e bacia B tem 9</b> — as duas são geometricamente idênticas. A
       diferença vem de como a operação booleana partiu uma das faces. Se no seu modelo esse par
       sair 9 e 8, ou 9 e 9, não é erro: o que precisa fechar é o <b>total de 32</b>.
+    </div>
+
+    <div class="note">
+      <b>O <span class="mono">Ground</span> vem em três pedaços.</b> A mureta é um anel fechado, e a
+      pegada dela desconecta o piso de dentro da bacia do piso de fora. Selecione as três com
+      Ctrl+clique — as duas internas ficam escondidas atrás das muretas, então gire a vista para
+      alcançá-las. A mureta em si <b>não</b> entra aqui: ela é <span class="mono">Bund_A_Fire</span>
+      / <span class="mono">Bund_B_Target</span>.
+    </div>
+
+    <div class="note calm">
+      <b>Checksum ao terminar: o grupo <span class="mono">Default</span> tem que ficar vazio.</b>
+      Face esquecida não desaparece — vira um contorno chamado “Default” na região, com tipo Wall
+      padrão. A simulação roda normalmente e a superfície fica sem condição definida sem avisar.
     </div>
   </section>
 
