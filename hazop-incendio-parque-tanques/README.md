@@ -335,20 +335,91 @@ onde está o diferencial.
 
 ---
 
-## 9. Tutoriais do STAR-CCM+ relevantes
+## 9. Versão enxuta (divulgação técnica / portfólio)
 
-Na árvore de tutoriais da documentação:
+As seções 4 a 8 descrevem um estudo de porte de TCC. Para uma peça curta de divulgação, o escopo
+abaixo entrega algo defensável em ordem de grandeza de um fim de semana, sem prometer o que não
+foi feito.
 
-- **Heat Transfer and Radiation** → radiação em meio participante (DOM), surface-to-surface,
-  transferência de calor conjugada. *Comece por aqui — é o núcleo do estudo.*
-- **Reacting Flow** → combustão não pré-misturada, flamelet/FGM, modelos de fuligem.
-- **Multiphase Flow** → Lagrangiano com evaporação e fluid film, para o dilúvio.
-- **Motion** e **Mesh** → apenas se houver necessidade de espalhamento de poça (VOF) ou geometria
-  complexa via surface wrapper.
+### Etapa 1 — Validação: Steckler Room
+
+Rodar o tutorial **Fire and Smoke Wizard: Steckler Room** e reproduzir os perfis de temperatura e
+velocidade no vão da porta contra o dado experimental.
+
+Referência: Steckler, K. D.; Quintiere, J. G.; Rinkinen, W. J., *Flow Induced by Fire in a
+Compartment*, NBSIR 82-2520, National Bureau of Standards, 1982. Compartimento de
+**2,8 × 2,8 × 2,18 m**, abertura (porta ou janela) de largura variável, queimador a gás com potência
+e posição variáveis; 55 ensaios. É benchmark consagrado de CFD de incêndio (usado por FDS, FireFOAM
+e outros).
+
+O valor aqui é metodológico: **validar antes de aplicar**. Uma figura de incêndio sem essa etapa não
+sustenta discussão técnica.
+
+> **Sobre o Fire and Smoke Wizard:** ele configura o caso automaticamente, o que é conveniente e
+> perigoso em igual medida. Antes de divulgar qualquer resultado, inspecionar na árvore o que o
+> assistente definiu — modelo de radiação, coeficiente de absorção, tratamento de fuligem, rampa de
+> HRR — e ser capaz de justificar cada escolha.
+
+### Etapa 2 — Aplicação: poça única com um tanque-alvo
+
+Redução deliberada do caso da seção 4: **uma** poça, **um** alvo, sem CHT, sem dilúvio, sem matriz
+paramétrica completa.
+
+| Parâmetro | Valor |
+|---|---|
+| Poça | ~5 m de diâmetro equivalente (≈ 19,6 m²) |
+| Combustível | Tolueno (ṁ" ≈ 0,06 kg/m²·s, ΔH_c ≈ 40,6 MJ/kg) |
+| HRR | ≈ **48 MW** |
+| D\* | ≈ **4,5 m** |
+| δx na chama | ≈ **0,3 m** (D\*/δx ≈ 15) |
+| Domínio | ~40 × 40 × 25 m com blocos de refino |
+| Malha | **1–2 milhões de células** |
+| Casos | 2 apenas: sem vento e com vento de 5 m/s |
+
+Física: fonte volumétrica de calor prescrita + **DOM com meio participante e fuligem**. Sem
+combustão reativa, sem multifásico.
+
+**Entregáveis (dois, só):**
+
+1. Iso-superfícies de **37,5 / 12,5 / 5 kW/m²** sobre o layout — a figura de capa, que conversa
+   direto com os critérios da CETESB P4.261 e com o pessoal de brigada.
+2. **Tabela comparativa CFD × modelo de fonte pontual**, com a diferença atribuída a sombreamento e
+   inclinação de chama. É este item, e não o render, que carrega o conteúdo técnico.
+
+**O que declarar explicitamente como fora de escopo:** CHT e tempo até a falha, dilúvio,
+sub-ventilação em dique, estudo de independência de malha completo. Listar as limitações é parte do
+entregável — e é o que separa divulgação técnica de marketing.
 
 ---
 
-## 10. Referências
+## 10. Tutoriais do STAR-CCM+ — ordem de estudo
+
+### Prioridade
+
+| # | Tutorial | Conjunto | Por quê |
+|---|---|---|---|
+| **1** | **Fire and Smoke Wizard: Steckler Room** | Reacting Flow | Caso de incêndio completo com validação experimental disponível. Pluma flutuante, estratificação, radiação e fuligem — mesma física do incêndio de poça, em domínio pequeno e tolerante. **Ponto de partida.** |
+| **2** | **Radiação em meio participante (DOM)** | Heat Transfer and Radiation | A peça mais crítica do estudo e **ausente** do conjunto Reacting Flow. É onde está o número que interessa: o fluxo no alvo. |
+| **3** | Eddy Break-Up: Coal Combustion | Reacting Flow | EBU montado na mão + radiação em fornalha; mostra o que o Wizard automatizou. Mais pesado. |
+| **4** | Spray Combustion: n-Dodecane | Reacting Flow | Somente se for para o caso do dilúvio: injetor, distribuição de tamanho de gota, evaporação. A mecânica transfere para spray de água. |
+| — | Transferência de calor conjugada (CHT) | Heat Transfer and Radiation | Necessário apenas na fase 6 (tempo até a falha do costado). |
+| — | Lagrangiano + Fluid Film | Multiphase Flow | Necessário apenas na fase 7 (dilúvio). |
+
+### Baixa prioridade ou irrelevantes para este estudo
+
+- **Complex Chemistry: Methane-Air Jet Flame** — chama difusiva é o regime certo, mas química
+  detalhada é desproporcional quando o objetivo é o campo radiante.
+- **FGM: Perfectly Premixed Combustion with Adaptive Meshing** — FGM é a fase 2 do plano, porém em
+  regime **pré-misturado**, que não é o da poça (difusiva). O adaptive meshing é a única parte
+  aproveitável.
+- **Surface Chemistry: Methane on Platinum Oxidation** — catálise heterogênea. Sem relação.
+- **Reacting Channels: Steam Methane Reforming** — reformador. Sem relação.
+- **Acoustic Modal Analysis: Annular Combustor** — instabilidade termoacústica de turbina a gás.
+  Sem relação.
+
+---
+
+## 11. Referências
 
 ### Notícias do evento (contexto)
 
