@@ -112,12 +112,29 @@ caso contrário o campo de empuxo fica inconsistente nas bordas do domínio.
 
 | Relatório | Campo | Uso |
 |---|---|---|
-| Surface Maximum | Radiative Heat Flux | Ponto mais exposto do costado |
-| Surface Average | Radiative Heat Flux | Comparação com o modelo integral |
+| Surface Average | **Incident** Radiative Heat Flux | **Comparação com o modelo integral e com os critérios normativos** |
+| Surface Maximum | **Incident** Radiative Heat Flux | Ponto mais exposto do costado |
+| Surface Average | Radiative Heat Flux (líquido) | Calor efetivamente absorvido pelo aço → resposta térmica |
 | Surface Maximum | Temperature (parede) | Entrada para tempo até a falha (fase CHT) |
 
-Comparar o **Surface Average** com o baseline de fonte pontual (7,1 / 11,9 / 16,7 kW/m² conforme
-χ_r = 0,15 / 0,25 / 0,35). Ver `README.md` desta pasta.
+### Incidente × líquido — não confundir
+
+| Grandeza | Definição | Responde |
+|---|---|---|
+| **Incidente** | radiação que **chega** à superfície | o alvo ultrapassa o critério normativo? |
+| **Líquido** | incidente **menos** o que o aço re-emite | quanto calor o aço absorve → aquecimento |
+
+Os critérios de **37,5 / 12,5 / 5 kW/m²** (API 521, CETESB P4.261) e o modelo de fonte pontual são
+definidos em **fluxo incidente**. Comparar fluxo líquido com o baseline integral compara grandezas
+diferentes: a discrepância pareceria resultado físico quando é apenas definição.
+
+Já para a resposta térmica do costado (fase CHT), o **líquido** é o correto — o aço aquecido devolve
+parte por emissão, e usar o incidente superestimaria o aquecimento.
+
+Nomear os relatórios sem ambiguidade (`Alvo_Fluxo_Incidente_Medio`, `Alvo_Fluxo_Liquido_Medio`).
+
+Comparar o **Surface Average incidente** com o baseline de fonte pontual (7,1 / 11,9 / 16,7 kW/m²
+conforme χ_r = 0,15 / 0,25 / 0,35). Ver `README.md` desta pasta.
 
 Emissividade e absortividade do costado devem ser definidas explicitamente em *Surface Materials* —
 aço pintado ≈ 0,8–0,9; aço novo, bem menor. Vale como caso de sensibilidade.
