@@ -24,6 +24,22 @@ import os
 
 import cadquery as cq
 
+# Unidade do modelo. O exportador do cadquery grava STEP em MILIMETROS por
+# padrao; como a geometria e construida em metros, exportar sem declarar a
+# unidade produz SI_UNIT(.MILLI.,.METRE.) e o importador do STAR-CCM+ le o
+# dominio de 60 m como 60 mm -- fator 1000 de erro em todas as dimensoes.
+STEP_UNIT = "M"
+
+
+def verificar_unidade(path):
+    """Confere que o STEP gravado declara metros, e nao milimetros."""
+    with open(path, "r", errors="ignore") as fh:
+        texto = fh.read()
+    if "SI_UNIT(.MILLI.,.METRE.)" in texto:
+        raise RuntimeError(f"{path}: gravado em MILIMETROS")
+    if "SI_UNIT($,.METRE.)" not in texto:
+        raise RuntimeError(f"{path}: unidade de comprimento nao reconhecida")
+
 # ----------------------------------------------------------------------------
 # 1. PARAMETROS
 # ----------------------------------------------------------------------------
@@ -189,8 +205,9 @@ def main():
     assy.add(domain, name="Domain", color=cq.Color("lightblue"))
 
     path_full = os.path.join(OUTDIR, "parque_tanques_completo.step")
-    assy.export(path_full)
-    print(f"\n[ok] {path_full}")
+    assy.export(path_full, unit=STEP_UNIT)
+    verificar_unidade(path_full)
+    print(f"\n[ok] {path_full}  (metros)")
 
     # --- (b) modelo CFD: Fire + Air (dominio menos solidos e menos Fire) -----
     # Reproduz a arquitetura de duas partes do tutorial Steckler Room.
@@ -202,8 +219,9 @@ def main():
     assy_cfd.add(air, name="Air", color=cq.Color("lightblue"))
 
     path_cfd = os.path.join(OUTDIR, "parque_tanques_cfd.step")
-    assy_cfd.export(path_cfd)
-    print(f"[ok] {path_cfd}")
+    assy_cfd.export(path_cfd, unit=STEP_UNIT)
+    verificar_unidade(path_cfd)
+    print(f"[ok] {path_cfd}  (metros)")
 
     print(f"\n  Volume Fire   {fire.Volume():10.2f} m3")
     print(f"  Volume Air    {air.Volume():10.2f} m3")

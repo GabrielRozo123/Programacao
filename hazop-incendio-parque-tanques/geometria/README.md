@@ -17,6 +17,28 @@ Derivada das informações **públicas** do incêndio industrial de 04/08/2026 e
 > tipo de produto, volume unitário e natureza do parque. Ver a ressalva da seção 0 do `README.md`
 > principal.
 
+## ⚠ Unidade do STEP
+
+O exportador do cadquery grava STEP em **milímetros por padrão**. Como a geometria é construída em
+metros, exportar sem declarar a unidade produz `SI_UNIT(.MILLI.,.METRE.)` e o importador do
+STAR-CCM+ lê o domínio de 60 m como **60 mm** — fator 1000 de erro em todas as dimensões.
+
+Corrigido com `assy.export(path, unit="M")`. O script verifica o cabeçalho do arquivo gravado e
+**aborta** se a declaração não for `SI_UNIT($,.METRE.)`.
+
+### Como conferir na importação
+
+Selecione a face do `Inlet` e leia o centroide:
+
+| | Correto | Errado (mm) |
+|---|---|---|
+| Centroide do `Inlet` | `[-30, 0, 15]` m | `[-0.03, 0, 0.015]` m |
+| Caixa em y | `-20` a `20` | `-0.02` a `0.02` |
+
+> Cuidado: reimportar o arquivo em uma ferramenta que converte unidades **não** detecta o problema,
+> porque a conversão é aplicada corretamente sobre uma declaração errada. O teste válido é ler a
+> declaração no cabeçalho ou conferir uma coordenada conhecida depois de importar.
+
 ## Arquivos
 
 | Arquivo | Conteúdo |
