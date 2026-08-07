@@ -1,0 +1,549 @@
+<title>Mapa de faces — parque de tanques</title>
+
+<style>
+  :root{
+    --ground:#f4f6f7;
+    --panel:#ffffff;
+    --panel-2:#eef1f3;
+    --ink:#15181b;
+    --ink-2:#5b6672;
+    --ink-3:#8a94a0;
+    --rule:#ccd3d9;
+    --rule-soft:#e3e8eb;
+    --fire:#bd4710;
+    --fire-fill:rgba(189,71,16,.13);
+    --target:#0c6b83;
+    --target-fill:rgba(12,107,131,.13);
+    --shadow:0 1px 2px rgba(20,30,40,.06),0 8px 24px rgba(20,30,40,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#111417;
+      --panel:#191d21;
+      --panel-2:#212730;
+      --ink:#e5e9ec;
+      --ink-2:#99a4b0;
+      --ink-3:#6d7885;
+      --rule:#2c343b;
+      --rule-soft:#232a31;
+      --fire:#f0782f;
+      --fire-fill:rgba(240,120,47,.16);
+      --target:#3fbcd6;
+      --target-fill:rgba(63,188,214,.15);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#111417;
+    --panel:#191d21;
+    --panel-2:#212730;
+    --ink:#e5e9ec;
+    --ink-2:#99a4b0;
+    --ink-3:#6d7885;
+    --rule:#2c343b;
+    --rule-soft:#232a31;
+    --fire:#f0782f;
+    --fire-fill:rgba(240,120,47,.16);
+    --target:#3fbcd6;
+    --target-fill:rgba(63,188,214,.15);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.3);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--ground);
+    color:var(--ink);
+    font-family:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+    font-size:15px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .mono{
+    font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+
+  .wrap{
+    max-width:900px;
+    margin:0 auto;
+    padding:48px 24px 80px;
+    display:flex;
+    flex-direction:column;
+    gap:44px;
+  }
+
+  header{display:flex;flex-direction:column;gap:14px;}
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+    font-weight:600;
+  }
+  h1{
+    margin:0;
+    font-size:clamp(26px,4vw,36px);
+    line-height:1.12;
+    letter-spacing:-.02em;
+    font-weight:700;
+    text-wrap:balance;
+  }
+  .lede{margin:0;color:var(--ink-2);max-width:62ch;}
+
+  .facts{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;
+  }
+  .fact{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    padding:7px 12px;
+    font-size:12px;
+    color:var(--ink-2);
+    display:flex;gap:8px;align-items:baseline;
+  }
+  .fact b{color:var(--ink);font-size:14px;font-weight:700;}
+
+  section{display:flex;flex-direction:column;gap:16px;}
+  h2{
+    margin:0;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-2);
+    font-weight:700;
+    padding-bottom:9px;
+    border-bottom:1px solid var(--rule);
+  }
+
+  figure{
+    margin:0;
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:22px 18px 16px;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  figure svg{display:block;width:100%;height:auto;min-width:460px;color:var(--ink);}
+  figcaption{
+    margin-top:14px;padding-top:12px;
+    border-top:1px solid var(--rule-soft);
+    font-size:12.5px;color:var(--ink-2);
+  }
+
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:4px;background:var(--panel);}
+  table{border-collapse:collapse;width:100%;min-width:620px;font-size:13.5px;}
+  th{
+    text-align:left;
+    font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:700;
+    padding:11px 14px;border-bottom:1px solid var(--rule);
+    white-space:nowrap;
+  }
+  td{padding:10px 14px;border-bottom:1px solid var(--rule-soft);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;width:1%;white-space:nowrap;}
+  .name{font-weight:600;white-space:nowrap;}
+  .fire-t{color:var(--fire);}
+  .target-t{color:var(--target);}
+  tr.total td{border-top:1px solid var(--rule);font-weight:700;background:var(--panel-2);}
+
+  .note{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-left:2px solid var(--fire);
+    border-radius:3px;
+    padding:14px 16px;
+    font-size:13.5px;
+    color:var(--ink-2);
+  }
+  .note b{color:var(--ink);}
+  .note.calm{border-left-color:var(--target);}
+
+  code{
+    font-family:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    font-size:.9em;
+    background:var(--panel-2);
+    border-radius:3px;
+    padding:1px 5px;
+  }
+  .note code{background:var(--ground);}
+
+  ol.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px;color:var(--ink-2);}
+  ol.steps b{color:var(--ink);}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">STAR-CCM+ · 3D-CAD · Named Faces</div>
+    <h1>Mapa de faces do parque de tanques</h1>
+    <p class="lede">Referência para nomear à mão as faces de <code>parque_tanques_cfd.step</code>.
+    Todas as cotas em metros. O vento sopra em <span class="mono">+x</span>, do tanque em chamas
+    para o tanque-alvo.</p>
+    <div class="facts">
+      <div class="fact"><b>32</b> faces em <span class="mono">Air</span></div>
+      <div class="fact"><b>3</b> faces em <span class="mono">Fire</span></div>
+      <div class="fact"><b>11</b> grupos a criar</div>
+      <div class="fact">Domínio <b>60 × 40 × 30</b></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>1 · As seis faces externas do domínio</h2>
+    <figure>
+      <svg viewBox="-255 -292 510 448" role="img"
+           aria-label="Vista isométrica da caixa do domínio de 60 por 40 por 30 metros, com as seis faces de contorno nomeadas: Inlet em x igual a menos 30, Outlet em x igual a mais 30, Top em z igual a 30, Ground em z igual a zero, e as laterais Side Y neg e Side Y pos em y igual a menos 20 e mais 20.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <!-- footprints no piso -->
+        <polygon points="-31.2,41.9 17.9,13.5 -23.4,-10.4 -72.5,18.0"
+                 fill="currentColor" opacity=".07"/>
+        <polygon points="27.3,8.1 76.4,-20.3 35.1,-44.1 -14.0,-15.8"
+                 fill="currentColor" opacity=".07"/>
+        <ellipse cx="-17.5" cy="10.1" rx="12" ry="8" fill="var(--fire-fill)"
+                 stroke="var(--fire)" stroke-width="1"/>
+
+        <!-- arestas ocultas -->
+        <g stroke="currentColor" stroke-width="1" opacity=".3" stroke-dasharray="4 4" fill="none">
+          <path d="M194.9,-22.5 L39.0,-112.5"/>
+          <path d="M39.0,-112.5 L-194.9,22.5"/>
+          <path d="M39.0,-112.5 L39.0,-247.5"/>
+        </g>
+
+        <!-- arestas visiveis -->
+        <g stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round">
+          <path d="M-39.0,112.5 L194.9,-22.5"/>
+          <path d="M-39.0,112.5 L-194.9,22.5"/>
+          <path d="M-39.0,112.5 L-39.0,-22.5"/>
+          <path d="M194.9,-22.5 L194.9,-157.5"/>
+          <path d="M-194.9,22.5 L-194.9,-112.5"/>
+          <path d="M-39.0,-22.5 L194.9,-157.5 L39.0,-247.5 L-194.9,-112.5 Z"/>
+        </g>
+
+        <!-- vento -->
+        <g stroke="var(--fire)" fill="none" stroke-width="1.6">
+          <path d="M-118,158 L-18,100" marker-end="url(#ar)"/>
+        </g>
+        <text x="-124" y="152" text-anchor="end" font-size="12" font-weight="700"
+              fill="var(--fire)" class="mono">vento +x</text>
+
+        <!-- rotulos de face -->
+        <g class="mono" font-size="12.5" font-weight="700" text-anchor="middle">
+          <g fill="currentColor">
+            <rect x="-172" y="-13" width="110" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="-117" y="-1">Inlet</text>
+            <text x="-117" y="10" font-size="10" font-weight="400" opacity=".65">x = −30</text>
+
+            <rect x="62" y="-148" width="110" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="117" y="-136">Outlet</text>
+            <text x="117" y="-125" font-size="10" font-weight="400" opacity=".65">x = +30</text>
+
+            <rect x="-55" y="-148" width="110" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="0" y="-136">Top</text>
+            <text x="0" y="-125" font-size="10" font-weight="400" opacity=".65">z = +30</text>
+
+            <rect x="-55" y="-13" width="110" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="0" y="-1">Ground</text>
+            <text x="0" y="10" font-size="10" font-weight="400" opacity=".65">z = 0</text>
+
+            <rect x="23" y="-36" width="112" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="79" y="-24">Side_Y_neg</text>
+            <text x="79" y="-13" font-size="10" font-weight="400" opacity=".65">y = −20</text>
+
+            <rect x="-134" y="-126" width="112" height="27" rx="3" fill="var(--panel)"
+                  stroke="var(--rule)" stroke-width="1"/>
+            <text x="-78" y="-114">Side_Y_pos</text>
+            <text x="-78" y="-103" font-size="10" font-weight="400" opacity=".65">y = +20</text>
+          </g>
+        </g>
+
+        <!-- triedro -->
+        <g stroke="currentColor" stroke-width="1.2" fill="none" opacity=".75">
+          <path d="M-212,140 L-190,152" marker-end="url(#ar)"/>
+          <path d="M-212,140 L-234,152" marker-end="url(#ar)"/>
+          <path d="M-212,140 L-212,116" marker-end="url(#ar)"/>
+        </g>
+        <g class="mono" font-size="10.5" fill="currentColor" opacity=".75">
+          <text x="-186" y="158">x</text>
+          <text x="-244" y="158">y</text>
+          <text x="-216" y="110">z</text>
+        </g>
+      </svg>
+      <figcaption>A caixa é o volume de ar — desenhada em fio de arame porque é transparente.
+      Arestas tracejadas estão atrás. Estas seis faces são as únicas que você identifica por
+      posição no espaço; todas as outras pertencem a um equipamento.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>2 · Planta — onde estão os equipamentos</h2>
+    <figure>
+      <svg viewBox="0 0 660 470" role="img"
+           aria-label="Vista em planta do domínio mostrando a bacia A com o tanque T-01 e a poça de fogo à esquerda, e a bacia B com o tanque-alvo T-02 à direita, com as coordenadas de cada elemento.">
+        <defs>
+          <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="30" y="30" width="600" height="400" fill="none"
+              stroke="currentColor" stroke-width="1.4"/>
+
+        <g class="mono" font-size="11" fill="currentColor" opacity=".6">
+          <text x="30" y="22">Side_Y_pos · y = +20</text>
+          <text x="30" y="448">Side_Y_neg · y = −20</text>
+          <text x="26" y="238" text-anchor="end">Inlet</text>
+          <text x="634" y="238">Outlet</text>
+        </g>
+
+        <!-- eixo central -->
+        <path d="M30,230 L630,230" stroke="currentColor" stroke-width=".8"
+              stroke-dasharray="7 5" opacity=".28"/>
+
+        <!-- bacia A -->
+        <rect x="197" y="177" width="126" height="106" fill="currentColor" opacity=".06"/>
+        <rect x="197" y="177" width="126" height="106" fill="none"
+              stroke="currentColor" stroke-width="1.3"/>
+        <rect x="200" y="180" width="120" height="100" fill="none"
+              stroke="currentColor" stroke-width=".9" opacity=".55"/>
+
+        <!-- bacia B -->
+        <rect x="347" y="177" width="126" height="106" fill="currentColor" opacity=".06"/>
+        <rect x="347" y="177" width="126" height="106" fill="none"
+              stroke="currentColor" stroke-width="1.3"/>
+        <rect x="350" y="180" width="120" height="100" fill="none"
+              stroke="currentColor" stroke-width=".9" opacity=".55"/>
+
+        <!-- poca -->
+        <circle cx="285" cy="230" r="25" fill="var(--fire-fill)"
+                stroke="var(--fire)" stroke-width="1.8"/>
+        <!-- tanques -->
+        <circle cx="230" cy="230" r="15" fill="currentColor" opacity=".16"/>
+        <circle cx="230" cy="230" r="15" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="380" cy="230" r="15" fill="var(--target-fill)"
+                stroke="var(--target)" stroke-width="2"/>
+
+        <!-- cotas -->
+        <g stroke="currentColor" stroke-width="1" opacity=".55" fill="none">
+          <path d="M285,255 L285,300"/>
+          <path d="M380,245 L380,300"/>
+          <path d="M285,296 L380,296" marker-start="url(#ar2)" marker-end="url(#ar2)"/>
+        </g>
+        <text x="332" y="313" text-anchor="middle" class="mono" font-size="11"
+              fill="currentColor" opacity=".75">8,94 m</text>
+
+        <!-- rotulos -->
+        <g class="mono" font-size="11.5" font-weight="700">
+          <text x="230" y="163" text-anchor="middle" fill="currentColor">Tank_T01_Source</text>
+          <text x="230" y="176" text-anchor="middle" font-size="10" font-weight="400"
+                fill="currentColor" opacity=".6">(−10, 0) ⌀3,0</text>
+
+          <text x="285" y="352" text-anchor="middle" fill="var(--fire)">IF_Fire</text>
+          <text x="285" y="365" text-anchor="middle" font-size="10" font-weight="400"
+                fill="var(--fire)" opacity=".8">(−4,5, 0) ⌀5,0</text>
+
+          <text x="400" y="163" text-anchor="middle" fill="var(--target)">Tank_T02_Target</text>
+          <text x="400" y="176" text-anchor="middle" font-size="10" font-weight="400"
+                fill="var(--target)" opacity=".8">(+5, 0) ⌀3,0</text>
+
+          <text x="197" y="400" text-anchor="middle" fill="currentColor" opacity=".8">Bund_A_Fire</text>
+          <text x="197" y="413" text-anchor="middle" font-size="10" font-weight="400"
+                fill="currentColor" opacity=".55">x ∈ [−13,3 ; −0,7]</text>
+
+          <text x="473" y="400" text-anchor="middle" fill="currentColor" opacity=".8">Bund_B_Target</text>
+          <text x="473" y="413" text-anchor="middle" font-size="10" font-weight="400"
+                fill="currentColor" opacity=".55">x ∈ [+1,7 ; +14,3]</text>
+        </g>
+
+        <g stroke="currentColor" stroke-width=".9" opacity=".4" fill="none">
+          <path d="M230,215 L230,168"/>
+          <path d="M285,255 L285,340"/>
+          <path d="M392,220 L400,168"/>
+          <path d="M210,283 L197,388"/>
+          <path d="M460,283 L473,388"/>
+        </g>
+
+        <!-- vento -->
+        <path d="M40,395 L110,395" stroke="var(--fire)" stroke-width="1.6"
+              fill="none" marker-end="url(#ar2)"/>
+        <text x="40" y="386" class="mono" font-size="11" font-weight="700"
+              fill="var(--fire)">vento +x</text>
+      </svg>
+      <figcaption>Vista de cima. A poça está deslocada do tanque de origem — representa
+      derramamento parcial por falha de flange ou dreno, não ruptura do costado.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>3 · Elevação — por que o alvo importa</h2>
+    <figure>
+      <svg viewBox="0 0 660 400" role="img"
+           aria-label="Vista em elevação mostrando a chama de 12,4 metros de altura sobre a poça, quase três vezes a altura dos tanques de 4,4 metros, e o caminho de radiação até o tanque-alvo a 8,94 metros.">
+        <defs>
+          <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ar3f" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--fire)"/>
+          </marker>
+        </defs>
+
+        <!-- solo -->
+        <path d="M30,330 L630,330" stroke="currentColor" stroke-width="1.6"/>
+        <text x="34" y="345" class="mono" font-size="10.5" fill="currentColor"
+              opacity=".6">Ground · z = 0</text>
+
+        <!-- topo -->
+        <path d="M30,40 L630,40" stroke="currentColor" stroke-width="1"
+              stroke-dasharray="6 5" opacity=".4"/>
+        <text x="34" y="34" class="mono" font-size="10.5" fill="currentColor"
+              opacity=".6">Top · z = +30</text>
+
+        <!-- chama -->
+        <path d="M260,330 L266,215 L285,206 L304,215 L310,330 Z"
+              fill="var(--fire-fill)" stroke="var(--fire)" stroke-width="1.2"
+              stroke-dasharray="5 4"/>
+        <rect x="260" y="280" width="50" height="50" fill="var(--fire-fill)"
+              stroke="var(--fire)" stroke-width="1.8"/>
+        <text x="285" y="309" text-anchor="middle" class="mono" font-size="10.5"
+              font-weight="700" fill="var(--fire)">Fire</text>
+
+        <!-- bacias -->
+        <rect x="197" y="320" width="126" height="10" fill="currentColor" opacity=".22"/>
+        <rect x="347" y="320" width="126" height="10" fill="currentColor" opacity=".22"/>
+
+        <!-- tanques -->
+        <path d="M215,330 L215,286 L230,283.5 L245,286 L245,330 Z"
+              fill="currentColor" opacity=".18"/>
+        <path d="M215,330 L215,286 L230,283.5 L245,286 L245,330"
+              fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <path d="M365,330 L365,286 L380,283.5 L395,286 L395,330 Z"
+              fill="var(--target-fill)"/>
+        <path d="M365,330 L365,286 L380,283.5 L395,286 L395,330"
+              fill="none" stroke="var(--target)" stroke-width="2"/>
+
+        <!-- caminho de radiacao -->
+        <path d="M290,268 L361,305" stroke="var(--fire)" stroke-width="1.7"
+              fill="none" marker-end="url(#ar3f)"/>
+        <text x="332" y="272" text-anchor="middle" class="mono" font-size="11"
+              font-weight="700" fill="var(--fire)">q″ = 7 – 17 kW/m²</text>
+
+        <!-- cotas verticais -->
+        <g stroke="currentColor" stroke-width=".9" opacity=".5" fill="none">
+          <path d="M170,206 L250,206" stroke-dasharray="4 4"/>
+          <path d="M180,206 L180,330" marker-start="url(#ar3)" marker-end="url(#ar3)"/>
+          <path d="M520,286 L520,330" marker-start="url(#ar3)" marker-end="url(#ar3)"/>
+          <path d="M400,286 L530,286" stroke-dasharray="4 4"/>
+        </g>
+        <text x="174" y="266" text-anchor="end" class="mono" font-size="11"
+              fill="currentColor" opacity=".8">12,40 m</text>
+        <text x="174" y="280" text-anchor="end" class="mono" font-size="9.5"
+              fill="currentColor" opacity=".55">chama</text>
+        <text x="528" y="305" class="mono" font-size="11" fill="currentColor"
+              opacity=".8">4,40 m</text>
+        <text x="528" y="318" class="mono" font-size="9.5" fill="currentColor"
+              opacity=".55">tanque</text>
+
+        <!-- rotulos -->
+        <g class="mono" font-size="11" fill="currentColor" opacity=".7">
+          <text x="230" y="360" text-anchor="middle">T-01</text>
+        </g>
+        <text x="380" y="360" text-anchor="middle" class="mono" font-size="11"
+              font-weight="700" fill="var(--target)">T-02 · alvo</text>
+      </svg>
+      <figcaption>A chama de Heskestad chega a 12,40 m — quase três vezes a altura do tanque. O
+      alvo fica inteiramente dentro da altura radiante, e é por isso que ele cai sobre o limiar de
+      escalonamento em vez de ficar folgadamente abaixo dele.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>4 · Lista de conferência</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome do grupo</th>
+            <th class="n">Faces</th>
+            <th>Como identificar</th>
+            <th>Tipo de contorno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="name mono">Inlet</td><td class="n mono">1</td><td>plano <span class="mono">x = −30</span></td><td>Velocity Inlet</td></tr>
+          <tr><td class="name mono">Outlet</td><td class="n mono">1</td><td>plano <span class="mono">x = +30</span></td><td>Pressure Outlet</td></tr>
+          <tr><td class="name mono">Top</td><td class="n mono">1</td><td>plano <span class="mono">z = +30</span></td><td>Pressure Outlet</td></tr>
+          <tr><td class="name mono">Side_Y_neg</td><td class="n mono">1</td><td>plano <span class="mono">y = −20</span></td><td>Pressure Outlet</td></tr>
+          <tr><td class="name mono">Side_Y_pos</td><td class="n mono">1</td><td>plano <span class="mono">y = +20</span></td><td>Pressure Outlet</td></tr>
+          <tr><td class="name mono">Ground</td><td class="n mono">3</td><td>plano <span class="mono">z = 0</span> — vem partido pelos recortes</td><td>Wall</td></tr>
+          <tr><td class="name mono">Tank_T01_Source</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(−10, 0)</span></td><td>Wall</td></tr>
+          <tr><td class="name mono target-t">Tank_T02_Target</td><td class="n mono">2</td><td>cilindro + cone em <span class="mono">(+5, 0)</span></td><td>Wall — superfície de medição</td></tr>
+          <tr><td class="name mono">Bund_A_Fire</td><td class="n mono">8</td><td>mureta em volta da poça</td><td>Wall</td></tr>
+          <tr><td class="name mono">Bund_B_Target</td><td class="n mono">9</td><td>mureta em volta do alvo</td><td>Wall</td></tr>
+          <tr><td class="name mono fire-t">IF_Fire</td><td class="n mono">3</td><td>cilindro ⌀5,0 em <span class="mono">(−4,5, 0)</span>, <span class="mono">z ∈ [0; 5]</span></td><td>Interface com a região Fire</td></tr>
+          <tr class="total"><td>Total em <span class="mono">Air</span></td><td class="n mono">32</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note">
+      <b>Bacia A tem 8 faces e bacia B tem 9</b> — as duas são geometricamente idênticas. A
+      diferença vem de como a operação booleana partiu uma das faces. Se no seu modelo esse par
+      sair 9 e 8, ou 9 e 9, não é erro: o que precisa fechar é o <b>total de 32</b>.
+    </div>
+  </section>
+
+  <section>
+    <h2>5 · O corpo Fire — 3 faces</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Nome</th><th class="n">Faces</th><th>Como identificar</th><th>Tipo de contorno</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="name mono">Pool_Surface</td><td class="n mono">1</td><td>disco inferior, <span class="mono">z = 0</span></td><td>Wall — superfície da poça</td></tr>
+          <tr><td class="name mono">IF_Air</td><td class="n mono">2</td><td>lateral cilíndrica + disco superior</td><td>Interface com a região Air</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>6 · Depois de nomear</h2>
+    <ol class="steps">
+      <li><b>Assign Parts to Regions</b> com <code>Air</code> e <code>Fire</code> — marque
+        <i>Create a Region for Each Part</i> e <i>Create a Boundary for Each Part Surface</i>.</li>
+      <li>Crie a <b>interface</b> entre <code>IF_Fire</code> e <code>IF_Air</code>.</li>
+      <li>No Fire and Smoke Wizard, aponte <code>Outlet</code> em
+        <i>Select Pressure Boundary</i>.</li>
+      <li>Replique a mesma field function de pressão hidrostática em <code>Top</code>,
+        <code>Side_Y_neg</code> e <code>Side_Y_pos</code> — o assistente só configura uma.</li>
+      <li>Em <code>Tank_T02_Target</code>, crie os relatórios de <i>Radiative Heat Flux</i>
+        (máximo e média) e de temperatura de parede.</li>
+    </ol>
+
+    <div class="note calm">
+      <b>Malha:</b> a base de 0,1 m do tutorial Steckler não serve aqui. Para
+      <span class="mono">Q̇ = 47,8 MW</span> tem-se <span class="mono">D* = 4,51 m</span>, o que pede
+      <span class="mono">δx</span> entre <b>0,28 e 0,45 m</b> na zona de chama.
+    </div>
+  </section>
+
+</div>
