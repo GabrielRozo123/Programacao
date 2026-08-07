@@ -162,13 +162,122 @@ escalar passivo**. Isso confirma a abordagem recomendada na seção 4.3 do `READ
 fonte prescrita em vez de química reativa): é a mesma estratégia adotada pela própria Siemens no
 tutorial de incêndio.
 
-### 5.2 Pendências de verificação
+### 5.2 Radiação — adicionada manualmente, **não** pelo assistente
+
+Ponto importante: o Fire and Smoke Wizard **não configura radiação**. Ela é acrescentada em um passo
+separado (página *Settings for Steckler Room Fire Validation*). O tutorial portanto tem **duas
+configurações**: o caso do assistente puro (sem radiação) e o caso "de validação" (com radiação) —
+apenas o segundo é relevante para transposição.
+
+Em `Continua > Physics 1 > Models > Select Models`, na ordem:
+
+| Grupo | Modelo |
+|---|---|
+| Optional Models | **Radiation** |
+| Radiation | **Participating Media Radiation (DOM)** |
+| Radiation Spectrum (Participating) | **Gray Thermal Radiation** |
+| — | *Surface Materials* (selecionado automaticamente) |
+
+Coeficiente de absorção:
+
+```
+Models > Gas > Air > Material Properties > Absorption Coefficient
+    Method                  = Field Function
+    Scalar Function         = AbsorTempFunction
+```
+
+Ou seja: **DOM com gás cinza** e coeficiente de absorção dado por uma função da temperatura. **Não há
+WSGGM, não há multibanda, não há modelo de fuligem.** Aceitável para queimador a gás de pequeno porte;
+**inadequado** para poça de solvente aromático, onde a fuligem domina a emissão radiante. É a
+principal lacuna a cobrir na transposição.
+
+### 5.3 Condição térmica das paredes
+
+Parede e teto do compartimento de Steckler: tijolo de condução, **espessura 0,1 m**, condutividade
+**0,69 W/m·K**.
+
+```
+Regions > Room > Boundaries > Fire Room
+    Physics Conditions > Thermal Specification  = Convection
+    Physics Values > Heat Transfer Coefficient  = 6,9 W/m2-K
+```
+
+aplicado às **cinco superfícies** de casca (quatro paredes + teto).
+
+> **Observação:** 6,9 = 0,69 / 0,1. O "coeficiente efetivo" é simplesmente **k/t**, ou seja, condução
+> 1D em **regime permanente**, sem massa térmica e sem filme convectivo externo.
+>
+> Para tijolo, α ≈ 4–5 × 10⁻⁷ m²/s. Em 200 s a penetração térmica é da ordem de **1 cm** nos 10 cm de
+> parede: o sólido está em regime **transiente semi-infinito**, não em condução permanente. O
+> coeficiente equivalente transiente, `k/√(π·α·t)`, fica na ordem de **40 W/m²·K** — bem acima de 6,9.
+>
+> Consequência: a modelagem adotada **subestima a absorção de calor pela parede** e, portanto, tende a
+> **superestimar a temperatura do gás**. Item obrigatório de sensibilidade antes de divulgar
+> comparação com o experimental.
+
+### 5.4 Pendência remanescente
 
 | Item | Por quê |
 |---|---|
-| **Modelo de radiação e coeficiente de absorção** | A visão geral afirma que o caso inclui "radiation and wall heat absorption", mas a página de modelos não lista radiação. É o dado mais importante para transpor ao caso dos tanques — localizar e registrar. |
-| **Nome do modelo low-Re e y+ resultante** | Formulação low-Re exige resolver a camada próxima à parede (y+ ~ 1) para que a absorção de calor pela parede esteja correta. Os prism layers foram desativados **apenas** nas interfaces `Fire`/`Room`, permanecendo ativos nas paredes — verificar o y+ obtido. |
-| **Modelo de fuligem** | Aparentemente ausente. Aceitável para queimador a gás de pequeno porte; **inaceitável** para poça de solvente aromático, onde a fuligem domina a emissão radiante. |
+| **Nome do modelo low-Re e y+ resultante** | Formulação low-Re exige resolver a camada próxima à parede (y+ ~ 1). Os prism layers foram desativados **apenas** nas interfaces `Fire`/`Room`, permanecendo ativos nas paredes — verificar o y+ obtido com Base Size de 0,1 m. |
+
+---
+
+## 5-bis. Solver, execução e pós-processamento
+
+### Solver
+
+```
+Solvers > Implicit Unsteady > Time-Step               = 1,0 s
+Stopping Criteria > Maximum Inner Iterations          = 5
+```
+
+Execução: 200 passos de tempo → 200 s de tempo físico.
+
+**Verificação de CFL.** A escala de velocidade do empuxo é `u ~ √(g·D*) ≈ √(9,81 × 0,32) ≈ 1,8 m/s`.
+Com δx = 0,1 m e Δt = 1,0 s:
+
+```
+CFL = u·Δt/δx ≈ 18
+```
+
+Muito alto. O esquema implícito tolera, mas com apenas **5 iterações internas** a precisão temporal
+fica comprometida.
+
+### Os três parâmetros otimizados para velocidade
+
+| Parâmetro | Tutorial | Faixa recomendada para uso quantitativo |
+|---|---|---|
+| Base Size | 0,1 m (D*/δx ≈ 3,2) | 0,05–0,033 m (D*/δx ≈ 6–10) |
+| Time-Step | 1,0 s (CFL ≈ 18) | 0,05–0,1 s (CFL ≈ 1–2) |
+| Max Inner Iterations | 5 | 8–10 |
+
+O tutorial está deliberadamente barato nos três eixos. Qualquer divulgação dos perfis comparados com o
+experimento de Steckler precisa apertá-los, ou declarar explicitamente a limitação.
+
+### Pós-processamento
+
+Plano de corte:
+
+```
+Derived Parts > New > Section > Plane Section
+    Input Parts   = Fire, Room
+    Origin        = [0, 0, 0] m
+    Normal        = [0, 1, 0] m
+    Display       = Existing Displayer > Scalar 1
+```
+
+Cena escalar: `Contour Style = Smooth Filled`, `Scalar Field Function = Temperature`,
+`Outline > Feature Lines` ativado.
+
+Faixa de exibição na análise: **Min 300 K, Max 400 K, Clip Disabled**. O teto de 400 K (127 °C) é
+coerente com um problema de **camada quente estratificada**, não de chama — mais uma confirmação de
+que não há combustão no modelo.
+
+Gráfico de HRR: `Plots > Fire heat release rate`, com `Axes > Bottom Axis > Maximum = 50` (eixo de
+tempo em segundos, coerente com `End X Range = 50` definido no assistente). Serve justamente para
+visualizar a rampa t² atingindo o patamar de 62,9 kW. Reports, monitors e plots de HRR são criados
+automaticamente durante a configuração do fogo.
 
 ---
 
@@ -182,19 +291,27 @@ tutorial de incêndio.
 - **Filosofia de fonte volumétrica prescrita** em vez de combustão reativa.
 - **Metodologia de verificação por D\*/δx.**
 
+- **Receita de radiação**: DOM + Gray Thermal Radiation + coeficiente de absorção por field function
+  é o ponto de partida correto — mas precisa ser estendido (ver abaixo).
+- **Metodologia de verificação** por D\*/δx e por CFL.
+
 ### Não transfere
 
 | Item | Motivo |
 |---|---|
 | α = 3 | Partida suave numérica, não crescimento físico |
-| Ausência de fuligem | Fuligem domina a radiação em solvente aromático |
-| Base Size = 0,1 m | Para Q̇ ≈ 48 MW tem-se D\* ≈ 4,5 m → δx ≈ 0,3 m |
+| **Gás cinza sem fuligem** | Fuligem domina a emissão radiante em solvente aromático; exige modelo de fuligem ou coeficiente de absorção calibrado |
+| Base Size = 0,1 m | Para Q̇ ≈ 48 MW tem-se D\* ≈ 4,5 m → δx ≈ 0,3–0,45 m |
+| Δt = 1,0 s, 5 iterações internas | Ajustado para tutorial rápido, não para resultado quantitativo |
+| HTC efetivo = k/t na parede | Regime permanente sem massa térmica; no caso dos tanques o costado é justamente o que se quer resolver em transiente (CHT) |
 | Domínio confinado | O caso dos tanques é externo, com camada limite atmosférica e vento |
 
 ---
 
-## 7. Próximas páginas a analisar
+## 7. Situação
 
-- Condições iniciais e de contorno (paredes, absorção de calor)
-- Configuração do solver e do passo de tempo
-- Pós-processamento e comparação com o dado experimental (line-probe)
+Conjunto de páginas do tutorial **analisado por completo**: visão geral, atribuição de regiões,
+geração de malha, propriedades do fogo, revisão de modelos, ajustes de validação, solver e critérios
+de parada, execução, visualização e análise de resultados.
+
+A geometria do caso aplicado está em `../geometria/` — ver `geometria/README.md`.
