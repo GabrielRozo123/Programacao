@@ -216,10 +216,23 @@ Para cada espécie em: Mixture → Mixture Components → [Nome] → Material Pr
 
 **Condições de contorno de espécie na entrada (Inlet):**
 
+**Derivação da composição de entrada (razão molar MeOH:TG = 6:1):**
+
+```
+6 mol MeOH : 1 mol TG
+
+  massa TG   = 1 × 885,4 g/mol = 885,4 g
+  massa MeOH = 6 ×  32,0 g/mol = 192,0 g
+  massa total                   = 1077,4 g
+
+  Y_TG   = 885,4 / 1077,4 = 0,8218
+  Y_MeOH = 192,0 / 1077,4 = 0,1782
+```
+
 ```
 Boundaries → Inlet → Physics Conditions → Species:
-  Mass Fraction TG:    0,88
-  Mass Fraction MeOH:  0,12
+  Mass Fraction TG:    0,8218
+  Mass Fraction MeOH:  0,1782
   Mass Fraction DG:    0,00
   Mass Fraction MG:    0,00
   Mass Fraction FAME:  0,00
@@ -229,6 +242,12 @@ Boundaries → Inlet → Physics Conditions → Species:
 > **Atenção:** A soma das frações mássicas deve ser exatamente 1,0.
 > Se usar 6 espécies, a última declarada é calculada como `1 − soma_das_outras`.
 > Ou declarar explicitamente todas as 6 frações e verificar a soma no solver.
+
+> **⚠️ Correção (v2):** versões anteriores deste documento traziam
+> `Y_TG = 0,88 / Y_MeOH = 0,12`. Esses valores correspondem a uma razão
+> molar de **3,77:1**, não aos 6:1 especificados no projeto — o metanol
+> ficava 37% abaixo do previsto. Sempre derivar a fração mássica a partir
+> da razão molar, nunca arredondar "de olho".
 
 ---
 
@@ -465,8 +484,8 @@ Boundaries → Bottom Wall → Physics Conditions → Species Conditions:
 │ INLET (Velocity Inlet):                                 │
 │   Velocity: 1,0×10⁻³ m/s                               │
 │   Temperature: 393,15 K                                 │
-│   MassFraction_TG:   0,88                               │
-│   MassFraction_MeOH: 0,12                               │
+│   MassFraction_TG:   0,8218   (razão molar 6:1)         │
+│   MassFraction_MeOH: 0,1782                             │
 │   MassFraction_DG:   0,00                               │
 │   MassFraction_MG:   0,00                               │
 │   MassFraction_FAME: 0,00                               │
@@ -570,8 +589,8 @@ A reação 3 (MG → GL + FAME) é a mais limitada pelo equilíbrio. Isso signif
 
 2. Inicializar espécies com valores do inlet:
    Solution → Initialize:
-     MassFraction_TG   = 0,88  (uniforme no domínio inteiro)
-     MassFraction_MeOH = 0,12
+     MassFraction_TG   = 0,8218  (uniforme no domínio inteiro)
+     MassFraction_MeOH = 0,1782
      demais espécies   = 0,00
      Temperature       = 393,15 K (se equação de energia ativada)
 ```
