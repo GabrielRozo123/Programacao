@@ -33,7 +33,24 @@ Os `Refino_Injetor_1/2/3` existentes devem ser **apagados**: estão nas posiçõ
 16 cilindros novos, R = 100 mm (≈3,2× o raio da lança), cobrindo 350 mm abaixo e
 150 mm acima do disco do injetor. Total 0,2513 m³ = 1,26 % do domínio.
 
-Macro pronto: **`CriaRefinoLancas.java`** → `File → Macro → Play Macro…`
+Todos os 16 são o **mesmo cilindro**, R = 0,1 m — só mudam X e Y. O Z é um por anel:
+anel interno de −5,800 a −5,300; anel externo de −5,010 a −4,510.
+
+Três formas de criar, da mais simples para a mais automática:
+
+1. **Na mão** (recomendada): `New Shape Part → Cylinder` uma vez, depois Ctrl+C /
+   Ctrl+V na árvore trocando só X e Y. Coordinate System = Laboratory.
+2. **Importar** `refino_lancas_16.step` com *Create a Part for Each Body* — os 16
+   sólidos já vêm nomeados e podem ser usados direto como volumetric control.
+   Gerado por `gen_refino_lancas.py`. Independente de versão do STAR.
+3. `CriaRefinoLancas.java` → `File → Macro → Play Macro…`. ⚠️ Pode falhar com
+   `ClassNotFoundException` (erro de compilação): `setDoNotRetessellate` e
+   `TessellationDensityOption.Type.MEDIUM` são sensíveis à versão. Se der erro,
+   use a opção 1 ou 2.
+
+Conferência rápida: o centro do aerador é (0,200; −0,440), então as lanças 1 e 11
+caem na horizontal do centro — a 1 em X = 0,575 e a 11 em X = −0,570, ambas com
+Y = −0,440. Se essas duas baterem, o resto do anel está certo.
 
 | parte | Start Coordinate [m] | End Coordinate [m] | Radius [m] |
 |---|---|---|---|
