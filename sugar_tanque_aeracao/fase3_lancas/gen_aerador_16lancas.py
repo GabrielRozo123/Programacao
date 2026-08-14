@@ -25,7 +25,7 @@ AER_X, AER_Y, AER_R = 200.0, -440.0, 1016.0
 AER_ZTOP, AER_ZFUNDO = 1220.0, -5892.0
 
 LANCA_ID, LANCA_OD = 62.7, 73.0           # 2½" Sch40
-Z_TOPO = 1420.0                            # ⚠️ era 1840,8 — reduzido a 200 mm acima da superfície
+Z_TOPO = 1220.0                            # ⚠️ RENTE à superfície livre — sem tocos salientes
 FOLGA_PAREDE = 50.0                        # mm entre a lança e a parede do cone
 
 # perfil do cone, ajustado às medidas: r(z) = R0 + K·(z − z_fundo)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     bb = fl.BoundingBox()
 
     print(f"\n  Lanças: {len(lancas)} × Ø{LANCA_ID:.1f} int / Ø{LANCA_OD:.1f} ext (2½\" Sch40)")
-    print(f"  Topo (entrada de xarope): z = {Z_TOPO:.0f}  ({Z_TOPO-AER_ZTOP:.0f} mm acima da superfície)")
+    print(f"  Topo (entrada de xarope): z = {Z_TOPO:.0f}  (rente à superfície livre)")
     print("\n  Comprimento e submergência por anel:")
     for n, r, _ in ANEIS:
         zd = next(l[3] for l in lancas if l[2] == r)
