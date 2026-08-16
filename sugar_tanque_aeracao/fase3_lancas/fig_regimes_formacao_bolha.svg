@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="628" viewBox="0 0 1040 628" font-family="Arial, Helvetica, sans-serif">
+
+  <defs>
+    <marker id="ar" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#1B5E9E"/>
+    </marker>
+    <marker id="arS" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <path d="M0,0 L9,3.5 L0,7 Z" fill="#B4522A"/>
+    </marker>
+    <marker id="dimA" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 Z" fill="#333"/>
+    </marker>
+    <marker id="dimB" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto">
+      <path d="M9,0 L0,4 L9,8 Z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <rect width="1040" height="628" fill="#FFFFFF"/>
+
+  <!-- ============ TITULO ============ -->
+  <text x="520" y="38" text-anchor="middle" font-size="21" font-weight="bold" fill="#1A1A1A">
+    O que fixa o diâmetro da bolha na formação
+  </text>
+  <text x="520" y="63" text-anchor="middle" font-size="14.5" fill="#555">
+    Comprimento capilar do xarope = 2,09 mm  —  a fronteira entre os dois regimes
+  </text>
+
+  <!-- ============ PAINEL ESQUERDO ============ -->
+  <rect x="34" y="86" width="452" height="452" rx="6" fill="#FAFAFA" stroke="#D8DCE0"/>
+
+  <text x="260" y="116" text-anchor="middle" font-size="16" font-weight="bold" fill="#1B5E9E">
+    FURO PEQUENO
+  </text>
+  <text x="260" y="139" text-anchor="middle" font-size="13.5" fill="#333">
+    furo menor que 2,09 mm    ·    Bond menor que 1
+  </text>
+
+  <!-- xarope -->
+  <rect x="62" y="158" width="396" height="272" fill="#F0E2BC" stroke="#D9C48A"/>
+  <text x="82" y="182" font-size="13" fill="#8A7332" font-style="italic">xarope</text>
+
+  <!-- tubo -->
+  <rect x="62" y="430" width="396" height="72" fill="#FFFFFF"/>
+  <path d="M196 430 L196 502 L232 502 L232 430 Z" fill="#9AA5B1"/>
+  <path d="M288 430 L288 502 L324 502 L324 430 Z" fill="#9AA5B1"/>
+  <rect x="232" y="430" width="56" height="72" fill="#DCE9F5"/>
+  <text x="260" y="486" text-anchor="middle" font-size="12.5" fill="#41729F">ar</text>
+
+  <!-- bolha ancorada -->
+  <path d="M232 430
+           C 232 412, 200 404, 200 356
+           A 60 60 0 1 1 320 356
+           C 320 404, 288 412, 288 430 Z"
+        fill="#DCE9F5" stroke="#41729F" stroke-width="2"/>
+
+  <!-- empuxo -->
+  <line x1="260" y1="352" x2="260" y2="252" stroke="#1B5E9E" stroke-width="2.4" marker-end="url(#ar)"/>
+  <text x="274" y="274" font-size="13.5" fill="#1B5E9E">empuxo</text>
+
+  <!-- tensao superficial na borda -->
+  <line x1="228" y1="418" x2="204" y2="442" stroke="#B4522A" stroke-width="2.2" marker-end="url(#arS)"/>
+  <line x1="292" y1="418" x2="316" y2="442" stroke="#B4522A" stroke-width="2.2" marker-end="url(#arS)"/>
+  <text x="186" y="452" text-anchor="end" font-size="16" font-weight="bold" fill="#B4522A">σ</text>
+  <text x="334" y="452" font-size="16" font-weight="bold" fill="#B4522A">σ</text>
+  <text x="268" y="208" text-anchor="middle" font-size="12.5" fill="#B4522A" font-style="italic">σ = tensão superficial, segura a bolha na borda</text>
+
+  <!-- cota do furo -->
+  <line x1="232" y1="516" x2="288" y2="516" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dimB)" marker-end="url(#dimA)"/>
+  <text x="260" y="533" text-anchor="middle" font-size="12.5" fill="#333">furo</text>
+
+  <!-- ============ PAINEL DIREITO ============ -->
+  <rect x="554" y="86" width="452" height="452" rx="6" fill="#FAFAFA" stroke="#D8DCE0"/>
+
+  <text x="780" y="116" text-anchor="middle" font-size="16" font-weight="bold" fill="#1B5E9E">
+    FURO GRANDE
+  </text>
+  <text x="780" y="139" text-anchor="middle" font-size="13.5" fill="#333">
+    furo de 62,7 mm    ·    Bond = 898    (caso atual)
+  </text>
+
+  <!-- xarope -->
+  <rect x="582" y="158" width="396" height="272" fill="#F0E2BC" stroke="#D9C48A"/>
+  <text x="602" y="182" font-size="13" fill="#8A7332" font-style="italic">xarope</text>
+
+  <!-- tubo largo -->
+  <rect x="582" y="430" width="396" height="72" fill="#FFFFFF"/>
+  <path d="M600 430 L600 502 L630 502 L630 430 Z" fill="#9AA5B1"/>
+  <path d="M930 430 L930 502 L960 502 L960 430 Z" fill="#9AA5B1"/>
+  <rect x="630" y="430" width="300" height="72" fill="#DCE9F5"/>
+  <text x="780" y="486" text-anchor="middle" font-size="12.5" fill="#41729F">ar</text>
+
+  <!-- camada de gas na boca -->
+  <rect x="630" y="404" width="300" height="26" fill="#DCE9F5" stroke="#41729F" stroke-width="2"/>
+
+  <!-- dedos de Rayleigh-Taylor -->
+  <g fill="#DCE9F5" stroke="#41729F" stroke-width="2">
+    <path d="M666 406 C 666 380, 648 376, 648 348 A 32 32 0 1 1 712 348 C 712 376, 694 380, 694 406 Z"/>
+    <path d="M756 406 C 756 380, 738 376, 738 348 A 32 32 0 1 1 802 348 C 802 376, 784 380, 784 406 Z"/>
+    <path d="M846 406 C 846 380, 828 376, 828 348 A 32 32 0 1 1 892 348 C 892 376, 874 380, 874 406 Z"/>
+  </g>
+
+  <!-- cota lambda -->
+  <line x1="680" y1="286" x2="680" y2="330" stroke="#333" stroke-width="0.9" stroke-dasharray="3,3"/>
+  <line x1="770" y1="286" x2="770" y2="330" stroke="#333" stroke-width="0.9" stroke-dasharray="3,3"/>
+  <line x1="680" y1="298" x2="770" y2="298" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dimB)" marker-end="url(#dimA)"/>
+  <text x="725" y="286" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">λ</text>
+  <text x="725" y="248" text-anchor="middle" font-size="13" fill="#555">comprimento de onda</text>
+  <text x="725" y="266" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">13 a 23 mm</text>
+
+  <!-- cota do furo -->
+  <line x1="630" y1="516" x2="930" y2="516" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dimB)" marker-end="url(#dimA)"/>
+  <text x="780" y="533" text-anchor="middle" font-size="12.5" fill="#333">furo</text>
+
+  <!-- ============ LEGENDAS INFERIORES ============ -->
+  <rect x="34" y="552" width="452" height="62" rx="4" fill="#EEF4FA" stroke="#C6DAEC"/>
+  <text x="260" y="574" text-anchor="middle" font-size="13.5" fill="#1A1A1A">
+    Ancorada na borda; destaca quando o empuxo vence σ
+  </text>
+  <text x="260" y="597" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#1B5E9E">
+    Lei de Tate — o tamanho segue o furo
+  </text>
+
+  <rect x="554" y="552" width="452" height="62" rx="4" fill="#FDF0EA" stroke="#EBC7B4"/>
+  <text x="780" y="574" text-anchor="middle" font-size="13.5" fill="#1A1A1A">
+    Larga demais para a borda sustentar; fragmenta-se sozinha
+  </text>
+  <text x="780" y="597" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#B4522A">
+    Rayleigh-Taylor — o furo não importa
+  </text>
+
+</svg>
