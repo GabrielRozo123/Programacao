@@ -1,8 +1,8 @@
 # Seção de recomendação — Aerador com lanças (Fase 3 · Ito)
 
-> Texto no formato do relatório, pronto para colar. Números do instante em que
-> `V_xarope` atinge 19,0 m³ (perda de 5 %, critério de parada — ver §7 do setup).
-> **Substituir os valores marcados ⟨…⟩ pela leitura do tempo final.**
+> Texto no formato do relatório, pronto para colar. Números lidos no instante final
+> da rodada (critério de parada de §7 do setup). α médio = 5,099 %, correspondendo a
+> 1,019 m³ de ar num domínio de 19,993 m³.
 
 ---
 
@@ -13,14 +13,27 @@ pressão de suprimento, apresenta a seguinte distribuição de ar no domínio:
 
 | critério | volume | fração do tanque |
 |---|---|---|
-| xarope alcançado pelo ar (α > 0,01 %) | ⟨2,117⟩ m³ | ⟨10,6⟩ % |
-| xarope efetivamente aerado (α > 1 %) | ⟨1,421⟩ m³ | ⟨7,1⟩ % |
-| xarope não atingido | ⟨17,876⟩ m³ | ⟨89,4⟩ % |
-| fração de vazio média no volume aerado | — | ⟨32,6⟩ % |
+| xarope alcançado pelo ar (α > 0,01 %) | 3,082 m³ | 15,4 % |
+| xarope efetivamente aerado (α > 1 %) | 2,137 m³ | 10,7 % |
+| xarope não atingido | 16,911 m³ | **84,6 %** |
+| fração de vazio média no volume aerado | — | **47,7 %** |
 
-A transição entre as duas primeiras faixas ocupa apenas ⟨0,70⟩ m³, ou seja, **67 % do
+A transição entre as duas primeiras faixas ocupa apenas 0,945 m³, ou seja, **69 % do
 volume alcançado já se encontra acima de 1 % de fração de vazio**. A frente de ar é
 nítida, sem zona de diluição progressiva.
+
+A evolução temporal reforça a leitura. Comparando dois instantes da mesma rodada:
+
+| | instante intermediário | instante final |
+|---|---|---|
+| volume alcançado | 10,6 % | 15,4 % |
+| volume aerado | 7,1 % | 10,7 % |
+| **fração de vazio dentro do volume aerado** | **32,6 %** | **47,7 %** |
+
+O volume aerado cresceu 50 %, mas a fração de vazio dentro dele cresceu 46 % no mesmo
+intervalo. **O ar não está se distribuindo — está se concentrando.** Se houvesse
+dispersão, a fração de vazio interna tenderia a cair conforme o volume aerado
+aumentasse; observa-se o contrário.
 
 Esse conjunto de números caracteriza um regime de **segregação**, não de dispersão: o
 ar permanece confinado em cavidades de alta fração de vazio junto às descargas, e o
@@ -38,10 +51,15 @@ sustentam a segunda parte dessa afirmação:
 |---|---|---|---|
 | quebra por cisalhamento | Ca crítico (Hinch & Acrivos, λ = 2,8e−6) | ≈ 270 | inatingível |
 | quebra por oscilação de forma | número de Morton | 6,6 × 10⁴ | regime *wobbling* inacessível |
-| coalescência | variação medida de SMD | ~1e−4 mm | desprezível |
+| coalescência | variação medida de SMD | +2e−4 mm | desprezível |
 
 A escala de Kolmogorov na potência de aeração de projeto é de **42,7 mm**, contra
 bolha da ordem de 1 mm — o mecanismo inercial de quebra é nulo por construção.
+
+Os diâmetros médios de Sauter medidos no volume que contém ar variaram entre
+**0,816 mm** (mínimo) e **1,000 mm** (máximo) ao longo de toda a rodada, contra o
+valor de 1,000 mm imposto na condição de contorno. O desvio para cima é de
+2 × 10⁻⁴ mm — isto é, **a coalescência é numericamente nula** neste sistema.
 
 Quanto à formação, a descarga atual de Ø 62,7 mm opera muito acima do comprimento
 capilar do xarope (2,09 mm), com **número de Bond igual a 898**. Nessa condição o
@@ -119,6 +137,57 @@ Registra-se ainda que, com descarga aberta, a vazão de ar é **hipersensível �
 de suprimento**: por não haver restrição no bocal, variações de poucos por cento na
 pressão de linha alteram a vazão em ordens de grandeza. Em operação, a vazão de ar é
 determinada pelo soprador, e não pela lança.
+
+---
+
+## Apêndice — a instabilidade de Rayleigh-Taylor e o tamanho da bolha
+
+Quando um gás é injetado por baixo de um líquido, a interface entre os dois é
+**instável**: o fluido pesado está sobre o leve, e a gravidade tende a inverter essa
+configuração. Qualquer ondulação da interface tende a crescer.
+
+Duas forças disputam essa ondulação:
+
+- a **gravidade**, que empurra o líquido para baixo e amplifica a perturbação, com
+  intensidade proporcional a `Δρ·g/k` (cresce com o comprimento de onda);
+- a **tensão superficial**, que resiste à curvatura e amortece a perturbação, com
+  intensidade proporcional a `σ·k²` (cresce quando o comprimento de onda diminui).
+
+A taxa de crescimento de uma perturbação de número de onda `k = 2π/λ` obedece a
+
+    n² ∝ k · [ Δρ·g − σ·k² ]
+
+O crescimento só ocorre enquanto o colchete é positivo, ou seja, `k < √(Δρg/σ)`.
+Em comprimento de onda isso define o **comprimento de onda crítico**:
+
+    λ_c = 2π·√(σ / Δρ·g) = 13,1 mm
+
+Abaixo de λ_c a tensão superficial vence e a ondulação desaparece. Acima, a gravidade
+vence e ela cresce. Derivando a taxa de crescimento em relação a `k` obtém-se o
+**comprimento de onda de crescimento mais rápido**, que é o que se manifesta na
+prática:
+
+    λ_m = √3 · λ_c = 2π·√(3σ / Δρ·g) = 22,8 mm
+
+**Por que isso fixa o tamanho da bolha.** O parâmetro que separa os dois regimes é o
+comprimento capilar, `l_c = √(σ/ρg)` = 2,09 mm — a escala em que tensão superficial e
+gravidade se equivalem. Abaixo dela a tensão superficial domina e a forma é esférica;
+acima dela a gravidade domina e a interface achata.
+
+Numa descarga **pequena** (d_o ≪ l_c), a bolha permanece ancorada na borda do
+orifício e destaca quando o empuxo supera a tensão superficial que a segura — esse é
+o balanço da lei de Tate, e o tamanho fica atrelado ao diâmetro do furo.
+
+Numa descarga **grande** (d_o ≫ l_c), a interface é larga demais para ser sustentada
+pela borda. Ela se comporta como uma interface plana e infinita, que "não enxerga" o
+orifício, e se fragmenta no seu próprio comprimento de onda natural. O tamanho da
+bolha passa a ser λ, e **deixa de depender do diâmetro da descarga**.
+
+A descarga atual tem d_o = 62,7 mm contra l_c = 2,09 mm, ou seja **Bond = 898**. Está
+inteiramente no segundo regime. É por isso que a bolha esperada é de 13 a 23 mm — e é
+por isso que aumentar ou diminuir moderadamente o diâmetro da lança não altera o
+resultado. Para voltar ao regime em que o diâmetro importa, é necessário descer abaixo
+de ~2 mm de furo.
 
 ---
 
