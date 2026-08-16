@@ -77,24 +77,56 @@ A obstrução total é 16 × 3 087,6 = 49 402 mm², ou 1,5 % da seção do aerad
 Diâmetro **Ø62,7 mm** (interno de 2½" Sch40) em todas as 16. Obstrução total
 16 × 3 087,6 = 49 402 mm², ou 1,5 % da seção do aerador.
 
-## 5. Margem de sopro — resultado que sai da aritmética, antes da CFD
+## 5. Margem de sopro — ⚠️ RETRATADO
 
-Com lança de ar, o que governa é a hidrostática que o ar precisa vencer:
+Eu havia montado uma tabela de "margem de sopro" comparando o suprimento (1, 2, 3
+kgf/cm²) contra a hidrostática no injetor (0,901 kgf/cm² no anel interno, 0,794 no
+externo), e concluído que a 1 kgf/cm² o anel interno operaria com 9,9 % de margem e
+receberia metade da pressão motriz do externo.
 
-| anel | submergência | hidrostática |
+**Está errado.** A `Reference Density` das simulações é **1350 kg/m³** (a do xarope),
+não zero. Com ρ_ref igual à densidade da fase contínua, o STAR resolve pressão
+**piezométrica**: a coluna hidrostática de xarope já está embutida no campo de
+referência. A pressão total imposta no injetor não compete com os 88 334 Pa de
+hidrostática — ela está **por cima** deles.
+
+Consequências:
+- o ΔP motriz é o valor cheio (~98 000 Pa a 1 kgf/cm²), não 9 732 Pa;
+- limite de Bernoulli sobe de ~96 para ~306 m/s, coerente com a vazão medida;
+- **os dois anéis recebem praticamente a mesma pressão motriz** — não há o
+  desequilíbrio 2,08× que eu havia previsto. A descarga escalonada é neutra.
+
+Fica valendo só a conclusão geral, que a rodada confirmou por outro caminho: com a
+ponta aberta de Ø62,7 mm **nada restringe o escoamento**, e a vazão é hipersensível
+a qualquer diferença de pressão. Quem fixa a vazão numa planta é o soprador.
+
+## 5b. A rodada antiga de 3 lanças NÃO é comparável — medido
+
+`Mass Flow of Ar` nos injetores da simulação antiga (`Dominio.Aerador`, 3 kgf/cm²):
+
+```
+Dominio.Aerador: aerador.injetores    5.169364e-07 kg/s
+```
+
+**0,886 L/h.** É 0,002 % do alvo de processo de 40 m³/h — numericamente, zero.
+A rodada atual das 16 lanças, a 1 kgf/cm², injeta 2,505 kg/s = 4 295 m³/h.
+**Razão de 4,8 milhões de vezes.**
+
+Isso explica por que os histogramas são tão diferentes, e mostra que a diferença
+**não é do arranjo de lanças**:
+
+| | rodada antiga (3 lanças) | rodada atual (16 lanças) |
 |---|---|---|
-| interno (5 lanças, z = −5450) | 6,67 m | **0,901 kgf/cm²** |
-| externo (11 lanças, z = −4660) | 5,88 m | **0,794 kgf/cm²** |
+| regime | **sistema fechado** | **injeção contínua** |
+| ar entrando | 0,886 L/h (≈ 0) | 4 295 m³/h |
+| o que o histograma mostra | 1,4 L de ar coalescendo sozinho por 30 s | bolhas de 1 mm repostas mais rápido do que evoluem |
+| resultado | espalhado, 1–4,7 mm, SMD 2,53 mm | travado no diâmetro de injeção |
 
-| suprimento | margem interno | margem externo | desequilíbrio |
-|---|---|---|---|
-| **1 kgf/cm²** | 9 732 Pa (**9,9 %**) | 20 195 Pa (20,6 %) | **2,08×** |
-| 2 kgf/cm² | 107 799 Pa (55,0 %) | 118 261 Pa (60,3 %) | 1,10× |
-| 3 kgf/cm² | 205 865 Pa (70,0 %) | 216 328 Pa (73,5 %) | 1,05× |
-
-A 1 kgf/cm² o anel interno opera a menos de 10 % de margem — a 0,10 kgf/cm² de não
-soprar — e o anel externo recebe o dobro de pressão motriz. A partir de 2 kgf/cm² os
-dois anéis equalizam. **A descarga escalonada só é um problema na pressão mais baixa.**
+⚠️ **Não colocar os dois histogramas lado a lado.** Qualquer diferença entre eles é do
+regime de injeção, não do número de lanças. O tamanho de bolha deve ser reportado pelo
+argumento de **formação** (Tate: 11,8 mm numa saída aberta de Ø62,7) somado aos três
+argumentos independentes de que ela não diminui depois — Grace (cisalhamento),
+Weber-Ohnesorge (inércia) e a medição do próprio ejetor (0,10 mm injetado → 0,705 mm).
 
 ## 6. Por que Laminar, e não k-ε
 
