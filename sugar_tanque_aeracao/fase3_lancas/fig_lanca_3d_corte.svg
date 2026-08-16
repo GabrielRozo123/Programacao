@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1030" height="880" viewBox="-90 0 1030 880" font-family="Arial, Helvetica, sans-serif">
+<defs>
+ <linearGradient id="cil" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#7E8B99"/><stop offset="0.10" stop-color="#9DAAB7"/>
+  <stop offset="0.32" stop-color="#E4EAF0"/><stop offset="0.55" stop-color="#C2CDD8"/>
+  <stop offset="0.85" stop-color="#8B99A7"/><stop offset="1" stop-color="#6F7C8A"/></linearGradient>
+ <linearGradient id="cap" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#5E6874"/><stop offset="0.32" stop-color="#A8B2BC"/>
+  <stop offset="0.55" stop-color="#8A949F"/><stop offset="1" stop-color="#525C67"/></linearGradient>
+ <linearGradient id="furo_int" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#2C3views"/></linearGradient>
+ <linearGradient id="bore2" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#39454F"/><stop offset="0.28" stop-color="#5D6C78"/>
+  <stop offset="0.60" stop-color="#4A5761"/><stop offset="1" stop-color="#333E47"/></linearGradient>
+ <linearGradient id="bore" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#2E3A46"/><stop offset="0.5" stop-color="#4A5A69"/>
+  <stop offset="1" stop-color="#2E3A46"/></linearGradient>
+ <pattern id="hach" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <rect width="7" height="7" fill="#AEB9C4"/><line x1="0" y1="0" x2="0" y2="7" stroke="#66717C" stroke-width="1.8"/></pattern>
+ <marker id="jt" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+  <path d="M0,0 L7,3 L0,6 Z" fill="#2E7CB8"/></marker>
+ <marker id="ja" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+  <path d="M0,0 L8,3.5 L0,7 Z" fill="#1B7FC4"/></marker>
+ <marker id="cal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+  <path d="M0,0 L8,4 L0,8 Z" fill="#B4522A"/></marker>
+</defs>
+<rect x="-90" y="0" width="1030" height="880" fill="#FFFFFF"/>
+<text x="470" y="44" text-anchor="middle" font-size="22" font-weight="bold" fill="#1A1A1A">Lança recomendada — vista em corte</text>
+<text x="470" y="70" text-anchor="middle" font-size="14" fill="#555">O ar desce pelo interior, é retido pela tampa cega e sai radialmente pelos 48 furos</text>
+<path d="M 358.0 214.0 L 358.0 690.0 A 112.0 39.0 0 0 0 582.0 690.0 L 582.0 214.0 Z" fill="url(#cil)"/>
+<line x1="358.0" y1="214.0" x2="358.0" y2="690.0" stroke="#4A5560" stroke-width="1.4"/>
+<line x1="582.0" y1="214.0" x2="582.0" y2="690.0" stroke="#4A5560" stroke-width="1.4"/>
+<ellipse cx="470.0" cy="214.0" rx="112.0" ry="39.0" fill="#B7C2CD" stroke="#4A5560" stroke-width="1.4"/>
+<ellipse cx="470.0" cy="214.0" rx="96.0" ry="33.43" fill="url(#bore)" stroke="#3A4650" stroke-width="1.2"/>
+<g stroke="#232A31" stroke-width="1.1">
+ <ellipse cx="358.0" cy="556.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="361.8" cy="566.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="373.0" cy="575.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="567.0" cy="575.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="578.2" cy="566.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="582.0" cy="556.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="358.0" cy="601.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="361.8" cy="611.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="373.0" cy="620.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="567.0" cy="620.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="578.2" cy="611.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+ <ellipse cx="582.0" cy="601.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+</g>
+<path d="M 390.0 330.0 L 390.0 330.0 L 390.2 331.8 L 390.7 333.6 L 391.5 335.4 L 392.7 337.2 L 394.2 339.0 L 396.1 340.7 L 398.3 342.3 L 400.7 343.9 L 403.5 345.5 L 406.5 347.0 L 409.9 348.4 L 413.4 349.7 L 417.3 350.9 L 421.3 352.1 L 425.6 353.2 L 430.0 354.1 L 434.6 355.0 L 439.4 355.7 L 444.3 356.4 L 449.3 356.9 L 454.4 357.3 L 459.6 357.6 L 464.8 357.8 L 470.0 357.9 L 475.2 357.8 L 480.4 357.6 L 485.6 357.3 L 490.7 356.9 L 495.7 356.4 L 500.6 355.7 L 505.4 355.0 L 510.0 354.1 L 514.4 353.2 L 518.7 352.1 L 522.7 350.9 L 526.6 349.7 L 530.1 348.4 L 533.5 347.0 L 536.5 345.5 L 539.3 343.9 L 541.7 342.3 L 543.9 340.7 L 545.8 339.0 L 547.3 337.2 L 548.5 335.4 L 549.3 333.6 L 549.8 331.8 L 550.0 330.0 L 550.0 690.0 L 550.0 690.0 L 549.8 691.8 L 549.3 693.6 L 548.5 695.4 L 547.3 697.2 L 545.8 699.0 L 543.9 700.7 L 541.7 702.3 L 539.3 703.9 L 536.5 705.5 L 533.5 707.0 L 530.1 708.4 L 526.6 709.7 L 522.7 710.9 L 518.7 712.1 L 514.4 713.2 L 510.0 714.1 L 505.4 715.0 L 500.6 715.7 L 495.7 716.4 L 490.7 716.9 L 485.6 717.3 L 480.4 717.6 L 475.2 717.8 L 470.0 717.9 L 464.8 717.8 L 459.6 717.6 L 454.4 717.3 L 449.3 716.9 L 444.3 716.4 L 439.4 715.7 L 434.6 715.0 L 430.0 714.1 L 425.6 713.2 L 421.3 712.1 L 417.3 710.9 L 413.4 709.7 L 409.9 708.4 L 406.5 707.0 L 403.5 705.5 L 400.7 703.9 L 398.3 702.3 L 396.1 700.7 L 394.2 699.0 L 392.7 697.2 L 391.5 695.4 L 390.7 693.6 L 390.2 691.8 L 390.0 690.0 Z" fill="url(#bore2)"/>
+<path d="M 390.0 690.0 L 390.0 690.0 L 390.2 691.8 L 390.7 693.6 L 391.5 695.4 L 392.7 697.2 L 394.2 699.0 L 396.1 700.7 L 398.3 702.3 L 400.7 703.9 L 403.5 705.5 L 406.5 707.0 L 409.9 708.4 L 413.4 709.7 L 417.3 710.9 L 421.3 712.1 L 425.6 713.2 L 430.0 714.1 L 434.6 715.0 L 439.4 715.7 L 444.3 716.4 L 449.3 716.9 L 454.4 717.3 L 459.6 717.6 L 464.8 717.8 L 470.0 717.9 L 475.2 717.8 L 480.4 717.6 L 485.6 717.3 L 490.7 716.9 L 495.7 716.4 L 500.6 715.7 L 505.4 715.0 L 510.0 714.1 L 514.4 713.2 L 518.7 712.1 L 522.7 710.9 L 526.6 709.7 L 530.1 708.4 L 533.5 707.0 L 536.5 705.5 L 539.3 703.9 L 541.7 702.3 L 543.9 700.7 L 545.8 699.0 L 547.3 697.2 L 548.5 695.4 L 549.3 693.6 L 549.8 691.8 L 550.0 690.0 L 550.0 666.0 L 550.0 666.0 L 549.8 667.8 L 549.3 669.6 L 548.5 671.4 L 547.3 673.2 L 545.8 675.0 L 543.9 676.7 L 541.7 678.3 L 539.3 679.9 L 536.5 681.5 L 533.5 683.0 L 530.1 684.4 L 526.6 685.7 L 522.7 686.9 L 518.7 688.1 L 514.4 689.2 L 510.0 690.1 L 505.4 691.0 L 500.6 691.7 L 495.7 692.4 L 490.7 692.9 L 485.6 693.3 L 480.4 693.6 L 475.2 693.8 L 470.0 693.9 L 464.8 693.8 L 459.6 693.6 L 454.4 693.3 L 449.3 692.9 L 444.3 692.4 L 439.4 691.7 L 434.6 691.0 L 430.0 690.1 L 425.6 689.2 L 421.3 688.1 L 417.3 686.9 L 413.4 685.7 L 409.9 684.4 L 406.5 683.0 L 403.5 681.5 L 400.7 679.9 L 398.3 678.3 L 396.1 676.7 L 394.2 675.0 L 392.7 673.2 L 391.5 671.4 L 390.7 669.6 L 390.2 667.8 L 390.0 666.0 Z" fill="#75818E"/>
+<g>
+ <ellipse cx="518.0" cy="527.1" rx="2.51" ry="2.9" fill="#131A21"/>
+ <ellipse cx="494.8" cy="523.7" rx="2.80" ry="2.9" fill="#131A21"/>
+ <ellipse cx="470.0" cy="522.6" rx="2.90" ry="2.9" fill="#131A21"/>
+ <ellipse cx="445.2" cy="523.7" rx="2.80" ry="2.9" fill="#131A21"/>
+ <ellipse cx="422.0" cy="527.1" rx="2.51" ry="2.9" fill="#131A21"/>
+ <ellipse cx="518.0" cy="572.1" rx="2.51" ry="2.9" fill="#131A21"/>
+ <ellipse cx="494.8" cy="568.7" rx="2.80" ry="2.9" fill="#131A21"/>
+ <ellipse cx="470.0" cy="567.6" rx="2.90" ry="2.9" fill="#131A21"/>
+ <ellipse cx="445.2" cy="568.7" rx="2.80" ry="2.9" fill="#131A21"/>
+ <ellipse cx="422.0" cy="572.1" rx="2.51" ry="2.9" fill="#131A21"/>
+</g>
+<line x1="470.0" y1="382.0" x2="470.0" y2="632.0" stroke="#1B7FC4" stroke-width="4.5" marker-end="url(#ja)"/>
+<text x="486.0" y="440.0" font-size="15" font-weight="bold" fill="#59B4EE">ar</text>
+<path d="M 454.0 644.0 Q 416.0 644.0 406.0 603.0" fill="none" stroke="#1B7FC4" stroke-width="2.8" marker-end="url(#ja)"/>
+<path d="M 486.0 644.0 Q 524.0 644.0 534.0 603.0" fill="none" stroke="#1B7FC4" stroke-width="2.8" marker-end="url(#ja)"/>
+<path d="M 390.0 330.0 L 390.0 330.0 L 390.2 331.8 L 390.7 333.6 L 391.5 335.4 L 392.7 337.2 L 394.2 339.0 L 396.1 340.7 L 398.3 342.3 L 400.7 343.9 L 403.5 345.5 L 406.5 347.0 L 409.9 348.4 L 413.4 349.7 L 417.3 350.9 L 421.3 352.1 L 425.6 353.2 L 430.0 354.1 L 434.6 355.0 L 439.4 355.7 L 444.3 356.4 L 449.3 356.9 L 454.4 357.3 L 459.6 357.6 L 464.8 357.8 L 470.0 357.9 L 475.2 357.8 L 480.4 357.6 L 485.6 357.3 L 490.7 356.9 L 495.7 356.4 L 500.6 355.7 L 505.4 355.0 L 510.0 354.1 L 514.4 353.2 L 518.7 352.1 L 522.7 350.9 L 526.6 349.7 L 530.1 348.4 L 533.5 347.0 L 536.5 345.5 L 539.3 343.9 L 541.7 342.3 L 543.9 340.7 L 545.8 339.0 L 547.3 337.2 L 548.5 335.4 L 549.3 333.6 L 549.8 331.8 L 550.0 330.0 L 550.0 690.0 L 550.0 690.0 L 549.8 691.8 L 549.3 693.6 L 548.5 695.4 L 547.3 697.2 L 545.8 699.0 L 543.9 700.7 L 541.7 702.3 L 539.3 703.9 L 536.5 705.5 L 533.5 707.0 L 530.1 708.4 L 526.6 709.7 L 522.7 710.9 L 518.7 712.1 L 514.4 713.2 L 510.0 714.1 L 505.4 715.0 L 500.6 715.7 L 495.7 716.4 L 490.7 716.9 L 485.6 717.3 L 480.4 717.6 L 475.2 717.8 L 470.0 717.9 L 464.8 717.8 L 459.6 717.6 L 454.4 717.3 L 449.3 716.9 L 444.3 716.4 L 439.4 715.7 L 434.6 715.0 L 430.0 714.1 L 425.6 713.2 L 421.3 712.1 L 417.3 710.9 L 413.4 709.7 L 409.9 708.4 L 406.5 707.0 L 403.5 705.5 L 400.7 703.9 L 398.3 702.3 L 396.1 700.7 L 394.2 699.0 L 392.7 697.2 L 391.5 695.4 L 390.7 693.6 L 390.2 691.8 L 390.0 690.0 Z" fill="none" stroke="url(#hach)" stroke-width="11"/>
+<path d="M 390.0 330.0 L 390.0 330.0 L 390.2 331.8 L 390.7 333.6 L 391.5 335.4 L 392.7 337.2 L 394.2 339.0 L 396.1 340.7 L 398.3 342.3 L 400.7 343.9 L 403.5 345.5 L 406.5 347.0 L 409.9 348.4 L 413.4 349.7 L 417.3 350.9 L 421.3 352.1 L 425.6 353.2 L 430.0 354.1 L 434.6 355.0 L 439.4 355.7 L 444.3 356.4 L 449.3 356.9 L 454.4 357.3 L 459.6 357.6 L 464.8 357.8 L 470.0 357.9 L 475.2 357.8 L 480.4 357.6 L 485.6 357.3 L 490.7 356.9 L 495.7 356.4 L 500.6 355.7 L 505.4 355.0 L 510.0 354.1 L 514.4 353.2 L 518.7 352.1 L 522.7 350.9 L 526.6 349.7 L 530.1 348.4 L 533.5 347.0 L 536.5 345.5 L 539.3 343.9 L 541.7 342.3 L 543.9 340.7 L 545.8 339.0 L 547.3 337.2 L 548.5 335.4 L 549.3 333.6 L 549.8 331.8 L 550.0 330.0 L 550.0 690.0 L 550.0 690.0 L 549.8 691.8 L 549.3 693.6 L 548.5 695.4 L 547.3 697.2 L 545.8 699.0 L 543.9 700.7 L 541.7 702.3 L 539.3 703.9 L 536.5 705.5 L 533.5 707.0 L 530.1 708.4 L 526.6 709.7 L 522.7 710.9 L 518.7 712.1 L 514.4 713.2 L 510.0 714.1 L 505.4 715.0 L 500.6 715.7 L 495.7 716.4 L 490.7 716.9 L 485.6 717.3 L 480.4 717.6 L 475.2 717.8 L 470.0 717.9 L 464.8 717.8 L 459.6 717.6 L 454.4 717.3 L 449.3 716.9 L 444.3 716.4 L 439.4 715.7 L 434.6 715.0 L 430.0 714.1 L 425.6 713.2 L 421.3 712.1 L 417.3 710.9 L 413.4 709.7 L 409.9 708.4 L 406.5 707.0 L 403.5 705.5 L 400.7 703.9 L 398.3 702.3 L 396.1 700.7 L 394.2 699.0 L 392.7 697.2 L 391.5 695.4 L 390.7 693.6 L 390.2 691.8 L 390.0 690.0 Z" fill="none" stroke="#39434E" stroke-width="1.4"/>
+<path d="M 358.0 690.0 A 112.0 39.0 0 0 0 582.0 690.0 L 582.0 728.0 A 112.0 39.0 0 0 1 358.0 728.0 Z" fill="url(#cap)" stroke="#3F4954" stroke-width="1.4"/>
+<path d="M 390.0 690.0 L 390.0 690.0 L 390.2 691.8 L 390.7 693.6 L 391.5 695.4 L 392.7 697.2 L 394.2 699.0 L 396.1 700.7 L 398.3 702.3 L 400.7 703.9 L 403.5 705.5 L 406.5 707.0 L 409.9 708.4 L 413.4 709.7 L 417.3 710.9 L 421.3 712.1 L 425.6 713.2 L 430.0 714.1 L 434.6 715.0 L 439.4 715.7 L 444.3 716.4 L 449.3 716.9 L 454.4 717.3 L 459.6 717.6 L 464.8 717.8 L 470.0 717.9 L 475.2 717.8 L 480.4 717.6 L 485.6 717.3 L 490.7 716.9 L 495.7 716.4 L 500.6 715.7 L 505.4 715.0 L 510.0 714.1 L 514.4 713.2 L 518.7 712.1 L 522.7 710.9 L 526.6 709.7 L 530.1 708.4 L 533.5 707.0 L 536.5 705.5 L 539.3 703.9 L 541.7 702.3 L 543.9 700.7 L 545.8 699.0 L 547.3 697.2 L 548.5 695.4 L 549.3 693.6 L 549.8 691.8 L 550.0 690.0 L 550.0 728.0 L 550.0 728.0 L 549.8 729.8 L 549.3 731.6 L 548.5 733.4 L 547.3 735.2 L 545.8 737.0 L 543.9 738.7 L 541.7 740.3 L 539.3 741.9 L 536.5 743.5 L 533.5 745.0 L 530.1 746.4 L 526.6 747.7 L 522.7 748.9 L 518.7 750.1 L 514.4 751.2 L 510.0 752.1 L 505.4 753.0 L 500.6 753.7 L 495.7 754.4 L 490.7 754.9 L 485.6 755.3 L 480.4 755.6 L 475.2 755.8 L 470.0 755.9 L 464.8 755.8 L 459.6 755.6 L 454.4 755.3 L 449.3 754.9 L 444.3 754.4 L 439.4 753.7 L 434.6 753.0 L 430.0 752.1 L 425.6 751.2 L 421.3 750.1 L 417.3 748.9 L 413.4 747.7 L 409.9 746.4 L 406.5 745.0 L 403.5 743.5 L 400.7 741.9 L 398.3 740.3 L 396.1 738.7 L 394.2 737.0 L 392.7 735.2 L 391.5 733.4 L 390.7 731.6 L 390.2 729.8 L 390.0 728.0 Z" fill="url(#hach)" stroke="#39434E" stroke-width="1.3"/>
+<line x1="353.0" y1="556.0" x2="292.0" y2="556.0" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="272.2" cy="556.0" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="255.0" cy="556.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="240.5" cy="556.0" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="587.0" y1="556.0" x2="648.0" y2="556.0" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="667.8" cy="556.0" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="685.0" cy="556.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="699.5" cy="556.0" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="353.9" y1="606.1" x2="298.9" y2="608.5" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="281.0" cy="609.3" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="265.4" cy="610.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="252.2" cy="610.6" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="586.1" y1="606.1" x2="641.1" y2="608.5" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="659.0" cy="609.3" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="674.6" cy="610.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="687.8" cy="610.6" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<path d="M 358.0 168.0 L 419.0909090909091 152.0 L 520.9090909090909 180.0 L 582.0 164.0" fill="none" stroke="#5C6670" stroke-width="1.8"/>
+<path d="M 358.0 156.0 L 419.0909090909091 140.0 L 520.9090909090909 168.0 L 582.0 152.0" fill="none" stroke="#5C6670" stroke-width="1.8"/>
+<line x1="150" y1="368" x2="386" y2="374" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+<text x="146" y="356" text-anchor="end" font-size="14.5" font-weight="bold" fill="#B4522A">PAREDE EM CORTE</text>
+<text x="146" y="376" text-anchor="end" font-size="12.5" fill="#B4522A">espessura 5,15 mm</text>
+<line x1="164" y1="548" x2="424" y2="522" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+<text x="160" y="536" text-anchor="end" font-size="14.5" font-weight="bold" fill="#B4522A">FUROS VISTOS POR DENTRO</text>
+<text x="160" y="556" text-anchor="end" font-size="12.5" fill="#B4522A">parede do fundo · 2 anéis de 24</text>
+<line x1="176" y1="792" x2="398" y2="726" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+<text x="172" y="796" text-anchor="end" font-size="14.5" font-weight="bold" fill="#B4522A">TAMPA CEGA</text>
+<text x="172" y="816" text-anchor="end" font-size="12.5" fill="#B4522A">o ar bate nela e é forçado pelos furos</text>
+<rect x="682" y="118" width="258" height="126" rx="5" fill="#EEF4FA" stroke="#C6DAEC"/>
+<text x="702" y="146" font-size="13.5" font-weight="bold" fill="#1B5E9E">PONTO DE PROJETO</text>
+<text x="702" y="172" font-size="12.5" fill="#1A1A1A">vazão por lança</text>
+<text x="922" y="172" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">2 500 L/h</text>
+<text x="702" y="192" font-size="12.5" fill="#1A1A1A">velocidade no furo</text>
+<text x="922" y="192" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">18,4 m/s</text>
+<text x="702" y="212" font-size="12.5" fill="#1A1A1A">Weber do gás</text>
+<text x="922" y="212" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">12,3</text>
+<text x="702" y="232" font-size="12.5" fill="#1A1A1A">uniformidade ΔP</text>
+<text x="922" y="232" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">5,0</text>
+<text x="470" y="858" text-anchor="middle" font-size="12" fill="#777" font-style="italic">Furos representados fora de escala. Metade frontal removida para visualização do interior.</text>
+</svg>
