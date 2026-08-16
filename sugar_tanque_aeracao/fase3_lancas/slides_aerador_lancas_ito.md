@@ -228,6 +228,20 @@ jato**, e **em número limitado** para que a distribuição se mantenha uniforme
 2. **Válvula de retenção por lança.** Capilaridade de **232 Pa** contra **88 334 Pa**
    de coluna: com o ar desligado, o xarope entra e entope os furos.
 
+**Sobre o número de lanças**
+
+O total de furos é fixo: `N × n = Q/(v·A) = 769`, qualquer que seja N. Mais lanças
+apenas redistribuem — não mudam bolha, vazão nem velocidade. Mínimo **N = 11** (abaixo
+disso os furos não cabem); adotado **16**, já verificado contra o cone.
+
+**Próximo passo de projeto**
+
+Os 84,6 % não atingidos **não** são falta de cobertura lateral — com 16 lanças o
+espaçamento é 450 mm e as plumas se tocam. É ausência de transporte vertical, e mais
+lanças não corrigem. A alavanca é o **número de cotas de descarga**: 6 a 9 níveis
+cobririam a coluna, com grupos de lanças de comprimentos distintos e alimentação
+independente por nível.
+
 ---
 
 ## Rodapé técnico (aplicar em todos os slides de resultado)

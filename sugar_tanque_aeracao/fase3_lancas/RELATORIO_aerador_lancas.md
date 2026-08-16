@@ -273,6 +273,72 @@ cega.** A saída aberta de Ø 62,7 mm tem **82 vezes** a área somada dos 48 fur
 fechamento, praticamente todo o ar escoa por ela e a perfuração não produz efeito
 algum.
 
+### 8.5 Número de lanças
+
+Com descarga perfurada, o número total de furos do aerador é **fixado pela vazão de ar
+e pela velocidade de jato**, e independe de quantas lanças o distribuem:
+
+    N × n = Q_ar / (v · A_furo) = 0,01111 / (18,4 × 7,854×10⁻⁷) = 769 furos
+
+Dobrar o número de lanças reduz à metade os furos de cada uma. O diâmetro de bolha, a
+velocidade no furo e a vazão total permanecem inalterados. **O número de lanças
+redistribui, não modifica.**
+
+| N lanças | furos por lança | por anel | passo circunferencial | área servida | espaçamento |
+|---|---|---|---|---|---|
+| 8 | 96 | 48 | 4,8 mm ✗ | 0,405 m² | 637 mm |
+| 11 | 70 | 35 | 6,6 mm | 0,295 m² | 543 mm |
+| **16 (adotado)** | **48** | **24** | **9,5 mm** | **0,203 m²** | **450 mm** |
+| 20 | 38 | 19 | 11,9 mm | 0,162 m² | 403 mm |
+| 24 | 32 | 16 | 14,3 mm | 0,135 m² | 368 mm |
+
+**Limite inferior: N ≥ 11.** Com dois anéis num tubo de Ø 73 mm e passo circunferencial
+mínimo de 6 mm (ligamento de 5 mm), cabem no máximo 76 furos por lança. Abaixo de onze
+lanças a perfuração exigida não é executável.
+
+Acima desse limite não existe penalidade técnica em aumentar N — apenas custo de
+tubulação e de válvula de retenção adicional. Adota-se **16 lanças**, arranjo já
+verificado geometricamente contra o perfil do cone (§3), com passo circunferencial
+confortável de 9,5 mm.
+
+### 8.6 A limitação remanescente é vertical, não horizontal
+
+Com 16 lanças o espaçamento entre pontos de injeção é de 450 mm, e as plumas
+adjacentes se sobrepõem. **A fração de 84,6 % de xarope não atingido (§5) não decorre
+de falta de cobertura lateral**, e portanto não é corrigida por mais lanças.
+
+A causa é a ausência de transporte vertical. A lança perfurada, ao produzir bolha
+menor, **agrava** esse aspecto:
+
+| diâmetro de bolha | velocidade terminal | tempo para percorrer 7,1 m |
+|---|---|---|
+| 1 mm | 0,113 mm/s | **17,4 h** |
+| 2 mm | 0,453 mm/s | 4,4 h |
+| 3 mm | 1,019 mm/s | 1,9 h |
+
+A variável de projeto pertinente, portanto, não é o número de lanças, e sim o **número
+de cotas de descarga**. Admitindo alcance vertical da ordem de 0,8 m por nível — ordem
+de grandeza extraída das visualizações —, a cobertura da coluna de 7,11 m demandaria
+**seis a nove cotas**.
+
+Não é possível obter essas cotas simplesmente perfurando a lança ao longo de todo o
+comprimento, a partir de um único plenum. A variação hidrostática ao longo do trecho
+perfurado precisaria ser dominada pela perda de carga nos furos (§8.3), o que se torna
+inviável já para trechos de poucos decímetros:
+
+| trecho perfurado | ΔP hidrostático | velocidade necessária para uniformidade |
+|---|---|---|
+| 30 mm (dois anéis) | 397 Pa | 23 m/s ✓ |
+| 1 m | 13 244 Pa | 135 m/s |
+| 5 m | 66 218 Pa | **301 m/s** (sônico) |
+
+Com plenum único, os furos inferiores não descarregam: a coluna de xarope os afoga.
+
+**A configuração adequada consiste em grupos de lanças de comprimentos distintos, cada
+grupo com alimentação de ar independente e pressão dimensionada para a sua
+profundidade** — extensão do princípio de escalonamento já empregado nos dois anéis
+atuais. Registra-se como o passo natural de continuidade do projeto.
+
 ---
 
 ## 9. Restrição construtiva
