@@ -171,3 +171,77 @@ físico. É tempo de sobra: a pluma e o histograma amadurecem no primeiro minuto
 também não poderia acumular — o solver seria forçado a expulsá-lo na mesma taxa em
 que entra, atravessando 7 m instantaneamente. Deixar o xarope sair é o artefato
 menos errado, e o `V_xarope` diz até quando ele é aceitável.
+
+## 8. Verificação do S-Gamma — o que caiu e o que ficou
+
+Rodada de verificação (16/08) sobre o SMD que parecia congelado em 1,000 mm.
+
+### Medidas decisivas (sobre o Threshold `Ar_real`, VF_ar > 1e-4)
+
+| report | valor |
+|---|---|
+| Minimum de Sauter Mean Diameter of Ar | **0,7283 mm** |
+| Maximum de Sauter Mean Diameter of Ar | 1,000108 mm |
+| Volume Average de Turbulent Dissipation Rate of Xarope | **9 644 m²/s³** |
+
+`S-Gamma Breakup` e `S-Gamma Coalescence` estão ambos ativos na Phase Interaction
+`Xarope-Ar` (verificado na árvore).
+
+### Conclusões
+
+1. **O SMD nunca esteve congelado.** O campo vai de 0,728 a 1,000 mm. A barra única
+   do histograma era **artefato do binning manual** (Min fixado em 0,90, quando o
+   mínimo real é 0,728 — a cauda ficava fora do gráfico). Usar Min = 0,70, Max = 1,02.
+
+2. **O mecanismo dominante é QUEBRA, não coalescência.** O mínimo está 27 % abaixo do
+   diâmetro de injeção; o máximo excede o valor de entrada em apenas 1e−4 mm.
+   Isso inverte o que se vinha afirmando no projeto.
+
+3. **Mas o ε que alimenta a quebra é artificial.** Potência de aeração `P/V = ρ g u_gs`:
+
+   | | u superficial | ε físico | modelo/físico |
+   |---|---|---|---|
+   | vazão da rodada (13 640 m³/h) | 1,17 m/s | 11,5 W/kg | 841× |
+   | vazão de projeto (40 m³/h) | 0,0034 m/s | 0,034 W/kg | 287 000× |
+
+   Com ε = 9 644 a escala de Kolmogorov cai a 1,84 mm e o ramo inercial de quebra
+   acorda. Com o ε físico de projeto seria 42,6 mm, e a bolha de 1 mm estaria 42×
+   abaixo dela — quebra inercial identicamente nula.
+
+   Duas causas artificiais somadas: vazão de ar 340× acima do projeto (ponta aberta,
+   sem restrição) e k-ε operando fora de validade num escoamento laminar.
+
+### Afirmações RETIRADAS
+
+- ❌ *"A bolha só coalesce, nunca quebra."* O modelo mostra quebra dominante.
+- ❌ *"Lei de Tate dá 11,8 mm na saída aberta."* Comprimento capilar = 2,09 mm,
+  orifício 62,7 mm ⇒ **Bond = 898**. Tate exige Bond ≪ 1. O regime é jato de gás
+  (We do orifício 1330–3030), não formação de bolha, e nenhuma correlação de
+  formação se aplica.
+- ❌ *"We_crit = 7194 por Ohnesorge."* O Oh de quebra usa a viscosidade da fase
+  **dispersa** (ar, 1,85e−5), não do líquido. Oh correto ≈ 1,7e−3 e We_crit = 12.
+- ❌ *"V_xarope valida alpha_medio."* São o mesmo dado
+  (`V_xarope = V_malha − V_ar`). A verificação era circular.
+
+### Afirmações que SOBREVIVEM
+
+- ✅ A bolha não sobe: 0,17 mm/s para 1 mm, 11,6 h para os 7,1 m.
+- ✅ Grace: `Ca_crit ≈ 0,054·λ^(−2/3)` ≈ **270** para λ = 2,8e−6 (Hinch & Acrivos).
+  Finito, não divergente — mas inatingível. Conclusão mantida, palavra corrigida.
+- ✅ Morton = 6,6e4 ⇒ regime *wobbling* inacessível, sem quebra por oscilação de forma.
+- ✅ Pressão piezométrica: com ρ_ref = 1350 a hidrostática está embutida (§5).
+  A Siemens recomenda a fase **leve** ou zero como Reference Density, não a pesada.
+- ✅ A rodada antiga de 3 lanças não é baseline (§5b).
+
+### Afirmação defensável para o cliente
+
+> Na vazão real de operação a bolha **não quebra nem coalesce de forma apreciável**:
+> sai do bico com o tamanho que a formação determinar e permanece assim ao longo de
+> todo o percurso. Sustentado por medida (coalescência ~1e−4 mm em 0,18 s) e pela
+> escala de Kolmogorov de 42,6 mm no ε de projeto, contra bolha de ~1 mm.
+
+### Pendência de setup
+
+A fase Ar está com **Constant Density**, não Ideal Gas. O ar deveria expandir ~1,8×
+subindo de 1,825 para 1,013 bar (diâmetro ×1,217). Como está, a fração de vazio no
+topo sai subestimada em ~45 %.
