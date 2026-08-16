@@ -223,28 +223,55 @@ a bolha apenas de 2,97 para 1,74 mm. Existe portanto um **piso da ordem de 1,7 a
 ### 8.2 Condição 2 — velocidade de jato
 
 Para descer abaixo desse piso é necessário abandonar o regime de borbulhamento e
-entrar em **regime de jato**, o que ocorre acima de `We_gás = ρ_g v² d_o / σ ≈ 2`:
+entrar em **regime de jato**, o que ocorre acima de `We_gás = ρ_g v² d_o / σ ≈ 2`.
 
-| furo | velocidade de jato | vazão por furo | nº de furos para 40 m³/h |
-|---|---|---|---|
-| 1,0 mm | 7,4 m/s | 21 L/h | 1 903 (119 por lança) |
-| 0,5 mm | 10,5 m/s | 7,4 L/h | 5 384 (336 por lança) |
-| 0,2 mm | 16,6 m/s | 1,9 L/h | 21 282 (1 330 por lança) |
+Na descarga atual, a velocidade é de 0,225 m/s e o número de Weber do gás vale
+**0,115** — duas ordens de grandeza abaixo da transição. O sistema opera integralmente
+em borbulhamento.
 
-Na descarga atual, a velocidade de projeto é de 0,225 m/s e o número de Weber do gás
-vale **0,115** — duas ordens de grandeza abaixo da transição. O sistema opera
-integralmente em borbulhamento.
+### 8.3 Condição 3 — uniformidade de distribuição entre furos
 
-### 8.3 Conclusão de projeto
+Esta condição restringe fortemente o número de furos, e não pode ser omitida.
 
-**Furo pequeno não é suficiente; é necessário furo pequeno associado a velocidade de
-jato.** Essa combinação é a definição funcional de uma lança de aeração do tipo
-*blast*, e é o que justificaria tecnicamente sua adoção.
+A perda de carga através do furo precisa **dominar** a variação hidrostática ao longo
+do trecho perfurado; caso contrário o ar sai preferencialmente pelos furos superiores,
+onde a contrapressão é menor. O critério usual de projeto de spargers é
 
-O ponto de projeto mais equilibrado dessa família é **furo de 1,0 mm com 119 furos por
-lança**, que opera em jato a 7,4 m/s com furo plenamente usinável. Os 0,2 mm exigem
-1 330 furos por lança — território de elemento sinterizado poroso, disponível
-comercialmente, porém com as restrições de §9.
+    ΔP_furo ≥ 4 × ΔP_hidrostático ao longo do trecho perfurado
+
+Como a perda de carga no furo cresce com o quadrado da velocidade, e a velocidade é
+inversamente proporcional ao número de furos, **furos demais inviabilizam a
+distribuição**. Para 1,0 mm de furo em dois anéis distanciados de 15 mm:
+
+| nº de furos por lança | velocidade | ΔP no furo | ΔP hidrostático | razão |
+|---|---|---|---|---|
+| 119 | 7,4 m/s | 158 Pa | 596 Pa | **0,3** ✗ |
+| 80 | 11,1 m/s | 356 Pa | 397 Pa | 0,9 ✗ |
+| **48** | **18,4 m/s** | **990 Pa** | **199 Pa** | **5,0** ✓ |
+
+### 8.4 Ponto de projeto recomendado
+
+| | |
+|---|---|
+| diâmetro do furo | **1,0 mm** |
+| furos por lança | **48** — 2 anéis de 24 |
+| passo circunferencial | 9,6 mm (ligamento 8,6 mm) |
+| passo axial entre anéis | 15 mm |
+| velocidade no furo | **18,4 m/s** |
+| número de Weber do gás | **12,3** (exige > 2) ✓ |
+| ΔP no furo | 990 Pa |
+| razão de uniformidade | **5,0** (exige ≥ 4) ✓ |
+| total no aerador | **768 furos** |
+| pressão de suprimento | ≈ 0,91 kgf/cm² mais perdas de linha |
+
+Alternativa com furo de 0,5 mm: 96 furos por lança em 2 anéis de 48, a 36,8 m/s, com
+We = 24,6 e razão de uniformidade de 19,9. Produz bolha menor, ao custo de furo mais
+difícil de executar e de maior sensibilidade a entupimento.
+
+**Requisito construtivo indispensável: a ponta da lança deve ser fechada com tampa
+cega.** A saída aberta de Ø 62,7 mm tem **82 vezes** a área somada dos 48 furos; sem o
+fechamento, praticamente todo o ar escoa por ela e a perfuração não produz efeito
+algum.
 
 ---
 

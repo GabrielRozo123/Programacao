@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="722" viewBox="0 0 1120 722" font-family="Arial, Helvetica, sans-serif">
+
+  <defs>
+    <pattern id="hach" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="8" height="8" fill="#B9C2CB"/>
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#6E7A85" stroke-width="2"/>
+    </pattern>
+    <marker id="jet" markerWidth="8" markerHeight="7" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L8,3.5 L0,7 Z" fill="#41729F"/>
+    </marker>
+    <marker id="dA" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L9,4 L0,8 Z" fill="#333"/>
+    </marker>
+    <marker id="dB" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto">
+      <path d="M9,0 L0,4 L9,8 Z" fill="#333"/>
+    </marker>
+    <marker id="cal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#B4522A"/>
+    </marker>
+  </defs>
+
+  <rect width="1120" height="722" fill="#FFFFFF"/>
+
+  <!-- =============== TITULO =============== -->
+  <text x="560" y="36" text-anchor="middle" font-size="21" font-weight="bold" fill="#1A1A1A">
+    Lança de aeração recomendada — descarga perfurada em regime de jato
+  </text>
+  <text x="560" y="61" text-anchor="middle" font-size="14" fill="#555">
+    48 furos de Ø 1,0 mm por lança  ·  2 anéis de 24  ·  18,4 m/s no furo  ·  16 lanças
+  </text>
+
+  <!-- =============== PAINEL 1 — ELEVACAO =============== -->
+  <rect x="30" y="82" width="345" height="418" rx="6" fill="#FAFAFA" stroke="#D8DCE0"/>
+  <text x="202" y="108" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1B5E9E">ELEVAÇÃO</text>
+
+  <!-- tubo -->
+  <rect x="162" y="158" width="80" height="274" fill="#DCE9F5"/>
+  <rect x="162" y="158" width="9"  height="274" fill="#9AA5B1"/>
+  <rect x="233" y="158" width="9"  height="274" fill="#9AA5B1"/>
+  <line x1="202" y1="176" x2="202" y2="360" stroke="#41729F" stroke-width="2" marker-end="url(#jet)"/>
+  <text x="212" y="252" font-size="12.5" fill="#41729F">ar</text>
+
+  <!-- tampa cega -->
+  <rect x="160" y="430" width="84" height="28" fill="url(#hach)" stroke="#5C6670" stroke-width="1.8"/>
+
+  <!-- furos e jatos: anel 1 -->
+  <g stroke="#41729F" stroke-width="2.2">
+    <line x1="162" y1="388" x2="124" y2="388" marker-end="url(#jet)"/>
+    <line x1="242" y1="388" x2="280" y2="388" marker-end="url(#jet)"/>
+    <line x1="162" y1="410" x2="124" y2="410" marker-end="url(#jet)"/>
+    <line x1="242" y1="410" x2="280" y2="410" marker-end="url(#jet)"/>
+  </g>
+  <g fill="#DCE9F5" stroke="#41729F" stroke-width="1.4">
+    <circle cx="112" cy="384" r="6"/><circle cx="100" cy="392" r="4.5"/>
+    <circle cx="292" cy="384" r="6"/><circle cx="304" cy="392" r="4.5"/>
+    <circle cx="112" cy="414" r="5"/><circle cx="100" cy="406" r="4"/>
+    <circle cx="292" cy="414" r="5"/><circle cx="304" cy="406" r="4"/>
+  </g>
+  <g fill="#1A1A1A">
+    <rect x="160" y="386" width="4" height="5"/><rect x="240" y="386" width="4" height="5"/>
+    <rect x="160" y="408" width="4" height="5"/><rect x="240" y="408" width="4" height="5"/>
+  </g>
+
+  <!-- cota entre aneis -->
+  <line x1="330" y1="388" x2="330" y2="410" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dB)" marker-end="url(#dA)"/>
+  <line x1="246" y1="388" x2="334" y2="388" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <line x1="246" y1="410" x2="334" y2="410" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <text x="340" y="403" font-size="12" fill="#333">15 mm</text>
+
+  <!-- cota do tubo -->
+  <line x1="162" y1="196" x2="242" y2="196" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dB)" marker-end="url(#dA)"/>
+  <text x="202" y="214" text-anchor="middle" font-size="12" fill="#333">Ø 73 mm</text>
+
+  <!-- callout tampa -->
+  <line x1="128" y1="470" x2="166" y2="448" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+  <text x="122" y="474" text-anchor="end" font-size="12.5" font-weight="bold" fill="#B4522A">TAMPA CEGA</text>
+  <text x="122" y="490" text-anchor="end" font-size="11.5" fill="#B4522A">obrigatória</text>
+
+  <!-- simbolo de interrupcao: a lanca continua para cima -->
+  <path d="M162 152 L182 146 L222 158 L242 152" fill="none" stroke="#5C6670" stroke-width="1.6"/>
+  <path d="M162 144 L182 138 L222 150 L242 144" fill="none" stroke="#5C6670" stroke-width="1.6"/>
+
+  <!-- =============== PAINEL 2 — CORTE A-A =============== -->
+  <rect x="387" y="82" width="345" height="418" rx="6" fill="#FAFAFA" stroke="#D8DCE0"/>
+  <text x="559" y="108" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1B5E9E">CORTE NA REGIÃO PERFURADA</text>
+
+  <circle cx="559" cy="290" r="100" fill="#9AA5B1" stroke="#5C6670" stroke-width="1.5"/>
+  <circle cx="559" cy="290" r="86"  fill="#DCE9F5" stroke="#41729F" stroke-width="1.5"/>
+
+  <g id="furos24">
+    <!-- 24 furos em r = 93, jatos radiais -->
+    <g stroke="#41729F" stroke-width="1.8" fill="none">
+      <line x1="659" y1="290" x2="683" y2="290"/>
+      <line x1="655.1" y1="315.9" x2="678.3" y2="322.1"/>
+      <line x1="645.6" y1="340" x2="666.6" y2="352.1"/>
+      <line x1="629.7" y1="360.3" x2="647.5" y2="378.1"/>
+      <line x1="609.3" y1="376.2" x2="623.5" y2="396.6"/>
+      <line x1="585.2" y1="385.7" x2="595.4" y2="408.9"/>
+      <line x1="559" y1="390" x2="559" y2="414"/>
+      <line x1="532.8" y1="385.7" x2="522.6" y2="408.9"/>
+      <line x1="508.7" y1="376.2" x2="494.5" y2="396.6"/>
+      <line x1="488.3" y1="360.3" x2="470.5" y2="378.1"/>
+      <line x1="472.4" y1="340" x2="451.4" y2="352.1"/>
+      <line x1="462.9" y1="315.9" x2="439.7" y2="322.1"/>
+      <line x1="459" y1="290" x2="435" y2="290"/>
+      <line x1="462.9" y1="264.1" x2="439.7" y2="257.9"/>
+      <line x1="472.4" y1="240" x2="451.4" y2="227.9"/>
+      <line x1="488.3" y1="219.7" x2="470.5" y2="201.9"/>
+      <line x1="508.7" y1="203.8" x2="494.5" y2="183.4"/>
+      <line x1="532.8" y1="194.3" x2="522.6" y2="171.1"/>
+      <line x1="559" y1="190" x2="559" y2="166"/>
+      <line x1="585.2" y1="194.3" x2="595.4" y2="171.1"/>
+      <line x1="609.3" y1="203.8" x2="623.5" y2="183.4"/>
+      <line x1="629.7" y1="219.7" x2="647.5" y2="201.9"/>
+      <line x1="645.6" y1="240" x2="666.6" y2="227.9"/>
+      <line x1="655.1" y1="264.1" x2="678.3" y2="257.9"/>
+    </g>
+    <g fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.2">
+      <circle cx="652" cy="290" r="4.5"/><circle cx="648.2" cy="313.2" r="4.5"/>
+      <circle cx="639.6" cy="334.9" r="4.5"/><circle cx="625.3" cy="353.2" r="4.5"/>
+      <circle cx="606.9" cy="367.5" r="4.5"/><circle cx="585.2" cy="376.1" r="4.5"/>
+      <circle cx="559" cy="383" r="4.5"/><circle cx="535.8" cy="376.1" r="4.5"/>
+      <circle cx="514.1" cy="367.5" r="4.5"/><circle cx="495.7" cy="353.2" r="4.5"/>
+      <circle cx="481.4" cy="334.9" r="4.5"/><circle cx="472.8" cy="313.2" r="4.5"/>
+      <circle cx="466" cy="290" r="4.5"/><circle cx="472.8" cy="266.8" r="4.5"/>
+      <circle cx="481.4" cy="245.1" r="4.5"/><circle cx="495.7" cy="226.8" r="4.5"/>
+      <circle cx="514.1" cy="212.5" r="4.5"/><circle cx="535.8" cy="203.9" r="4.5"/>
+      <circle cx="559" cy="197" r="4.5"/><circle cx="585.2" cy="203.9" r="4.5"/>
+      <circle cx="606.9" cy="212.5" r="4.5"/><circle cx="625.3" cy="226.8" r="4.5"/>
+      <circle cx="639.6" cy="245.1" r="4.5"/><circle cx="648.2" cy="266.8" r="4.5"/>
+    </g>
+  </g>
+
+  <text x="559" y="296" text-anchor="middle" font-size="13" fill="#41729F">ar</text>
+  <text x="559" y="440" text-anchor="middle" font-size="13" fill="#333">
+    24 furos por anel  ·  passo 9,6 mm
+  </text>
+  <text x="559" y="460" text-anchor="middle" font-size="13" fill="#333">
+    ligamento entre furos: 8,6 mm
+  </text>
+
+  <!-- =============== PAINEL 3 — DETALHE =============== -->
+  <rect x="744" y="82" width="345" height="418" rx="6" fill="#FAFAFA" stroke="#D8DCE0"/>
+  <text x="916" y="108" text-anchor="middle" font-size="14.5" font-weight="bold" fill="#1B5E9E">DETALHE — parede planificada</text>
+
+  <rect x="776" y="196" width="282" height="150" fill="#C9D2DA" stroke="#5C6670" stroke-width="1.4"/>
+
+  <!-- anel 1 -->
+  <g fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.4">
+    <circle cx="806" cy="242" r="7"/><circle cx="856" cy="242" r="7"/>
+    <circle cx="906" cy="242" r="7"/><circle cx="956" cy="242" r="7"/>
+    <circle cx="1006" cy="242" r="7"/>
+  </g>
+  <!-- anel 2 -->
+  <g fill="#FFFFFF" stroke="#1A1A1A" stroke-width="1.4">
+    <circle cx="806" cy="300" r="7"/><circle cx="856" cy="300" r="7"/>
+    <circle cx="906" cy="300" r="7"/><circle cx="956" cy="300" r="7"/>
+    <circle cx="1006" cy="300" r="7"/>
+  </g>
+  <text x="1040" y="247" font-size="15" fill="#333">…</text>
+  <text x="1040" y="305" font-size="15" fill="#333">…</text>
+
+  <!-- cota passo circunferencial -->
+  <line x1="806" y1="366" x2="856" y2="366" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dB)" marker-end="url(#dA)"/>
+  <line x1="806" y1="250" x2="806" y2="370" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <line x1="856" y1="250" x2="856" y2="370" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <text x="831" y="386" text-anchor="middle" font-size="12" fill="#333">9,6 mm</text>
+
+  <!-- cota passo axial -->
+  <line x1="748" y1="242" x2="748" y2="300" stroke="#333" stroke-width="1.2"
+        marker-start="url(#dB)" marker-end="url(#dA)"/>
+  <line x1="744" y1="242" x2="800" y2="242" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <line x1="744" y1="300" x2="800" y2="300" stroke="#333" stroke-width="0.7" stroke-dasharray="3,3"/>
+  <text x="762" y="276" font-size="12" fill="#333">15 mm</text>
+
+  <!-- callout do furo -->
+  <line x1="978" y1="176" x2="960" y2="234" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+  <text x="982" y="172" font-size="13" font-weight="bold" fill="#B4522A">Ø 1,0 mm</text>
+
+  <text x="916" y="424" text-anchor="middle" font-size="13" fill="#333">
+    2 anéis  ·  24 furos cada  ·  48 por lança
+  </text>
+  <text x="916" y="444" text-anchor="middle" font-size="13" fill="#333">
+    768 furos no aerador completo
+  </text>
+
+  <!-- =============== FAIXA DE DADOS =============== -->
+  <rect x="30" y="518" width="1059" height="178" rx="6" fill="#EEF4FA" stroke="#C6DAEC"/>
+  <text x="52" y="546" font-size="14.5" font-weight="bold" fill="#1B5E9E">PONTO DE PROJETO</text>
+
+  <g font-size="13.5" fill="#1A1A1A">
+    <text x="52"  y="578">Vazão de ar por lança</text>
+    <text x="330" y="578" text-anchor="end" font-weight="bold">2 500 L/h</text>
+    <text x="52"  y="604">Velocidade no furo</text>
+    <text x="330" y="604" text-anchor="end" font-weight="bold">18,4 m/s</text>
+    <text x="52"  y="630">Weber do gás</text>
+    <text x="330" y="630" text-anchor="end" font-weight="bold">12,3</text>
+    <text x="52"  y="656">Perda de carga no furo</text>
+    <text x="330" y="656" text-anchor="end" font-weight="bold">990 Pa</text>
+    <text x="52"  y="682">Pressão de suprimento</text>
+    <text x="330" y="682" text-anchor="end" font-weight="bold">≈ 0,91 kgf/cm²</text>
+  </g>
+
+  <line x1="368" y1="560" x2="368" y2="676" stroke="#C6DAEC" stroke-width="1.4"/>
+
+  <g font-size="13.5" fill="#1A1A1A">
+    <text x="396" y="578">Regime de formação</text>
+    <text x="396" y="604" font-weight="bold" fill="#1B5E9E">JATO  (We = 12,3, exige &gt; 2)</text>
+    <text x="396" y="638">Distribuição entre furos</text>
+    <text x="396" y="664" font-weight="bold" fill="#1B5E9E">ΔP furo / ΔP hidrostático = 5,0</text>
+    <text x="396" y="686" font-size="12" fill="#555">critério de uniformidade: ≥ 4</text>
+  </g>
+
+  <line x1="742" y1="560" x2="742" y2="676" stroke="#C6DAEC" stroke-width="1.4"/>
+
+  <text x="770" y="578" font-size="13.5" font-weight="bold" fill="#B4522A">DOIS REQUISITOS DE PROJETO</text>
+  <g font-size="12.5" fill="#1A1A1A">
+    <text x="770" y="604">1.  Tampa cega na ponta. A saída aberta de Ø 62,7</text>
+    <text x="784" y="622">tem 82× a área dos 48 furos — sem a tampa, o ar</text>
+    <text x="784" y="640">sai todo por ali e a perfuração não funciona.</text>
+    <text x="770" y="666">2.  Válvula de retenção por lança. Capilaridade de</text>
+    <text x="784" y="684">232 Pa contra 88 334 Pa de coluna: entope na parada.</text>
+  </g>
+
+</svg>

@@ -183,15 +183,19 @@ A dependência é cúbica — reduzir o furo cinco vezes reduz a bolha menos de 
 
 **Condição 2 — velocidade de jato** (`We_gás > 2`)
 
-| furo | velocidade | furos para 40 m³/h |
-|---|---|---|
-| 1,0 mm | 7,4 m/s | 119 por lança |
-| 0,2 mm | 16,6 m/s | 1 330 por lança |
+Descarga atual: 0,225 m/s, `We_gás` = **0,115** — duas ordens abaixo da transição.
 
-Descarga atual: 0,225 m/s, `We_gás` = 0,115 — duas ordens abaixo da transição.
+**Condição 3 — uniformidade** (`ΔP furo ≥ 4 × ΔP hidrostático`)
 
-**Frase de destaque:** Furo pequeno não basta. É preciso furo pequeno **operado em
-regime de jato** — que é a definição de uma lança tipo *blast*.
+| furos por lança | velocidade | ΔP furo | ΔP hidro | razão |
+|---|---|---|---|---|
+| 119 | 7,4 m/s | 158 Pa | 596 Pa | 0,3 ✗ |
+| **48** | **18,4 m/s** | **990 Pa** | **199 Pa** | **5,0** ✓ |
+
+Furos demais derrubam a velocidade, e o ar passa a sair só pelos de cima.
+
+**Frase de destaque:** Furo pequeno não basta. É preciso furo pequeno, **em regime de
+jato**, e **em número limitado** para que a distribuição se mantenha uniforme.
 
 ---
 
@@ -207,19 +211,22 @@ regime de jato** — que é a definição de uma lança tipo *blast*.
 3. A meta de **0,2 mm não é atingível com descarga aberta**, e a limitação é de
    mecanismo, não de arranjo.
 
-**Recomendação**
+**Recomendação** *(ver figura da lança)*
 
-Lança perfurada com **furo de 1,0 mm, ~119 furos por lança**, dimensionada para operar
-em regime de jato a 7,4 m/s. Bolha resultante da ordem de 1 mm — três vezes menor que
-a lei de Tate para o mesmo furo em borbulhamento, e uma ordem de grandeza abaixo da
-descarga atual.
+| | |
+|---|---|
+| furo | **Ø 1,0 mm** |
+| furos por lança | **48** — 2 anéis de 24, passo 9,6 mm |
+| velocidade no furo | 18,4 m/s · We = 12,3 · razão de uniformidade 5,0 |
+| total no aerador | 768 furos |
+| pressão de suprimento | ≈ 0,91 kgf/cm² + perdas |
 
-**Atenção construtiva**
+**Dois requisitos construtivos**
 
-A pressão capilar que segura o xarope fora de um furo de 1 mm é de **232 Pa**, contra
-**88 334 Pa** de hidrostática na cota de descarga — 380 vezes menor. Com o ar
-desligado, a lança entope. **Exige válvula de retenção individual por lança** ou
-pressurização permanente da linha.
+1. **Tampa cega na ponta.** A saída aberta de Ø 62,7 mm tem **82×** a área dos 48
+   furos — sem fechá-la, o ar sai todo por ali e a perfuração não faz efeito.
+2. **Válvula de retenção por lança.** Capilaridade de **232 Pa** contra **88 334 Pa**
+   de coluna: com o ar desligado, o xarope entra e entope os furos.
 
 ---
 
