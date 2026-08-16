@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1030" height="880" viewBox="-90 0 1030 880" font-family="Arial, Helvetica, sans-serif">
+<defs>
+  <linearGradient id="cil" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#7E8B99"/><stop offset="0.10" stop-color="#9DAAB7"/>
+    <stop offset="0.32" stop-color="#E4EAF0"/><stop offset="0.55" stop-color="#C2CDD8"/>
+    <stop offset="0.85" stop-color="#8B99A7"/><stop offset="1" stop-color="#6F7C8A"/></linearGradient>
+  <linearGradient id="cap" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#5E6874"/><stop offset="0.32" stop-color="#A8B2BC"/>
+    <stop offset="0.55" stop-color="#8A949F"/><stop offset="1" stop-color="#525C67"/></linearGradient>
+  <linearGradient id="bore" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#2E3A46"/><stop offset="0.5" stop-color="#4A5A69"/>
+    <stop offset="1" stop-color="#2E3A46"/></linearGradient>
+  <marker id="jt" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L7,3 L0,6 Z" fill="#2E7CB8"/></marker>
+  <marker id="dA" markerWidth="9" markerHeight="8" refX="8" refY="4" orient="auto">
+    <path d="M0,0 L9,4 L0,8 Z" fill="#333"/></marker>
+  <marker id="dB" markerWidth="9" markerHeight="8" refX="1" refY="4" orient="auto">
+    <path d="M9,0 L0,4 L9,8 Z" fill="#333"/></marker>
+  <marker id="cal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+    <path d="M0,0 L8,4 L0,8 Z" fill="#B4522A"/></marker>
+</defs>
+<rect x="-90" y="0" width="1030" height="880" fill="#FFFFFF"/>
+<text x="470" y="44" text-anchor="middle" font-size="22" font-weight="bold" fill="#1A1A1A">Lança de aeração recomendada</text>
+<text x="470" y="70" text-anchor="middle" font-size="14" fill="#555">Detalhe do trecho inferior · Ø 73 mm · 48 furos de Ø 1,0 mm em 2 anéis de 24 · ponta fechada</text>
+<path d="M 308.0 214.0 L 308.0 690.0 A 112.0 39.0 0 0 0 532.0 690.0 L 532.0 214.0 Z" fill="url(#cil)"/>
+<line x1="308.0" y1="214.0" x2="308.0" y2="690.0" stroke="#4A5560" stroke-width="1.4"/>
+<line x1="532.0" y1="214.0" x2="532.0" y2="690.0" stroke="#4A5560" stroke-width="1.4"/>
+<ellipse cx="420.0" cy="214.0" rx="112.0" ry="39.0" fill="#B7C2CD" stroke="#4A5560" stroke-width="1.4"/>
+<ellipse cx="420.0" cy="214.0" rx="96.0" ry="33.43" fill="url(#bore)" stroke="#3A4650" stroke-width="1.2"/>
+<path d="M 308.0 690.0 A 112.0 39.0 0 0 0 532.0 690.0 L 532.0 728.0 A 112.0 39.0 0 0 1 308.0 728.0 Z" fill="url(#cap)" stroke="#3F4954" stroke-width="1.4"/>
+<path d="M 308.0 690.0 A 112.0 39.0 0 0 0 532.0 690.0" fill="none" stroke="#3F4954" stroke-width="1.4"/>
+<g stroke="#232A31" stroke-width="1.1">
+  <ellipse cx="308.0" cy="556.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="311.8" cy="566.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="323.0" cy="575.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="340.8" cy="583.6" rx="2.55" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="364.0" cy="589.8" rx="3.12" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="391.0" cy="593.7" rx="3.48" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="420.0" cy="595.0" rx="3.60" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="449.0" cy="593.7" rx="3.48" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="476.0" cy="589.8" rx="3.12" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="499.2" cy="583.6" rx="2.55" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="517.0" cy="575.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="528.2" cy="566.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="532.0" cy="556.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="308.0" cy="601.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="311.8" cy="611.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="323.0" cy="620.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="340.8" cy="628.6" rx="2.55" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="364.0" cy="634.8" rx="3.12" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="391.0" cy="638.7" rx="3.48" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="420.0" cy="640.0" rx="3.60" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="449.0" cy="638.7" rx="3.48" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="476.0" cy="634.8" rx="3.12" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="499.2" cy="628.6" rx="2.55" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="517.0" cy="620.5" rx="1.80" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="528.2" cy="611.1" rx="0.93" ry="3.6" fill="#1B222A"/>
+  <ellipse cx="532.0" cy="601.0" rx="0.70" ry="3.6" fill="#1B222A"/>
+</g>
+<g>
+<line x1="303.0" y1="556.0" x2="242.0" y2="556.0" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="222.2" cy="556.0" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="205.0" cy="556.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="190.5" cy="556.0" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="324.5" y1="580.1" x2="273.2" y2="593.1" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="256.3" cy="597.4" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="241.7" cy="601.1" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="229.3" cy="604.2" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="515.5" y1="580.1" x2="566.8" y2="593.1" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="583.7" cy="597.4" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="598.3" cy="601.1" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="610.7" cy="604.2" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="537.0" y1="556.0" x2="598.0" y2="556.0" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="617.8" cy="556.0" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="635.0" cy="556.0" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="649.5" cy="556.0" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="306.5" y1="611.1" x2="249.8" y2="616.2" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="231.2" cy="617.9" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="215.2" cy="619.3" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="201.6" cy="620.5" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<line x1="533.5" y1="611.1" x2="590.2" y2="616.2" stroke="#2E7CB8" stroke-width="2.2" marker-end="url(#jt)"/>
+<circle cx="608.8" cy="617.9" r="6.0" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="624.8" cy="619.3" r="4.4" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+<circle cx="638.4" cy="620.5" r="3.2" fill="#DCE9F5" stroke="#2E7CB8" stroke-width="1.2"/>
+</g>
+<path d="M 308.0 168.0 L 369.0909090909091 152.0 L 470.9090909090909 180.0 L 532.0 164.0" fill="none" stroke="#5C6670" stroke-width="1.8"/>
+<path d="M 308.0 156.0 L 369.0909090909091 140.0 L 470.9090909090909 168.0 L 532.0 152.0" fill="none" stroke="#5C6670" stroke-width="1.8"/>
+<line x1="308.0" y1="284.0" x2="532.0" y2="284.0" stroke="#333" stroke-width="1.2" marker-start="url(#dB)" marker-end="url(#dA)"/>
+<text x="420.0" y="274.0" text-anchor="middle" font-size="14" fill="#333">Ø 73 mm</text>
+<line x1="664.0" y1="595.0" x2="664.0" y2="640.0" stroke="#333" stroke-width="1.2" marker-start="url(#dB)" marker-end="url(#dA)"/>
+<line x1="542.0" y1="595.0" x2="674.0" y2="595.0" stroke="#333" stroke-width="0.7" stroke-dasharray="4,3"/>
+<line x1="542.0" y1="640.0" x2="674.0" y2="640.0" stroke="#333" stroke-width="0.7" stroke-dasharray="4,3"/>
+<text x="680.0" y="622" font-size="14" fill="#333">15 mm</text>
+<line x1="150" y1="452" x2="360" y2="552" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+<text x="146" y="440" text-anchor="end" font-size="14.5" font-weight="bold" fill="#B4522A">48 furos Ø 1,0 mm</text>
+<text x="146" y="460" text-anchor="end" font-size="13" fill="#B4522A">2 anéis de 24 · passo 9,6 mm</text>
+<line x1="180" y1="778" x2="342" y2="726" stroke="#B4522A" stroke-width="2" marker-end="url(#cal)"/>
+<text x="176" y="782" text-anchor="end" font-size="14.5" font-weight="bold" fill="#B4522A">TAMPA CEGA</text>
+<text x="176" y="802" text-anchor="end" font-size="12.5" fill="#B4522A">sem ela o ar sai todo pela ponta</text>
+<rect x="662" y="118" width="258" height="126" rx="5" fill="#EEF4FA" stroke="#C6DAEC"/>
+<text x="682" y="146" font-size="13.5" font-weight="bold" fill="#1B5E9E">PONTO DE PROJETO</text>
+<text x="682" y="172" font-size="12.5" fill="#1A1A1A">vazão por lança</text>
+<text x="902" y="172" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">2 500 L/h</text>
+<text x="682" y="192" font-size="12.5" fill="#1A1A1A">velocidade no furo</text>
+<text x="902" y="192" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">18,4 m/s</text>
+<text x="682" y="212" font-size="12.5" fill="#1A1A1A">Weber do gás</text>
+<text x="902" y="212" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">12,3</text>
+<text x="682" y="232" font-size="12.5" fill="#1A1A1A">uniformidade ΔP</text>
+<text x="902" y="232" font-size="12.5" font-weight="bold" text-anchor="end" fill="#1A1A1A">5,0</text>
+<text x="470" y="858" text-anchor="middle" font-size="12" fill="#777" font-style="italic">Furos representados fora de escala para visualização. Metade posterior dos furos omitida.</text>
+</svg>
