@@ -14,11 +14,11 @@ distribuídas em dois anéis concêntricos com cotas de descarga escalonadas.
 
 **Três conclusões:**
 
-1. **A aeração ocorre em regime de segregação, não de dispersão.** No instante final
-   da simulação, 84,6 % do xarope não havia sido atingido pelo ar, e o volume que o
-   ar ocupa apresenta fração de vazio média de 47,7 % — cavidades de gás, e não uma
-   nuvem de bolhas distribuída. A evolução temporal mostra que o ar **concentra** em
-   vez de dispersar.
+1. **Na região das descargas o ar forma cavidades de alta fração de vazio**, e não
+   uma nuvem de bolhas dispersa: no volume alcançado pelo ar a fração de vazio média
+   é de 47,7 %. Trata-se de caracterização do **transitório inicial** junto aos
+   bicos; o presente estudo não caracteriza a distribuição em regime permanente
+   (ver §10.4).
 
 2. **A meta de 0,2 mm de diâmetro de bolha é inalcançável com descarga aberta, e não
    depende do arranjo das lanças.** Com Ø 62,7 mm, o número de Bond vale 898: o
@@ -99,8 +99,15 @@ perda geométrica.
 
 ## 5. Resultados — distribuição do ar
 
-Instante final da simulação. Fração de vazio média no domínio: **5,099 %**,
-correspondendo a **1,019 m³** de ar.
+Instante final da simulação, correspondente a **0,18 s de tempo físico**. Fração de
+vazio média no domínio: **5,099 %**, equivalente a **1,019 m³** de ar.
+
+> ⚠️ Os valores desta seção caracterizam o **transitório inicial** de formação das
+> plumas junto às descargas. Não descrevem a distribuição em regime permanente, pela
+> razão detalhada em §10.4: o tempo simulado é curto frente ao tempo de ascensão das
+> bolhas, e o diâmetro adotado na condição de contorno (1,0 mm) é inferior ao previsto
+> analiticamente para a descarga aberta (13 a 23 mm, §7.1). Ambos os fatores atuam no
+> sentido de subestimar o transporte vertical.
 
 | critério | volume | fração do tanque |
 |---|---|---|
@@ -111,10 +118,10 @@ correspondendo a **1,019 m³** de ar.
 
 A faixa de transição entre os dois primeiros critérios ocupa apenas 0,945 m³: **69 %
 do volume alcançado já se encontra acima de 1 % de fração de vazio.** A frente de ar
-é nítida, sem zona de diluição progressiva — assinatura de deslocamento de cavidade,
-não de dispersão.
+é nítida, sem zona de diluição progressiva — o ar desloca o xarope em vez de se
+dispersar nele, **na região e no intervalo observados**.
 
-### 5.1 Evolução temporal — o ar concentra, não distribui
+### 5.1 Evolução temporal na região das descargas
 
 | | instante intermediário | instante final |
 |---|---|---|
@@ -125,10 +132,14 @@ não de dispersão.
 O volume aerado cresceu 50 % no intervalo, e a fração de vazio no seu interior cresceu
 46 % simultaneamente.
 
-Esse comportamento é diagnóstico. Em um processo de dispersão, a fração de vazio
-interna **diminuiria** conforme o volume aerado se expandisse, pois o mesmo inventário
-de ar passaria a ocupar mais xarope. Observa-se o oposto: as cavidades crescem e
-adensam ao mesmo tempo. **O ar não se mistura ao xarope — desloca-o.**
+Em um processo de dispersão, a fração de vazio interna diminuiria conforme o volume
+aerado se expandisse, pois o mesmo inventário de ar passaria a ocupar mais xarope.
+Observa-se o oposto: as cavidades crescem e adensam ao mesmo tempo. **Na vizinhança
+das descargas, portanto, o ar desloca o xarope em vez de se misturar a ele.**
+
+Ressalva: o intervalo compreende 0,09 s, muito inferior ao tempo característico de
+ascensão de bolha (§10.4). A tendência caracteriza a formação das cavidades junto aos
+bicos, e não permite extrapolação para o comportamento do tanque em regime.
 
 A visualização de fração volumétrica em escala logarítmica confirma a leitura:
 observam-se cavidades coerentes, com α tendendo à unidade, ancoradas na ponta de cada
@@ -301,43 +312,34 @@ tubulação e de válvula de retenção adicional. Adota-se **16 lanças**, arra
 verificado geometricamente contra o perfil do cone (§3), com passo circunferencial
 confortável de 9,5 mm.
 
-### 8.6 A limitação remanescente é vertical, não horizontal
+### 8.6 Efeito sobre o transporte vertical
 
-Com 16 lanças o espaçamento entre pontos de injeção é de 450 mm, e as plumas
-adjacentes se sobrepõem. **A fração de 84,6 % de xarope não atingido (§5) não decorre
-de falta de cobertura lateral**, e portanto não é corrigida por mais lanças.
+A adoção de furo pequeno reduz o diâmetro de bolha e, com isso, **reduz também a
+velocidade de ascensão** — efeito que precisa ser considerado no balanço da decisão.
 
-A causa é a ausência de transporte vertical. A lança perfurada, ao produzir bolha
-menor, **agrava** esse aspecto:
+Abaixo de Eötvös ≈ 2 a bolha permanece esférica e vale o regime de Stokes; acima, ela
+deforma em calota e o arrasto cai acentuadamente, sendo necessária a correlação de
+Grace. As duas faixas de interesse situam-se em lados opostos dessa transição:
 
-| diâmetro de bolha | velocidade terminal | tempo para percorrer 7,1 m |
-|---|---|---|
-| 1 mm | 0,113 mm/s | **17,4 h** |
-| 2 mm | 0,453 mm/s | 4,4 h |
-| 3 mm | 1,019 mm/s | 1,9 h |
+| diâmetro | Eötvös | velocidade de ascensão | percurso de 7,1 m em |
+|---|---|---|---|
+| 1 mm (furo perfurado, jato) | 0,2 | 0,1 mm/s | 17,4 h |
+| 3 mm (furo perfurado, Tate) | 2,1 | 1,0 mm/s | 116 min |
+| 13 mm (descarga aberta, mínimo) | 38,6 | 85,8 mm/s | **83 s** |
+| 23 mm (descarga aberta, máximo) | 120,8 | 162,1 mm/s | **44 s** |
 
-A variável de projeto pertinente, portanto, não é o número de lanças, e sim o **número
-de cotas de descarga**. Admitindo alcance vertical da ordem de 0,8 m por nível — ordem
-de grandeza extraída das visualizações —, a cobertura da coluna de 7,11 m demandaria
-**seis a nove cotas**.
+A diferença entre as duas configurações é de aproximadamente **três ordens de
+grandeza** na velocidade de ascensão.
 
-Não é possível obter essas cotas simplesmente perfurando a lança ao longo de todo o
-comprimento, a partir de um único plenum. A variação hidrostática ao longo do trecho
-perfurado precisaria ser dominada pela perda de carga nos furos (§8.3), o que se torna
-inviável já para trechos de poucos decímetros:
+**Consequência de projeto.** A descarga perfurada oferece ganho expressivo de área
+interfacial específica (`a = 6α/d`, cerca de uma ordem de grandeza), porém às custas
+do transporte vertical do ar. A descarga aberta apresenta o comportamento inverso.
+Trata-se de um compromisso entre **área de contato** e **distribuição espacial**, e
+não de uma melhoria em todos os aspectos.
 
-| trecho perfurado | ΔP hidrostático | velocidade necessária para uniformidade |
-|---|---|---|
-| 30 mm (dois anéis) | 397 Pa | 23 m/s ✓ |
-| 1 m | 13 244 Pa | 135 m/s |
-| 5 m | 66 218 Pa | **301 m/s** (sônico) |
-
-Com plenum único, os furos inferiores não descarregam: a coluna de xarope os afoga.
-
-**A configuração adequada consiste em grupos de lanças de comprimentos distintos, cada
-grupo com alimentação de ar independente e pressão dimensionada para a sua
-profundidade** — extensão do princípio de escalonamento já empregado nos dois anéis
-atuais. Registra-se como o passo natural de continuidade do projeto.
+A quantificação desse compromisso exigiria rodadas com o diâmetro de bolha ajustado a
+cada configuração e tempo físico compatível com a ascensão (§10.4), o que não integra
+o escopo do presente estudo. Recomenda-se como continuidade natural.
 
 ---
 
@@ -380,6 +382,20 @@ sistema. Em consequência, **a quebra de bolha observada na região de descarga
 (SMD mínimo de 0,816 mm) deve ser considerada um limite superior otimista**, não uma
 previsão. As conclusões deste relatório não dependem desse valor.
 
+**Tempo físico e diâmetro adotado — §10.4.** O intervalo simulado é de 0,18 s. O
+diâmetro imposto na condição de contorno é de 1,0 mm, para o qual a velocidade de
+ascensão vale 0,1 mm/s — o percurso da coluna de 7,11 m demandaria 17,4 h. Em 0,18 s
+uma bolha percorre 0,02 mm. **A simulação, portanto, não pode caracterizar a
+distribuição vertical do ar**, e os percentuais de volume atingido de §5 devem ser
+lidos como fotografia do transitório de formação das plumas.
+
+Acrescente-se que 1,0 mm é inferior ao diâmetro previsto analiticamente para a
+descarga aberta — 13 a 23 mm por Rayleigh-Taylor (§7.1) —, faixa na qual a bolha
+deforma (Eötvös entre 39 e 121) e ascende entre 44 e 83 s. A condição de contorno
+adotada subestima, portanto, o transporte vertical por cerca de três ordens de
+grandeza. A caracterização da distribuição em regime exigiria nova rodada com o
+diâmetro coerente e tempo físico da ordem de um minuto.
+
 **Diâmetro de bolha como entrada.** No modelo euleriano, o diâmetro é transportado a
 partir do valor imposto na condição de contorno, e não calculado a partir da física de
 formação. A previsão de 13 a 23 mm de §7 provém de análise analítica independente
@@ -394,9 +410,9 @@ recomendado caso o valor absoluto seja requerido.
 1. O arranjo de 16 lanças distribui o ar em 16 plumas individualizadas, em dois anéis
    e duas cotas, sem fusão entre plumas vizinhas.
 
-2. A aeração ocorre, contudo, em **regime de segregação**: 84,6 % do xarope não é
-   atingido, e o ar ocupa cavidades com 47,7 % de fração de vazio. A evolução temporal
-   mostra concentração progressiva, não dispersão.
+2. Junto às descargas o ar forma **cavidades de alta fração de vazio** (47,7 % no
+   volume alcançado), e não uma nuvem dispersa. A distribuição do ar no tanque em
+   regime permanente **não foi caracterizada** neste estudo (§10.4).
 
 3. **A meta de 0,2 mm não é atingível com descarga aberta**, e a limitação é de
    mecanismo, não de arranjo. Com Bond = 898, o diâmetro é fixado por Rayleigh-Taylor
@@ -406,8 +422,10 @@ recomendado caso o valor absoluto seja requerido.
    cisalhamento e quebra por oscilação de forma estão todas fora de faixa neste
    xarope, e a coalescência medida é nula.
 
-5. O caminho técnico é **furo abaixo de 2 mm operado em regime de jato**, com a
-   restrição de entupimento de §9 tratada em projeto.
+5. O caminho técnico para reduzir a bolha é **furo abaixo de 2 mm operado em regime
+   de jato**, com a restrição de entupimento de §9 tratada em projeto. Registra-se que
+   a redução do diâmetro aumenta a área interfacial e **reduz a velocidade de
+   ascensão** (§8.6): trata-se de compromisso, não de melhoria integral.
 
 ---
 

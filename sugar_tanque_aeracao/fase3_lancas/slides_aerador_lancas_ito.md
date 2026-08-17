@@ -72,12 +72,15 @@ governa todo o comportamento observado.
 | **xarope não atingido** | 16,91 m³ | **84,6 %** |
 | fração de vazio dentro do volume aerado | — | **47,7 %** |
 
-**Frase de destaque:** O ar ocupa 10,7 % do tanque, e onde está, está a 48 % de vazio.
-São cavidades de gás — não uma nuvem de bolhas.
+**Frase de destaque:** Onde o ar está, ele está a 48 % de vazio. São cavidades de gás,
+não uma nuvem de bolhas.
+
+**Rodapé obrigatório deste slide:** *Instante de 0,18 s — caracteriza a formação das
+plumas junto aos bicos, não a distribuição do tanque em regime.*
 
 ---
 
-## Slide 5 — O ar concentra, não distribui
+## Slide 5 — Como as plumas se formam
 
 **Visual:** as duas cenas de fração de vazio lado a lado (instante intermediário e
 final), mesma escala.
@@ -92,8 +95,10 @@ final), mesma escala.
 O volume aerado cresceu 50 %. A fração de vazio dentro dele cresceu 46 % **junto**.
 
 **Frase de destaque:** Se houvesse dispersão, a fração interna cairia conforme o
-volume crescesse — o mesmo ar em mais xarope. Ocorre o contrário: as cavidades crescem
-e adensam simultaneamente.
+volume crescesse. Ocorre o contrário: junto aos bicos, as cavidades crescem e adensam
+ao mesmo tempo — o ar desloca o xarope em vez de se misturar a ele.
+
+**Rodapé:** *Intervalo de 0,09 s. Descreve a formação das cavidades, não o regime.*
 
 ---
 
@@ -206,8 +211,8 @@ jato**, e **em número limitado** para que a distribuição se mantenha uniforme
 **O que a análise mostra**
 
 1. As 16 lanças produzem 16 plumas individualizadas, sem fusão entre vizinhas.
-2. A aeração ocorre em **regime de segregação**: 84,6 % do xarope não é atingido, e o
-   ar forma cavidades a 48 % de vazio.
+2. Junto às descargas o ar forma **cavidades a 48 % de vazio**, não uma nuvem
+   dispersa.
 3. A meta de **0,2 mm não é atingível com descarga aberta**, e a limitação é de
    mecanismo, não de arranjo.
 
@@ -234,13 +239,23 @@ O total de furos é fixo: `N × n = Q/(v·A) = 769`, qualquer que seja N. Mais l
 apenas redistribuem — não mudam bolha, vazão nem velocidade. Mínimo **N = 11** (abaixo
 disso os furos não cabem); adotado **16**, já verificado contra o cone.
 
-**Próximo passo de projeto**
+**O compromisso a considerar**
 
-Os 84,6 % não atingidos **não** são falta de cobertura lateral — com 16 lanças o
-espaçamento é 450 mm e as plumas se tocam. É ausência de transporte vertical, e mais
-lanças não corrigem. A alavanca é o **número de cotas de descarga**: 6 a 9 níveis
-cobririam a coluna, com grupos de lanças de comprimentos distintos e alimentação
-independente por nível.
+Reduzir o furo aumenta a área interfacial (~10×) e **reduz a velocidade de ascensão**.
+Acima de Eötvös ≈ 2 a bolha deforma e o arrasto cai:
+
+| bolha | sobe 7,1 m em |
+|---|---|
+| 1 mm (perfurada) | 17,4 h |
+| 13–23 mm (ponta aberta) | **44 a 83 s** |
+
+Três ordens de grandeza. É troca entre **área de contato** e **distribuição**, não
+melhoria integral.
+
+**Continuidade sugerida**
+
+Rodadas com o diâmetro de bolha coerente com cada configuração e tempo físico da ordem
+de um minuto, para quantificar esse compromisso.
 
 ---
 
