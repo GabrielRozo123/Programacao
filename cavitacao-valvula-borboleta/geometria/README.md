@@ -65,7 +65,15 @@ atrito das 8D entre tomadas), a válvula real teria K = (605 − 374)/3121 = **0
 para qualquer borboleta em abertura total, onde disco e haste deixam 10–15% de bloqueio e os valores
 de manual (Idelchik, Crane TP-410, Miller) ficam entre 0,2 e 0,6.
 
-### Estado: dois erros independentes
+### Decisão: abandonar 90° como ponto de calibração
+
+Abertura total é o **pior caso possível** para este estudo e o menos relevante: a perda da válvula tem
+a mesma ordem do atrito do tubo, é governada por camada limite, e não cavita nunca. O caso foi
+transferido para **30°**, onde o ΔP é 300 vezes maior e o atrito do tubo cai para 0,2% do sinal.
+
+O diagnóstico abaixo fica registrado como justificativa da mudança.
+
+### Estado em 90°: dois erros independentes
 
 | Erro | Magnitude | Causa | Correção |
 |---|---|---|---|
@@ -83,6 +91,79 @@ Correção em curso: 18 camadas prismáticas, razão 1,3, primeira célula **0,0
 ```
 u_τ = V·√(f/8) = 2,50 · √(0,0150/8) = 0,108 m/s
 y⁺ = 1  →  centroide a 9,3 µm  →  1ª camada ≈ 0,019 mm
+```
+
+Não executada — o caso migrou para 30°, onde o problema não se manifesta.
+
+---
+
+## ✅ Validação em 30° — monofásico permanente
+
+Bloco de refino reposicionado (`1,5 mm`, cantos `[-0.070, -0.060, -0.060]` a
+`[0.250, 0.060, 0.060]`), ~890 k células. Stagnation Inlet 5,0 bar abs, Pressure Outlet 4,0 bar abs.
+
+| Grandeza | Valor |
+|---|---|
+| p1 (2D montante) | 498 199 Pa |
+| p2 (6D jusante) | 400 335 Pa |
+| ΔP | **97 864 Pa = 0,979 bar** |
+| ṁ (Outlet) | 14,446 kg/s |
+| Q | **52,10 m³/h** |
+| **Kv** | **52,67 m³/h** |
+| **Kv de catálogo** | **54** |
+| **Desvio** | **−2,5%** |
+
+σ = (498 199 − 2 339)/97 864 = **5,07** — bem acima de qualquer cavitação, portanto o monofásico é
+legítimo neste ponto e a validação é limpa.
+
+### Por que 30° valida e 90° não
+
+| Ângulo | K_CFD | K_catálogo | Desvio |
+|---|---|---|---|
+| 90° | 0,114 | 0,194 | **−41%** |
+| **30°** | **57,7** | **54,8** | **+5,3%** |
+
+Mesma geometria, mesmo solver, mesma malha. Em 90° a perda é uma diferença pequena entre números
+grandes, governada por camada limite — o pior caso para CFD RANS. Em 30° é arrasto de forma sobre
+obstáculo rombudo com escoamento massivamente separado, que é o regime que o método resolve bem.
+
+O desvio de 2,5% é da ordem da sensibilidade de malha medida em 90° (3,0% entre 1,5 e 1,0 mm).
+Nenhum ajuste de geometria é necessário.
+
+### Nota sobre a área livre projetada
+
+Pico de velocidade observado: 7,13 m/s, contra 1,84 m/s no tubo — razão 3,87, ou área efetiva de
+passagem ≈ 26% do tubo, contra os **16,8%** da fórmula `1 − (D_disc/D_bore)²·cos θ`. A fresta é
+atravessada em ângulo e sua área real é ~1,5× a projetada. A fórmula é do memorial e nunca entrou no
+solver; fica registrada como estimativa conservativa.
+
+---
+
+## Varredura de cavitação — protocolo
+
+Stagnation Inlet fixo em 5,0 bar abs, Pressure Outlet varrido. Ver `../ponto_de_operacao.py` para a
+curva analítica de referência (IEC 60534-2-1).
+
+| Rodada | p2 [bar abs] | Física | Partindo de |
+|---|---|---|---|
+| 0 | 4,0 | monofásica | inicialização |
+| 1 | 4,0 | **MMP + Schnerr-Sauer** | rodada 0 |
+| 2–7 | 3,5 → 3,0 → 2,5 → 2,0 → 1,5 → 1,0 | MMP + Schnerr-Sauer | a anterior |
+| 8 | 4,5 | MMP + Schnerr-Sauer | rodada 1 |
+
+**A rodada 1 é verificação, não produção.** Em σ = 5,07 não há cavitação, então o solver multifásico
+tem de reproduzir exatamente os 14,446 kg/s da rodada 0 com fração de vapor nula. Se reproduzir, a
+montagem multifásica está verificada.
+
+⚠️ **Nunca inicializar do zero com Schnerr-Sauer ativo.** O arranque da rodada 0 mergulhou para
+−0,3 MPa por volta da iteração 8 antes de estabilizar. Em monofásico é inofensivo; com o modelo de
+cavitação ligado, pressão negativa transitória gera vapor no domínio inteiro e o solver não se
+recupera. Daí a descida em degraus.
+
+Registrar por ponto: ṁ, p1, p2, p_mín (Volume Minimum de Static Pressure) e volume total de vapor.
+
+```
+F_L² = ΔP / (p1 − p_mín)
 ```
 
 ---
