@@ -18,16 +18,72 @@ O revestimento em PTFE (espessura mínima 3 mm, catálogo p. 4) reduz o furo em 
 o catálogo não publica o valor. O corpo é tratado como **furo cilíndrico reto**, que é o que o
 revestimento produz na prática.
 
-### Calibração do furo
+### Calibração do furo — ❌ descartada
 
-O diâmetro de passagem é o parâmetro geométrico mais incerto e o que mais afeta o Kv. Procedimento:
+A ideia original era ajustar `D_BORE` até reproduzir os 909 m³/h publicados. **Isso está errado** — ver
+a seção de resultados abaixo. O déficit de perda de carga não está no furo, e aumentar o furo o
+pioraria. Com `D_BORE = 100 mm` o coeficiente de perda implícito no catálogo é **K = 0,194**,
+plausível para borboleta de disco fino em abertura total.
 
-1. Rodar o caso de **90°** e calcular o Kv resultante
-2. Ajustar `D_BORE` até reproduzir os **909 m³/h** publicados
-3. Os **outros seis ângulos passam a ser previsão**, não ajuste
+---
 
-Um ponto para fixar a geometria, seis para validar. Com `D_BORE = 100 mm` o coeficiente de perda
-implícito é **K = 0,19**, plausível para borboleta de disco fino em abertura total.
+## Resultados — 90°, monofásico permanente, água a 20 °C
+
+Vazão de referência 70,7 m³/h (2,50 m/s). Tomadas de pressão a **2D montante / 6D jusante**
+(IEC 60534-2-3), como `Surface Average` de `Static Pressure` em section planes.
+
+### Independência de malha
+
+| Custom Size no bloco | ΔP | Kv | vs catálogo (909) | F_L |
+|---|---|---|---|---|
+| 1,5 mm | 628 Pa | 892 m³/h | −1,9% | 0,30 |
+| 1,0 mm | 667 Pa | 866 m³/h | −4,8% | 0,32 |
+
+Variação de **3,0%** entre os dois níveis, **afastando-se** do catálogo. Malha não convergida — e o
+Kv bruto é enganoso, porque inclui o atrito do tubo entre as tomadas.
+
+### Tara: separando tubo de válvula
+
+Rodada idêntica com `tubo_reto_tara.step` (sem disco, sem haste), mesma malha de 1,0 mm, mesmo bloco
+de refino, mesmas sondas. Ver `gerar_tara.py`.
+
+| | Medido | Referência | Desvio |
+|---|---|---|---|
+| ΔP total (com disco) | 667 Pa | — | |
+| ΔP tara (só tubo) | **312 Pa** | 374 Pa (Colebrook, tubo liso) | **−17%** |
+| **ΔP válvula** | **355 Pa** | 605 Pa (catálogo) | **−41%** |
+
+```
+K_CFD      = 355 / 3121 = 0,114
+K_catálogo = 605 / 3121 = 0,194
+```
+
+### O catálogo publica Kv da válvula sozinha
+
+Não é declarado no manual. Resolvido por plausibilidade: se o Kv de 909 fosse bruto (incluindo o
+atrito das 8D entre tomadas), a válvula real teria K = (605 − 374)/3121 = **0,074** — baixo demais
+para qualquer borboleta em abertura total, onde disco e haste deixam 10–15% de bloqueio e os valores
+de manual (Idelchik, Crane TP-410, Miller) ficam entre 0,2 e 0,6.
+
+### Estado: dois erros independentes
+
+| Erro | Magnitude | Causa | Correção |
+|---|---|---|---|
+| Atrito de tubo | −17% | y+ de buffer (5,5 a 13,1) | camada prismática |
+| Perda de forma da válvula | −41% | parcialmente o mesmo y+; resto é geometria do disco | pendente |
+
+O y+ medido cai na faixa 5–30, onde o tratamento All y+ interpola entre sublayer resolvida e função
+de parede — a região de menor confiabilidade. Subir para y+ > 30 **não é viável**: a jusante do disco
+há zonas separadas com tensão de parede tendendo a zero (y+ mínimo de 0,77 na sim com válvula).
+
+Correção em curso: 18 camadas prismáticas, razão 1,3, primeira célula **0,019 mm** (y+ ≈ 1), aplicada
+às **duas** sims. A tara serve de gabarito porque tem resposta analítica — só quando ela bater com os
+374 Pa da Colebrook é que o déficit residual da válvula pode ser atribuído à geometria.
+
+```
+u_τ = V·√(f/8) = 2,50 · √(0,0150/8) = 0,108 m/s
+y⁺ = 1  →  centroide a 9,3 µm  →  1ª camada ≈ 0,019 mm
+```
 
 ---
 
