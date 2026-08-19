@@ -36,10 +36,28 @@ ANGULO = 30
 D_BORE = 0.100        # [m]
 KV_CATALOGO = 54.0    # [m3/h] catalogo Bray 2-Cx DN 100, 30 graus
 
-# --- MEDIDO no CFD, rodada 0 (monofasica, permanente) ------------------------
-#     p1 = 498 199 Pa   p2 = 400 335 Pa   mdot = 14,446 kg/s   p_min = 321 491 Pa
-KV_CFD = 52.67        # [m3/h]  desvio de -2,5% contra o catalogo
-FL_CFD = 0.744        # [-]     F_L^2 = dP/(p1 - p_min)
+# --- MEDIDO no CFD -----------------------------------------------------------
+# Pontos ja executados. VOF + Schnerr-Sauer, implicit unsteady, ~0,8 s de tempo
+# fisico por ponto (uma travessia do dominio e L/V = 0,815 s).
+#
+#   p2 [Pa]    p1 [Pa]    mdot [kg/s]   p_min [Pa]
+MEDIDO = [
+    (400151.0, 498131.0, 14.51478, 302144.0),
+    (350180.0, 497217.0, 17.81159, 202047.0),
+]
+
+# A rodada monofasica permanente em p2 = 4,0 bar deu mdot = 14,446 kg/s e
+# p_min = 321 491 Pa -- a multifasica reproduz a vazao em 0,5% e o dP em 0,12%,
+# o que verifica a montagem. O p_min difere 6% porque e um extremo de uma unica
+# celula, que passeia com a turbulencia mesmo depois das medias travarem.
+
+KV_CFD = 52.97        # [m3/h]  media dos dois pontos; -1,9% contra o catalogo
+FL_CFD = 0.706        # [-]     F_L^2 = dP/(p1 - p_min); os dois pontos dao
+                      #         0,707 e 0,706 -- concordancia de 0,1%
+
+# queda de pressao de estagnacao ate a sonda p1, ajustada aos dois pontos:
+#     p1_estatica = P1_BAR*1e5 - K_P1 * mdot^2
+K_P1 = 8.87           # [Pa/(kg/s)^2]
 
 # --- ponto de operacao -------------------------------------------------------
 P1_BAR = 5.0          # [bar abs] montante (Stagnation Inlet)
@@ -93,36 +111,62 @@ def main():
     print("  Abaixo dessa contrapressao, baixar mais NAO aumenta a vazao.")
     print("  So aumenta a erosao. E o que a varredura tem que reproduzir.")
 
-    # pontos concentrados no joelho
-    pontos = [4.5, 4.0, 3.5, 3.0, 2.6, 2.4, 2.25, 2.1, 1.9, 1.6, 1.2]
+    # --- conferencia dos pontos ja medidos ---------------------------------
+    print("\n" + "=" * 76)
+    print("PONTOS MEDIDOS")
+    print("=" * 76)
+    print(f"{'p2':>9s}{'dP':>10s}{'mdot':>10s}{'Q':>9s}{'Kv':>8s}"
+          f"{'p_min':>10s}{'F_L':>8s}{'sigma':>8s}")
+    print(f"{'[bar]':>9s}{'[bar]':>10s}{'[kg/s]':>10s}{'[m3/h]':>9s}"
+          f"{'[m3/h]':>8s}{'[Pa]':>10s}{'[-]':>8s}{'[-]':>8s}")
+    print("-" * 76)
+    for p2, p1, mdot, pmin in MEDIDO:
+        dp = p1 - p2
+        q = mdot / RHO * 3600.0
+        kv = q / math.sqrt(dp / 1e5)
+        fl = math.sqrt(dp / (p1 - pmin))
+        s = (p1 - P_VAP) / dp
+        print(f"{p2/1e5:9.2f}{dp/1e5:10.3f}{mdot:10.3f}{q:9.2f}{kv:8.2f}"
+              f"{pmin:10.0f}{fl:8.3f}{s:8.2f}")
+    print("-" * 76)
+    print("  Kv e F_L constantes entre os pontos: a valvula se comporta como a")
+    print("  IEC 60534 preve no regime nao cavitante. E o que autoriza")
+    print("  extrapolar para o joelho.")
+
+    # --- previsao dos pontos restantes -------------------------------------
+    pontos = [3.0, 2.8, 2.6, 2.5, 2.4, 2.2, 1.8, 1.4]
 
     print("\n" + "=" * 76)
-    print("PONTOS DA VARREDURA")
+    print("PONTOS A RODAR -- PREVISAO A TESTAR")
     print("=" * 76)
-    print(f"{'#':>3s}{'p2':>8s}{'dP':>8s}{'sigma':>8s}{'Q prevista':>13s}"
-          f"{'mdot':>11s}{'regime':>16s}")
-    print(f"{'':>3s}{'[bar]':>8s}{'[bar]':>8s}{'[-]':>8s}{'[m3/h]':>13s}"
-          f"{'[kg/s]':>11s}")
+    print(f"{'p2':>8s}{'p1':>10s}{'dP':>9s}{'sigma':>8s}{'Q':>9s}"
+          f"{'mdot':>10s}{'p_min':>11s}{'regime':>15s}")
+    print(f"{'[bar]':>8s}{'[Pa]':>10s}{'[bar]':>9s}{'[-]':>8s}{'[m3/h]':>9s}"
+          f"{'[kg/s]':>10s}{'[Pa]':>11s}")
     print("-" * 76)
-    for i, p2 in enumerate(pontos):
-        q, choke = vazao(P1_BAR, p2, KV_CFD, FL_CFD)
-        mdot = q / 3600.0 * RHO
-        s = sigma(P1_BAR, p2)
+    for p2 in pontos:
+        # p1 estatica depende da vazao; itera
+        mdot = 20.0
+        for _ in range(40):
+            p1 = P1_BAR * 1e5 - K_P1 * mdot ** 2
+            q, choke = vazao(p1 / 1e5, p2, KV_CFD, FL_CFD)
+            mdot = q / 3600.0 * RHO
+        dp = p1 - p2 * 1e5
+        pmin = p1 - dp / FL_CFD ** 2
+        s = (p1 - P_VAP) / dp
         if choke:
-            reg = "ESTRANGULADO"
-        elif s < 2.0:
-            reg = "cavitacao forte"
-        elif s < 3.5:
-            reg = "cavitacao"
+            reg, pmin_txt = "ESTRANGULADO", "~2339"
         else:
-            reg = "sem cavitacao"
-        marca = "  <-- joelho" if abs(p2 - p2c) < 0.15 else ""
-        print(f"{i:3d}{p2:8.2f}{P1_BAR-p2:8.2f}{s:8.2f}{q:13.1f}"
-              f"{mdot:11.3f}{reg:>16s}{marca}")
+            reg = "cavitacao" if pmin < 5e4 else "sem cavitacao"
+            pmin_txt = f"{pmin:.0f}"
+        marca = "  <-- joelho" if abs(p2 - p2c) < 0.11 else ""
+        print(f"{p2:8.2f}{p1:10.0f}{dp/1e5:9.3f}{s:8.2f}{q:9.2f}"
+              f"{mdot:10.3f}{pmin_txt:>11s}{reg:>15s}{marca}")
     print("-" * 76)
-    print("  Rodada 0 (p2 = 4,0) ja executada em monofasico: 14,446 kg/s.")
-    print("  A rodada 1 repete p2 = 4,0 COM o modelo de cavitacao ligado e")
-    print("  tem que devolver o mesmo numero -- e a verificacao do setup.")
+    print("  Toda a acao esta entre 2,8 e 2,2 bar. Abaixo de 2,0 nada mais")
+    print("  muda -- dois pontos ali bastam para provar o plato.")
+    print("  O vapor deve aparecer ANTES do p_min medio cruzar 2339 Pa: o RANS")
+    print("  entrega a media, e a incipiencia nasce das flutuacoes.")
     print("=" * 76)
 
     print("\nO QUE REGISTRAR EM CADA PONTO")
