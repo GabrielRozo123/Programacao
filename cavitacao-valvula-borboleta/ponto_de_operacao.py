@@ -44,6 +44,8 @@ KV_CATALOGO = 54.0    # [m3/h] catalogo Bray 2-Cx DN 100, 30 graus
 MEDIDO = [
     (400151.0, 498131.0, 14.51478, 302144.0),
     (350180.0, 497217.0, 17.81159, 202047.0),
+    (300290.0, 496294.0, 20.57648, 102870.0),
+    (280296.0, 495921.0, 21.58146,  63242.0),
 ]
 
 # A rodada monofasica permanente em p2 = 4,0 bar deu mdot = 14,446 kg/s e
@@ -134,7 +136,7 @@ def main():
     print("  extrapolar para o joelho.")
 
     # --- previsao dos pontos restantes -------------------------------------
-    pontos = [3.0, 2.8, 2.6, 2.5, 2.4, 2.2, 1.8, 1.4]
+    pontos = [2.6, 2.5, 2.4, 2.2, 1.8]
 
     print("\n" + "=" * 76)
     print("PONTOS A RODAR -- PREVISAO A TESTAR")
