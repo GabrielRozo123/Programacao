@@ -40,7 +40,15 @@ KV_CATALOGO = 54.0    # [m3/h] catalogo Bray 2-Cx DN 100, 30 graus
 # Pontos ja executados. VOF + Schnerr-Sauer, implicit unsteady, ~0,8 s de tempo
 # fisico por ponto (uma travessia do dominio e L/V = 0,815 s).
 #
-#   p2 [Pa]    p1 [Pa]    mdot [kg/s]   p_min [Pa]
+# ATENCAO: a Reference Pressure do continuum ficou no default de 101 325 Pa, e
+# os valores abaixo sao os REPORTADOS pelo solver, ou seja RELATIVOS. A pressao
+# absoluta e a reportada mais REF_P. O caso rodou com 6,013 bar abs a montante,
+# nao 5,0 -- fisicamente valido, so rotulado errado.
+#
+# Kv, F_L e sigma nao sentem: os dois primeiros sao razoes de diferencas de
+# pressao, e no sigma o offset entra igual em cima e embaixo. Nada foi perdido.
+#
+#   p2 [Pa]    p1 [Pa]    mdot [kg/s]   p_min [Pa]   -- todos RELATIVOS
 MEDIDO = [
     (400151.0, 498131.0, 14.51478, 302144.0),
     (350180.0, 497217.0, 17.81159, 202047.0),
@@ -48,6 +56,7 @@ MEDIDO = [
     (280296.0, 495921.0, 21.58146,  63242.0),
     (260328.0, 495548.0, 22.54474,  23454.0),
     (250341.0, 495367.0, 23.00816,   3815.0),
+    (240342.0, 495185.0, 23.46448, -15973.0),
 ]
 
 # A rodada monofasica permanente em p2 = 4,0 bar deu mdot = 14,446 kg/s e
@@ -55,16 +64,18 @@ MEDIDO = [
 # o que verifica a montagem. O p_min difere 6% porque e um extremo de uma unica
 # celula, que passeia com a turbulencia mesmo depois das medias travarem.
 
-KV_CFD = 52.97        # [m3/h]  media dos dois pontos; -1,9% contra o catalogo
-FL_CFD = 0.706        # [-]     F_L^2 = dP/(p1 - p_min); os dois pontos dao
-                      #         0,707 e 0,706 -- concordancia de 0,1%
+REF_P = 101325.0      # [Pa] Reference Pressure do continuum
+
+KV_CFD = 53.00        # [m3/h]  media dos sete pontos; -1,9% contra o catalogo
+FL_CFD = 0.706        # [-]     F_L^2 = dP/(p1 - p_min); os sete pontos dao
+                      #         0,706 a 0,707 -- dispersao de 0,1%
 
 # queda de pressao de estagnacao ate a sonda p1, ajustada aos dois pontos:
 #     p1_estatica = P1_BAR*1e5 - K_P1 * mdot^2
-K_P1 = 8.87           # [Pa/(kg/s)^2]
+K_P1 = 8.78           # [Pa/(kg/s)^2]
 
 # --- ponto de operacao -------------------------------------------------------
-P1_BAR = 5.0          # [bar abs] montante (Stagnation Inlet)
+P1_BAR = 6.01325      # [bar abs] montante = 5,0 relativo + REF_P
 
 
 def ff():
@@ -125,6 +136,7 @@ def main():
           f"{'[m3/h]':>8s}{'[Pa]':>10s}{'[-]':>8s}{'[-]':>8s}")
     print("-" * 76)
     for p2, p1, mdot, pmin in MEDIDO:
+        p1, p2, pmin = p1 + REF_P, p2 + REF_P, pmin + REF_P
         dp = p1 - p2
         q = mdot / RHO * 3600.0
         kv = q / math.sqrt(dp / 1e5)
@@ -138,12 +150,14 @@ def main():
     print("  extrapolar para o joelho.")
 
     # --- previsao dos pontos restantes -------------------------------------
-    pontos = [2.4, 2.2, 1.8, 1.4]
+    pontos = [(2.2 + REF_P / 1e5), (2.0 + REF_P / 1e5),
+              (1.8 + REF_P / 1e5), (1.5 + REF_P / 1e5),
+              (1.2 + REF_P / 1e5)]
 
     print("\n" + "=" * 76)
     print("PONTOS A RODAR -- PREVISAO A TESTAR")
     print("=" * 76)
-    print(f"{'p2':>8s}{'p1':>10s}{'dP':>9s}{'sigma':>8s}{'Q':>9s}"
+    print(f"{'p2 BC':>8s}{'p1 abs':>10s}{'dP':>9s}{'sigma':>8s}{'Q':>9s}"
           f"{'mdot':>10s}{'p_min':>11s}{'regime':>15s}")
     print(f"{'[bar]':>8s}{'[Pa]':>10s}{'[bar]':>9s}{'[-]':>8s}{'[m3/h]':>9s}"
           f"{'[kg/s]':>10s}{'[Pa]':>11s}")
@@ -164,7 +178,7 @@ def main():
             reg = "cavitacao" if pmin < 5e4 else "sem cavitacao"
             pmin_txt = f"{pmin:.0f}"
         marca = "  <-- joelho" if abs(p2 - p2c) < 0.11 else ""
-        print(f"{p2:8.2f}{p1:10.0f}{dp/1e5:9.3f}{s:8.2f}{q:9.2f}"
+        print(f"{p2-REF_P/1e5:8.2f}{p1:10.0f}{dp/1e5:9.3f}{s:8.2f}{q:9.2f}"
               f"{mdot:10.3f}{pmin_txt:>11s}{reg:>15s}{marca}")
     print("-" * 76)
     print("  Toda a acao esta entre 2,8 e 2,2 bar. Abaixo de 2,0 nada mais")
