@@ -39,9 +39,17 @@ Condição: gás **1.820 kg/h** a 400 °C / 1,2 bar · ρ=3,946 · µ=9,5e-5 · 
 | **100 %** | **654,142 K = 381,0 °C** | ~250 °C | **+131 °C** ✅ |
 | **50 %** | **640,238 K = 367,1 °C** | ~250 °C | **+117 °C** ✅ |
 
-> ⚠️ **REVISADO.** Os valores acima são a temperatura **média** de parede. A medição do
-> **mínimo** (rodada de 50 %, `Minimum of Temperature` em `Walls`) deu **290,5 °C** — 73,2 °C
-> abaixo da média, no **ápice do cone**, na zona quiescente abaixo do fim do vórtice.
+> ⚠️ **REVISADO.** Os valores acima são a temperatura **média** de parede. Medindo também o
+> **mínimo** (`Minimum of Temperature` em `Walls`) nas duas cargas:
+>
+> | carga | média | **mínimo (ápice do cone)** | Δ |
+> |---|---|---|---|
+> | 100 % | 378,6 °C | **334,9 °C** | −43,7 °C |
+> | **50 %** | 363,7 °C | **290,5 °C** | **−73,2 °C** |
+>
+> A parede média segue `h_i ∝ Re^0,825`; o ápice segue `Re^0,971` — quase linear. **O ápice
+> esfria mais rápido que a média quando a vazão cai**, o que torna a condição de 50 %
+> duplamente governante.
 >
 > Com a parede **nua e oxidada** (ε = 0,8) esse ponto cai a **230 °C** e **condensa** mesmo na
 > hipótese otimista de orvalho (250 °C).

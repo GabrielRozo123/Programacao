@@ -153,10 +153,10 @@ envelope foi levantado no diâmetro de 290 mm por comparação com o modelo de t
 # 6. Comportamento térmico
 
 ## 6.1 Medido
-| carga | T_parede média | **T_parede mínima** |
-|---|---|---|
-| 100 % | **378,5 °C** | ⏳ *(previsto 328,9 °C)* |
-| 50 % | **363,7 °C** | **290,5 °C** |
+| carga | T_parede média | **T_parede mínima** | Δ |
+|---|---|---|---|
+| 100 % | **378,6 °C** | **334,9 °C** | −43,7 °C |
+| 50 % | **363,7 °C** | **290,5 °C** | **−73,2 °C** |
 
 A 50 % de vazão o tempo de residência dobra e o coeficiente de troca interno cai com Re^0,8 — o
 gás troca calor por mais tempo através de um filme mais fraco, **e a parede esfria**. A condição
@@ -167,18 +167,33 @@ de 50 % é, portanto, a **governante** para a questão de condensação.
 O campo de temperatura não é uniforme. O valor mínimo situa-se no **ápice do cone**, na região
 da saída de pó, e está **73,2 °C abaixo da média** na condição de 50 %.
 
-Retro-calculando o coeficiente interno local a partir das duas medições:
+Retro-calculando o coeficiente interno local a partir das quatro medições:
 
-| | T_parede | h_i local |
-|---|---|---|
-| média | 363,7 °C | 93,4 W/m²·K |
-| **ápice do cone** | **290,5 °C** | **24,3 W/m²·K** — 26 % da média |
+| carga | região | T_parede | h_i local | razão |
+|---|---|---|---|---|
+| 100 % | média | 378,6 °C | 165,3 W/m²·K | — |
+| 100 % | **ápice do cone** | **334,9 °C** | **47,6 W/m²·K** | 0,288 |
+| 50 % | média | 363,7 °C | 93,4 W/m²·K | — |
+| 50 % | **ápice do cone** | **290,5 °C** | **24,3 W/m²·K** | 0,260 |
 
 O resultado é coerente com a verificação independente de §4: o comprimento natural do vórtice
 (Alexander) termina **296 mm acima da saída de pó**. Abaixo dessa cota o gás é quiescente, a
 troca convectiva interna despenca e a parede se aproxima da temperatura ambiente.
 
-**Para a questão de condensação, é este ponto que decide — não a média.**
+**As duas regiões escalam de forma distinta com a vazão:**
+
+```
+região média       h_i ∝ Re^0,825      (esperado 0,80 — camada limite turbulenta)
+ápice do cone      h_i ∝ Re^0,971      (praticamente linear com a vazão)
+```
+
+A parede principal segue a lei de camada limite. O ápice não: ali a troca acompanha
+aproximadamente a **vazão de gás que consegue alcançar a zona quiescente**, e não a intensidade
+de um filme turbulento. Em consequência, **o ápice esfria mais rápido do que a média quando a
+vazão cai** — a diferença entre média e mínimo passa de 43,7 °C a 100 % para 73,2 °C a 50 %.
+
+**Para a questão de condensação, é este ponto que decide — não a média — e a condição de 50 %
+é duplamente governante.**
 
 ## 6.2 Modelo de duas resistências — calibrado e verificado
 ```
@@ -197,10 +212,10 @@ temperatura de parede), o que corrige levemente para cima os valores antes repor
 
 | cenário | 100 % média | 100 % frio | 50 % média | **50 % frio** |
 |---|---|---|---|---|
-| isolada (h_e ≈ 1,5) | 397 °C | 387 °C | 394 °C | **378 °C** |
-| simulada (h_e = 10) | 378,5 °C | 328,9 °C | 363,7 °C | **290,5 °C** |
-| nua, alumínio polido (ε = 0,05) | 377 °C | 329 °C | 362 °C | **295 °C** |
-| **nua, aço oxidado (ε = 0,80)** | 345 °C | 270 °C | 317 °C | **230 °C** |
+| isolada (h_e ≈ 1,5) | 397 °C | 389 °C | 394 °C | **378 °C** |
+| **medido (h_e = 10)** | **378,6 °C** | **334,9 °C** | **363,7 °C** | **290,5 °C** |
+| nua, alumínio polido (ε = 0,05) | 377 °C | 335 °C | 362 °C | **295 °C** |
+| **nua, aço oxidado (ε = 0,80)** | 345 °C | 277 °C | 317 °C | **230 °C** |
 
 Note-se que o `h_e` externo **não depende da condutividade do metal**, e sim da **emissividade
 da superfície**. O aço carbono oxidado ou pintado corresponde a ε ≈ 0,8; um revestimento
