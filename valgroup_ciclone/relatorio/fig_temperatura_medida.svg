@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="460" viewBox="0 0 1120 460" font-family="Arial, Helvetica, sans-serif">
+<rect width="1120" height="460" fill="#FFFFFF"/>
+<text x="40" y="46" font-size="22" font-weight="bold" fill="#1A1A1A">Temperatura de parede — medido</text>
+<text x="40" y="74" font-size="14" fill="#555">Simulação com h_externo = 10 W/m²·K · ambiente 25 °C · gás 400 °C</text>
+<rect x="40" y="94" width="1078" height="52" rx="5" fill="#EEF4FA" stroke="#C6DAEC"/>
+<text x="60" y="116" font-size="13" fill="#1A1A1A">O ciclone tem <tspan font-weight="bold">duas temperaturas</tspan>: o corpo, e o trecho inferior — saída de pó e últimos 150 mm do cone, 8 % da área.</text>
+<text x="60" y="136" font-size="13" fill="#1A1A1A">Abaixo do fim do vórtice o gás fica quiescente, a troca interna cai a 26 % e a parede esfria.</text>
+<text x="105.0" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#555">VAZÃO</text>
+<text x="245.0" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#555">CORPO</text>
+<text x="409.0" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#555">TRECHO INFERIOR</text>
+<text x="653.0" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1B5E9E">ORVALHO 250 °C</text>
+<text x="963.0" y="172" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1B5E9E">ORVALHO 343 °C (C20)</text>
+<line x1="40" y1="186" x2="1118" y2="186" stroke="#B9C4CF" stroke-width="1.4"/>
+<text x="105.0" y="243.0" text-anchor="middle" font-size="16" font-weight="bold" fill="#1A1A1A">100 %</text>
+<text x="245.0" y="243.0" text-anchor="middle" font-size="16" fill="#333">378,6 °C</text>
+<text x="409.0" y="243.0" text-anchor="middle" font-size="16" font-weight="bold" fill="#B4522A">334,9 °C</text>
+<rect x="508" y="213" width="290" height="48" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.3"/>
+<text x="653.0" y="242.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">folga de 85 °C</text>
+<rect x="818" y="213" width="290" height="48" rx="4" fill="#FFF3DC" stroke="#B26A00" stroke-width="1.3"/>
+<text x="963.0" y="242.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#B26A00">condensa no fundo   −8 °C</text>
+<rect x="40" y="274" width="1078" height="74" fill="#FAFBFC"/>
+<text x="105.0" y="317.0" text-anchor="middle" font-size="16" font-weight="bold" fill="#1A1A1A">50 %</text>
+<text x="245.0" y="317.0" text-anchor="middle" font-size="16" fill="#333">363,7 °C</text>
+<text x="409.0" y="317.0" text-anchor="middle" font-size="16" font-weight="bold" fill="#B4522A">290,5 °C</text>
+<rect x="508" y="287" width="290" height="48" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.3"/>
+<text x="653.0" y="316.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">folga de 40 °C</text>
+<rect x="818" y="287" width="290" height="48" rx="4" fill="#FDE6E4" stroke="#C62828" stroke-width="1.3"/>
+<text x="963.0" y="316.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#C62828">condensa no fundo  −53 °C</text>
+<rect x="40" y="370" width="1078" height="86" rx="5" fill="#FAFAFA" stroke="#D8DCE0"/>
+<text x="60" y="396" font-size="14" font-weight="bold" fill="#1A1A1A">Conclusão</text>
+<text x="60" y="420" font-size="13" fill="#1A1A1A">O <tspan font-weight="bold">corpo do ciclone não condensa em nenhuma hipótese</tspan>, nas duas vazões. A condição de 50 % é a governante:</text>
+<text x="60" y="440" font-size="13" fill="#1A1A1A">o trecho inferior esfria 73 °C abaixo do corpo e é o único ponto em risco, caso o orvalho se confirme alto.</text>
+</svg>
