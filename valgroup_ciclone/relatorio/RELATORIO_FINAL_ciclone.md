@@ -153,14 +153,32 @@ envelope foi levantado no diâmetro de 290 mm por comparação com o modelo de t
 # 6. Comportamento térmico
 
 ## 6.1 Medido
-| carga | T_parede |
-|---|---|
-| 100 % | **378,5 °C** |
-| 50 % | **363,7 °C** |
+| carga | T_parede média | **T_parede mínima** |
+|---|---|---|
+| 100 % | **378,5 °C** | ⏳ *(previsto 328,9 °C)* |
+| 50 % | **363,7 °C** | **290,5 °C** |
 
 A 50 % de vazão o tempo de residência dobra e o coeficiente de troca interno cai com Re^0,8 — o
 gás troca calor por mais tempo através de um filme mais fraco, **e a parede esfria**. A condição
 de 50 % é, portanto, a **governante** para a questão de condensação.
+
+### 6.1.1 ⚠️ O mínimo está 73 °C abaixo da média, e é ele que governa
+
+O campo de temperatura não é uniforme. O valor mínimo situa-se no **ápice do cone**, na região
+da saída de pó, e está **73,2 °C abaixo da média** na condição de 50 %.
+
+Retro-calculando o coeficiente interno local a partir das duas medições:
+
+| | T_parede | h_i local |
+|---|---|---|
+| média | 363,7 °C | 93,4 W/m²·K |
+| **ápice do cone** | **290,5 °C** | **24,3 W/m²·K** — 26 % da média |
+
+O resultado é coerente com a verificação independente de §4: o comprimento natural do vórtice
+(Alexander) termina **296 mm acima da saída de pó**. Abaixo dessa cota o gás é quiescente, a
+troca convectiva interna despenca e a parede se aproxima da temperatura ambiente.
+
+**Para a questão de condensação, é este ponto que decide — não a média.**
 
 ## 6.2 Modelo de duas resistências — calibrado e verificado
 ```
@@ -173,14 +191,44 @@ A temperatura de 50 % foi **prevista em 364 °C antes de ser medida**; o valor m
 **363,7 °C**. Erro de **0,3 °C**.
 
 ## 6.3 Projeção — dispensa nova simulação
-| | isolada (h_e ≈ 1,5) | atual (h_e = 10) | **nua (h_e ≈ 31,6)** |
-|---|---|---|---|
-| 100 % | 397 °C | 378,5 °C | 340 °C |
-| **50 %** | 394 °C | 363,7 °C | **305 °C** |
+Projeção do modelo calibrado, agora aplicada tanto à média quanto ao ponto frio. O `h_e` de
+parede nua foi resolvido de forma autoconsistente (o coeficiente de radiação depende da própria
+temperatura de parede), o que corrige levemente para cima os valores antes reportados.
 
-`h_e` de parede nua = radiação 22,3 (ε = 0,8) + convecção natural 9,3 W/m²·K.
+| cenário | 100 % média | 100 % frio | 50 % média | **50 % frio** |
+|---|---|---|---|---|
+| isolada (h_e ≈ 1,5) | 397 °C | 387 °C | 394 °C | **378 °C** |
+| simulada (h_e = 10) | 378,5 °C | 328,9 °C | 363,7 °C | **290,5 °C** |
+| nua, alumínio polido (ε = 0,05) | 377 °C | 329 °C | 362 °C | **295 °C** |
+| **nua, aço oxidado (ε = 0,80)** | 345 °C | 270 °C | 317 °C | **230 °C** |
 
-⇒ **A parede opera entre 305 e 397 °C**, dependendo exclusivamente do isolamento.
+Note-se que o `h_e` externo **não depende da condutividade do metal**, e sim da **emissividade
+da superfície**. O aço carbono oxidado ou pintado corresponde a ε ≈ 0,8; um revestimento
+metálico polido reduz a emissividade em mais de uma ordem de grandeza e mantém a parede
+aproximadamente **65 °C mais quente** sem qualquer isolamento térmico.
+
+⇒ **A parede média opera entre 317 e 397 °C. O ápice do cone, entre 230 e 387 °C.**
+
+### 6.3.1 Consequência para o isolamento
+
+Comparando o ponto frio a 50 % contra as duas hipóteses de orvalho:
+
+| ponto frio a 50 % | contra 250 °C | contra 343 °C (C20) |
+|---|---|---|
+| isolada | +128 °C ✅ | **+35 °C ✅** |
+| nua, alumínio polido | +45 °C ✅ | −48 °C ❌ |
+| **nua, aço oxidado** | **−20 °C ❌** | −113 °C ❌ |
+
+**Revisão de recomendação.** Avaliado apenas pela temperatura média, o isolamento seria decisão
+de eficiência energética. Avaliado pelo **ápice do cone**, deixa de ser: com a parede nua e
+oxidada a região condensa mesmo na hipótese otimista de orvalho.
+
+O trecho crítico, contudo, é pequeno — os **últimos ~300 mm do cone**, abaixo do fim do vórtice,
+correspondendo a cerca de **15 % da área lateral**. Isolar somente esse trecho eleva o ponto frio
+a 378 °C, o que cobre **as duas hipóteses de orvalho simultaneamente**, incluindo o C20.
+
+**Recomendação: isolar o cone inferior e a saída de pó.** O corpo cilíndrico admite decisão por
+eficiência energética.
 
 ## 6.4 ⚠️ O critério de comparação está em revisão
 O ponto de orvalho foi inicialmente estimado em **230 a 250 °C** a partir de uma cromatografia

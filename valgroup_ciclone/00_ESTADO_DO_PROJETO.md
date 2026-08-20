@@ -39,8 +39,16 @@ Condição: gás **1.820 kg/h** a 400 °C / 1,2 bar · ρ=3,946 · µ=9,5e-5 · 
 | **100 %** | **654,142 K = 381,0 °C** | ~250 °C | **+131 °C** ✅ |
 | **50 %** | **640,238 K = 367,1 °C** | ~250 °C | **+117 °C** ✅ |
 
-> **NÃO CONDENSA em nenhum ponto do turndown, mesmo SEM isolamento.**
-> O isolamento passa a ser decisão de **eficiência energética**, não de integridade.
+> ⚠️ **REVISADO.** Os valores acima são a temperatura **média** de parede. A medição do
+> **mínimo** (rodada de 50 %, `Minimum of Temperature` em `Walls`) deu **290,5 °C** — 73,2 °C
+> abaixo da média, no **ápice do cone**, na zona quiescente abaixo do fim do vórtice.
+>
+> Com a parede **nua e oxidada** (ε = 0,8) esse ponto cai a **230 °C** e **condensa** mesmo na
+> hipótese otimista de orvalho (250 °C).
+>
+> **O isolamento voltou a ser decisão de integridade** — mas só no cone inferior, ~15 % da área
+> lateral. Isolando esse trecho o ponto frio sobe a **378 °C**, cobrindo inclusive o C20 (343 °C).
+> Ver `relatorio/RELATORIO_FINAL_ciclone.md` §6.1.1 e §6.3.1.
 > *(O caso de 50 % é o governante: residência dobra e h_int cai — a parede esfria. Testado.)*
 
 ## 1.4 Números analíticos de apoio
