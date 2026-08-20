@@ -57,6 +57,7 @@ MEDIDO = [
     (260328.0, 495548.0, 22.54474,  23454.0),
     (250341.0, 495367.0, 23.00816,   3815.0),
     (240342.0, 495185.0, 23.46448, -15973.0),
+    (220381.0, 494809.0, 24.35623, -55938.0),
 ]
 
 # A rodada monofasica permanente em p2 = 4,0 bar deu mdot = 14,446 kg/s e
@@ -150,9 +151,8 @@ def main():
     print("  extrapolar para o joelho.")
 
     # --- previsao dos pontos restantes -------------------------------------
-    pontos = [(2.2 + REF_P / 1e5), (2.0 + REF_P / 1e5),
-              (1.8 + REF_P / 1e5), (1.5 + REF_P / 1e5),
-              (1.2 + REF_P / 1e5)]
+    pontos = [(2.0 + REF_P / 1e5), (1.8 + REF_P / 1e5),
+              (1.5 + REF_P / 1e5), (1.2 + REF_P / 1e5)]
 
     print("\n" + "=" * 76)
     print("PONTOS A RODAR -- PREVISAO A TESTAR")
