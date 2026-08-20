@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="690" viewBox="0 0 1180 690" font-family="Arial, Helvetica, sans-serif">
+<rect width="1180" height="690" fill="#FFFFFF"/>
+<text x="36" y="46" font-size="22" font-weight="bold" fill="#1A1A1A">Condensação — matriz de decisão</text>
+<text x="36" y="74" font-size="14" fill="#555">Temperatura de parede na condição governante (50 % de vazão), comparada às duas hipóteses de ponto de orvalho</text>
+<rect x="36" y="94" width="1064" height="54" rx="5" fill="#EEF4FA" stroke="#C6DAEC"/>
+<text x="56" y="117" font-size="13" fill="#1A1A1A">O <tspan font-weight="bold">corpo</tspan> do ciclone e o <tspan font-weight="bold">trecho inferior</tspan> — saída de pó e últimos 150 mm do cone, 8 % da área — operam em temperaturas distintas:</text>
+<text x="56" y="137" font-size="13" fill="#1A1A1A">abaixo do fim do vórtice o gás fica quiescente, a troca interna cai a 26 % e a parede esfria 73 °C a mais.</text>
+<text x="84" y="178" font-size="12.5" font-weight="bold" fill="#555">CONFIGURAÇÃO</text>
+<text x="512.0" y="178" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#555">CORPO</text>
+<text x="616.0" y="178" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#555">TRECHO INF.</text>
+<text x="776.0" y="178" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1B5E9E">ORVALHO 250 °C</text>
+<text x="992.0" y="178" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1B5E9E">ORVALHO 343 °C (C20)</text>
+<line x1="36" y1="192" x2="1100" y2="192" stroke="#B9C4CF" stroke-width="1.4"/>
+<rect x="36" y="208" width="1064" height="62" fill="#FAFBFC"/>
+<text x="49" y="244.0" font-size="15" font-weight="bold" fill="#1B5E9E">A</text>
+<text x="84" y="244.0" font-size="13.5" fill="#1A1A1A">Sem isolamento — aço carbono</text>
+<text x="512.0" y="244.0" text-anchor="middle" font-size="14" fill="#333">317 °C</text>
+<text x="616.0" y="244.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">230 °C</text>
+<rect x="676" y="219" width="200" height="40" rx="4" fill="#FFF3DC" stroke="#B26A00" stroke-width="1.2"/>
+<text x="776.0" y="243.0" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#B26A00">condensa no fundo</text>
+<rect x="892" y="219" width="200" height="40" rx="4" fill="#FDE6E4" stroke="#C62828" stroke-width="1.2"/>
+<text x="992.0" y="243.0" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#C62828">condensa em todo o ciclone</text>
+<text x="49" y="306.0" font-size="15" font-weight="bold" fill="#1B5E9E">B</text>
+<text x="84" y="306.0" font-size="13.5" fill="#1A1A1A">Sem isolamento + revestimento refletivo</text>
+<text x="512.0" y="306.0" text-anchor="middle" font-size="14" fill="#333">362 °C</text>
+<text x="616.0" y="306.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">295 °C</text>
+<rect x="676" y="281" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="776.0" y="305.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="892" y="281" width="200" height="40" rx="4" fill="#FFF3DC" stroke="#B26A00" stroke-width="1.2"/>
+<text x="992.0" y="305.0" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#B26A00">condensa no fundo</text>
+<rect x="36" y="332" width="1064" height="62" fill="#FAFBFC"/>
+<text x="49" y="368.0" font-size="15" font-weight="bold" fill="#1B5E9E">C</text>
+<text x="84" y="368.0" font-size="13.5" fill="#1A1A1A">Isolamento apenas no trecho inferior (8 % da área)</text>
+<text x="512.0" y="368.0" text-anchor="middle" font-size="14" fill="#333">317 °C</text>
+<text x="616.0" y="368.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">378 °C</text>
+<rect x="676" y="343" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="776.0" y="367.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="892" y="343" width="200" height="40" rx="4" fill="#FDE6E4" stroke="#C62828" stroke-width="1.2"/>
+<text x="992.0" y="367.0" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#C62828">condensa em todo o ciclone</text>
+<rect x="36" y="394" width="1064" height="62" fill="#F2F8F3" stroke="#8FBF95" stroke-width="1.8"/>
+<text x="49" y="430.0" font-size="15" font-weight="bold" fill="#1B5E9E">D</text>
+<text x="84" y="430.0" font-size="13.5" fill="#1A1A1A" font-weight="bold">Refletivo no corpo + isolamento no trecho inferior</text>
+<text x="512.0" y="430.0" text-anchor="middle" font-size="14" fill="#333">362 °C</text>
+<text x="616.0" y="430.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">378 °C</text>
+<rect x="676" y="405" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="776.0" y="429.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="892" y="405" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="992.0" y="429.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="36" y="456" width="1064" height="62" fill="#FAFBFC"/>
+<text x="49" y="492.0" font-size="15" font-weight="bold" fill="#1B5E9E">E</text>
+<text x="84" y="492.0" font-size="13.5" fill="#1A1A1A">Isolamento completo</text>
+<text x="512.0" y="492.0" text-anchor="middle" font-size="14" fill="#333">394 °C</text>
+<text x="616.0" y="492.0" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">378 °C</text>
+<rect x="676" y="467" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="776.0" y="491.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="892" y="467" width="200" height="40" rx="4" fill="#E4F4E6" stroke="#2E7D32" stroke-width="1.2"/>
+<text x="992.0" y="491.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">SEGURO</text>
+<rect x="36" y="544" width="1064" height="88" rx="5" fill="#F2F8F3" stroke="#8FBF95" stroke-width="1.4"/>
+<text x="56" y="571" font-size="14.5" font-weight="bold" fill="#2E7D32">Recomendação — configuração D</text>
+<text x="56" y="596" font-size="13" fill="#1A1A1A">Revestimento refletivo no corpo, mais isolamento apenas nos 8 % inferiores. Cobre as duas hipóteses de orvalho, com custo</text>
+<text x="56" y="616" font-size="13" fill="#1A1A1A">bem abaixo do isolamento completo — e sem depender da composição, que ainda está pendente.</text>
+<text x="36" y="672" font-size="11.5" fill="#777" font-style="italic">O ponto de orvalho depende da composição real da corrente (C1–C40), ainda pendente. A matriz cobre as duas hipóteses em aberto.</text>
+</svg>
