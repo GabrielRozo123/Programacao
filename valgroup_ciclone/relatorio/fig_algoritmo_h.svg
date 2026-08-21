@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="620" viewBox="0 0 1180 620" font-family="Arial, Helvetica, sans-serif">
+<defs>
+<marker id="ar" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+ <path d="M0,0 L12,4.5 L0,9 Z" fill="#1B5E9E"/></marker>
+<marker id="arL" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+ <path d="M0,0 L12,4.5 L0,9 Z" fill="#B4522A"/></marker>
+</defs>
+<rect width="1180" height="620" fill="#FFFFFF"/>
+<text x="590.0" y="42" text-anchor="middle" font-size="21" font-weight="bold" fill="#1A1A1A">Como se obtém a temperatura de parede para qualquer acabamento</text>
+<text x="590.0" y="68" text-anchor="middle" font-size="14" font-weight="normal" fill="#555">Uma simulação, e o resto é álgebra — nenhuma rodada adicional</text>
+<text x="60" y="112" text-anchor="start" font-size="13" font-weight="bold" fill="#1B5E9E">1 · O QUE A SIMULAÇÃO ENTREGA</text>
+<line x1="60" y1="120" x2="1120" y2="120" stroke="#C6DAEC" stroke-width="1.4"/>
+<rect x="60" y="140" width="290" height="92" rx="6" fill="#EEF4FA" stroke="#7EA9CE" stroke-width="1.8"/>
+<text x="205" y="170" text-anchor="middle" font-size="14" font-weight="bold" fill="#1B5E9E">SIMULAÇÃO CFD</text>
+<text x="205" y="194" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">h externo = 10 W/m²·K imposto</text>
+<text x="205" y="214" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#555">gás 400 °C · ambiente 25 °C</text>
+<line x1="360" y1="186.0" x2="424" y2="186.0" stroke="#1B5E9E" stroke-width="2.6" marker-end="url(#ar)"/>
+<rect x="434" y="140" width="320" height="92" rx="6" fill="#FFFFFF" stroke="#7EA9CE" stroke-width="1.8"/>
+<text x="594" y="168" text-anchor="middle" font-size="14" font-weight="bold" fill="#1B5E9E">T de parede MEDIDA</text>
+<text x="594" y="192" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">378,6 · 334,9 °C   a 100 %</text>
+<text x="594" y="212" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">363,7 · 290,5 °C   a 50 %</text>
+<line x1="764" y1="186.0" x2="828" y2="186.0" stroke="#1B5E9E" stroke-width="2.6" marker-end="url(#ar)"/>
+<text x="796" y="174.0" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#1B5E9E">inverte</text>
+<rect x="838" y="140" width="282" height="92" rx="6" fill="#E4F4E6" stroke="#6FA877" stroke-width="1.8"/>
+<text x="979" y="168" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">h INTERNO extraído</text>
+<text x="979" y="192" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">165,3 · 47,6 W/m²·K</text>
+<text x="979" y="212" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">93,4 · 24,3 W/m²·K</text>
+<rect x="434" y="244" width="686" height="34" rx="4" fill="#FAFAFA" stroke="#D8DCE0"/>
+<text x="777" y="266" text-anchor="middle" font-size="13" font-weight="normal" fill="#333">T_parede = (h_i · T_gás + h_e · T_amb) / (h_i + h_e)     →     resolve para h_i</text>
+<rect x="60" y="294" width="900" height="42" rx="5" fill="#F2F8F3" stroke="#8FBF95"/>
+<text x="510" y="320" text-anchor="middle" font-size="13" font-weight="bold" fill="#2E7D32">h interno é propriedade do ESCOAMENTO: depende da vazão e da geometria, não do lado de fora — por isso é reaproveitável.</text>
+<text x="60" y="370" text-anchor="start" font-size="13" font-weight="bold" fill="#B4522A">2 · O QUE FAZEMOS COM ELE</text>
+<line x1="60" y1="378" x2="1120" y2="378" stroke="#EBC7B4" stroke-width="1.4"/>
+<rect x="60" y="398" width="262" height="104" rx="6" fill="#FDF0EA" stroke="#D89878" stroke-width="1.8"/>
+<text x="191" y="426" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#B4522A">ESCOLHE O ACABAMENTO</text>
+<text x="191" y="452" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">ε = 0,05   refletivo</text>
+<text x="191" y="472" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">ε = 0,80   aço oxidado</text>
+<text x="191" y="492" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#555">isolado → h_e = 1,5</text>
+<line x1="332" y1="450.0" x2="396" y2="450.0" stroke="#B4522A" stroke-width="2.6" marker-end="url(#arL)"/>
+<rect x="406" y="398" width="368" height="104" rx="6" fill="#FFFFFF" stroke="#D89878" stroke-width="1.8"/>
+<text x="590" y="424" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#B4522A">CALCULA h EXTERNO</text>
+<text x="590" y="450" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">h_rad = ε · σ · (T² + T_a²) · (T + T_a)</text>
+<text x="590" y="470" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">h_conv = 1,31 · (T − T_a)^⅓</text>
+<text x="590" y="492" text-anchor="middle" font-size="13" font-weight="bold" fill="#B4522A">h_e = h_rad + h_conv</text>
+<line x1="784" y1="450.0" x2="848" y2="450.0" stroke="#B4522A" stroke-width="2.6" marker-end="url(#arL)"/>
+<rect x="858" y="398" width="262" height="104" rx="6" fill="#E4F4E6" stroke="#6FA877" stroke-width="1.8"/>
+<text x="989" y="428" text-anchor="middle" font-size="14" font-weight="bold" fill="#2E7D32">T de parede NOVA</text>
+<text x="989" y="456" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">recombina h_i e h_e</text>
+<text x="989" y="478" text-anchor="middle" font-size="12.5" font-weight="normal" fill="#1A1A1A">na mesma fórmula</text>
+<line x1="989" y1="232" x2="989" y2="392" stroke="#2E7D32" stroke-width="2.6" stroke-dasharray="7,5" marker-end="url(#ar)"/>
+<path d="M 989 502 L 989 532 L 590 532 L 590 506" fill="none" stroke="#B4522A" stroke-width="2.4" stroke-dasharray="8,5" marker-end="url(#arL)"/>
+<text x="790" y="554" text-anchor="middle" font-size="13" font-weight="bold" fill="#B4522A">h_rad depende da própria T de parede  →  ITERA até convergir  (5 a 8 voltas)</text>
+<text x="60" y="602" text-anchor="start" font-size="11.5" font-weight="normal" fill="#777" font-style="italic">σ = constante de Stefan-Boltzmann · ε = emissividade da superfície externa · T_a = temperatura ambiente</text>
+</svg>
