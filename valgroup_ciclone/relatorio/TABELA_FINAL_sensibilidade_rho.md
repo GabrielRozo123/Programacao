@@ -36,7 +36,7 @@ de folga. Nenhum cenário se aproxima do limite.
 | diâmetro de corte · 100 % | 6,67 µm | 6,84 µm | 7,01 µm |
 | diâmetro de corte · 50 % | 9,65 µm | 9,90 µm | 10,14 µm |
 | η da classe de 10 µm · 100 % | 🟢 **80,53 %** | 🟢 79,14 % | ⚪ 77,24 % |
-| η da classe de 10 µm · 50 % | ⚪ 52,43 % | 🟢 50,49 % | ⚪ 49,30 % |
+| η da classe de 10 µm · 50 % | 🟢 **52,42 %** | 🟢 50,49 % | ⚪ 49,30 % |
 | **η GLOBAL · 100 %** | **92,9 – 100,0 %** | **92,9 – 100,0 %** | **92,9 – 100,0 %** |
 | **η GLOBAL · 50 %** | **93,2 – 100,0 %** | **93,2 – 100,0 %** | **93,2 – 100,0 %** |
 
@@ -70,7 +70,8 @@ Isso foi **verificado em CFD**, não assumido:
 |---|---|---|---|
 | **ΔP a 100 %, cenário −5 %** | 2 058,5 Pa | **2 057,19 Pa** | **0,06 %** |
 | **ΔP a 50 %, cenário −5 %** | 494,6 Pa | **490,31 Pa** | **0,87 %** |
-| **η(10 µm), cenário −5 %** | 80,31 % | **80,53 ± 0,22 %** | **1 σ** |
+| **η(10 µm) a 100 %, cenário −5 %** | 80,31 % | **80,53 ± 0,22 %** | **1 σ** |
+| **η(10 µm) a 50 %, cenário −5 %** | 52,43 % | **52,42 %** | **0,02 σ** |
 
 E o coeficiente de perda `ξ = 2ΔP/(ρv_i²)`, que é a forma adimensional da queda de
 pressão, sai invariante nas duas cargas:
@@ -85,10 +86,18 @@ pressão, sai invariante nas duas cargas:
 O ξ concordar dentro de 1 % em ambas as cargas é a prova direta da similaridade de
 Reynolds — é o que autoriza projetar o cenário +5 % em vez de rodá-lo.
 
-A medição de η é a média de **três rastreamentos independentes** (80,97 · 80,30 ·
-80,32 %), cada um com 5 082 parcelas e **zero parcelas ativas ao final** — sem
-truncamento. O espalhamento medido (σ = 0,38 pt) confere com a estatística de
-contagem prevista (0,55 pt).
+A medição de η a 100 % é a média de **três rastreamentos independentes** (80,97 ·
+80,30 · 80,32 %), cada um com 5 082 parcelas e **zero parcelas ativas ao final** —
+sem truncamento. O espalhamento medido (σ = 0,38 pt) confere com a estatística de
+contagem prevista (0,55 pt). A de 50 % é um rastreamento único, também com zero
+parcelas ativas ao final.
+
+> ⚠️ **Armadilha registrada:** uma primeira tentativa a 50 % rodou com apenas
+> 20 000 sub-steps e devolveu **63,05 %** — 10,6 pontos alto. Havia **1 817
+> parcelas (35,8 %) ainda em voo** no encerramento, e pelo critério
+> `η = 1 − |mdot_gas|/mdot_inj` a parcela que não saiu com o gás **conta como
+> coletada**. Truncar o rastreamento infla o η, sem emitir aviso nenhum. O
+> número de sub-steps não é ajuste de custo: é condição de validade.
 
 ---
 
