@@ -29,87 +29,106 @@ achado, não erro.
 
 ---
 
-## 1. ⚠️ A decisão que define tudo — como impor o ±5 %
+## 1. O caso é GÁS IDEAL — não existe nó `Density`
 
-Abra `Continua → Physics → [gás] → Material Properties → Density` e veja o que está lá.
+Confirmado na árvore: `Gas → Gás_Pirólise → Material Properties` tem
+`Dynamic Viscosity`, **`Molecular Weight`**, `Specific Heat`,
+`Thermal Conductivity` e `Turbulent Prandtl Number`. Sem `Density`, porque ela
+vem da equação de estado.
 
-### Caso A — `Constant`
-Edite o número direto. **É o caminho limpo.**
+```
+ρ = P·M / (R·T)        →    a P e T fixos,   ρ ∝ M
+```
 
-| cenário | valor |
-|---|---|
-| −5 % | **3,7487** kg/m³ |
-| base | 3,946 kg/m³ |
-| +5 % | **4,1433** kg/m³ |
+**A massa molar é o único lever.** `M = 184 kg/kmol` (verificado).
 
-### Caso B — `Ideal Gas`
-**Não mexa na temperatura.** Mexa na **massa molar**:
-`Material Properties → Molecular Weight` × 0,95 e × 1,05.
+> **Verificação cruzada do caso base:** invertendo, `P = ρRT/M` =
+> 3,946 × 8314,5 × 673,15 / 184 = **120 029 Pa = 1,200 bar**. Bate com a pressão
+> de projeto — pressão, temperatura e massa molar estão consistentes entre si.
 
-Motivo: `ρ = PM/(RT)`. Alterando `M`, só ρ muda. Alterando `T`, µ vai junto
-(~T^0,7), o Reynolds muda, e a rodada deixa de isolar a variável — passa a
-responder à pergunta térmica, não à do Marcus.
+**Não mexa na temperatura** para variar ρ: µ iria junto (~T^0,7), o Reynolds
+mudaria e a rodada deixaria de isolar a variável. Alterando `M`, só ρ muda.
 
-> Não altere `µ` em nenhum dos dois casos. Ela fica em **9,5e-5 Pa·s** nos três.
+**Não mexa em `Specific Heat` nem `Thermal Conductivity`.** Numa mudança real de
+composição elas se moveriam também — mas o pedido é sensibilidade a **ρ**, e
+isolar é o correto. Registrar essa fronteira ao apresentar.
 
 ---
 
-## 2. ⚠️ A armadilha da entrada — vazão MÁSSICA, não velocidade
+## 2. ⭐ TABELA ÚNICA DE AJUSTE
 
-O processo entrega **1 820 kg/h**. Se você trocar ρ e **deixar** `Velocity Magnitude`
-em 13,59 m/s, você não variou a densidade a vazão fixa — variou a **vazão mássica**
-em ∓5 %, que é outro estudo (e nele a eficiência não muda nada).
+Só **uma célula** muda por cenário. Todo o resto é consequência ou permanece.
 
-**Duas saídas, escolha uma:**
-
-**(a) Trocar o tipo da `Inlet` para `Mass Flow Rate`** — melhor, porque o STAR
-recalcula a velocidade sozinho e o erro fica impossível:
-
-| | valor |
-|---|---|
-| 100 % | **0,505556** kg/s |
-| 50 % | **0,252778** kg/s |
-
-**(b) Manter `Velocity Inlet` e digitar a velocidade certa** em cada caso:
-
-| cenário | ρ | **v_i 100 %** | **v_i 50 %** |
+| | **−5 %** | **base** | **+5 %** |
 |---|---|---|---|
-| −5 % | 3,7487 | **14,309** m/s | **7,155** m/s |
-| base | 3,9460 | 13,594 m/s | 6,797 m/s |
-| +5 % | 4,1433 | **12,946** m/s | **6,473** m/s |
+| ⬅️ **`Molecular Weight`** (kg/kmol) | **174,8** | 184,0 | **193,2** |
+| ρ resultante (kg/m³) | 3,7487 | 3,9460 | 4,1433 |
+| ⬅️ **`Inlet → Mass Flow Rate`** · 100 % | **0,505556 kg/s** | **0,505556 kg/s** | **0,505556 kg/s** |
+| ⬅️ **`Inlet → Mass Flow Rate`** · 50 % | **0,252778 kg/s** | **0,252778 kg/s** | **0,252778 kg/s** |
+| ⬅️ `Turbulence Intensity` 100 % / 50 % | 0,0417 / 0,0455 | 0,0417 / 0,0455 | 0,0417 / 0,0455 |
+| ⬅️ `Dynamic Viscosity` (Pa·s) | 9,5e-5 | 9,5e-5 | 9,5e-5 |
+| ⬅️ `mdot_inj` 100 % / 50 % (kg/s) | 2,7778e-3 / 1,389e-3 | idem | idem |
 
-### O que NÃO muda na entrada
-| campo | valor | por quê |
-|---|---|---|
-| `Turbulence Intensity` | **0,0417** (100 %) · **0,0455** (50 %) | `I = 0,16·Re^(−1/8)` e **Re não muda** |
-| `Turbulent Length Scale` | inalterado | é geométrico |
-| `Turbulent Viscosity Ratio` | inalterado | idem |
+As linhas com ⬅️ são o que se digita. **A vazão mássica é idêntica nos três** — é
+exatamente esse o ponto do estudo.
 
----
+### Por que a entrada tem de ser MÁSSICA
 
-## 3. Escoamento — o que rodar e o que conferir
+Com gás ideal, a densidade **na face de entrada** não é exatamente o valor de
+referência: depende da pressão e da temperatura locais ali. Prescrever velocidade
+vira chute. Com `Mass Flow Rate` o STAR calcula a velocidade a partir da densidade
+local e a armadilha desaparece sozinha.
 
-Rode **steady até convergir**, exatamente como a Rodada 8. Energia pode ficar
-ligada: com densidade constante ela é **acoplada em um sentido só** (a temperatura
-não realimenta o momento), então não altera nada na eficiência. **Deixe como está** —
-a regra da campanha é mudar uma variável por vez.
+E a armadilha é séria: trocar ρ **deixando** a velocidade em 13,59 m/s não varia a
+densidade a vazão fixa — varia a **vazão mássica** em ∓5 %, que é outro estudo (e
+nele a eficiência não muda nada, enquanto o ΔP inverte o sinal).
 
-### O critério de aceite do campo — registre ANTES
-
-| | ΔP previsto | tolerância |
-|---|---|---|
-| −5 % · 100 % | **2 058,5 Pa** | ±3 % |
-| +5 % · 100 % | **1 862,5 Pa** | ±3 % |
-| −5 % · 50 % | **492,6 Pa** | ±3 % |
-| +5 % · 50 % | **445,7 Pa** | ±3 % |
-
-Se o ΔP medido cair dentro disso, a lei `ΔP ∝ 1/ρ` está confirmada e o
-`ξ` é o mesmo nos três — que é a evidência direta de que o campo adimensional
-não mudou. **Esse é o primeiro resultado da rodada, antes de qualquer partícula.**
+`Turbulent Length Scale` e `Turbulent Viscosity Ratio` são geométricos —
+inalterados. A `Turbulence Intensity` também não muda, porque `I = 0,16·Re^(−1/8)`
+e **Re não muda**.
 
 ---
 
-## 4. Lagrangeano — sim, uma classe só, e é a de 10 µm
+## 3. TABELA DE CONFERÊNCIA — o que tem de sair
+
+Monte estes reports **antes** de rodar. O primeiro é o mais importante: é a prova
+de que o ∓5 % realmente entrou, e não depende de acreditar na conta da massa molar.
+
+| report | −5 % | base | +5 % |
+|---|---|---|---|
+| ⭐ `Volume Average` de **Density** | **3,749** | 3,946 | **4,143** |
+| `Surface Average` de **Velocity Magnitude** na `Inlet` · 100 % | **14,31 m/s** | 13,59 m/s | **12,95 m/s** |
+| idem · 50 % | 7,155 m/s | 6,797 m/s | 6,473 m/s |
+| vazão volumétrica implícita · 100 % | 485,5 m³/h | 461,2 m³/h | 439,3 m³/h |
+| **ΔP · 100 %** | **2 058 Pa** | 1 956 Pa | **1 862 Pa** |
+| **ΔP · 50 %** | **493 Pa** | 468 Pa | **446 Pa** |
+| **Reynolds** | **173 343** | **173 343** | **173 343** |
+
+O **Re idêntico** é o que fecha o argumento: mesmo campo adimensional, só a escala
+de velocidade mudou. É por isso que a curva η×d pode ser deslizada em vez de
+remedida.
+
+**Mach:** 0,070 / 0,068 / 0,067. Incompressível na prática — a troca de `M` não
+traz efeito parasita de compressibilidade.
+
+---
+
+## 4. Escoamento — o que rodar
+
+Rode **steady até convergir**, exatamente como a Rodada 8.
+
+**Deixe a energia ligada.** Com gás ideal ela é genuinamente acoplada (a
+temperatura entra na densidade), então precisa estar lá — e ela já está no caso
+base. A regra da campanha continua: mudar uma variável por vez.
+
+**Tolerância de aceite:** ±3 % nos ΔP da tabela do §3. Se cair dentro, a lei
+`ΔP ∝ 1/ρ` está confirmada e o `ξ` é o mesmo nos três — evidência direta de que o
+campo adimensional não mudou. **Esse é o primeiro resultado da rodada, antes de
+qualquer partícula.**
+
+---
+
+## 5. Lagrangeano — sim, uma classe só, e é a de 10 µm
 
 Não refaça as 8 classes. O efeito de ρ só existe no **joelho** da curva:
 
@@ -127,6 +146,8 @@ Não refaça as 8 classes. O efeito de ρ só existe no **joelho** da curva:
 
 | | −5 % | base *(medido)* | +5 % |
 |---|---|---|---|
+| d\* · 100 % | 6,67 µm | 6,84 µm | 7,01 µm |
+| d\* · 50 % | 9,65 µm | 9,90 µm | 10,14 µm |
 | **η(10 µm) · 100 %** | **80,3 %** | 79,14 % | **77,2 %** |
 | **η(10 µm) · 50 %** | **52,4 %** | 50,49 % | **49,3 %** |
 
@@ -148,7 +169,7 @@ Se sair invertido, o problema está no §2 — provavelmente a velocidade ficou 
 
 ---
 
-## 5. ⚠️ "Um passo só" — quase
+## 6. ⚠️ "Um passo só" — quase
 
 **Sim:** em steady, o solver Lagrangeano rastreia cada parcela da injeção até a
 terminação **dentro de uma única iteração**. Quem governa não é o número de
@@ -176,7 +197,7 @@ truncamento e não física.
 
 ---
 
-## 6. Ordem de execução
+## 7. Ordem de execução
 
 1. **Um caso só primeiro:** −5 % a 100 %. Confira o ΔP contra os 2 058,5 Pa.
    Se não bater em ±3 %, **pare** — o setup está errado, não a física.
@@ -186,7 +207,7 @@ truncamento e não física.
 
 ---
 
-## 7. O que a rodada NÃO vai mostrar — e por que está tudo bem
+## 8. O que a rodada NÃO vai mostrar — e por que está tudo bem
 
 A eficiência **global** (a que o Marcus vai ver) não muda visivelmente, porque
 90,86 % da massa está acima de 61 µm, em η = 100 % nos três cenários. A variação
