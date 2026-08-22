@@ -75,19 +75,34 @@ def make_dominio(altura):
         D_C / 2.0, altura, cq.Vector(0, 0, 0), cq.Vector(0, 0, 1))
 
 
+PATM = 101325.0
+G = 9.81
+
+
 def condicao_de_entrada(ug):
     """Fracao volumetrica e velocidade do gas no contorno de entrada.
 
     Reproduz simultaneamente a vazao volumetrica e a velocidade real no
-    orificio, do mesmo jeito que o tutorial do tanque de aeracao faz com o
-    prato perfurado (fracao = area aberta, velocidade = velocidade no furo).
+    orificio, como o tutorial do tanque de aeracao faz com o prato perfurado
+    (fracao = area aberta, velocidade = velocidade no furo).
 
-        alpha = area total de furos / area da secao
-        v_gas = Q / area total de furos
+    CORRECAO DE EXPANSAO -- o artigo referencia Ug a MEIA COLUNA ("the
+    operative pressure was assumed equivalent to the pressure of half a
+    column"). A entrada esta no FUNDO, onde a pressao e maior e o mesmo
+    numero de moles ocupa MENOS volume:
+
+        Q_fundo = Q_meio * p_meio / p_fundo        (~0,888)
+
+    Ignorar isso injeta ~11% de gas a mais e infla o holdup -- quase tres
+    vezes a incerteza experimental de 4,1%.
     """
     a_coluna = math.pi / 4 * D_C ** 2
     a_furos = FURO_TOTAL * math.pi / 4 * D_HOLE ** 2
-    q = ug * a_coluna
+    eps = holdup_wallis(ug, U_INF["ar"])
+    h = altura_aerada(ug, U_INF["ar"])
+    p_meio = PATM + RHO_L * G * h / 2.0 * (1.0 - eps)
+    p_fundo = PATM + RHO_L * G * h * (1.0 - eps)
+    q = ug * a_coluna * p_meio / p_fundo
     alpha = a_furos / a_coluna
     v_gas = q / a_furos
     return alpha, v_gas, q, a_furos
