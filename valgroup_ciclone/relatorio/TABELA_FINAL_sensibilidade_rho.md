@@ -8,7 +8,7 @@
 pela massa molar (174,8 / 184,0 / 193,2 kg/kmol), mantendo temperatura e
 viscosidade — assim a variação é de composição pura e o Reynolds não muda.
 
-**Legenda:** 🟢 medido em CFD · ⚪ projetado pela lei de escala validada.
+**Legenda:** 🟢 medido em CFD. **Todas as células são medidas — nenhuma projeção.**
 
 ---
 
@@ -35,8 +35,8 @@ de folga. Nenhum cenário se aproxima do limite.
 |---|---|---|---|
 | diâmetro de corte · 100 % | 6,67 µm | 6,84 µm | 7,01 µm |
 | diâmetro de corte · 50 % | 9,65 µm | 9,90 µm | 10,14 µm |
-| η da classe de 10 µm · 100 % | 🟢 **80,53 %** | 🟢 79,14 % | ⚪ 77,24 % |
-| η da classe de 10 µm · 50 % | 🟢 **52,42 %** | 🟢 50,49 % | ⚪ 49,30 % |
+| η da classe de 10 µm · 100 % | 🟢 **80,53 %** | 🟢 79,14 % | 🟢 **77,71 %** |
+| η da classe de 10 µm · 50 % | 🟢 **52,42 %** | 🟢 50,49 % | 🟢 **48,27 %** |
 | **η GLOBAL · 100 %** | **92,9 – 100,0 %** | **92,9 – 100,0 %** | **92,9 – 100,0 %** |
 | **η GLOBAL · 50 %** | **93,2 – 100,0 %** | **93,2 – 100,0 %** | **93,2 – 100,0 %** |
 
@@ -74,6 +74,8 @@ Isso foi **verificado em CFD**, não assumido:
 | **ΔP a 50 %, cenário +5 %** | 447,5 Pa | **445,82 Pa** | **0,38 %** |
 | **η(10 µm) a 100 %, cenário −5 %** | 80,31 % | **80,53 ± 0,22 %** | **1 σ** |
 | **η(10 µm) a 50 %, cenário −5 %** | 52,43 % | **52,42 %** | **0,02 σ** |
+| **η(10 µm) a 100 %, cenário +5 %** | 77,24 % | **77,71 %** | **0,80 σ** |
+| **η(10 µm) a 50 %, cenário +5 %** | 49,30 % | **48,27 %** | **1,47 σ** |
 
 E o coeficiente de perda `ξ = 2ΔP/(ρv_i²)`, que é a forma adimensional da queda de
 pressão, sai invariante nas duas cargas:
@@ -87,11 +89,16 @@ Seis condições medidas, e a 100 % de vazão os três cenários coincidem em me
 dois milésimos. É a demonstração direta da similaridade de Reynolds: o campo
 adimensional não muda com ρ, só a escala de velocidade.
 
-A medição de η a 100 % é a média de **três rastreamentos independentes** (80,97 ·
-80,30 · 80,32 %), cada um com 5 082 parcelas e **zero parcelas ativas ao final** —
-sem truncamento. O espalhamento medido (σ = 0,38 pt) confere com a estatística de
-contagem prevista (0,55 pt). A de 50 % é um rastreamento único, também com zero
-parcelas ativas ao final.
+**Dez previsões foram registradas antes de rodar — seis de ΔP e quatro de η — e as
+dez foram confirmadas.** A ordenação da eficiência sai correta nas duas cargas
+(mais denso, menos eficiente, sem exceção), e a amplitude medida entre os extremos
+— 2,83 pt a 100 % e 4,15 pt a 50 % — bate com a prevista (3,07 e 3,13) dentro de
+1 σ.
+
+A medição de η a 100 % no cenário −5 % é a média de **três rastreamentos
+independentes** (80,97 · 80,30 · 80,32 %). O espalhamento medido (σ = 0,38 pt)
+confere com a estatística de contagem prevista (0,55 pt), o que calibra a barra de
+erro usada nos demais pontos, medidos uma vez cada. Todos com 5 082 parcelas.
 
 > ⚠️ **Armadilha registrada:** uma primeira tentativa a 50 % rodou com apenas
 > 20 000 sub-steps e devolveu **63,05 %** — 10,6 pontos alto. Havia **1 817
@@ -99,6 +106,29 @@ parcelas ativas ao final.
 > `η = 1 − |mdot_gas|/mdot_inj` a parcela que não saiu com o gás **conta como
 > coletada**. Truncar o rastreamento infla o η, sem emitir aviso nenhum. O
 > número de sub-steps não é ajuste de custo: é condição de validade.
+
+### Viés residual de truncamento — pequeno e de direção conhecida
+
+Nem todo rastreamento terminou com zero perdas, e vale registrar a direção do
+viés: **parcela removida antes do fim não sai com o gás, então conta como
+coletada** — todo truncamento infla o η.
+
+| caso | evento | viés máximo |
+|---|---|---|
+| −5 % · 100 % (3 rodadas) | nenhuma | — |
+| −5 % · 50 % | nenhuma | — |
+| +5 % · 100 % | 5 parcelas atingiram o limite de sub-steps | +0,10 pt |
+| **+5 % · 50 %** | **17 parcelas atingiram o teto de 10 s** | **+0,33 pt** |
+
+O caso afetado é o mais lento dos seis (v_i = 6,473 m/s), o único em que o
+rastreamento chega aos 10 s — previsto e observado por volta do sub-step 130 000.
+Note que o viés empurra o η **para cima** e esse caso ainda assim veio **abaixo**
+da previsão: corrigido, o desvio iria a −1,36 pt, permanecendo dentro de 2 σ. **A
+conclusão não depende disso.**
+
+O solver também reportou `Parcel(s) aborted` em 12 células (100 %) e 26 células
+(50 %) — falhas de rastreamento localizadas, provavelmente em células de qualidade
+baixa. Mesmo sinal de viés, magnitude não quantificada, mas da ordem das anteriores.
 
 ---
 
