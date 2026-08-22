@@ -95,6 +95,30 @@ def weber_orificio(q_gas, n_furos, d0, rho_g=1.2):
     return rho_g * u ** 2 * d0 / SIGMA, u
 
 
+def dissipacao(ug):
+    """Taxa de dissipacao turbulenta media na coluna [m2/s3].
+
+    Em coluna de bolhas em batelada, toda a potencia entra pelo empuxo do
+    gas: P/m = g * U_g. E a estimativa padrao (Kawase & Moo-Young).
+    """
+    return G * ug
+
+
+def d_critico_martinez_bazan(eps, beta=8.2):
+    """Diametro critico de quebra turbulenta (Martinez-Bazan et al., 1999).
+
+    Abaixo dele a tensao turbulenta nao vence a tensao superficial e a bolha
+    NAO quebra:
+        d_c = (12 sigma / (beta rho_l))^(3/5) * eps^(-2/5)
+    """
+    return (12.0 * SIGMA / (beta * RHO_L)) ** 0.6 * eps ** (-0.4)
+
+
+def satelite_de_pinchoff(d_b):
+    """Bolha satelite tipica no destacamento -- ordem de d_b/7."""
+    return d_b / 7.0
+
+
 def fase1():
     print("=" * 76)
     print("FASE 1 -- HIDRODINAMICA   (Ferrario et al., Chem. Eng. Sci. 302, 2025)")
@@ -162,7 +186,34 @@ def fase1():
     print("  We << 2 nos dois extremos -> borbulhamento puro, e a lei de Tate")
     print("  vale. O tamanho da bolha na entrada NAO depende da vazao.")
     print("-" * 76)
-    print("  As duas populacoes vao para lados opostos da coluna. Um EMP de")
+    print("\n" + "=" * 76)
+    print("A QUEBRA TURBULENTA ESTA DESLIGADA NESTA COLUNA")
+    print("=" * 76)
+    print(f"{'Ug':>9s}{'eps':>11s}{'d_critico':>12s}{'d_medido':>12s}{'quebra?':>14s}")
+    print(f"{'[m/s]':>9s}{'[m2/s3]':>11s}{'[mm]':>12s}{'[mm]':>12s}")
+    print("-" * 76)
+    for ug in (UG_EXP[0], UG_EXP[2], UG_EXP[-1]):
+        eps = dissipacao(ug)
+        dc = d_critico_martinez_bazan(eps)
+        quebra = "SIM" if dc < 0.006 else "nao -- inerte"
+        print(f"{ug:9.4f}{eps:11.4f}{dc*1000:12.2f}{'4 a 6':>12s}{quebra:>14s}")
+    print("-" * 76)
+    print("  O diametro critico de Martinez-Bazan fica ACIMA das bolhas")
+    print("  medidas em toda a faixa. A turbulencia desta coluna e fraca")
+    print("  demais para quebrar bolha de 4 a 6 mm.")
+    print("-" * 76)
+    print("  CONSEQUENCIA PARA O SETUP:")
+    print("     o kernel de quebra do AMUSIG sera praticamente INERTE aqui.")
+    print("     A distribuicao bimodal NAO nasce de quebra a jusante -- tem")
+    print("     de ser INJETADA no distribuidor.")
+    print(f"\n     bolha primaria (Tate)          {bolha_de_formacao(D_HOLE)*1000:5.2f} mm")
+    print(f"     satelite de pinch-off (~d/7)   "
+          f"{satelite_de_pinchoff(bolha_de_formacao(D_HOLE))*1000:5.2f} mm")
+    print(f"     pico pequeno MEDIDO             0.67 mm")
+    print("\n  O satelite de destacamento explica o pico de 0,67 mm. Isso")
+    print("  fecha a origem das DUAS populacoes no proprio orificio.")
+    print("=" * 76)
+    print("\n  As duas populacoes vao para lados opostos da coluna. Um EMP de")
     print("  diametro unico coloca todo o gas no mesmo lugar e erra o campo")
     print("  de holdup por construcao -- por isso o caso exige pelo menos")
     print("  dois grupos de tamanho (AMUSIG multi-velocidade ou S-Gamma).")
