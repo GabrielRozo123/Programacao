@@ -77,6 +77,24 @@ def diametro_adimensional():
     return D_C / math.sqrt(SIGMA / (G * (RHO_L - 1.2)))
 
 
+def bolha_de_formacao(d0):
+    """Diametro de bolha no desprendimento do furo -- lei de Tate.
+
+    Balanco entre empuxo e tensao superficial no orificio, valido no regime
+    de borbulhamento (We baixo), que e o caso aqui:
+
+        d_b = ( 6 d0 sigma / (g (rho_l - rho_g)) )^(1/3)
+    """
+    return (6.0 * d0 * SIGMA / (G * (RHO_L - 1.2))) ** (1.0 / 3.0)
+
+
+def weber_orificio(q_gas, n_furos, d0, rho_g=1.2):
+    """Weber no orificio -- separa borbulhamento de jateamento."""
+    a = n_furos * math.pi / 4 * d0 ** 2
+    u = q_gas / a
+    return rho_g * u ** 2 * d0 / SIGMA, u
+
+
 def fase1():
     print("=" * 76)
     print("FASE 1 -- HIDRODINAMICA   (Ferrario et al., Chem. Eng. Sci. 302, 2025)")
@@ -125,6 +143,24 @@ def fase1():
           f"{D_CRIT_LIFT*1000:.1f} mm:")
     print("     bolha pequena -> sustentacao POSITIVA -> migra para a PAREDE")
     print("     bolha grande  -> sustentacao NEGATIVA -> migra para o CENTRO")
+    print("-" * 76)
+    db = bolha_de_formacao(D_HOLE)
+    print("-" * 76)
+    print(f"  LEI DE TATE no furo de {D_HOLE*1000:.0f} mm:  d_b = {db*1000:.2f} mm")
+    print(f"     -> cai dentro do segundo pico medido (4 a 6 mm).")
+    print("     O distribuidor explica a populacao GRANDE. A populacao de")
+    print("     0,67 mm nao vem do furo -- vem de quebra a jusante.")
+    a = math.pi / 4 * D_C ** 2
+    print(f"\n{'Ug':>9s}{'Q real':>11s}{'u_furo':>10s}{'We':>9s}{'regime':>16s}")
+    print(f"{'[m/s]':>9s}{'[L/s]':>11s}{'[m/s]':>10s}{'[-]':>9s}")
+    for ug in (UG_EXP[0], UG_EXP[-1]):
+        q = ug * a                                  # [m3/s] na coluna
+        we, u = weber_orificio(q, 60, D_HOLE)       # 60 furos presumidos
+        reg = "borbulhamento" if we < 2 else "jateamento"
+        print(f"{ug:9.4f}{q*1000:11.3f}{u:10.2f}{we:9.3f}{reg:>16s}")
+    print("  (60 furos presumidos: 6 bracos x 10 furos, a confirmar na Fig. 3)")
+    print("  We << 2 nos dois extremos -> borbulhamento puro, e a lei de Tate")
+    print("  vale. O tamanho da bolha na entrada NAO depende da vazao.")
     print("-" * 76)
     print("  As duas populacoes vao para lados opostos da coluna. Um EMP de")
     print("  diametro unico coloca todo o gas no mesmo lugar e erra o campo")
