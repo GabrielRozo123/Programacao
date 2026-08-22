@@ -1,0 +1,629 @@
+<title>Inspire Cast do Zero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+:root{
+  --paper:#ECEFEE; --surface:#F8FAF9; --sunken:#E1E6E4;
+  --ink:#131A1B; --ink-2:#45514F; --ink-3:#6C7A77;
+  --line:#CCD4D1; --line-2:#B6C1BE;
+  --melt:#B4531A; --melt-text:#93430F; --melt-tint:#F6E7DB;
+  --chill:#24626D; --chill-text:#1D525C; --chill-tint:#DDE9EA;
+  --warn-text:#7A5205; --warn-tint:#F5EAD2;
+  --badge-ink:#F8FAF9;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1415; --surface:#171E1F; --sunken:#1D2627;
+    --ink:#E6ECEA; --ink-2:#A6B3B0; --ink-3:#7B8A87;
+    --line:#2A3435; --line-2:#3A4648;
+    --melt:#E08245; --melt-text:#EE9C63; --melt-tint:#2A1B11;
+    --chill:#5FB2C0; --chill-text:#7AC4D1; --chill-tint:#102629;
+    --warn-text:#D7A748; --warn-tint:#2A2211;
+    --badge-ink:#0F1415;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1415; --surface:#171E1F; --sunken:#1D2627;
+  --ink:#E6ECEA; --ink-2:#A6B3B0; --ink-3:#7B8A87;
+  --line:#2A3435; --line-2:#3A4648;
+  --melt:#E08245; --melt-text:#EE9C63; --melt-tint:#2A1B11;
+  --chill:#5FB2C0; --chill-text:#7AC4D1; --chill-tint:#102629;
+  --warn-text:#D7A748; --warn-tint:#2A2211;
+  --badge-ink:#0F1415;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:1.0625rem; line-height:1.68; margin:0;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:0 22px 90px}
+a{color:var(--melt-text)}
+a:focus-visible,input:focus-visible,.toc a:focus-visible{outline:2px solid var(--melt); outline-offset:3px}
+h1,h2,h3{font-family:Archivo,'IBM Plex Sans',sans-serif; text-wrap:balance}
+code,.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+
+/* ---------- hero ---------- */
+.hero{padding:60px 0 42px}
+.kicker{font-family:'IBM Plex Mono',monospace; font-size:.74rem; letter-spacing:.16em; text-transform:uppercase; color:var(--chill-text)}
+h1{font-weight:800; font-size:clamp(2.35rem,6.5vw,3.6rem); line-height:1.02; letter-spacing:-.035em; margin:16px 0 0}
+.deck{font-size:1.13rem; color:var(--ink-2); max-width:58ch; margin:18px 0 0}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:26px}
+.meta span{font-family:'IBM Plex Mono',monospace; font-size:.73rem; padding:5px 10px; border:1px solid var(--line-2); border-radius:3px; color:var(--ink-2)}
+.thermo{height:5px; border-radius:3px; margin-top:34px;
+  background:linear-gradient(90deg,var(--melt) 0%,#C97F2C 42%,#6E8E7E 72%,var(--chill) 100%)}
+.hero-rule{border:0; border-top:1px solid var(--line); margin:42px 0 0}
+
+/* ---------- layout ---------- */
+.layout{display:grid; grid-template-columns:minmax(0,1fr); gap:34px; margin-top:26px}
+.toc{display:flex; gap:8px; overflow-x:auto; padding:2px 0 14px; border-bottom:1px solid var(--line)}
+.toc a{flex:0 0 auto; font-size:.8rem; padding:7px 12px; border:1px solid var(--line); border-radius:3px;
+  color:var(--ink-2); text-decoration:none; white-space:nowrap; background:var(--surface)}
+.toc a.on{color:var(--melt-text); border-color:var(--melt)}
+@media (min-width:1040px){
+  .layout{grid-template-columns:236px minmax(0,1fr); gap:60px}
+  .toc{position:sticky; top:30px; align-self:start; display:block; overflow:visible;
+    padding:0; border-bottom:0; border-left:1px solid var(--line); max-height:calc(100vh - 60px); overflow-y:auto}
+  .toc a{display:block; border:0; border-left:2px solid transparent; margin-left:-1px;
+    border-radius:0; background:none; padding:8px 15px; white-space:normal; line-height:1.4}
+  .toc a.on{border-left-color:var(--melt); color:var(--ink); font-weight:600}
+}
+
+/* ---------- sections ---------- */
+section[id]{scroll-margin-top:84px; padding-top:54px}
+.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:.72rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--melt-text)}
+h2{font-weight:800; font-size:clamp(1.6rem,3.2vw,2.15rem); letter-spacing:-.025em; margin:9px 0 0; line-height:1.12}
+.rule{height:1px; background:var(--line); margin:18px 0 26px}
+section p{max-width:68ch}
+h3{font-size:1.16rem; font-weight:700; letter-spacing:-.012em; margin:34px 0 8px}
+.lead{color:var(--ink-2)}
+
+/* part banner */
+.part{display:grid; grid-template-columns:auto minmax(0,1fr); gap:20px; align-items:center;
+  border:1px solid var(--line); border-radius:5px; background:var(--surface); padding:20px 22px; margin-top:14px}
+.part .pn{font-family:Archivo,sans-serif; font-weight:800; font-size:2.6rem; line-height:1;
+  color:transparent; -webkit-text-stroke:1.5px var(--melt-text); letter-spacing:-.04em}
+.part.cold .pn{-webkit-text-stroke-color:var(--chill-text)}
+.part p{margin:0; font-size:.97rem; color:var(--ink-2); max-width:64ch}
+.part strong{color:var(--ink); display:block; font-family:Archivo,sans-serif; font-size:1.02rem; letter-spacing:-.01em}
+
+/* ---------- steps ---------- */
+.steps{list-style:none; padding:0; margin:26px 0 0}
+.step{display:grid; grid-template-columns:44px minmax(0,1fr); gap:0 20px; position:relative; padding-bottom:34px}
+.step:last-child{padding-bottom:0}
+.step::before{content:""; position:absolute; left:21px; top:52px; bottom:8px; width:2px; background:var(--line)}
+.step:last-child::before{display:none}
+.num{width:44px; height:44px; display:grid; place-items:center; border-radius:4px;
+  font-family:Archivo,sans-serif; font-weight:800; font-size:1.08rem;
+  background:var(--chill); color:var(--badge-ink); font-variant-numeric:tabular-nums}
+.hot .num{background:var(--melt)}
+.step-body{padding-top:5px; min-width:0}
+.step-body h3{margin:0 0 8px; font-size:1.13rem}
+.step-body p{margin:0 0 10px; max-width:64ch}
+.step-body ul{margin:10px 0; padding-left:20px; max-width:64ch}
+.step-body li{margin:5px 0}
+
+/* ---------- inline bits ---------- */
+.path{font-family:'IBM Plex Mono',monospace; font-size:.84em; background:var(--sunken);
+  border:1px solid var(--line); border-radius:3px; padding:1px 6px; color:var(--ink)}
+.note{background:var(--chill-tint); padding:14px 17px; border-radius:4px; margin:16px 0; font-size:.96rem; max-width:70ch}
+.note p{margin:0; max-width:none}
+.lab{font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.1em;
+  text-transform:uppercase; font-weight:600; color:var(--chill-text); margin-right:9px}
+.warn{background:var(--warn-tint)} .warn .lab{color:var(--warn-text)}
+.src{background:var(--melt-tint)} .src .lab{color:var(--melt-text)}
+
+/* ---------- five steps strip ---------- */
+.five{display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:5px; overflow:hidden; margin:24px 0 8px}
+.five div{background:var(--surface); padding:16px 15px}
+.five b{display:block; font-family:'IBM Plex Mono',monospace; font-size:.68rem;
+  letter-spacing:.1em; color:var(--melt-text); margin-bottom:7px}
+.five span{display:block; font-size:.92rem; font-weight:600; letter-spacing:-.01em}
+.five em{display:block; font-style:normal; font-size:.82rem; color:var(--ink-3); margin-top:4px; line-height:1.45}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto; margin:22px 0; border:1px solid var(--line); border-radius:5px}
+table{border-collapse:collapse; width:100%; font-size:.92rem; min-width:540px}
+th{text-align:left; font-family:'IBM Plex Mono',monospace; font-size:.68rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); font-weight:600; padding:12px 15px;
+  background:var(--sunken); border-bottom:1px solid var(--line)}
+td{padding:12px 15px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.55}
+tbody tr:last-child td{border-bottom:0}
+td.term{font-family:'IBM Plex Mono',monospace; font-size:.87em; color:var(--melt-text); white-space:nowrap}
+
+/* ---------- checklist ---------- */
+.check{list-style:none; padding:0; margin:22px 0; display:grid; gap:6px; max-width:70ch}
+.check label{display:grid; grid-template-columns:auto minmax(0,1fr); gap:13px; align-items:start;
+  padding:12px 14px; background:var(--surface); border:1px solid var(--line); border-radius:4px;
+  cursor:pointer; font-size:.96rem}
+.check input{margin:5px 0 0; accent-color:var(--melt); width:16px; height:16px}
+.check input:checked+span{color:var(--ink-3); text-decoration:line-through}
+.hint{font-size:.85rem; color:var(--ink-3); margin-top:-8px}
+
+/* ---------- results grid ---------- */
+.res{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin:22px 0}
+.res div{border:1px solid var(--line); border-radius:5px; padding:15px 17px; background:var(--surface)}
+.res h4{margin:0 0 6px; font-family:'IBM Plex Mono',monospace; font-size:.82rem;
+  letter-spacing:.02em; color:var(--melt-text); font-weight:600}
+.res p{margin:0; font-size:.92rem; color:var(--ink-2); line-height:1.55; max-width:none}
+
+ul.bul{padding-left:20px; max-width:68ch}
+ul.bul li{margin:7px 0}
+
+footer{margin-top:70px; padding-top:24px; border-top:1px solid var(--line);
+  font-size:.86rem; color:var(--ink-3); max-width:72ch}
+footer a{color:var(--chill-text)}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation:none !important; transition:none !important}
+}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">CAEXPERTS · Onboarding CAE</div>
+  <h1>Inspire Cast do Zero</h1>
+  <p class="deck">Do login no Altair One até a leitura dos resultados da sua primeira simulação de fundição. Montado a partir do procedimento oficial de Managed Licensing da Altair e da documentação do Inspire Cast 2026.</p>
+  <div class="meta">
+    <span>AltairInspireCast2026_win64.exe</span>
+    <span>Windows 64-bit</span>
+    <span>Managed Licensing · Altair Units</span>
+  </div>
+  <div class="thermo"></div>
+  <hr class="hero-rule">
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Índice">
+    <a href="#antes">Antes de começar</a>
+    <a href="#licenca">Parte 1 · Licença</a>
+    <a href="#erros-lic">Licença não ativou?</a>
+    <a href="#software">Parte 2 · O software</a>
+    <a href="#simulacao">Primeira simulação</a>
+    <a href="#resultados">Lendo os resultados</a>
+    <a href="#armadilhas">Armadilhas de iniciante</a>
+    <a href="#glossario">Glossário PT ⇄ EN</a>
+    <a href="#estudo">Plano de estudo</a>
+  </nav>
+
+  <main>
+
+  <!-- ============ ANTES ============ -->
+  <section id="antes">
+    <div class="eyebrow">Passo zero</div>
+    <h2>Antes de começar</h2>
+    <div class="rule"></div>
+    <p class="lead">O Inspire Cast não usa chave de licença nem servidor local. Ele valida a licença <em>online</em>, contra a conta Altair One da CAEXPERTS. Por isso a ordem importa: conta primeiro, instalação depois.</p>
+
+    <ul class="check">
+      <li><label><input type="checkbox"><span>Conta no <strong>Altair One</strong> criada com seu e-mail da CAEXPERTS</span></label></li>
+      <li><label><input type="checkbox"><span>Convite recebido do <strong>administrador da licença</strong> da CAEXPERTS</span></label></li>
+      <li><label><input type="checkbox"><span>Confirmado com o admin que o <strong>Inspire Cast está incluído</strong> no pacote de licença</span></label></li>
+      <li><label><input type="checkbox"><span>Instalador <span class="path">AltairInspireCast2026_win64.exe</span> baixado</span></label></li>
+      <li><label><input type="checkbox"><span>Acesso de <strong>administrador</strong> na máquina para instalar</span></label></li>
+      <li><label><input type="checkbox"><span>Rede liberada para <span class="path">*.altairone.com</span> em HTTPS/443 (o licenciamento é online)</span></label></li>
+    </ul>
+    <p class="hint">Os itens marcados ficam salvos no seu navegador.</p>
+
+    <div class="note src"><p><span class="lab">Do PDF · pág. 4</span>“Caso precise fazer cadastro, comunique o responsável por administrar a licença de sua empresa/universidade para receber um convite.” Ou seja: <strong>não se cadastre sozinho com e-mail pessoal</strong> — peça o convite. Uma conta fora da organização não enxerga a licença da CAEXPERTS.</p></div>
+  </section>
+
+  <!-- ============ PARTE 1 ============ -->
+  <section id="licenca">
+    <div class="eyebrow">Parte 1</div>
+    <h2>Instalar e licenciar</h2>
+    <div class="rule"></div>
+
+    <div class="part cold">
+      <div class="pn">01</div>
+      <p><strong>Managed Licensing (Managed Altair Units)</strong>
+      Sistema de licenciamento na nuvem, integrado ao Altair One. Você acessa a licença com uma conexão de internet — <em>sem servidor de licença, sem VPN da empresa e sem software adicional de gerenciamento</em>. É o modelo descrito no PDF que você recebeu.</p>
+    </div>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="num">1</div>
+        <div class="step-body">
+          <h3>Entre no Altair One</h3>
+          <p>Acesse <span class="path">https://altairone.com/Dashboard</span> e faça login com o e-mail da CAEXPERTS. É o portal central: download de produtos, gestão da conta e da licença.</p>
+          <p>Vale conhecer as áreas da página inicial — <em>Getting Started</em> (tutoriais do portal), <em>Marketplace</em> (download de apps), <em>Manage Account</em> (conta e licenças) e <em>Resources</em> (documentação, centro de treinamento).</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="num">2</div>
+        <div class="step-body">
+          <h3>Confirme que a licença cobre você</h3>
+          <p>Se a CAEXPERTS usa a modalidade <strong>Named User</strong>, o seu usuário precisa estar explicitamente vinculado à licença. Quem faz isso é o administrador da conta, por este caminho:</p>
+          <ul>
+            <li><span class="path">Altair One → menu de opções → Manage Account → Managed Licenses</span></li>
+            <li>Clicar em <span class="path">Managed</span> → aba <span class="path">Named User</span></li>
+            <li>Selecionar a licença → <span class="path">Add</span> → apontar o usuário</li>
+          </ul>
+          <div class="note warn"><p><span class="lab">Guarde isto</span>Essa é a tela do <strong>admin</strong>, não a sua. Se a ativação falhar mais adiante, este é o primeiro ponto a pedir para ele checar — e evita você perder meia manhã achando que errou a instalação.</p></div>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="num">3</div>
+        <div class="step-body">
+          <h3>Instale o Inspire Cast</h3>
+          <p>Clique com o botão direito em <span class="path">AltairInspireCast2026_win64.exe</span> → <strong>Executar como administrador</strong> e siga o instalador. Mantenha o caminho padrão (algo como <span class="path">C:\Program Files\Altair\2026</span>) — facilita suporte depois.</p>
+          <p>Junto vem o <strong>Altair License Utility</strong>, que você encontra no Menu Iniciar, na pasta do Altair 2026. É a ferramenta do passo 5.</p>
+          <div class="note"><p><span class="lab">Diferença</span>O procedimento do PDF de juntar vários arquivos numa pasta e rodar o <span class="path">hw202x_win64.exe</span> vale para o <strong>pacote HyperWorks completo</strong>. O instalador do Inspire Cast avulso, que é o seu caso, já é autocontido.</p></div>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="num">4</div>
+        <div class="step-body">
+          <h3>Ative a licença — opção 1: por dentro do app</h3>
+          <p>É o caminho mais rápido e provavelmente o único que você vai precisar.</p>
+          <ul>
+            <li>Abra o Inspire Cast</li>
+            <li>Vá em <span class="path">Arquivo → Licenças</span> (<span class="path">File → Licenses</span>)</li>
+            <li>Informe <strong>usuário e senha</strong> da sua conta Altair One</li>
+            <li>Ative a conta</li>
+          </ul>
+          <p>Uma vez ativada, você usa todos os apps cobertos pela licença. Isso é feito <strong>uma vez por máquina</strong>, não a cada abertura.</p>
+          <div class="note src"><p><span class="lab">Do PDF · pág. 13</span>Este é o procedimento “Opção 1: Utilizando um App”.</p></div>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="num">5</div>
+        <div class="step-body">
+          <h3>Ative a licença — opção 2: Altair License Utility</h3>
+          <p>Use se a opção 1 falhar, ou se você precisar autorizar a máquina sem digitar senha.</p>
+          <p><strong>2.1 — com as credenciais Altair One:</strong> abra o <span class="path">Altair License Utility</span> → aba <span class="path">Managed Licensing</span> → informe login e senha do Altair One → uma caixa de mensagem confirma sucesso ou falha.</p>
+          <p><strong>2.2 — com código de autorização (token):</strong></p>
+          <ul>
+            <li>No Altair One, vá ao <strong>perfil do usuário</strong> → <span class="path">Authorized Machines</span></li>
+            <li>Gere o <strong>Código de Autorização</strong> e copie</li>
+            <li>No License Utility, em <span class="path">Managed Licensing</span>, marque <span class="path">Use Auth Code</span></li>
+            <li>Cole o código → autorize a máquina → confirme pela mensagem</li>
+          </ul>
+          <div class="note"><p><span class="lab">Quando usar o token</span>Máquina compartilhada, login com SSO/2FA travando na janela do app, ou quando você simplesmente não quer digitar sua senha corporativa dentro do software.</p></div>
+        </div>
+      </li>
+
+      <li class="step">
+        <div class="num">6</div>
+        <div class="step-body">
+          <h3>Valide e entenda o consumo</h3>
+          <p>Abra o Inspire Cast: ele deve subir sem mensagem de licença. Pronto, licenciado.</p>
+          <p>Uma coisa que ninguém conta para o iniciante: no modelo Managed, as <strong>Altair Units</strong> saem de um <em>pool compartilhado</em> da empresa. Enquanto o app está aberto, ele reserva units — e rodadas pesadas de solver também consomem. Traduzindo para o dia a dia: <strong>feche o software quando não estiver usando</strong>. Confirme com o admin qual é o volume disponível e se existe alguma regra interna na CAEXPERTS sobre isso.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============ TROUBLESHOOTING ============ -->
+  <section id="erros-lic">
+    <div class="eyebrow">Diagnóstico</div>
+    <h2>A licença não ativou</h2>
+    <div class="rule"></div>
+    <p class="lead">Quase todo problema de ativação cai em uma destas cinco caixas.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Sintoma</th><th>Causa provável</th><th>O que fazer</th></tr></thead>
+        <tbody>
+          <tr><td>“No license found” ao abrir o app</td><td>Máquina não autorizada ou usuário não vinculado à licença</td><td>Refaça a ativação (passo 4). Persistindo, peça ao admin para conferir a aba Named User</td></tr>
+          <tr><td>Credenciais corretas, mas ativação falha</td><td>Proxy ou firewall bloqueando o Altair One</td><td>Peça liberação de HTTPS/443 para <span class="path">*.altairone.com</span>; teste a via do Auth Code</td></tr>
+          <tr><td>App demora muito para abrir e depois cai</td><td>Variável <span class="path">ALTAIR_LICENSE_PATH</span> apontando para um servidor de licença antigo</td><td>Confira as variáveis de ambiente do Windows; no modelo Managed ela não deve apontar para servidor morto</td></tr>
+          <tr><td>Login aceito, mas o Inspire Cast não abre</td><td>A licença da empresa não inclui este produto</td><td>Confirme com o admin quais apps o pacote cobre</td></tr>
+          <tr><td>“Units” insuficientes</td><td>Pool compartilhado em uso por outros colegas</td><td>Feche apps ociosos e alinhe com o admin; rodadas grandes valem ser agendadas</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warn"><p><span class="lab">Atalho</span>Antes de abrir chamado na Altair, mande uma mensagem para quem administra a licença na CAEXPERTS. Na prática, a maioria dos casos é vínculo de usuário ou rede — resolve internamente em minutos.</p></div>
+  </section>
+
+  <!-- ============ O SOFTWARE ============ -->
+  <section id="software">
+    <div class="eyebrow">Parte 2</div>
+    <h2>O que o Inspire Cast faz</h2>
+    <div class="rule"></div>
+
+    <div class="part">
+      <div class="pn">02</div>
+      <p><strong>Simulação de fundição, do enchimento à solidificação</strong>
+      Ele prevê como o metal líquido preenche o molde e como solidifica — e, a partir disso, onde nascem os defeitos. O objetivo prático é validar canais, ataques e massalotes <em>antes</em> de usinar ferramental ou fechar um processo.</p>
+    </div>
+
+    <h3>Processos cobertos</h3>
+    <ul class="bul">
+      <li><strong>Gravidade</strong> — molde de areia e coquilha (gravity sand / gravity die)</li>
+      <li><strong>Fundição de precisão</strong> — cera perdida (investment casting)</li>
+      <li><strong>Alta pressão</strong> — HPDC, injeção com pistão</li>
+      <li><strong>Baixa pressão</strong> — LPDC</li>
+      <li><strong>Basculamento</strong> — tilt pouring</li>
+    </ul>
+    <p>Cada processo entra como um <em>template guiado</em>: ao escolher, o software já pede os parâmetros que aquele processo exige, o que reduz muito a chance de você esquecer alguma condição de contorno.</p>
+  </section>
+
+  <!-- ============ SIMULAÇÃO ============ -->
+  <section id="simulacao">
+    <div class="eyebrow">Mão na massa</div>
+    <h2>Sua primeira simulação</h2>
+    <div class="rule"></div>
+    <p class="lead">A própria Altair organiza o Inspire Cast em <strong>cinco passos</strong>. Vale decorar essa espinha dorsal — todo modelo, do mais simples ao mais complexo, segue ela.</p>
+
+    <div class="five">
+      <div><b>01</b><span>Designate Casting Part</span><em>Diga qual sólido é a peça fundida</em></div>
+      <div><b>02</b><span>Designate Filling System</span><em>Diga quais sólidos são o sistema de enchimento</em></div>
+      <div><b>03</b><span>Set Gravity Direction</span><em>Defina para onde é “baixo”</em></div>
+      <div><b>04</b><span>Gates &amp; Components</span><em>Ataques, massalotes, luvas, overflows, molde, resfriadores</em></div>
+      <div><b>05</b><span>Run &amp; Review</span><em>Rode enchimento + solidificação e leia os resultados</em></div>
+    </div>
+
+    <p>Abaixo, a versão detalhada — com o que fazer e, mais importante, <em>por que</em> cada coisa importa.</p>
+
+    <ol class="steps">
+      <li class="step hot">
+        <div class="num">1</div>
+        <div class="step-body">
+          <h3>Importe a geometria</h3>
+          <p><span class="path">File → Open</span>. Prefira <strong>STEP, Parasolid ou o CAD nativo</strong> em vez de STL: o solver trabalha melhor com superfícies exatas, e STL grosseiro vira facetamento que polui o resultado de velocidade junto à parede.</p>
+          <p>Antes de qualquer coisa, confira o <strong>sistema de unidades</strong> (mm, °C, s). Peça importada em polegada e tratada como milímetro é o erro mais bobo e mais comum.</p>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">2</div>
+        <div class="step-body">
+          <h3>Defina a peça e o sistema de enchimento</h3>
+          <p>Com <span class="path">Designate Casting Part</span> você aponta o sólido que é a peça; com <span class="path">Designate Filling System</span>, os sólidos que são canais.</p>
+          <p>Isso não é burocracia: os critérios de defeito são avaliados <strong>na peça</strong>. Porosidade num canal que vai para a serra é irrelevante; a mesma porosidade dentro da peça reprova o lote. Se você não separa os papéis, lê o resultado no lugar errado.</p>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">3</div>
+        <div class="step-body">
+          <h3>Acerte a direção da gravidade</h3>
+          <p><span class="path">Set Gravity Direction</span> — use o microdiálogo para definir o vetor.</p>
+          <div class="note warn"><p><span class="lab">Erro nº 1 de iniciante</span>Gravidade invertida ou girada gera uma simulação inteira que roda, gera cores bonitas e está <strong>completamente errada</strong>. Confira olhando a peça na tela: o metal tem que descer do ponto de vazamento para a cavidade, como desceria no chão de fábrica.</p></div>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">4</div>
+        <div class="step-body">
+          <h3>Escolha processo, liga e molde</h3>
+          <p>Selecione o processo (gravidade em areia, coquilha, HPDC…) e então:</p>
+          <ul>
+            <li><strong>Liga</strong> — ex.: A356 / AlSi7Mg, ADC12, ferro nodular GJS-500</li>
+            <li><strong>Material do molde</strong> — areia sílica, aço H13, cerâmica</li>
+            <li><strong>Temperatura de vazamento</strong> e <strong>temperatura inicial do molde</strong></li>
+          </ul>
+          <p>Puxe esses valores da prática real da CAEXPERTS ou do cliente, não do padrão do software. Temperatura de vazamento é o parâmetro que mais desloca o resultado de junta fria.</p>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">5</div>
+        <div class="step-body">
+          <h3>Monte ataques, massalotes e componentes</h3>
+          <p>Pelo <span class="path">Runner System</span> e ferramentas de componentes você designa uma superfície importada como <strong>gate</strong> ou cria um gate virtual, e adiciona <strong>massalotes</strong> (risers), <strong>luvas</strong> (sleeves), <strong>overflows</strong>, <strong>moldes</strong> e <strong>resfriadores</strong>.</p>
+          <p>Duas regras que economizam retrabalho: em HPDC, sem overflow e respiro o modelo acusa ar preso que não existiria na peça real; e massalote só alimenta se solidificar <em>depois</em> da região que ele deveria alimentar.</p>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">6</div>
+        <div class="step-body">
+          <h3>Parâmetros de processo</h3>
+          <p>Tempo de enchimento ou velocidade de entrada, temperatura de vazamento, temperatura do molde e — em alta pressão — o <strong>perfil de velocidade do pistão</strong> e o ponto de comutação.</p>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">7</div>
+        <div class="step-body">
+          <h3>Rode a análise</h3>
+          <p>Ícone <span class="path">Analyze</span> na faixa de ferramentas. Marque <strong>enchimento + solidificação</strong>, escolha o refino de malha e quantos núcleos de CPU usar.</p>
+          <div class="note"><p><span class="lab">Estratégia</span>Primeira rodada sempre <strong>grossa e rápida</strong>, só para conferir se o setup faz sentido — gravidade, ataques, liga. Refino fino em setup errado é tempo e Altair Units queimados por nada. Refine só depois que o modelo estiver de pé.</p></div>
+        </div>
+      </li>
+
+      <li class="step hot">
+        <div class="num">8</div>
+        <div class="step-body">
+          <h3>Salve e versione</h3>
+          <p>Salve o modelo com um nome que identifique a variante (<span class="path">carcaca_v03_massalote-maior</span>). Você vai comparar rodadas, e comparar é metade do trabalho de simulação de fundição.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ============ RESULTADOS ============ -->
+  <section id="resultados">
+    <div class="eyebrow">Interpretação</div>
+    <h2>Lendo os resultados</h2>
+    <div class="rule"></div>
+    <p class="lead">O software entrega os resultados abaixo. Rodar é fácil — o valor que você entrega como engenheiro está em interpretar.</p>
+
+    <div class="res">
+      <div><h4>Temperature</h4><p>Acompanhe a frente de metal durante o enchimento. Frente esfriando demais antes de completar a cavidade = risco de junta fria e falha de enchimento.</p></div>
+      <div><h4>Velocity</h4><p>Velocidade alta no ataque significa turbulência, arraste de ar e erosão. Em alumínio por gravidade, a referência clássica da literatura (critério de Campbell) é manter a entrada em torno de <strong>0,5 m/s</strong>.</p></div>
+      <div><h4>Last Air</h4><p>Onde o ar fica preso — tipicamente a última região a encher. É ali que você posiciona respiro ou overflow.</p></div>
+      <div><h4>Cold Shuts</h4><p>Junta fria: duas frentes de metal que se encontram já frias demais para soldar. Ataque mal posicionado ou vazamento frio.</p></div>
+      <div><h4>Mold Erosion</h4><p>Erosão do molde, crítico em areia. Jato de metal batendo direto em parede de macho arranca areia e gera inclusão.</p></div>
+      <div><h4>Porosity / Shrinkage</h4><p>Porosidade e rechupe por contração. Olhe onde está: em canal, tudo bem; dentro da peça e em região usinada ou pressurizada, é reprovação.</p></div>
+      <div><h4>Niyama</h4><p>Critério clássico para microporosidade por contração. Valores baixos indicam risco — bom para comparar variantes do mesmo modelo.</p></div>
+      <div><h4>Solidificação / pontos quentes</h4><p>A última região a solidificar. Se um ponto quente está dentro da peça e isolado do massalote, ele vai virar rechupe. Você quer <strong>solidificação direcional</strong>, da peça para o massalote.</p></div>
+    </div>
+
+    <h3>Como olhar, na ordem certa</h3>
+    <ul class="bul">
+      <li><strong>Assista à animação de enchimento inteira antes de olhar qualquer número.</strong> Jato livre, respingo, metal caindo em queda livre e zonas mortas aparecem a olho nu.</li>
+      <li><strong>Corte seções.</strong> Defeito de fundição é volumétrico; vista externa esconde quase tudo.</li>
+      <li><strong>Compare rodadas, não julgue uma isolada.</strong> A pergunta útil quase nunca é “tem porosidade?”, e sim “esta versão tem menos que a anterior, e no lugar que importa?”.</li>
+      <li><strong>Correlacione com peça real</strong> sempre que houver histórico. Previsão de porosidade é indicação de risco, não laudo.</li>
+    </ul>
+  </section>
+
+  <!-- ============ ARMADILHAS ============ -->
+  <section id="armadilhas">
+    <div class="eyebrow">Aprenda pelo atalho</div>
+    <h2>Armadilhas de iniciante</h2>
+    <div class="rule"></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Armadilha</th><th>Por que dói</th></tr></thead>
+        <tbody>
+          <tr><td>Gravidade na direção errada</td><td>A simulação roda e entrega resultado plausível — mas de um processo que não existe</td></tr>
+          <tr><td>Importar STL grosseiro</td><td>Facetamento distorce velocidade junto à parede e mascara detalhe fino</td></tr>
+          <tr><td>Malha fina já na primeira rodada</td><td>Horas de máquina e Altair Units gastas para descobrir um erro de setup</td></tr>
+          <tr><td>Não separar peça de canais</td><td>Critérios de defeito avaliados no lugar errado; conclusão invertida</td></tr>
+          <tr><td>HPDC sem overflow e respiro</td><td>Ar preso “fantasma”, que some assim que o venting é modelado</td></tr>
+          <tr><td>Mudar vários parâmetros de uma vez</td><td>Melhorou — mas você não sabe qual mudança foi responsável, e não consegue repetir</td></tr>
+          <tr><td>Tratar a previsão como verdade absoluta</td><td>Simulação de fundição indica tendência e risco; calibração com peça real é o que dá confiança ao número</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ GLOSSÁRIO ============ -->
+  <section id="glossario">
+    <div class="eyebrow">Vocabulário</div>
+    <h2>Glossário PT ⇄ EN</h2>
+    <div class="rule"></div>
+    <p class="lead">A interface e a documentação estão em inglês; o chão de fábrica fala português. Essa tradução é metade da curva de aprendizado.</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Interface</th><th>Fundição, em português</th><th>O que é</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Sprue</td><td>Canal de descida</td><td>Canal vertical por onde o metal desce após o vazamento</td></tr>
+          <tr><td class="term">Runner</td><td>Canal de distribuição</td><td>Conduz o metal do sprue até os ataques</td></tr>
+          <tr><td class="term">Gate / Ingate</td><td>Ataque</td><td>Entrada do metal na cavidade da peça</td></tr>
+          <tr><td class="term">Riser / Feeder</td><td>Massalote / alimentador</td><td>Reservatório de metal que compensa a contração da peça</td></tr>
+          <tr><td class="term">Sleeve</td><td>Luva (exotérmica ou isolante)</td><td>Envolve o massalote para mantê-lo líquido por mais tempo</td></tr>
+          <tr><td class="term">Chill / Cooler</td><td>Resfriador / coquilha</td><td>Acelera a solidificação local, para dirigir a frente</td></tr>
+          <tr><td class="term">Overflow</td><td>Poço de transbordo</td><td>Recebe a primeira frente fria e o ar, típico de HPDC</td></tr>
+          <tr><td class="term">Vent</td><td>Respiro</td><td>Saída de ar do molde</td></tr>
+          <tr><td class="term">Pouring temperature</td><td>Temperatura de vazamento</td><td>Temperatura do metal ao entrar no molde</td></tr>
+          <tr><td class="term">Filling</td><td>Enchimento</td><td>Fase de preenchimento da cavidade</td></tr>
+          <tr><td class="term">Solidification</td><td>Solidificação</td><td>Fase de mudança de líquido para sólido</td></tr>
+          <tr><td class="term">Shrinkage</td><td>Rechupe / contração</td><td>Vazio gerado pela contração do metal ao solidificar</td></tr>
+          <tr><td class="term">Cold shut</td><td>Junta fria</td><td>Duas frentes que se encontram frias e não se unem</td></tr>
+          <tr><td class="term">Misrun</td><td>Falha de enchimento</td><td>Cavidade não preenchida por completo</td></tr>
+          <tr><td class="term">Hot spot</td><td>Ponto quente</td><td>Região que solidifica por último — candidata a rechupe</td></tr>
+          <tr><td class="term">Directional solidification</td><td>Solidificação direcional</td><td>Frente que avança da peça em direção ao massalote</td></tr>
+          <tr><td class="term">Sand mold</td><td>Molde de areia</td><td>Molde perdido, em areia aglomerada</td></tr>
+          <tr><td class="term">Die</td><td>Coquilha / matriz</td><td>Molde metálico permanente</td></tr>
+          <tr><td class="term">Investment casting</td><td>Fundição de precisão</td><td>Processo de cera perdida</td></tr>
+          <tr><td class="term">Tilt pouring</td><td>Vazamento por basculamento</td><td>Molde gira durante o enchimento, reduzindo turbulência</td></tr>
+          <tr><td class="term">Warpage</td><td>Empenamento</td><td>Distorção da peça após solidificar e resfriar</td></tr>
+          <tr><td class="term">Trimming</td><td>Rebarbação</td><td>Remoção de canais, massalotes e rebarbas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ ESTUDO ============ -->
+  <section id="estudo">
+    <div class="eyebrow">Próximos passos</div>
+    <h2>Plano das duas primeiras semanas</h2>
+    <div class="rule"></div>
+
+    <ol class="steps">
+      <li class="step">
+        <div class="num">1</div>
+        <div class="step-body">
+          <h3>Dia 1 — Licença e reconhecimento</h3>
+          <p>Toda a Parte 1 deste guia. Depois abra o software e passe uma hora só girando modelo, testando as abas da faixa de ferramentas e achando onde ficam os cinco passos. Não tente simular nada.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="num">2</div>
+        <div class="step-body">
+          <h3>Dias 2 e 3 — Tutoriais nativos</h3>
+          <p>O Inspire Cast traz tutoriais interativos, com os modelos prontos. Comece pelo de <strong>gravity casting</strong>, que é o mais didático, e depois faça o de <strong>tilt pouring</strong> (marcado como nível iniciante na documentação). Faça cada um duas vezes: a primeira seguindo, a segunda sem olhar.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="num">3</div>
+        <div class="step-body">
+          <h3>Dias 4 e 5 — Uma peça de verdade</h3>
+          <p>Peça a um colega mais experiente da CAEXPERTS um modelo já rodado, de projeto encerrado. Refaça o setup do zero e compare seu resultado com o dele. É o exercício que mais acelera — você descobre suas premissas erradas contra uma referência confiável.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="num">4</div>
+        <div class="step-body">
+          <h3>Semana 2 — Estudo comparativo</h3>
+          <p>Pegue um modelo seu e gere variantes mudando <strong>um parâmetro por vez</strong>: posição do ataque, tamanho do massalote, temperatura de vazamento, tempo de enchimento. Monte uma tabelinha com o efeito de cada mudança nos defeitos previstos. Esse caderninho vira seu repertório.</p>
+        </div>
+      </li>
+      <li class="step">
+        <div class="num">5</div>
+        <div class="step-body">
+          <h3>Em paralelo — a teoria</h3>
+          <p>Simulação sem fundamento vira gerador de imagem colorida. Estude junto: regra de Chvorinov e módulo de solidificação, dimensionamento de massalote, solidificação direcional, critério de Campbell para velocidade de ataque, e os mecanismos de formação dos defeitos que o software prevê.</p>
+        </div>
+      </li>
+    </ol>
+
+    <h3>Onde buscar material</h3>
+    <ul class="bul">
+      <li><strong>help.altair.com/cast</strong> — manual do usuário, tutoriais e release notes da versão 2026. É a fonte oficial e a mais atualizada.</li>
+      <li><strong>Tutoriais dentro do próprio app</strong> — interativos, com geometria pronta. Melhor ponto de partida.</li>
+      <li><strong>community.altair.com</strong> — fórum, webinars e discussões de usuários; bom para dúvida específica de setup.</li>
+      <li><strong>Altair One → Resources</strong> — biblioteca de recursos, documentação e centro de treinamento, conforme descrito no PDF que você recebeu.</li>
+      <li><strong>Curso “Getting Started with Inspire Cast”</strong> — tour de interface e vídeos de fluxo de trabalho, publicado pela própria Altair.</li>
+    </ul>
+
+    <div class="note"><p><span class="lab">Dica de casa</span>Descubra quem é o usuário-chave de fundição na CAEXPERTS e combine 30 minutos por semana para mostrar o que você fez. Revisão de premissa por quem já rodou dezenas de peças vale mais do que qualquer tutorial.</p></div>
+  </section>
+
+  <footer>
+    <p>Parte 1 segue o procedimento oficial <em>Procedimentos para Download, Instalação e Licenciamento do Pacote HyperWorks</em> (Altair Engineering), páginas 4 e 13 a 22. Parte 2 é baseada na documentação pública do Inspire Cast 2026 e em prática geral de simulação de fundição.</p>
+    <p>Os nomes de menu podem variar levemente entre versões e entre a interface em português e em inglês — na dúvida, confira em <a href="https://help.altair.com/cast/en_us/index.htm">help.altair.com/cast</a>.</p>
+  </footer>
+
+  </main>
+</div>
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var secs = Array.prototype.slice.call(document.querySelectorAll('main section[id]'));
+  if (window.IntersectionObserver) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) {
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id];
+          if (a) a.classList.add('on');
+        }
+      });
+    }, { rootMargin: '-12% 0px -72% 0px' });
+    secs.forEach(function(s){ io.observe(s); });
+  }
+
+  var KEY = 'inspire-cast-preflight';
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.check input'));
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  boxes.forEach(function(b, i){
+    if (saved[i]) { b.checked = true; }
+    b.addEventListener('change', function(){
+      saved[i] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+})();
+</script>
