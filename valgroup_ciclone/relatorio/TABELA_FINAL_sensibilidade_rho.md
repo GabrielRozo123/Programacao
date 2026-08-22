@@ -19,8 +19,8 @@ viscosidade — assim a variação é de composição pura e o Reynolds não mud
 | massa específica (kg/m³) | 3,7487 | 3,9460 | 4,1433 |
 | velocidade de entrada · 100 % | 14,31 m/s | 13,59 m/s | 12,95 m/s |
 | velocidade de entrada · 50 % | 7,16 m/s | 6,80 m/s | 6,47 m/s |
-| **queda de pressão · 100 %** | 🟢 **2 057 Pa** | 🟢 1 956 Pa | ⚪ **1 862 Pa** |
-| **queda de pressão · 50 %** | 🟢 **490 Pa** | 🟢 470 Pa | ⚪ 448 Pa |
+| **queda de pressão · 100 %** | 🟢 **2 057 Pa** | 🟢 1 956 Pa | 🟢 **1 864 Pa** |
+| **queda de pressão · 50 %** | 🟢 **490 Pa** | 🟢 470 Pa | 🟢 **446 Pa** |
 | **folga contra o limite de 40 mbar** | **48,5 %** | 51,1 % | 53,4 % |
 | Reynolds | 173 343 | 173 343 | 173 343 |
 
@@ -70,21 +70,22 @@ Isso foi **verificado em CFD**, não assumido:
 |---|---|---|---|
 | **ΔP a 100 %, cenário −5 %** | 2 058,5 Pa | **2 057,19 Pa** | **0,06 %** |
 | **ΔP a 50 %, cenário −5 %** | 494,6 Pa | **490,31 Pa** | **0,87 %** |
+| **ΔP a 100 %, cenário +5 %** | 1 862,5 Pa | **1 864,16 Pa** | **0,09 %** |
+| **ΔP a 50 %, cenário +5 %** | 447,5 Pa | **445,82 Pa** | **0,38 %** |
 | **η(10 µm) a 100 %, cenário −5 %** | 80,31 % | **80,53 ± 0,22 %** | **1 σ** |
 | **η(10 µm) a 50 %, cenário −5 %** | 52,43 % | **52,42 %** | **0,02 σ** |
 
 E o coeficiente de perda `ξ = 2ΔP/(ρv_i²)`, que é a forma adimensional da queda de
 pressão, sai invariante nas duas cargas:
 
-| caso | ξ | desvio vs base |
+| carga | ξ medido (−5 % · base · +5 %) | espalhamento |
 |---|---|---|
-| base · 100 % | 5,364 | — |
-| **−5 % · 100 %** | **5,360** | **−0,06 %** |
-| base · 50 % | 5,155 | — |
-| **−5 % · 50 %** | **5,110** | **−0,88 %** |
+| **100 %** | 5,360 · 5,364 · 5,369 | **0,009 (0,17 %)** |
+| **50 %** | 5,110 · 5,155 · 5,136 | 0,045 (0,87 %) |
 
-O ξ concordar dentro de 1 % em ambas as cargas é a prova direta da similaridade de
-Reynolds — é o que autoriza projetar o cenário +5 % em vez de rodá-lo.
+Seis condições medidas, e a 100 % de vazão os três cenários coincidem em menos de
+dois milésimos. É a demonstração direta da similaridade de Reynolds: o campo
+adimensional não muda com ρ, só a escala de velocidade.
 
 A medição de η a 100 % é a média de **três rastreamentos independentes** (80,97 ·
 80,30 · 80,32 %), cada um com 5 082 parcelas e **zero parcelas ativas ao final** —
