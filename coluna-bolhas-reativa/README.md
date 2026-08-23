@@ -214,6 +214,98 @@ De 1 a 3 dias por condição. Planejar **duas ou três velocidades superficiais*
 
 ---
 
+## 6.5. Resultados — Nível 0 (só arrasto), U_g = 0,0115 m/s
+
+Estratégia adotada depois de o modelo completo (EMP + AMUSIG multi-speed + 5 grupos +
+sustentação + dispersão + lubrificação + quebra + coalescência + turbulência induzida) divergir
+45% do experimento **sem possibilidade de atribuir o erro**: dez submodelos acoplados para
+reproduzir um escalar.
+
+A saída foi **construir em degraus**, cada um validado contra uma medida específica.
+
+### Nível 0 — o mínimo que pode produzir o alvo
+
+```
+EMP, duas fases
+diâmetro FIXO de 4,5 mm  (lei de Tate a partir do furo de 2 mm)
+Drag = Tomiyama, Contaminated
+Gravity
+k-ε de mistura
+
+sem AMUSIG, sem sustentação, sem massa virtual, sem dispersão turbulenta,
+sem lubrificação de parede, sem quebra, sem coalescência, sem turbulência induzida
+```
+
+Dois parâmetros no modelo inteiro: o diâmetro e a correlação de arrasto.
+
+### Verificação — o solver contra a teoria
+
+| grandeza | CFD | analítico |
+|---|---|---|
+| **Slip velocity** | **0,232910 a 0,233752 m/s** | **0,233 m/s** (Tomiyama, 4,5 mm) |
+
+Uniforme em todo o domínio, **0,4% de espalhamento**, três algarismos significativos contra o
+valor de bancada. Isso é **verificação**: o código resolve corretamente as equações escolhidas.
+
+### Resultado
+
+| | valor |
+|---|---|
+| ε (média volumétrica) | **0,04984** |
+| u_gás = U_g/ε | 0,2316 m/s |
+| velocidade do líquido | ±0,03 m/s — praticamente parado |
+| perfil radial | plano, variação < 0,1% |
+
+| contra | desvio |
+|---|---|
+| método do enxame (ε = 0,0409) | **+21,7%** |
+| ajuste de Wallis (ε = 0,0381) | **+30,8%** |
+
+### ⚠ O alvo experimental é uma faixa, não um ponto
+
+Os **dois métodos do próprio artigo discordam em 7%**:
+
+```
+ajuste de Wallis   (u∞ = 0,314 m/s)   →   ε = 0,0381
+método do enxame   (u   = 0,282 m/s)   →   ε = 0,0409
+```
+
+Comparar contra um só seria escolher o que favorece. A faixa vai para o texto.
+
+### O desvio está inteiramente explicado
+
+```
+CFD Nível 0   slip = 0,2333 m/s    ← bolha isolada, exato
+coluna real          0,282 m/s     ← 21% mais rápido
+```
+
+Os 21,7% de erro no holdup **são** os 21% de aceleração coletiva que o modelo não possui — por
+construção, já que todo modelo capaz de produzi-la foi removido. Não sobra resíduo inexplicado.
+
+---
+
+## 6.6. Níveis seguintes
+
+| nível | o que entra | valida contra |
+|---|---|---|
+| 0 ✅ | arrasto + gravidade | **holdup global** |
+| 1 | sustentação (Tomiyama), dispersão turbulenta, lubrificação de parede | **perfil radial** |
+| 2 | AMUSIG multi-speed, quebra (Martinez-Bazan), coalescência (Luo) | **BSD parede vs centro** |
+
+### Escolhas do Nível 1, justificadas
+
+| item | escolha | por quê |
+|---|---|---|
+| Lift Coefficient | **Tomiyama** | captura a inversão de sinal em 5,2–5,8 mm |
+| Lift Correction | **Podowski Near Wall Adjustment** | zera a sustentação junto à parede, evitando o comportamento singular |
+| Wall Lubrication | **Lubchenko** | par projetado com o Podowski; **Antal** atua em ~1 diâmetro de bolha (9 mm) contra célula de 10 mm — seria dependente de malha |
+| Turb. Disp. Prandtl | **Inertial Correction** | o manual a recomenda para *large bubbles*; 4,5 mm em água tem Stokes alto |
+| Volume Fraction Smoothing | **ligado** | o manual: *"does not affect the converged solution"* — estabilidade de graça |
+
+**Alvo do Nível 1:** slip de 0,233 → ~0,282 m/s, ε de 0,0498 → ~0,0409.
+
+---
+
 ## 7. Arquivos
 
 | Arquivo | Conteúdo |
