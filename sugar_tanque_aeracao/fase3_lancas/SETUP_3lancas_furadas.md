@@ -191,6 +191,68 @@ Use **o mesmo valor das rodadas de 3 lanças com descarga aberta**.
 Ligada. Lembre que em EMP é **por fase**: `Eulerian Phases → Xarope → Models`.
 Desligar no continuum não basta — foi o que causou a divergência da vez passada.
 
+
+---
+
+## 4.4 ⭐ INICIALIZAÇÃO — verificada, com três armadilhas pelo caminho
+
+O domínio **não** começa cheio de xarope. O interior das lanças começa com **ar**,
+que é o estado operacional. Começar com xarope dentro mediria o transiente de purga:
+o interior tem 59,8 L e levaria **5,4 s** para esvaziar — mais que a rodada inteira.
+
+### Field function geométrica `f_lanca`
+
+```
+((sqrt(pow($$Position[0]-0.2000,2)+pow($$Position[1]+0.7450,2)) < 0.036 ||
+  sqrt(pow($$Position[0]-0.4644,2)+pow($$Position[1]+0.2880,2)) < 0.036 ||
+  sqrt(pow($$Position[0]+0.0644,2)+pow($$Position[1]+0.2880,2)) < 0.036)
+ && $$Position[2] > -5.2405) ? 1 : 0
+```
+
+### Initial Conditions
+
+| campo | expressão | conferência |
+|---|---|---|
+| VF `Ar` | `f_lanca` | `Volume Integral` = **0,0598 m³** |
+| VF `Xarope` | **`1 - f_lanca`** | 20,212 m³ |
+| Pressure | `f_lanca * (114988 + 13243.5*($$Position[2] - 1.220))` | **72 200 Pa** no interior |
+| Velocity | 0 | |
+
+Medido: VF ar **0,05912 m³** (−1,1 %, discretização do teste por centroide) e
+pressão **72 197 Pa** (−0,004 %). ✅
+
+### As três armadilhas — todas silenciosas
+
+**1. Fração do xarope deixada em 1.** O `Ar` recebeu a função mas o `Xarope` ficou
+no default. O STAR **normaliza** os dois para 0,5/0,5 e o volume de ar sai pela
+metade, sem aviso. Medido 32,4 L contra 59,8 esperados.
+> ⇒ Crie **uma** field function e referencie nas duas fases. Nunca escreva as duas
+> por extenso: é edição em dois lugares, e foi exatamente onde escorregou.
+
+**2. Field function sem limite em z.** Os três testes de raio enchiam também um
+cilindro de ar **abaixo das lanças**, dentro do cone — 5,9 L a mais. Corrigido com
+`&& $$Position[2] > -5.2405` (topo da tampa cega), **com parênteses envolvendo os
+três `||`**; sem eles o `&&` só se aplica ao último termo.
+
+**3. Threshold em `Below Min`.** Ao conferir a pressão, o threshold pegou tudo com
+`f_lanca < 0,5` — o tanque inteiro, onde a pressão inicializa em zero. O report deu
+0,000 Pa e parecia erro de inicialização. Use **`All Above`** com valor 0,5.
+
+### Por que inicializar a pressão
+
+Com `Reference Density = 1350` e `Reference Altitude = (0, 0, 1.220)`, o xarope
+parado fica em pressão piezométrica **zero** — por isso o campo externo inicializa
+em 0. Mas o **ar** dentro da lança não: o equilíbrio dele é uma rampa de 114 988 Pa
+no topo a 29 423 Pa na tampa.
+
+Sem inicializar, esse degrau de **115 kPa** teria de se formar no arranque, e o
+trânsito acústico na lança é de **19 ms** — mais longo que a fase inicial de
+500 passos a 1e-5 s (5 ms).
+
+Com a rampa imposta, na cota dos furos a pressão interna fica em 29 845 Pa contra 0
+no xarope: **exatamente o ΔP de projeto**. Os 144 jatos partem na intensidade certa
+no primeiro passo.
+
 ---
 
 ## 5. ⚠️ Passo de tempo — o ponto caro da opção B
