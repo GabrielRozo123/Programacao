@@ -138,6 +138,51 @@ def main():
     print("  ressalva. Com a fonte no lugar o teto cai para ~10 mm.")
     print("=" * 78)
 
+    print("\nPOR QUE NAO MEXER NO DIAMETRO NA MESMA RODADA")
+    print("-" * 78)
+    print("  A propria fonte de Sato depende do diametro:")
+    print("       nu_t,BIT = C alpha d_b |u_slip|")
+    print("-" * 78)
+    print(f"{'d_b':>8s}{'nu_t,BIT':>13s}{'razao nu_t/nu':>16s}")
+    print(f"{'[mm]':>8s}{'[m2/s]':>13s}{'[-]':>16s}")
+    print("-" * 78)
+    for dmm in (4.5, 10.0):
+        nu = 0.6 * EPS_ALPHA * (dmm / 1000.0) * SLIP
+        print(f"{dmm:8.1f}{nu:13.3e}{nu/nu_mol:16.0f}")
+    print("-" * 78)
+    print("  Mudar os dois juntos multiplica a viscosidade turbulenta por ~2,2")
+    print("  ao mesmo tempo em que muda o arrasto. Se o holdup se mexer, nao")
+    print("  da para dizer qual dos dois foi. E exatamente o erro de")
+    print("  sequenciamento que ja cometemos uma vez neste estudo.")
+    print("=" * 78)
+
+    print("\nPREVISAO PARA A RODADA SO-COM-BIT   (d_b continua em 4,5 mm)")
+    print("-" * 78)
+    print(f"{'grandeza':>34s}{'hoje':>13s}{'previsto':>13s}")
+    print("-" * 78)
+    for nome, hoje, prev in (
+            ("holdup eps", f"{EPS_ALPHA:.5f}", "0,0498 +/- 0,001"),
+            ("slip [m/s]", f"{SLIP:.4f}", "0,233 (inalterado)"),
+            ("Turb Visc Ratio", "~1", f"~{nu_bit/nu_mol:.0f}"),
+            ("eps_diss [m2/s3]", f"{MEDIDO:.2e}", f"{eps_esp:.2f}")):
+        print(f"{nome:>34s}{hoje:>13s}{prev:>19s}")
+    print("-" * 78)
+    print("  O holdup NAO deve mudar: o BIT nao toca no arrasto. Se ele mudar")
+    print("  muito, tem acoplamento que eu nao previ e vale investigar.")
+    print("-" * 78)
+    print("  O TESTE QUE VALE: eps_diss tem de subir para ~0,12 m2/s3, que e")
+    print("  o numero do balanco de energia, obtido SEM CFD. Se bater, o")
+    print("  modelo de turbulencia passa a ser energeticamente consistente e")
+    print("  isso e verificacao independente -- entra no relatorio.")
+    print("-" * 78)
+    print("  RESSALVA: existem duas familias de fechamento para isso. Se o")
+    print("  STAR estiver aplicando a formulacao de Sato como AUMENTO DE")
+    print("  VISCOSIDADE (e nao como termo-fonte em k e epsilon), o Turbulent")
+    print("  Viscosity Ratio sobe mas o epsilon reportado pode nao subir.")
+    print("  Nesse caso o criterio passa a ser o Viscosity Ratio, nao o")
+    print("  epsilon. Os dois reports abaixo distinguem os casos.")
+    print("=" * 78)
+
     print("\nCOMO CONFIRMAR EM DOIS REPORTS")
     print("-" * 78)
     print("  1) Volume Average de Turbulent Viscosity Ratio (fase Agua)")
