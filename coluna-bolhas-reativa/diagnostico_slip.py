@@ -62,6 +62,29 @@ def terminal(d, estado, f_swarm=1.0):
     return u
 
 
+def cl_tomiyama(d, u):
+    """Coeficiente de sustentacao de Tomiyama (2002).
+
+    C_L > 0  ->  bolha migra CONTRA o gradiente de velocidade, ou seja para
+                 a PAREDE numa coluna com pluma central
+    C_L < 0  ->  bolha migra para o CENTRO
+
+    A inversao de sinal vem da deformacao: o diametro usado e o do EIXO MAIOR
+    da bolha achatada, d_H, e nao o equivalente esferico.
+    """
+    eo = eotvos(d)
+    dh = d * (1.0 + 0.163 * eo ** 0.757) ** (1.0 / 3.0)
+    eod = G * (RHO_L - RHO_G) * dh ** 2 / SIGMA
+    if eod > 10.0:
+        return -0.27, eo, dh, eod
+    f = (0.00105 * eod ** 3 - 0.0159 * eod ** 2
+         - 0.0204 * eod + 0.474)
+    if eod < 4.0:
+        re = RHO_L * abs(u) * d / MU_L
+        return min(0.288 * math.tanh(0.121 * re), f), eo, dh, eod
+    return f, eo, dh, eod
+
+
 # ---------------------------------------------------------------------------
 # 2. SIMONNET -- correcao de enxame
 # ---------------------------------------------------------------------------
@@ -236,6 +259,45 @@ def main():
     print("  errar d32 por 3x erra a area interfacial por 3x, e com ela o k_L a.")
     print("=" * 78)
 
+    print("\n[6] O SINAL DA SUSTENTACAO -- por que a semente radial nao sobrevive")
+    print("-" * 78)
+    print("  O Nivel 1b semeou a entrada com centro rico (alpha 0,07 no centro,")
+    print("  0,03 na coroa). A cena mostra a estrutura NASCENDO no fundo e")
+    print("  MORRENDO nos primeiros ~40 cm. Nao e falta de semente. E o sinal")
+    print("  da forca de sustentacao.")
+    print("-" * 78)
+    print(f"{'d':>7s}{'Eo':>8s}{'d_H':>8s}{'Eo_d':>9s}{'C_L':>9s}"
+          f"{'gas migra para':>18s}")
+    print(f"{'[mm]':>7s}{'[-]':>8s}{'[mm]':>8s}{'[-]':>9s}{'[-]':>9s}")
+    print("-" * 78)
+    for dmm in (2, 3, 4.5, 5.0, 5.8, 6, 8, 10, 16):
+        d = dmm / 1000.0
+        u = terminal(d, "contaminated")
+        cl, eo, dh, eod = cl_tomiyama(d, u)
+        lado = "PAREDE" if cl > 0 else "CENTRO"
+        marca = ""
+        if dmm == 4.5:
+            marca = "  <-- Nivel 0/1"
+        if abs(dmm - 5.8) < 1e-9:
+            marca = "  <-- inversao"
+        if dmm == 16:
+            marca = "  <-- alvo do holdup"
+        print(f"{dmm:7.1f}{eo:8.2f}{dh*1000:8.2f}{eod:9.2f}{cl:+9.3f}"
+              f"{lado:>18s}{marca}")
+    print("-" * 78)
+    print("  A 4,5 mm o C_L de Tomiyama vale +0,267: a sustentacao empurra o")
+    print("  gas para a PAREDE. Ela nao so deixa de amplificar a semente de")
+    print("  centro rico -- ela a DESTROI ativamente, e a dispersao turbulenta")
+    print("  homogeneiza o resto. Dai o campo voltar a ser uniforme acima do")
+    print("  fundo, com o slip preso em 0,229 a 0,238 m/s.")
+    print("-" * 78)
+    print("  E o MESMO diametro que estraga as duas coisas:")
+    print("     4,5 mm cai no minimo de u_term      -> holdup +21 a +31%")
+    print("     4,5 mm cai abaixo da inversao (5,8) -> gas para a parede")
+    print("  Coluna de grande diametro tem pluma CENTRAL. Para o CFD produzir")
+    print("  isso, o C_L tem de ser NEGATIVO, e isso exige d > 5,8 mm.")
+    print("=" * 78)
+
     print("\nCONCLUSAO")
     print("-" * 78)
     print("  contaminacao   -> inerte a 4,5 mm (ramo de Eotvos)")
@@ -250,12 +312,16 @@ def main():
     print("=" * 78)
     print("\nPREVISAO FALSIFICAVEL PARA O NIVEL 2")
     print("-" * 78)
-    print("  Registrada ANTES de rodar o AMUSIG:")
-    print("      se o AMUSIG convergir com d32 entre 15 e 18 mm, o holdup cai")
-    print("      para 0,038 a 0,041 e a validacao fecha SOZINHA.")
-    print("      se convergir com d32 ~ 5 mm, o holdup fica em 0,050 e a")
-    print("      hipotese do diametro esta MORTA -- o erro e do arrasto.")
-    print("  Os dois desfechos sao informativos. E o que faz disso verificacao")
+    print("  Registrada ANTES de rodar. Uma unica rodada de diametro fixo em")
+    print("  16 mm, tudo o mais igual ao Nivel 1, tem de entregar as DUAS:")
+    print("      holdup            eps -> 0,040 +/- 0,002  (hoje 0,0499)")
+    print("      estrutura radial  C_L = -0,27 -> pluma CENTRAL persistente,")
+    print("                        com recirculacao descendente na parede")
+    print("-" * 78)
+    print("  Se o holdup cair mas a pluma nao aparecer, o problema e de")
+    print("  turbulencia (dispersao alta demais), nao de diametro.")
+    print("  Se nenhuma das duas mudar, a hipotese do diametro morre inteira.")
+    print("  Os tres desfechos sao informativos. E o que faz disso verificacao")
     print("  e nao ajuste de curva.")
     print("=" * 78)
 
