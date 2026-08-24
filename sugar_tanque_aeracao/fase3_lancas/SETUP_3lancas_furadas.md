@@ -43,19 +43,29 @@ Se vier menos, a importação comeu os furos — reimporte.
 
 Dois níveis por lança. Monte como `Part → Cylinder` e use em `Volumetric Control`.
 
-| lança | nível | Start X | Start Y | Start Z | End X | End Y | End Z | Radius | **célula** |
-|---|---|---|---|---|---|---|---|---|---|
-| 1 | REFINO_FURO | 200.0 | -745.0 | -5255.0 | 200.0 | -745.0 | -5180.0 | 60.0 | **2,0 mm** |
-| 1 | REFINO_PLUMA | 200.0 | -745.0 | -5300.0 | 200.0 | -745.0 | -4300.0 | 150.0 | **12,5 mm** |
-| 2 | REFINO_FURO | 464.4 | -288.0 | -5255.0 | 464.4 | -288.0 | -5180.0 | 60.0 | **2,0 mm** |
-| 2 | REFINO_PLUMA | 464.4 | -288.0 | -5300.0 | 464.4 | -288.0 | -4300.0 | 150.0 | **12,5 mm** |
-| 3 | REFINO_FURO | -64.4 | -288.0 | -5255.0 | -64.4 | -288.0 | -5180.0 | 60.0 | **2,0 mm** |
-| 3 | REFINO_PLUMA | -64.4 | -288.0 | -5300.0 | -64.4 | -288.0 | -4300.0 | 150.0 | **12,5 mm** |
+**Um cilindro por lança, três no total.** Cada um envolve os 48 furos inteiros.
+
+| lança | Start X | Start Y | Start Z | End X | End Y | End Z | Radius | **célula** |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 200.0 | -745.0 | -5265.0 | 200.0 | -745.0 | -5115.0 | **75.0** | **2,0 mm (4 %)** |
+| 2 | 464.4 | -288.0 | -5265.0 | 464.4 | -288.0 | -5115.0 | **75.0** | **2,0 mm (4 %)** |
+| 3 | -64.4 | -288.0 | -5265.0 | -64.4 | -288.0 | -5115.0 | **75.0** | **2,0 mm (4 %)** |
+
+Ø150 × 150 mm: cobre de 18,5 mm abaixo da tampa a 86,5 mm acima do anel superior.
+
+### Por que não há cilindro de pluma
+
+```
+Re do jato = ρ_xarope · v · d / µ = 1350 · 98,2 · 0,001 / 6,5 = 20
+```
+
+**O jato de ar é viscoso e morre em poucos diâmetros.** Num líquido tipo água o Re
+seria 98 000 e a pluma exigiria um segundo nível de refino a jusante. Neste xarope
+não há near-field distante a resolver — o cilindro de Ø150 já contém tudo o que
+acontece.
 
 ⚠️ **End X = Start X e End Y = Start Y.** Foi o que deixou o cilindro inclinado da
 outra vez.
-
-Com base de 50 mm, os percentuais são: REFINO_FURO **4 %**, REFINO_PLUMA **25 %**.
 
 ### Mais um controle, sem cilindro
 
@@ -83,12 +93,14 @@ partir da superfície e cresce até o cilindro de 2 mm.
 
 | região | células |
 |---|---|
-| entorno dos 144 furos | 7,2e5 |
-| REFINO_FURO (3×) | 3,2e5 |
-| REFINO_PLUMA (3×) | 1,1e5 |
+| entorno dos 144 furos (surface size) | 7,2e5 |
+| REFINO_LANCA (3×) | 9,9e5 |
 | interior das lanças | 3,5e4 |
 | tanque na base de 50 mm | 1,6e5 |
-| **total com transições** | **≈ 2,0e6** |
+| **total com transições** | **≈ 2,9e6** |
+
+Se apertar, duas saídas na ordem: cilindro para **Ø120 × 120** (→ 2,1e6) ou célula
+para **3,125 mm** (→ 1,8e6). Reduzir o cilindro é preferível a engrossar a célula.
 
 Contra as ~4e5 da rodada de 16 lanças. É 5× maior, não 50×.
 

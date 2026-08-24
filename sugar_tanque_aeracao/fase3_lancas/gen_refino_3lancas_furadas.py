@@ -23,9 +23,11 @@ R_LANCA, Z_DESCARGA = 305.0, -5246.5
 ANGULOS = [-90.0, 29.9, 150.1]
 
 # (nome, diâmetro, z inicial, z final, tamanho alvo de célula)
+# UM cilindro por lança. O segundo nível (pluma Ø300×1000) foi descartado:
+# Re do jato = rho_x·v·d/mu = 1350·98,2·0,001/6,5 = 20 — o jato é VISCOSO e morre
+# em poucos diâmetros. Não há near-field distante para resolver neste xarope.
 NIVEIS = [
-    ("REFINO_FURO",  120.0, Z_DESCARGA -  8.5, Z_DESCARGA +  66.5,  2.0),
-    ("REFINO_PLUMA", 300.0, Z_DESCARGA - 53.5, Z_DESCARGA + 946.5, 12.5),
+    ("REFINO_LANCA", 150.0, Z_DESCARGA - 18.5, Z_DESCARGA + 131.5, 2.0),
 ]
 
 
