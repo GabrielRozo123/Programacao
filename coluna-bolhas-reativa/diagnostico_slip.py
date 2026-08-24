@@ -19,7 +19,8 @@ distribuicao C_0 -- que o proprio drift-flux limita.
 
 import math
 
-from memorial import G, MU_L, RHO_L, SIGMA, U_INF, U_SWARM, UG_EXP
+from memorial import (G, MU_L, RHO_L, SIGMA, U_INF, U_SWARM, UG_EXP,
+                      d_critico_martinez_bazan)
 
 RHO_G = 1.2
 UG = UG_EXP[2]          # 0,0115 m/s -- a condicao que estamos rodando
@@ -296,6 +297,69 @@ def main():
     print("     4,5 mm cai abaixo da inversao (5,8) -> gas para a parede")
     print("  Coluna de grande diametro tem pluma CENTRAL. Para o CFD produzir")
     print("  isso, o C_L tem de ser NEGATIVO, e isso exige d > 5,8 mm.")
+    print("=" * 78)
+
+    print("\n[7] O DIAMETRO ALVO E ESTAVEL? -- checagem de Martinez-Bazan")
+    print("-" * 78)
+    print("  Nao adianta pedir 16 mm se a turbulencia quebra a bolha antes.")
+    print("  O diametro critico depende da DISSIPACAO, e a estimativa que")
+    print("  usamos ate agora (eps = g*Ug) e um TETO: ela supoe que toda a")
+    print("  potencia do empuxo vira turbulencia. Na pratica boa parte vai")
+    print("  para a circulacao media e para a energia potencial do gas.")
+    print("-" * 78)
+    print(f"{'fracao de g*Ug':>16s}{'eps_diss':>12s}{'d_crit':>10s}"
+          f"{'16 mm sobrevive?':>20s}")
+    print(f"{'[-]':>16s}{'[m2/s3]':>12s}{'[mm]':>10s}")
+    print("-" * 78)
+    for frac in (1.00, 0.50, 0.30, 0.20, 0.10):
+        eps_d = frac * G * UG
+        dc = d_critico_martinez_bazan(eps_d)
+        ok = "sim" if dc >= 0.016 else "NAO -- quebra"
+        marca = "  <-- teto g*Ug" if frac == 1.0 else ""
+        print(f"{frac:16.2f}{eps_d:12.4f}{dc*1000:10.2f}{ok:>20s}{marca}")
+    print("-" * 78)
+    # fracao que torna d_crit = 16 mm
+    alvo_d = 0.016
+    eps_necessario = (12.0 * SIGMA / (8.2 * RHO_L)) ** 1.5 / alvo_d ** 2.5
+    print(f"  Para d_crit = 16 mm:  eps_diss = {eps_necessario:.4f} m2/s3")
+    print(f"                        = {100*eps_necessario/(G*UG):.0f}% de g*Ug")
+    print("-" * 78)
+    print("  IMPORTANTE -- ISSO E VERIFICAVEL NO PROPRIO CASO QUE ESTA RODANDO.")
+    print("  Basta um Volume Average de Turbulent Dissipation Rate da Agua,")
+    print("  ponderado por Volume Fraction of Agua:")
+    print(f"     se der ~{eps_necessario:.02f} m2/s3 ou menos  -> 16 mm e admissivel")
+    print(f"     se der ~{G*UG:.02f} m2/s3            -> o teto estavel e "
+          f"{d_critico_martinez_bazan(G*UG)*1000:.0f} mm e o")
+    print("                                    diametro fecha so parte do erro")
+    print("-" * 78)
+    print("  Quanto do erro cada diametro fecha (tudo pelo modelo 1D, com o")
+    print("  proprio 4,5 mm como linha de base, para nao misturar bases):")
+    print("-" * 78)
+    print(f"{'d':>7s}{'u_term':>10s}{'eps 1D':>10s}{'% do erro fechado':>20s}")
+    print(f"{'[mm]':>7s}{'[m/s]':>10s}{'[-]':>10s}")
+    print("-" * 78)
+    eps_alvo = UG / U_SWARM["ar"]
+
+    def eps_1d(dmm):
+        u = terminal(dmm / 1000.0, "contaminated")
+        return u, (1.0 - math.sqrt(1.0 - 4.0 * UG / u)) / 2.0
+
+    _, base_1d = eps_1d(4.5)
+    for dmm in (4.5, 8, 10, 12, 16, 18):
+        u, e = eps_1d(dmm)
+        fechado = 100.0 * (base_1d - e) / (base_1d - eps_alvo)
+        print(f"{dmm:7.1f}{u:10.4f}{e:10.5f}{fechado:19.0f}%")
+    print("-" * 78)
+    print(f"  linha de base 1D a 4,5 mm    eps = {base_1d:.5f}")
+    print(f"  CFD a 4,5 mm                 eps = {EPS_CFD:.5f}   "
+          f"({100*(EPS_CFD/base_1d-1):+.1f}% contra o 1D)")
+    print(f"  alvo experimental (enxame)   eps = {eps_alvo:.5f}")
+    print("  O 1D erra 4% contra o CFD porque ignora a expansao do gas e o")
+    print("  perfil radial. Serve para ordenar candidatos, nao para prever.")
+    print("-" * 78)
+    print("  Se a dissipacao real travar o d32 em 10 mm, o diametro fecha ~37%")
+    print("  do erro e sobra bastante coisa por explicar. Prefiro")
+    print("  saber disso ANTES de gastar a rodada do que depois.")
     print("=" * 78)
 
     print("\nCONCLUSAO")
