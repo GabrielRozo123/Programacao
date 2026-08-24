@@ -99,6 +99,44 @@ partir da superfície e cresce até o cilindro de 2 mm.
 | tanque na base de 50 mm | 1,6e5 |
 | **total com transições** | **≈ 2,9e6** |
 
+### ✅ Malha gerada — resultado real
+
+| | |
+|---|---|
+| **células** | **4 436 386** *(53 % acima da estimativa — normal)* |
+| validade topológica | sem células de volume negativo |
+| face validity < 0,95 | **10 células** (0,000 %) |
+| volume change < 1e-2 | **82 células** (0,002 %), mínimo 1,86e-3 |
+| extensões | 2,032 × 2,032 × 7,112 m, centro (0,200; −0,440) ✅ |
+
+### ⭐ A verificação que os relatórios de qualidade NÃO fazem
+
+Validade e extensão continuariam perfeitas com os 144 furos fechados. O teste é a
+**área do contorno `lanca.furos`** (`Report → Sum` de `Area: Magnitude`):
+
+| | |
+|---|---|
+| nominal `144 · π · 1,0 · 5,16` | 2,3343e-3 m² |
+| **medido na malha** | **2,2653e-3 m²** |
+| desvio | **−2,96 %** |
+
+O desvio é o polígono inscrito: o círculo do furo está com **7 a 8 segmentos retos**
+(7 lados dão 96,7 % do perímetro, 8 dão 97,5 %). É a discretização funcionando, não
+defeito.
+
+**Use a área EFETIVA no pós-processamento**, não a nominal:
+
+| | nominal | **efetivo** |
+|---|---|---|
+| área de garganta | 113,10 mm² | **109,75 mm²** |
+| velocidade no furo | 98,2 m/s | **101,2 m/s** |
+| ΔP no furo | 28 223 Pa | **29 969 Pa** *(vai com 1/A²)* |
+| We do gás | 333 | **353** |
+
+Nenhuma conclusão muda — segue fundo em regime de jato, uniformidade folgando por
+fator 140. Refinar para recuperar 3 % multiplicaria por ~4,6 as células do entorno
+dos furos.
+
 Se apertar, duas saídas na ordem: cilindro para **Ø120 × 120** (→ 2,1e6) ou célula
 para **3,125 mm** (→ 1,8e6). Reduzir o cilindro é preferível a engrossar a célula.
 
