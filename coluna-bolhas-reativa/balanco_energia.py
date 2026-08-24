@@ -45,7 +45,9 @@ EPS_ALPHA = 0.049795          # holdup do Nivel 1b, aos 74,4 s
 SLIP = 0.2331                 # slip do Nivel 1b
 D_B = 0.0045                  # diametro prescrito na Interaction Length Scale
 
-MEDIDO = 4.255158e-04         # [m2/s3] Volume Average reportado
+MEDIDO = 4.255158e-04         # [m2/s3] Volume Average ANTES de ligar o BIT
+MEDIDO_BIT = 2.846471e-02     # [m2/s3] Volume Average DEPOIS de ligar o BIT
+EPS_ALPHA_BIT = 0.049604      # holdup aos 107,3 s, com BIT
 
 
 def dissipacao_esperada():
@@ -181,6 +183,54 @@ def main():
     print("  Viscosity Ratio sobe mas o epsilon reportado pode nao subir.")
     print("  Nesse caso o criterio passa a ser o Viscosity Ratio, nao o")
     print("  epsilon. Os dois reports abaixo distinguem os casos.")
+    print("=" * 78)
+
+    print("\nRESULTADO DA RODADA SO-COM-BIT   (107,3 s, d_b ainda em 4,5 mm)")
+    print("=" * 78)
+    print(f"{'grandeza':>26s}{'previsto':>18s}{'medido':>16s}{'veredito':>16s}")
+    print("-" * 78)
+    print(f"{'holdup eps':>26s}{'0,0498 +/- 0,001':>18s}"
+          f"{EPS_ALPHA_BIT:16.5f}{'CONFERE':>16s}")
+    print(f"{'eps_diss [m2/s3]':>26s}{eps_esp:18.4f}"
+          f"{MEDIDO_BIT:16.5f}{'24% do balanco':>16s}")
+    print(f"{'salto no eps_diss':>26s}{'':>18s}"
+          f"{MEDIDO_BIT/MEDIDO:15.0f}x{'fonte ativa':>16s}")
+    print("-" * 78)
+    print("  O holdup nao se mexeu (0,0498 -> 0,0496): o BIT nao toca no")
+    print("  arrasto, como previsto. A previsao passou.")
+    print("-" * 78)
+    print(f"  Mas o eps_diss parou em {MEDIDO_BIT:.4f}, ou seja "
+          f"{100*MEDIDO_BIT/eps_esp:.0f}% do balanco de")
+    print("  energia. O salto de 67x prova que existe TERMO-FONTE (aumento de")
+    print("  viscosidade puro nao levantaria o epsilon com o liquido parado).")
+    print("  Falta explicar o fator 4 que sobra.")
+    print("-" * 78)
+    print("  LEITURA HONESTA: o balanco de 0,12 e a dissipacao MECANICA TOTAL.")
+    print("  Parte do trabalho do arrasto e dissipada direto na interface e na")
+    print("  camada limite da bolha, em escala que nunca vira cascata")
+    print("  turbulenta. Só a parcela que vira cascata alimenta o epsilon --")
+    print("  e so ela quebra bolha. Os dois numeros medem coisas diferentes.")
+    print("=" * 78)
+
+    print("\nISSO REABRE O DIAMETRO ALVO")
+    print("-" * 78)
+    print(f"{'eps_diss usado':>30s}{'valor':>12s}{'d_crit':>10s}{'16 mm?':>14s}")
+    print(f"{'':>30s}{'[m2/s3]':>12s}{'[mm]':>10s}")
+    print("-" * 78)
+    for nome, e in (("medido COM BIT (cascata)", MEDIDO_BIT),
+                    ("balanco (mecanica total)", eps_esp)):
+        dc = d_critico_martinez_bazan(e)
+        print(f"{nome:>30s}{e:12.5f}{dc*1000:10.1f}"
+              f"{('sobrevive' if dc >= 0.016 else 'quebra'):>14s}")
+    print("-" * 78)
+    print("  Martinez-Bazan precisa da flutuacao turbulenta NA ESCALA DA")
+    print("  BOLHA, que vem da cascata -- e a cascata e o epsilon do modelo.")
+    print("  Por esse criterio o teto e 17 mm e 16 mm e admissivel.")
+    print("  Pelo balanco total o teto seria 10 mm.")
+    print("-" * 78)
+    print("  Eu tinha te mandado fixar 10 mm com base no balanco. Com o")
+    print("  numero medido em maos, a faixa defensavel e 10 a 17 mm, e nao")
+    print("  um valor so. Por isso a proxima etapa nao e UM diametro.")
     print("=" * 78)
 
     print("\nCOMO CONFIRMAR EM DOIS REPORTS")
