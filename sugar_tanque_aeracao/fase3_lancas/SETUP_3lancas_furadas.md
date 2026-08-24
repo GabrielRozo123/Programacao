@@ -41,7 +41,7 @@ Se vier menos, a importação comeu os furos — reimporte.
 
 ## 2. Cilindros de refino — coordenadas
 
-Dois níveis por lança. Monte como `Part → Cylinder` e use em `Volumetric Control`.
+Monte como `Part → Cylinder` e use em `Volumetric Control`.
 
 **Um cilindro por lança, três no total.** Cada um envolve os 48 furos inteiros.
 
@@ -162,18 +162,18 @@ Desligar no continuum não basta — foi o que causou a divergência da vez pass
 | região | célula | Δt para CFL = 1 |
 |---|---|---|
 | **furo** | 0,25 mm | **2,5e-6 s** |
-| refino próximo | 2 mm | 2,0e-5 s |
-| pluma | 12,5 mm | 1,3e-4 s |
+| cilindro de refino | 2 mm | 2,0e-5 s |
+| tanque na base | 50 mm | 5,1e-4 s |
 
 Com o Δt = 1e-3 das rodadas anteriores, o CFL local no furo seria **393**.
 
 **Não tente resolver o transiente do jato.** Ele atinge regime quase-permanente em
-microssegundos; o que interessa é a pluma, em segundos. Estratégia:
+microssegundos; o que interessa é o acúmulo de ar, em segundos. Estratégia:
 
 | fase | Δt | passos | para quê |
 |---|---|---|---|
 | arranque | **1e-5 s** | ~500 | estabelecer os 144 jatos |
-| transição | **1e-4 s** | ~2 000 | pluma sai da banda perfurada |
+| transição | **1e-4 s** | ~2 000 | ar preenche a banda perfurada |
 | produção | **5e-4 s** | até parar | desenvolvimento da pluma |
 
 Inner iterations: **8 a 10**. Vigie os resíduos na troca de patamar — é ali que
