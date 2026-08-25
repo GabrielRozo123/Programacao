@@ -253,6 +253,65 @@ Com a rampa imposta, na cota dos furos a pressão interna fica em 29 845 Pa cont
 no xarope: **exatamente o ΔP de projeto**. Os 144 jatos partem na intensidade certa
 no primeiro passo.
 
+
+---
+
+## 4.5 ⭐⭐ ACHADO — a resistência viscosa de formação da cavidade
+
+**O maior resultado desta campanha, e ele não estava na análise do relatório.**
+
+Para o ar sair de um furo de 1,0 mm, ele precisa **inflar uma cavidade dentro de um
+xarope de 6,5 Pa·s**. Isso custa pressão, e o custo é da ordem de Rayleigh-Plesset
+viscoso:
+
+```
+ΔP_viscoso = 4·µ·(dR/dt)/R = µ·Q_furo / (π·R³)
+```
+
+Na vazão de projeto (40 m³/h, 144 furos):
+
+| raio da cavidade | ΔP viscoso |
+|---|---|
+| 0,5 mm *(o próprio furo)* | 1 277 000 Pa |
+| **1,0 mm** | **159 645 Pa** |
+| 2,0 mm | 19 956 Pa |
+| 3,0 mm | 5 913 Pa |
+| 5,0 mm | 1 277 Pa |
+
+Compare com o que dimensionamos: **ΔP do orifício = 29 996 Pa** e capilaridade de
+apenas **232 Pa**. Enquanto a cavidade for menor que ~2 mm, **a resistência viscosa
+domina o furo**, em ordens de grandeza no começo. A capilaridade é irrelevante.
+
+### Como apareceu
+
+Na rodada com `Mass Flow Inlet`, **97,5 % do ar injetado ficava acumulando dentro da
+lança** — os furos passavam apenas 5 % do previsto. A pressão subia a 11,3 Pa/ms, e
+levaria **1,8 s** para vencer a barreira. Não era problema numérico.
+
+### Consequência para a pressão de suprimento
+
+| cavidade | hidrostática | orifício | **viscoso** | **total** | kgf/cm² |
+|---|---|---|---|---|---|
+| 5 mm | 85 142 | 29 996 | 1 277 | 116 415 | **1,19** |
+| 3 mm | 85 142 | 29 996 | 5 913 | 121 051 | **1,23** |
+| 2 mm | 85 142 | 29 996 | 19 956 | 135 094 | **1,38** |
+| ∞ *(o que o relatório traz hoje)* | 85 142 | 29 996 | 0 | 115 138 | 1,17 |
+
+> **O §8.4 do relatório subestima a pressão de suprimento.** Ele traz ≈ 0,91 kgf/cm²
+> (hidrostática + orifício no arranjo de 16 lanças), que é o limite de cavidade
+> infinita. O valor real depende do tamanho de cavidade — que é o que a rodada mede.
+
+### Duas mensagens novas para o Ito
+
+**1. Partir custa muito mais que operar.** Inflar a cavidade a partir do próprio
+furo pede pressão de outra ordem. Isso reforça a válvula de retenção já recomendada
+e **acrescenta um requisito**: o soprador precisa de capacidade de partida acima da
+de regime, ou uma purga de linha antes de submergir.
+
+**2. É o preço do furo pequeno em líquido muito viscoso.** A descarga aberta de
+Ø62,7 mm não tinha esse problema — com R = 31 mm o termo `µQ/(πR³)` é desprezível.
+Não é defeito do projeto perfurado; é um custo que precisa entrar na especificação.
+
 ---
 
 ## 5. ⚠️ Passo de tempo — o ponto caro da opção B
