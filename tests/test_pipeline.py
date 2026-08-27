@@ -17,12 +17,17 @@ KEQ_CONHECIDOS = {"Keq_1": 3.0, "Keq_2": 2.0, "Keq_3": 5.0}
 
 @pytest.fixture(scope="module")
 def dados_pequenos():
-    """Quatro corridas em batelada, duas temperaturas, duas razões molares."""
-    t = np.array([0, 10, 20, 40, 60, 90, 120.0])
+    """Seis corridas em batelada: duas temperaturas, três razões molares.
+
+    Dimensionado para o mínimo que sustenta o ajuste isotérmico da
+    regressão racional (mais de doze pontos diferenciais por
+    temperatura), que é também o mínimo defensável na bancada.
+    """
+    t = np.array([0, 5, 10, 20, 40, 60, 90, 120.0])
     conds = [
         Condition(f"B-T{T - 273.15:.0f}-R{r:.0f}", T, r, times_min=t, catalyst_g_L=10.0)
         for T in (323.15, 343.15)
-        for r in (6.0, 12.0)
+        for r in (6.0, 9.0, 12.0)
     ]
     return generate_dataset(conditions=conds, relative_noise=0.02, seed=7)
 
@@ -73,7 +78,11 @@ def test_regressao_esparsa_aponta_inibicao_por_produto(varredura):
     :func:`biokin.ml.surrogate.collinearity_report`.
     """
     assert varredura.rational is not None
-    ativos = set(varredura.rational.active_denominator())
+    ativos = {
+        nome
+        for m in varredura.rational.models.values()
+        for nome in m.active_denominator()
+    }
     assert ativos & {"C_G", "C_E"}, f"nenhuma inibição por produto: {ativos}"
 
 
@@ -126,3 +135,37 @@ def test_ida_e_volta_pelo_csv(dados_pequenos, tmp_path):
         assert np.allclose(a.C0, b.C0)
         assert np.allclose(a.t, b.t)
         assert np.allclose(a.Y, b.Y, equal_nan=True, rtol=1e-5)
+
+
+def test_consenso_esparso_e_isotermico(varredura):
+    """A regressão racional deve ser ajustada temperatura a temperatura.
+
+    Seus coeficientes são k(T) e K(T): um único conjunto ajustado a várias
+    temperaturas é erro de especificação, porque a velocidade muda por um
+    fator de vários entre os extremos da faixa e nenhuma escolha de termos
+    reconcilia isso.
+    """
+    cons = varredura.rational
+    assert cons is not None
+    assert cons.n_temperatures == len(varredura.dataset.temperatures)
+    assert set(cons.models) == set(varredura.dataset.temperatures)
+
+
+def test_teto_da_rede_neural_e_fora_da_amostra():
+    """O R² de referência precisa ser validado, não de treino.
+
+    Com dezenas de pontos e centenas de pesos, o R² de treino de uma rede
+    chega perto de 1 sem capacidade nenhuma de generalizar — comparar um
+    modelo cinético contra esse número é comparar contra ruído decorado.
+    """
+    from biokin.ml.surrogate import estimate_rate_table
+    from biokin.screening import ScreeningConfig, ml_baseline
+
+    dados = generate_dataset(relative_noise=0.05, seed=3)
+    tabela = estimate_rate_table(dados)
+    base = ml_baseline(tabela, ScreeningConfig(mlp_epochs=800, ml_folds=4))
+    assert base.n_folds >= 2
+    # a rede é dimensionada aos dados: nunca mais pesos que pontos
+    assert base.n_parameters < len(tabela)
+    # com 5% de ruído nos perfis, o teto fora da amostra fica longe de 1
+    assert base.r2_mean < 0.98

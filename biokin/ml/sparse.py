@@ -40,10 +40,18 @@ from scipy.optimize import least_squares
 
 @dataclass
 class Feature:
-    """Um termo da biblioteca: nome legível e função que o avalia."""
+    """Um termo da biblioteca: nome, função que o avalia e sinal admissível.
+
+    ``sign`` restringe o coeficiente: ``+1`` obriga a ser não negativo,
+    ``-1`` não positivo, ``0`` deixa livre. Sem isso a regressão encontra
+    soluções de bom ajuste e sem sentido físico — um coeficiente negativo
+    no termo bimolecular do numerador descreve uma reação que consome
+    produto para formar reagente.
+    """
 
     name: str
     func: Callable[[dict[str, np.ndarray]], np.ndarray]
+    sign: int = 0
 
     def __call__(self, cols: dict[str, np.ndarray]) -> np.ndarray:
         return self.func(cols)
@@ -74,14 +82,22 @@ def rational_library(
     O denominador cobre a competição de cada espécie pelos sítios.
     """
     num = [
-        Feature(f"C_{acyl}·C_M", _prod(acyl, "M")),
-        Feature(f"C_{acyl}", _prod(acyl)),
-        Feature("C_M", _prod("M")),
+        Feature(f"C_{acyl}·C_M", _prod(acyl, "M"), sign=+1),
+        Feature(f"C_{acyl}", _prod(acyl), sign=+1),
+        Feature("C_M", _prod("M"), sign=+1),
     ]
     if reversible:
-        num.append(Feature(f"C_{product}·C_E", _prod(product, "E")))
-    den = [Feature(f"C_{s}", _prod(s)) for s in inhibitors]
+        # termo reverso: entra subtraindo, logo coeficiente não positivo
+        num.append(Feature(f"C_{product}·C_E", _prod(product, "E"), sign=-1))
+    den = [Feature(f"C_{s}", _prod(s), sign=+1) for s in inhibitors]
     return num, den
+
+
+#: Teto para os coeficientes do denominador [L/mol].
+#: Uma constante de adsorção em fase líquida acima disso significaria
+#: adsorção praticamente irreversível, o que contradiz o próprio
+#: pressuposto de quase-equilíbrio do tratamento LHHW.
+MAX_ADSORPTION_L_MOL = 500.0
 
 
 def _design(
@@ -154,12 +170,55 @@ class RationalModel:
         power = "" if abs(self.q - 1.0) < 1e-6 else f"^{self.q:.2f}"
         return f"r = ({num}) / ({den}){power}"
 
-    def active_denominator(self, tol: float = 1e-12) -> list[str]:
-        """Espécies que o ajuste manteve no denominador."""
-        return [f.name for f, c in zip(self.denominator, self.b) if abs(c) > tol]
+    def active_denominator(
+        self, tol: float = 1e-12, exclude_at_bound: bool = True
+    ) -> list[str]:
+        """Espécies que o ajuste manteve no denominador.
+
+        Coeficientes que pararam no teto de :data:`MAX_ADSORPTION_L_MOL`
+        são descartados por omissão: um parâmetro no limite significa que
+        o ajuste o levaria a infinito, e o termo está absorvendo o efeito
+        de outra coisa — tipicamente de uma espécie colinear com ele — em
+        vez de descrever adsorção real.
+        """
+        teto = 0.98 * MAX_ADSORPTION_L_MOL
+        return [
+            f.name
+            for f, c in zip(self.denominator, self.b)
+            if abs(c) > tol and not (exclude_at_bound and abs(c) >= teto)
+        ]
+
+    def denominator_at_bound(self) -> list[str]:
+        """Termos cujo coeficiente parou no teto — não interpretáveis."""
+        teto = 0.98 * MAX_ADSORPTION_L_MOL
+        return [
+            f.name for f, c in zip(self.denominator, self.b) if abs(c) >= teto
+        ]
+
+    @property
+    def suspicious_scale(self) -> list[str]:
+        """Coeficientes fora da faixa fisicamente plausível."""
+        avisos: list[str] = []
+        if self.denominator_at_bound():
+            avisos.append(
+                "coeficiente no teto em "
+                + ", ".join(self.denominator_at_bound())
+                + " (termo descartado do consenso)"
+            )
+        return avisos
 
     def interpretation(self) -> str:
-        """Leitura mecanística da estrutura encontrada."""
+        """Leitura mecanística da estrutura encontrada numa temperatura."""
+        avisos = self.suspicious_scale
+        if avisos:
+            return (
+                "Resultado NÃO confiável: "
+                + "; ".join(avisos)
+                + ".\nCom composições colineares (o caso de corridas que partem "
+                "todas de óleo puro) a regressão racional encontra combinações "
+                "de bom ajuste e sem significado. Use corridas com produto na "
+                "alimentação antes de interpretar esta forma."
+            )
         active = self.active_denominator()
         if not active:
             return (
@@ -191,6 +250,7 @@ def fit_rational_sparse(
     q_values: Sequence[float] = (1.0, 2.0),
     fit_q: bool = False,
     weights: np.ndarray | None = None,
+    max_adsorption: float = MAX_ADSORPTION_L_MOL,
 ) -> RationalModel:
     """Descobre a lei racional que melhor explica ``r(C)``.
 
@@ -248,6 +308,7 @@ def fit_rational_sparse(
                 species,
                 fit_q,
                 n,
+                max_adsorption,
             )
             if model is not None and aicc_val < best_aicc:
                 best_aicc = aicc_val
@@ -278,6 +339,7 @@ def _refine(
     species: tuple[str, ...],
     fit_q: bool,
     n: int,
+    max_adsorption: float,
 ) -> tuple[RationalModel | None, float]:
     """Reajusta os coeficientes selecionados sobre o resíduo verdadeiro."""
     Phi_N = _design(numerator, C, species)[:, keep_a]
@@ -297,11 +359,12 @@ def _refine(
         D = np.where(D < 1e-9, 1e-9, D)
         return ((Phi_N @ a) / D**qq - r) / r_scale
 
-    lo = np.concatenate(
-        [np.full(n_a, -np.inf), np.zeros(n_b), [0.5] if fit_q else []]
-    )
+    sinais_num = np.array([f.sign for f in numerator])[keep_a]
+    lo_a = np.where(sinais_num > 0, 0.0, -np.inf)
+    hi_a = np.where(sinais_num < 0, 0.0, np.inf)
+    lo = np.concatenate([lo_a, np.zeros(n_b), [0.5] if fit_q else []])
     hi = np.concatenate(
-        [np.full(n_a, np.inf), np.full(n_b, np.inf), [3.0] if fit_q else []]
+        [hi_a, np.full(n_b, max_adsorption), [3.0] if fit_q else []]
     )
     try:
         sol = least_squares(
@@ -330,3 +393,150 @@ def _refine(
         n_terms=p,
     )
     return model, float(aicc_val)
+
+
+# ----------------------------------------------------------------------
+# consenso entre temperaturas
+# ----------------------------------------------------------------------
+@dataclass
+class RationalConsensus:
+    """Estruturas encontradas em cada temperatura e o consenso entre elas.
+
+    A regressão racional não tem dependência com a temperatura: seus
+    coeficientes são ``k(T)`` e ``K(T)``, que mudam de um nível térmico
+    para outro. Ajustar um único conjunto de coeficientes a dados de
+    várias temperaturas é um erro de especificação — a velocidade pode
+    triplicar entre os extremos da faixa, e nenhuma escolha de termos
+    reconcilia isso.
+
+    O procedimento correto é ajustar **isotermicamente** e comparar as
+    estruturas obtidas. A *forma* da lei não depende da temperatura, só
+    os coeficientes; então um termo que aparece numa temperatura e some
+    noutra é ruído, e um que persiste é evidência.
+    """
+
+    models: dict[float, "RationalModel"] = field(default_factory=dict)
+    consensus_denominator: list[str] = field(default_factory=list)
+    n_temperatures: int = 0
+
+    @property
+    def r2_by_temperature(self) -> dict[float, float]:
+        return {T: m.r2 for T, m in self.models.items()}
+
+    @property
+    def best(self) -> "RationalModel | None":
+        if not self.models:
+            return None
+        return max(self.models.values(), key=lambda m: (m.r2 if np.isfinite(m.r2) else -1))
+
+    @property
+    def mean_r2(self) -> float:
+        vals = [m.r2 for m in self.models.values() if np.isfinite(m.r2)]
+        return float(np.mean(vals)) if vals else float("nan")
+
+    @property
+    def mean_q(self) -> float:
+        vals = [m.q for m in self.models.values()]
+        return float(np.mean(vals)) if vals else float("nan")
+
+    def pretty(self) -> str:
+        linhas = []
+        for T in sorted(self.models):
+            m = self.models[T]
+            linhas.append(f"  {T - 273.15:5.1f} °C  (R² = {m.r2:.4f})")
+            linhas.append(f"      {m.pretty()}")
+        return "\n".join(linhas)
+
+    def interpretation(self, reference_r2: float | None = None) -> str:
+        if not self.models:
+            return "Nenhuma temperatura tinha pontos suficientes para o ajuste."
+
+        linhas: list[str] = []
+        ordem = (
+            "mono-sítio (~1): compatível com Eley-Rideal ou com adsorção/"
+            "dessorção determinante"
+            if abs(self.mean_q - 1) < 0.4
+            else "bimolecular (~2): compatível com Langmuir-Hinshelwood, reação "
+            "superficial determinante"
+        )
+        linhas.append(f"Ordem média do denominador: {self.mean_q:.2f} — {ordem}.")
+
+        if self.consensus_denominator:
+            linhas.append(
+                "Competição pelos sítios detectada de forma consistente em "
+                f"{self.n_temperatures} temperaturas: "
+                f"{', '.join(self.consensus_denominator)}."
+            )
+        else:
+            linhas.append(
+                "Nenhum termo de inibição persistiu em mais de metade das "
+                "temperaturas — sem evidência consistente de competição."
+            )
+
+        divergentes = sorted(
+            {
+                nome
+                for m in self.models.values()
+                for nome in m.active_denominator()
+                if nome not in self.consensus_denominator
+            }
+        )
+        if divergentes:
+            linhas.append(
+                "Termos que aparecem em algumas temperaturas e não em outras "
+                f"({', '.join(divergentes)}) provavelmente são ruído ou reflexo "
+                "de colinearidade."
+            )
+
+        if reference_r2 is not None and np.isfinite(reference_r2):
+            if self.mean_r2 < reference_r2 - 0.15:
+                linhas.append(
+                    f"R² médio {self.mean_r2:.3f} contra teto de {reference_r2:.3f} "
+                    "alcançável nestes dados: a forma racional testada não "
+                    "captura tudo o que há. O catálogo de termos pode estar "
+                    "incompleto."
+                )
+            else:
+                linhas.append(
+                    f"R² médio {self.mean_r2:.3f}, contra teto de "
+                    f"{reference_r2:.3f} nestes dados — a forma racional "
+                    "explica o que há para explicar."
+                )
+
+        avisos = sorted({a for m in self.models.values() for a in m.suspicious_scale})
+        if avisos:
+            linhas.append("Ressalvas: " + "; ".join(avisos) + ".")
+        return "\n".join(linhas)
+
+
+def fit_rational_by_temperature(
+    C: np.ndarray,
+    r: np.ndarray,
+    T: np.ndarray,
+    species: Sequence[str],
+    numerator: list[Feature] | None = None,
+    denominator: list[Feature] | None = None,
+    min_points: int = 12,
+    **kwargs,
+) -> RationalConsensus:
+    """Ajusta a lei racional isotermicamente e apura o consenso estrutural."""
+    T = np.asarray(T, dtype=float)
+    modelos: dict[float, RationalModel] = {}
+    for temp in np.unique(T):
+        idx = np.flatnonzero(T == temp)
+        if len(idx) < min_points:
+            continue
+        try:
+            modelos[float(temp)] = fit_rational_sparse(
+                C[idx], np.asarray(r)[idx], species, numerator, denominator, **kwargs
+            )
+        except Exception:  # noqa: BLE001 - temperatura com dado insuficiente
+            continue
+
+    votos: dict[str, int] = {}
+    for m in modelos.values():
+        for nome in m.active_denominator():
+            votos[nome] = votos.get(nome, 0) + 1
+    limiar = max(1, len(modelos) // 2 + len(modelos) % 2)
+    consenso = sorted(nome for nome, v in votos.items() if v >= limiar)
+    return RationalConsensus(modelos, consenso, len(modelos))

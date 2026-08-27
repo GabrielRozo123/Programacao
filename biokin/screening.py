@@ -39,7 +39,11 @@ from .doe import DesignRanking, candidate_grid, discrimination_design
 from .estimation import FitResult, fit_differential, fit_network
 from .library import DEFAULT_INHIBITION_SETS, FAMILIES, build_catalog, enumerate_rate_laws
 from .ml.mlp import MLP
-from .ml.sparse import RationalModel, fit_rational_sparse, rational_library
+from .ml.sparse import (
+    RationalConsensus,
+    fit_rational_by_temperature,
+    rational_library,
+)
 from .ml.surrogate import (
     CollinearityReport,
     RateTable,
@@ -68,8 +72,8 @@ class ScreeningConfig:
     run_ml_baseline: bool = True
     run_sparse: bool = True
     run_design: bool = True
-    mlp_hidden: tuple[int, ...] = (24, 24)
     mlp_epochs: int = 2500
+    ml_folds: int = 5
     seed: int = 0
 
 
@@ -79,6 +83,8 @@ class MLBaseline:
 
     r2_per_reaction: list[float] = field(default_factory=list)
     n_parameters: int = 0
+    n_folds: int = 0
+    hidden: tuple[int, ...] = ()
 
     @property
     def r2_mean(self) -> float:
@@ -90,9 +96,12 @@ class MLBaseline:
             f"R{j + 1}={v:.4f}" for j, v in enumerate(self.r2_per_reaction)
         )
         return (
-            f"  rede neural ({self.n_parameters} pesos): {per}\n"
-            f"  R² médio = {self.r2_mean:.4f} — este é o teto alcançável por "
-            "uma função flexível sem estrutura mecanística"
+            f"  rede neural {self.hidden} — {self.n_parameters} pesos, "
+            f"validação cruzada em {self.n_folds} dobras\n"
+            f"  R² fora da amostra: {per}\n"
+            f"  R² médio = {self.r2_mean:.4f} — teto alcançável por uma função "
+            "flexível sem estrutura mecanística. Um modelo cinético que chegue "
+            "perto capturou o que há nos dados."
         )
 
 
@@ -105,7 +114,7 @@ class ScreeningResult:
     differential: Ranking
     integral: Ranking | None = None
     ml: MLBaseline | None = None
-    rational: RationalModel | None = None
+    rational: RationalConsensus | None = None
     design: DesignRanking | None = None
     collinearity: CollinearityReport | None = None
     transport: dict[str, TransportDiagnostics] = field(default_factory=dict)
@@ -173,10 +182,10 @@ class ScreeningResult:
             add("-" * 78)
             add("4. FORMA FUNCIONAL DESCOBERTA (regressão racional esparsa)")
             add("-" * 78)
-            add(f"  {self.rational.pretty()}")
-            add(f"  R² = {self.rational.r2:.4f}")
+            add(self.rational.pretty())
             add("")
-            for line in self.rational.interpretation().splitlines():
+            teto = self.ml.r2_mean if self.ml is not None else None
+            for line in self.rational.interpretation(teto).splitlines():
                 add(f"  {line}")
             add("")
 
@@ -259,24 +268,51 @@ def transport_diagnostics(
 
 
 def ml_baseline(table: RateTable, cfg: ScreeningConfig) -> MLBaseline:
-    """Ajusta uma rede neural às velocidades — teto de desempenho."""
+    """Teto de desempenho: rede neural com R² validado por k-dobras.
+
+    O R² de treino de uma rede não serve de teto para nada. Com algumas
+    dezenas de pontos diferenciais e centenas de pesos, ela memoriza os
+    dados e reporta R² próximo de 1 sem capacidade de generalizar —
+    comparar um modelo mecanístico contra esse número é comparar contra
+    ruído decorado.
+
+    Aqui a rede é dimensionada ao volume de dados (uma camada oculta com
+    poucos neurônios) e avaliada em dobras que não participaram do
+    treino. O número resultante é o que um modelo cinético precisa
+    igualar para se dizer que capturou tudo o que há.
+    """
     X = table.features(include_temperature=True)
+    n = len(table)
+    # aproximadamente um peso para cada três pontos
+    largura = int(np.clip(n // (3 * (X.shape[1] + 2)), 3, 12))
+    hidden = (largura,)
+    k = min(cfg.ml_folds, max(2, n // 10))
+
+    rng = np.random.default_rng(cfg.seed)
+    dobras = np.array_split(rng.permutation(n), k)
+
     r2: list[float] = []
     n_par = 0
     for j in range(table.rates.shape[1]):
         y = table.rates[:, j]
-        net = MLP(hidden=cfg.mlp_hidden, positive_output=False, l2=1e-4, seed=cfg.seed)
-        net.fit(X, y, epochs=cfg.mlp_epochs, lr=0.01)
-        r2.append(net.score(X, y))
-        n_par = net.n_parameters
-    return MLBaseline(r2_per_reaction=r2, n_parameters=n_par)
+        preditos = np.empty(n)
+        for f in range(k):
+            teste = dobras[f]
+            treino = np.setdiff1d(np.arange(n), teste)
+            rede = MLP(hidden=hidden, positive_output=False, l2=1e-3, seed=cfg.seed + f)
+            rede.fit(X[treino], y[treino], epochs=cfg.mlp_epochs, lr=0.01)
+            preditos[teste] = rede.predict(X[teste])
+            n_par = rede.n_parameters
+        ss_tot = float(np.sum((y - y.mean()) ** 2))
+        r2.append(1.0 - float(np.sum((y - preditos) ** 2)) / ss_tot if ss_tot > 0 else float("nan"))
+    return MLBaseline(r2_per_reaction=r2, n_parameters=n_par, n_folds=k, hidden=hidden)
 
 
-def sparse_discovery(table: RateTable) -> RationalModel:
-    """Descobre a forma racional da primeira reação da série."""
+def sparse_discovery(table: RateTable) -> RationalConsensus:
+    """Descobre a forma racional da primeira reação, temperatura a temperatura."""
     num, den = rational_library(acyl="TG", product="DG", reversible=True)
-    return fit_rational_sparse(
-        table.C, table.rates[:, 0], FLUID_SPECIES, num, den, fit_q=True
+    return fit_rational_by_temperature(
+        table.C, table.rates[:, 0], table.T, FLUID_SPECIES, num, den, fit_q=True
     )
 
 
@@ -318,7 +354,11 @@ def run_screening(
         log("· regressão racional esparsa")
         try:
             rational = sparse_discovery(table)
-            log(f"  {rational.pretty()}")
+            log(
+                f"  R² médio {rational.mean_r2:.3f} em {rational.n_temperatures} "
+                f"temperaturas; denominador de consenso: "
+                f"{', '.join(rational.consensus_denominator) or 'vazio'}"
+            )
         except Exception as exc:  # noqa: BLE001 - dado insuficiente
             log(f"  não convergiu: {exc}")
 
