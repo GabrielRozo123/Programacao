@@ -312,6 +312,125 @@ de regime, ou uma purga de linha antes de submergir.
 Ø62,7 mm não tinha esse problema — com R = 31 mm o termo `µQ/(πR³)` é desprezível.
 Não é defeito do projeto perfurado; é um custo que precisa entrar na especificação.
 
+
+---
+
+## 4.6 ⭐⭐⭐ A CONFIGURAÇÃO QUE FUNCIONA — Large Scale Interface
+
+**Quatro divergências levaram até aqui.** Cada conserto revelava o modo de falha
+seguinte, o que é a assinatura de modelo operando fora da faixa:
+
+| # | modo de falha | conserto aplicado |
+|---|---|---|
+| 1 | `Tke of Ar` — k-ε phasic em células com α_ar ≈ 0 | → Mixture Turbulence |
+| 2 | `Tke` de mistura, com domínio **fechado** | → `Outlet` no topo *(achado do Gabriel)* |
+| 3 | `Tke` de novo | → Laminar |
+| 4 | `X-momentum of Xarope`, SMD clipado em 130 691 células | → **LSI** |
+
+A causa comum: **o EMP disperso pressupõe bolhas menores que a célula**, e junto ao
+furo o gás é uma **cavidade contínua** com α → 1. Nenhum ajuste de relaxação ou
+refino corrige uma hipótese violada.
+
+### A solução tem modelo próprio
+
+`Large Scale Interface Detection` trata **interface resolvida junto com fase
+dispersa** dentro do EMP: cavidade resolvida no furo, bolhas dispersas depois.
+
+### A cadeia de dependências — a ordem importa
+
+```
+Multiple Flow Regime Topology        (substitui Continuous-Dispersed Topology)
+    └─ Large Scale Interface Detection
+           ├─ Lsi Mesh Refinement            (critério do Adaptive Mesh)
+           └─ LSI Smoothed Convective CFL    (provider do Adaptive Time-Step)
+```
+
+⚠️ **`Continuous-Dispersed Topology` fica travado** enquanto houver modelos
+dependentes (S-Gamma, Drag, Interaction Area Density). O caminho limpo é **apagar o
+Phase Interaction e criar outro**, desmarcando `Auto-select recommended models`
+antes de escolher a topologia.
+
+### ⚠️ S-Gamma Entrainment/Stripping EXIGE turbulência
+
+Ele só existe nesta topologia, e é **o modelo da nossa física**: descreve a cavidade
+desprendendo bolhas para a fase dispersa. Sem ele os dois regimes coexistem sem
+trocar massa.
+
+Mas o entranhamento é dirigido por energia cinética turbulenta, então o STAR passa a
+exigir `Turbulent Viscous Regime`. **Desmarque `Laminar` primeiro** — a mensagem de
+erro diz que o Laminar já provê o slot.
+
+> Isso desfaz a decisão de rodar laminar (§4.3). A justificativa continua válida
+> quantitativamente — a turbulência vale 3,7 Pa em 30 000 no atrito interno — mas
+> ela é **estruturalmente necessária** para o Entrainment. E as três explosões de
+> Tke anteriores eram **consequência** da patologia da cavidade, não causa: com a
+> interface resolvida, o k-ε passa a operar num campo com sentido físico.
+
+### Configuração final
+
+**Physics 1**
+
+| modelo | |
+|---|---|
+| Eulerian Multiphase (EMP) · Implicit Unsteady · Gravity | |
+| **Turbulent** → **Mixture Turbulence** → k-ε Realizable | |
+| **Adaptive Mesh** | critério `LSI Mesh Refinement`, **Max Refinement Level = 2** |
+| **Adaptive Time-Step** | provider `Smoothed CFL` |
+| Cell Quality Remediation | ⚠️ desligar |
+
+**Phase Interaction** (`Xarope-Ar`)
+
+| | |
+|---|---|
+| **Multiple Flow Regime Topology** | Primary = Xarope · Secondary = Ar |
+| **Large Scale Interface Detection** | Primary Criterion 5 · Interface Band 2 células |
+| **S-Gamma Entrainment/Stripping** | ⭐ a cavidade alimentando as bolhas |
+| S-Gamma Breakup · S-Gamma Coalescence · Drag Force | |
+| *(Surface Tension Force — adicionar só depois que rodar)* | |
+
+**Smoothed CFL**
+
+| | |
+|---|---|
+| **Velocity Treatment** | **`Phase Maximum`**, não `Mixture` |
+| **Max. Condition Limit** | **5** para começar; subir a 20 depois de 2 000 passos estáveis |
+| Smoothing Steps | 1 |
+
+> O `Mixture` faz média ponderada por volume: numa célula com pouco ar mas jato a
+> 100 m/s ele vê velocidade pequena e libera passo grande justamente onde o
+> gradiente é violento. O `Phase Maximum` enxerga a fase rápida.
+
+**Solvers**
+
+| | |
+|---|---|
+| Volume Fraction → **Implicit Multi-Stepping** | **5 sub-passos** |
+| S-Gamma → relaxação | 0,3 |
+| Adaptive Time-Step | Δt mín 1e-7 · máx 1e-3 · Max Change Factor 1,2 |
+
+O multi-stepping é o bônus documentado do LSI: *"the implicit multi-step solver is
+not bound to a strict CFL condition and volume fraction transport does not limit the
+global time-step size."* Era um dos amarradores do passo de tempo.
+
+### ⚠️ AMR não refina superfície
+
+Do manual: *"the Adaptive Mesh solver only executes midpoint subdivision for volume
+cells, it cannot re-construct the surface mesh. The surface tessellation must be
+sufficiently fine for curved surfaces in the initial mesh."*
+
+**Os 0,125 mm no `lanca.furos` continuam necessários.** O AMR só ajuda no volume.
+
+Em compensação ele resolve o salto de resolução na saída do furo: *"the refinement
+level of two adjacent cells can only differ by one level"* — o degrau de 16× entre o
+túnel (0,125 mm) e o cilindro de refino (2 mm) deixa de existir.
+
+### A cena que confirma
+
+Duas field functions novas aparecem: `Large Interface Marker` e `Large Interface
+Marker Band`. **Faça uma cena do Marker Band num corte de lança.** Se a banda
+envolver as cavidades dos 144 furos, o modelo está tratando cada região com a física
+certa — cavidade onde é cavidade, bolha onde é bolha.
+
 ---
 
 ## 5. ⚠️ Passo de tempo — o ponto caro da opção B
