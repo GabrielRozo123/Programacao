@@ -279,6 +279,7 @@ def candidate_grid(
     temperatures: tuple[float, ...] = (323.15, 333.15, 343.15, 353.15),
     molar_ratios: tuple[float, ...] = (3.0, 6.0, 9.0, 12.0, 20.0),
     catalyst_g_L: tuple[float, ...] = (5.0, 10.0, 20.0),
+    spikes: tuple[tuple[float, float], ...] = ((0.0, 0.0), (0.4, 0.0), (0.0, 1.0)),
     times_min: np.ndarray | None = None,
     C_TG0: float = 0.9,
 ) -> list[Condition]:
@@ -287,20 +288,35 @@ def candidate_grid(
     Inclui deliberadamente razões molares extremas (3:1 estequiométrico e
     20:1): é onde os denominadores LHHW mais divergem entre si, porque a
     cobertura por metanol varia de baixa a saturante.
+
+    ``spikes`` são pares ``(C_G0, C_E0)`` de glicerol e éster adicionados à
+    alimentação. Numa corrida que parte de óleo puro, glicerol e éster
+    crescem juntos com a conversão — são colineares, e nenhuma técnica
+    consegue atribuir a inibição a um ou a outro. Adicionar um deles de
+    saída é o que torna os dois termos separáveis, e por isso essas
+    condições costumam dominar o ranqueamento discriminatório.
     """
     t = np.array([0, 5, 10, 20, 30, 45, 60, 90, 120.0]) if times_min is None else times_min
     out: list[Condition] = []
     for T in temperatures:
         for ratio in molar_ratios:
             for w in catalyst_g_L:
-                out.append(
-                    Condition(
-                        label=f"T{T - 273.15:.0f}-R{ratio:.0f}-w{w:.0f}",
-                        T_K=T,
-                        molar_ratio=ratio,
-                        C_TG0=C_TG0,
-                        catalyst_g_L=w,
-                        times_min=t,
+                for cg, ce in spikes:
+                    tag = ""
+                    if cg > 0:
+                        tag += f"-G{cg:g}"
+                    if ce > 0:
+                        tag += f"-E{ce:g}"
+                    out.append(
+                        Condition(
+                            label=f"T{T - 273.15:.0f}-R{ratio:.0f}-w{w:.0f}{tag}",
+                            T_K=T,
+                            molar_ratio=ratio,
+                            C_TG0=C_TG0,
+                            C_G0=cg,
+                            C_E0=ce,
+                            catalyst_g_L=w,
+                            times_min=t,
+                        )
                     )
-                )
     return out

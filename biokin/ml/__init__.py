@@ -22,7 +22,13 @@ Três ferramentas, cada uma respondendo a uma pergunta distinta:
 
 from .mlp import MLP, StandardScaler
 from .sparse import RationalModel, fit_rational_sparse, rational_library
-from .surrogate import RateTable, estimate_rate_table, smooth_profile
+from .surrogate import (
+    CollinearityReport,
+    RateTable,
+    collinearity_report,
+    estimate_rate_table,
+    smooth_profile,
+)
 
 __all__ = [
     "MLP",
@@ -31,6 +37,8 @@ __all__ = [
     "fit_rational_sparse",
     "rational_library",
     "RateTable",
+    "CollinearityReport",
+    "collinearity_report",
     "estimate_rate_table",
     "smooth_profile",
 ]

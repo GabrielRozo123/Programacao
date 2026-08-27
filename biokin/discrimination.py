@@ -232,10 +232,13 @@ def residual_diagnostics(fit: FitResult) -> ResidualDiagnostics:
     if r.size < 4:
         return ResidualDiagnostics(float("nan"), float("nan"), float("nan"), float("nan"))
     dw = float(np.sum(np.diff(r) ** 2) / max(np.sum(r**2), 1e-300))
-    try:
-        p = float(stats.shapiro(r[:5000]).pvalue)
-    except Exception:  # noqa: BLE001 - amostra degenerada
+    if float(np.ptp(r)) <= 0:  # resíduos constantes: teste de normalidade não se aplica
         p = float("nan")
+    else:
+        try:
+            p = float(stats.shapiro(r[:5000]).pvalue)
+        except Exception:  # noqa: BLE001 - amostra degenerada
+            p = float("nan")
     return ResidualDiagnostics(dw, p, float(r.mean()), float(np.max(np.abs(r))))
 
 

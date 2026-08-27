@@ -22,6 +22,7 @@ analítico antes de qualquer discussão de mecanismo.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Sequence
 
 import numpy as np
 from scipy.interpolate import make_smoothing_spline
@@ -194,3 +195,92 @@ def estimate_rate_table(
         residual=np.array(res),
         labels=labels,
     )
+
+
+# ----------------------------------------------------------------------
+# colinearidade entre as espécies
+# ----------------------------------------------------------------------
+@dataclass
+class CollinearityReport:
+    """Quanto as composições exploradas permitem separar os termos.
+
+    Numa corrida que parte de óleo puro, glicerol e éster crescem juntos:
+    são proporcionais entre si em toda a trajetória. Quando isso acontece,
+    ``K_ads_G·C_G`` e ``K_ads_E·C_E`` entram no denominador como uma única
+    combinação, e **nenhum método** — nem regressão mecanística, nem
+    aprendizado de máquina — consegue atribuir a inibição a um ou a outro.
+    Não é limitação de técnica; é ausência de informação no dado.
+
+    A saída é experimental: alimentar glicerol (ou éster) desde o início em
+    algumas corridas, quebrando a proporcionalidade.
+    """
+
+    species: list[str]
+    correlation: np.ndarray
+    vif: dict[str, float]
+    collinear_pairs: list[tuple[str, str, float]] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return not self.collinear_pairs
+
+    def report(self) -> str:
+        if self.ok:
+            return (
+                "  composições suficientemente independentes: os termos de "
+                "inibição são separáveis"
+            )
+        linhas = ["  COLINEARIDADE detectada entre espécies:"]
+        for a, b, rho in self.collinear_pairs:
+            linhas.append(f"    {a} e {b}: correlação {rho:+.3f}")
+        piores = sorted(self.vif.items(), key=lambda kv: -kv[1])[:3]
+        linhas.append(
+            "    VIF: " + ", ".join(f"{k}={v:.0f}" for k, v in piores if np.isfinite(v))
+        )
+        linhas.append(
+            "    Os termos de adsorção destas espécies não são separáveis "
+            "com estes dados."
+        )
+        linhas.append(
+            "    Remédio: corridas com o produto adicionado à alimentação "
+            "(ver biokin.doe.candidate_grid, argumento 'spikes')."
+        )
+        return "\n".join(linhas)
+
+
+def collinearity_report(
+    table: RateTable,
+    species: Sequence[str] | None = None,
+    threshold: float = 0.95,
+) -> CollinearityReport:
+    """Correlação e fator de inflação de variância entre as concentrações."""
+    names = list(species) if species is not None else list(FLUID_SPECIES)
+    idx = [FLUID_SPECIES.index(s) for s in names]
+    X = table.C[:, idx]
+
+    keep = [i for i in range(X.shape[1]) if float(np.std(X[:, i])) > 1e-12]
+    names = [names[i] for i in keep]
+    X = X[:, keep]
+    if X.shape[1] < 2:
+        return CollinearityReport(names, np.ones((len(names), len(names))), {}, [])
+
+    corr = np.corrcoef(X, rowvar=False)
+    corr = np.where(np.isfinite(corr), corr, 0.0)
+
+    vif: dict[str, float] = {}
+    for i, nome in enumerate(names):
+        outros = np.delete(X, i, axis=1)
+        A = np.column_stack([np.ones(len(X)), outros])
+        coef, *_ = np.linalg.lstsq(A, X[:, i], rcond=None)
+        resid = X[:, i] - A @ coef
+        ss_tot = float(np.sum((X[:, i] - X[:, i].mean()) ** 2))
+        r2 = 1.0 - float(np.sum(resid**2)) / ss_tot if ss_tot > 0 else 0.0
+        vif[nome] = float("inf") if r2 >= 1.0 else 1.0 / (1.0 - r2)
+
+    pares = [
+        (names[i], names[j], float(corr[i, j]))
+        for i in range(len(names))
+        for j in range(i + 1, len(names))
+        if abs(corr[i, j]) > threshold
+    ]
+    return CollinearityReport(names, corr, vif, pares)

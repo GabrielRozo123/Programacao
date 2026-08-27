@@ -92,6 +92,8 @@ class Condition:
     T_K: float
     molar_ratio: float  # metanol : triglicerídeo
     C_TG0: float = 0.9
+    C_G0: float = 0.0  # glicerol adicionado à alimentação
+    C_E0: float = 0.0  # éster adicionado à alimentação
     reactor: str = "batch"
     catalyst_g_L: float = 10.0
     times_min: np.ndarray = field(default_factory=lambda: np.array([]))
@@ -99,8 +101,20 @@ class Condition:
     geometry: MonolithGeometry | None = None
 
     def initial(self) -> np.ndarray:
+        """Composição de alimentação.
+
+        Glicerol ou éster adicionados de saída (``C_G0``, ``C_E0``) são o
+        recurso que quebra a colinearidade entre produtos: numa corrida
+        que parte de óleo puro, ``C_G`` e ``C_E`` crescem juntos e suas
+        contribuições ao denominador não podem ser separadas.
+        """
         return concentration_vector(
-            {"TG": self.C_TG0, "M": self.molar_ratio * self.C_TG0}
+            {
+                "TG": self.C_TG0,
+                "M": self.molar_ratio * self.C_TG0,
+                "G": self.C_G0,
+                "E": self.C_E0,
+            }
         )
 
 

@@ -40,7 +40,12 @@ from .estimation import FitResult, fit_differential, fit_network
 from .library import DEFAULT_INHIBITION_SETS, FAMILIES, build_catalog, enumerate_rate_laws
 from .ml.mlp import MLP
 from .ml.sparse import RationalModel, fit_rational_sparse, rational_library
-from .ml.surrogate import RateTable, estimate_rate_table
+from .ml.surrogate import (
+    CollinearityReport,
+    RateTable,
+    collinearity_report,
+    estimate_rate_table,
+)
 from .network import KineticNetwork, build_network
 from .species import FLUID_SPECIES
 from .transport import TransportDiagnostics, diagnose
@@ -102,6 +107,7 @@ class ScreeningResult:
     ml: MLBaseline | None = None
     rational: RationalModel | None = None
     design: DesignRanking | None = None
+    collinearity: CollinearityReport | None = None
     transport: dict[str, TransportDiagnostics] = field(default_factory=dict)
     n_candidates: int = 0
     elapsed_s: float = 0.0
@@ -151,6 +157,9 @@ class ScreeningResult:
                 "  Fechamento estequiométrico ruim: as derivadas carregam muito "
                 "ruído. Trate a triagem diferencial como indicativa apenas."
             )
+        if self.collinearity is not None:
+            add("")
+            add(self.collinearity.report())
         add("")
 
         if self.ml is not None:
@@ -291,6 +300,12 @@ def run_screening(
     log("· extração de dados diferenciais")
     table = estimate_rate_table(dataset)
     log(f"  {table.summary()}")
+    colin = collinearity_report(table)
+    if not colin.ok:
+        log(
+            "  colinearidade entre "
+            + ", ".join(f"{a}/{b}" for a, b, _ in colin.collinear_pairs)
+        )
 
     ml = None
     if cfg.run_ml_baseline:
@@ -373,6 +388,7 @@ def run_screening(
         ml=ml,
         rational=rational,
         design=design,
+        collinearity=colin,
         transport=transport,
         n_candidates=len(networks),
         elapsed_s=time.perf_counter() - t0,
