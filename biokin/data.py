@@ -32,7 +32,13 @@ class Experiment:
     reactor: str = "batch"  # 'batch' | 'monolith'
     catalyst_g_L: float = 10.0
     operation: MonolithOperation | None = None
-    sigma: np.ndarray | None = None  # desvio-padrão por espécie
+    sigma: np.ndarray | None = None
+    """Desvio-padrão de cada medida, ``(n_pontos, n_espécies)``.
+
+    Se você conhece a incerteza dos seus ensaios — de réplicas ou da
+    validação do método cromatográfico — informe-a aqui e ela será usada
+    diretamente. Caso contrário, :func:`uncertainty` a estima.
+    """
 
     def __post_init__(self) -> None:
         self.C0 = np.asarray(self.C0, dtype=float)
@@ -61,12 +67,7 @@ class Experiment:
         ]
 
     def scale(self) -> np.ndarray:
-        """Escala característica de cada espécie, para ponderação relativa.
-
-        Sem isto, o triglicerídeo (~1 mol/L) domina os resíduos e o
-        monoglicerídeo (~0,02 mol/L) não influencia o ajuste — justamente a
-        espécie que mais discrimina mecanismos, por ser intermediária.
-        """
+        """Escala característica de cada espécie nesta corrida."""
         out = np.ones(len(FLUID_SPECIES))
         for i in range(len(FLUID_SPECIES)):
             col = self.Y[:, i]
@@ -75,6 +76,37 @@ class Experiment:
                 m = float(np.nanmax(np.abs(col)))
                 out[i] = m if m > 1e-9 else 1.0
         return out
+
+    def uncertainty(
+        self,
+        reference_scale: np.ndarray,
+        rel_error: float = 0.05,
+        floor_fraction: float = 0.01,
+    ) -> np.ndarray:
+        """Desvio-padrão estimado de cada medida.
+
+        ``sigma = sqrt( (rel_error · C)² + (floor_fraction · escala)² )``
+
+        Os dois termos representam coisas diferentes e ambos são
+        necessários. O termo relativo é a repetibilidade da cromatografia,
+        que domina nas espécies abundantes. O piso é o limite de detecção,
+        que domina nas minoritárias.
+
+        Ponderar apenas pelo máximo de cada espécie *dentro da corrida* —
+        o que parece razoável — quebra justamente nas corridas de baixa
+        conversão: ali o glicerol não passa do piso analítico, o máximo da
+        corrida é da ordem do próprio ruído, e o ponto recebe peso enorme.
+        Na validação sintética isso produzia resíduos de curtose ~100
+        concentrados nas corridas em monolito de menor tempo espacial.
+
+        ``reference_scale`` é a escala de cada espécie em **todo** o
+        conjunto, não nesta corrida.
+        """
+        if self.sigma is not None:
+            return np.asarray(self.sigma, dtype=float)
+        piso = floor_fraction * np.asarray(reference_scale, dtype=float)
+        base = np.nan_to_num(np.abs(self.Y), nan=0.0)
+        return np.sqrt((rel_error * base) ** 2 + piso**2)
 
 
 @dataclass
@@ -93,6 +125,23 @@ class Dataset:
     @property
     def n_obs(self) -> int:
         return sum(e.n_obs for e in self.experiments)
+
+    def reference_scale(self) -> np.ndarray:
+        """Escala de cada espécie no conjunto inteiro.
+
+        É a referência do piso de detecção: uma espécie cuja concentração
+        chega a 1 mol/L em alguma corrida não pode receber, numa corrida de
+        baixa conversão, um piso de incerteza proporcional àquela corrida.
+        """
+        out = np.ones(len(FLUID_SPECIES))
+        for i in range(len(FLUID_SPECIES)):
+            vals = np.concatenate(
+                [e.Y[np.isfinite(e.Y[:, i]), i] for e in self.experiments]
+                or [np.zeros(1)]
+            )
+            m = float(np.max(np.abs(vals))) if vals.size else 0.0
+            out[i] = m if m > 1e-9 else 1.0
+        return out
 
     @property
     def temperatures(self) -> list[float]:

@@ -138,17 +138,46 @@ corridas, em que faixa, o que medir e por quê.
 ## Validação
 
 ```bash
-python -m pytest tests/ -q
+python -m pytest tests/ -q       # 44 testes, ~2,5 min
 ```
 
-39 testes. Os mais importantes verificam que:
+Os mais importantes verificam que:
 
 - a lei derivada **se anula no equilíbrio químico** para toda família e
   toda escolha de etapa determinante — a propriedade que separa uma lei
   mecanística de um ajuste empírico com aparência de mecanismo;
 - a derivação reproduz as leis de livro-texto para Eley-Rideal e
   Langmuir-Hinshelwood;
+- a integração conserva os balanços de acila, de esqueleto de glicerol e
+  de metanol;
 - a varredura recupera o mecanismo que gerou dados sintéticos ruidosos.
+
+### Resultado da validação sintética
+
+`docs/relatorio_demo.txt` traz a saída completa de `python -m biokin demo`
+sobre 27 corridas com 3 % de ruído. Em **cerca de 10 minutos** a varredura
+percorre 41 candidatos e conclui:
+
+| | |
+|---|---|
+| mecanismo verdadeiro | `ER-M[G] \| RDS=sr` |
+| primeiro colocado | `ER-M[G] \| RDS=sr`, peso de Akaike 1,000 |
+| `k₁` recuperado | +1,4 % do valor verdadeiro |
+| `Ea₁` recuperada | 50,9 ± 7,6 contra 52 kJ/mol |
+| `K_ads,G` recuperada | −2,2 % do valor verdadeiro |
+| famílias LH | reprovadas: ΔS_ads de −487 J/(mol·K), impossível |
+
+Vale reparar em três desfechos que mostram os filtros funcionando:
+
+- o modelo com um termo **a mais** de inibição (por éster) ajusta
+  igualmente bem — SSE 3,484 contra 3,485 — e é rejeitado pela parcimônia;
+- o modelo **sem** inibição por glicerol ajusta visivelmente pior, o que
+  estabelece que a inibição é real;
+- as famílias Langmuir-Hinshelwood ajustam tão bem quanto a verdadeira e
+  são eliminadas pelas regras termodinâmicas, não pela estatística.
+
+O tempo se reparte em ~300 s de triagem diferencial (41 modelos), ~230 s
+de regressão integral (5 sobreviventes) e ~35 s no restante.
 
 ## Limitações
 

@@ -35,7 +35,12 @@ import numpy as np
 
 from .data import Dataset
 from .discrimination import ModelScore, Ranking, rank_models
-from .doe import DesignRanking, candidate_grid, discrimination_design
+from .doe import (
+    DesignRanking,
+    candidate_grid,
+    d_optimal_design,
+    discrimination_design,
+)
 from .estimation import FitResult, fit_differential, fit_network
 from .library import DEFAULT_INHIBITION_SETS, FAMILIES, build_catalog, enumerate_rate_laws
 from .ml.mlp import MLP
@@ -72,6 +77,15 @@ class ScreeningConfig:
     run_ml_baseline: bool = True
     run_sparse: bool = True
     run_design: bool = True
+    max_design_candidates: int = 60
+    """Teto de condições avaliadas no planejamento discriminatório.
+
+    O critério de Box-Hill precisa da sensibilidade da previsão a cada
+    parâmetro em cada condição, o que custa uma integração da rede por
+    parâmetro por condição por modelo. A grade completa tem 180 condições;
+    uma subamostra determinística cobre o espaço igualmente bem por uma
+    fração do custo. Aumente se quiser a varredura exaustiva.
+    """
     mlp_epochs: int = 2500
     ml_folds: int = 5
     seed: int = 0
@@ -116,10 +130,12 @@ class ScreeningResult:
     ml: MLBaseline | None = None
     rational: RationalConsensus | None = None
     design: DesignRanking | None = None
+    refinement: list | None = None
     collinearity: CollinearityReport | None = None
     transport: dict[str, TransportDiagnostics] = field(default_factory=dict)
     n_candidates: int = 0
     elapsed_s: float = 0.0
+    stage_times: dict[str, float] = field(default_factory=dict)
 
     @property
     def final(self) -> Ranking:
@@ -224,8 +240,36 @@ class ScreeningResult:
             add(f"  modelos em disputa: {', '.join(self.design.models)}")
             add(self.design.table(top=8))
             add("")
+        elif self.refinement:
+            add("-" * 78)
+            add("7. PRÓXIMOS EXPERIMENTOS (refino dos parâmetros, D-ótimo)")
+            add("-" * 78)
+            add(
+                "  A discriminação está encerrada: um modelo concentra toda a\n"
+                "  probabilidade. Estas são as condições que mais reduzem a\n"
+                "  incerteza dos parâmetros dele."
+            )
+            add("")
+            cabecalho = "log det(J'J)"
+            add(
+                f"  {'#':>3s} {'condição':<26s} {'T [°C]':>7s} {'M:TG':>6s} "
+                f"{cabecalho:>13s}"
+            )
+            add("  " + "-" * 60)
+            for i, (cond, valor) in enumerate(self.refinement[:8], start=1):
+                add(
+                    f"  {i:>3d} {cond.label[:26]:<26s} "
+                    f"{cond.T_K - 273.15:>7.1f} {cond.molar_ratio:>6.1f} "
+                    f"{valor:>13.2f}"
+                )
+            add("")
 
         add("=" * 78)
+        if self.stage_times:
+            partes = "  ".join(
+                f"{nome} {t:.0f}s" for nome, t in self.stage_times.items()
+            )
+            add(f"tempo por etapa: {partes}")
         add(f"tempo total: {self.elapsed_s:.1f} s")
         return "\n".join(L)
 
@@ -326,13 +370,21 @@ def run_screening(
     cfg = config or ScreeningConfig()
     t0 = time.perf_counter()
 
+    stage: dict[str, float] = {}
+
     def log(msg: str) -> None:
         if verbose:
             print(msg, flush=True)
 
+    def mark(nome: str, inicio: float) -> None:
+        stage[nome] = time.perf_counter() - inicio
+
+    t = time.perf_counter()
     log("· diagnóstico de transporte")
     transport = transport_diagnostics(dataset)
+    mark("transporte", t)
 
+    t = time.perf_counter()
     log("· extração de dados diferenciais")
     table = estimate_rate_table(dataset)
     log(f"  {table.summary()}")
@@ -343,14 +395,19 @@ def run_screening(
             + ", ".join(f"{a}/{b}" for a, b, _ in colin.collinear_pairs)
         )
 
+    mark("dados diferenciais", t)
+
     ml = None
     if cfg.run_ml_baseline:
+        t = time.perf_counter()
         log("· referência sem mecanismo (rede neural)")
         ml = ml_baseline(table, cfg)
-        log(f"  R² médio = {ml.r2_mean:.4f}")
+        log(f"  R² médio fora da amostra = {ml.r2_mean:.4f}")
+        mark("rede neural", t)
 
     rational = None
     if cfg.run_sparse:
+        t = time.perf_counter()
         log("· regressão racional esparsa")
         try:
             rational = sparse_discovery(table)
@@ -361,13 +418,18 @@ def run_screening(
             )
         except Exception as exc:  # noqa: BLE001 - dado insuficiente
             log(f"  não convergiu: {exc}")
+        mark("regressão esparsa", t)
 
+    t = time.perf_counter()
     log("· enumerando mecanismos candidatos")
     catalog = build_catalog(cfg.families, cfg.inhibition_sets)
     laws = enumerate_rate_laws(catalog, cfg.include_empirical)
     networks = [build_network(law) for law in laws]
     log(f"  {len(networks)} candidatos ({len(catalog)} mecanismos)")
 
+    mark("enumeração", t)
+
+    t = time.perf_counter()
     log("· triagem diferencial")
     diff_fits: list[FitResult] = []
     for i, net in enumerate(networks, start=1):
@@ -384,6 +446,7 @@ def run_screening(
         if verbose and (i % 10 == 0 or i == len(networks)):
             log(f"  {i}/{len(networks)} modelos")
     diff_rank = rank_models(diff_fits)
+    mark("triagem diferencial", t)
 
     integral = None
     if cfg.n_refine > 0:
@@ -391,6 +454,7 @@ def run_screening(
             s for s in diff_rank.scores if s.admissible and s.fit.success
         ][: cfg.n_refine]
         if survivors:
+            t = time.perf_counter()
             log(f"· regressão integral de {len(survivors)} sobreviventes")
             int_fits: list[FitResult] = []
             for i, s in enumerate(survivors, start=1):
@@ -408,17 +472,38 @@ def run_screening(
                     )
                 )
             integral = rank_models(int_fits)
+            mark("regressão integral", t)
 
     design = None
+    refinement = None
     final = integral or diff_rank
-    if cfg.run_design and len([s for s in final.scores if s.admissible]) >= 2:
-        log("· planejamento discriminatório")
-        try:
-            design = discrimination_design(
-                final.scores, candidate_grid(), criterion="box_hill", mode="ideal"
-            )
-        except Exception as exc:  # noqa: BLE001 - poucos modelos admissíveis
-            log(f"  não aplicável: {exc}")
+    admissiveis = [s for s in final.scores if s.admissible]
+    if cfg.run_design and admissiveis:
+        t = time.perf_counter()
+        grade = candidate_grid()
+        if len(grade) > cfg.max_design_candidates:
+            passo = len(grade) / cfg.max_design_candidates
+            grade = [grade[int(i * passo)] for i in range(cfg.max_design_candidates)]
+
+        if len(admissiveis) >= 2 and admissiveis[0].weight <= 0.99:
+            log("· planejamento discriminatório")
+            try:
+                design = discrimination_design(
+                    final.scores, grade, criterion="box_hill", mode="ideal"
+                )
+            except Exception as exc:  # noqa: BLE001 - poucos modelos admissíveis
+                log(f"  não aplicável: {exc}")
+        else:
+            # Um modelo concentra toda a probabilidade: não há o que
+            # discriminar, e o critério de Box-Hill degenera (os pesos dos
+            # rivais são numericamente nulos). O passo útil passa a ser
+            # reduzir a incerteza dos parâmetros do vencedor.
+            log("· planejamento de refino (D-ótimo)")
+            try:
+                refinement = d_optimal_design(admissiveis[0].fit, grade, mode="ideal")
+            except Exception as exc:  # noqa: BLE001
+                log(f"  não aplicável: {exc}")
+        mark("planejamento", t)
 
     return ScreeningResult(
         dataset=dataset,
@@ -428,8 +513,10 @@ def run_screening(
         ml=ml,
         rational=rational,
         design=design,
+        refinement=refinement,
         collinearity=colin,
         transport=transport,
         n_candidates=len(networks),
         elapsed_s=time.perf_counter() - t0,
+        stage_times=stage,
     )

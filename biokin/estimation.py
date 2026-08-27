@@ -37,6 +37,54 @@ from .species import FLUID_SPECIES
 #: Valor atribuído a resíduos quando a integração falha.
 PENALTY = 1e3
 
+#: Avaliações máximas por partida, como múltiplo de (n_parâmetros + 1).
+#: Uma partida semeada pela triagem diferencial já começa perto do mínimo
+#: e converge em poucas dezenas de iterações; permitir milhares só faz o
+#: otimizador insistir em modelos que não vão convergir.
+NFEV_PER_PARAM = 40
+
+
+class _Timeout(RuntimeError):
+    """O orçamento de tempo da otimização acabou."""
+
+
+class _Deadline:
+    """Envolve a função de resíduos com prazo e memória do melhor ponto.
+
+    Sem isto o orçamento de tempo só é conferido *entre* partidas, e uma
+    única chamada ao otimizador pode rodar indefinidamente: cada avaliação
+    de resíduo integra a rede em todas as corridas, e o jacobiano numérico
+    multiplica isso pelo número de parâmetros — milhares de avaliações
+    viram dezenas de milhares de integrações. Numa varredura de dezenas de
+    candidatos, um modelo mal condicionado consumiria a varredura inteira.
+
+    Ao estourar o prazo a exceção interrompe a otimização, e o melhor
+    ponto já visitado é aproveitado: não se perde o trabalho feito.
+    """
+
+    __slots__ = ("func", "deadline", "best_x", "best_cost", "best_fun", "n_calls")
+
+    def __init__(self, func, deadline: float) -> None:
+        self.func = func
+        self.deadline = deadline
+        self.best_x: np.ndarray | None = None
+        self.best_cost = np.inf
+        self.best_fun: np.ndarray | None = None
+        self.n_calls = 0
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        if time.perf_counter() > self.deadline:
+            raise _Timeout
+        self.n_calls += 1
+        fun = self.func(x)
+        cost = float(np.sum(fun ** 2))
+        if cost < self.best_cost:
+            self.best_cost = cost
+            self.best_x = np.array(x, dtype=float)
+            self.best_fun = np.asarray(fun, dtype=float)
+        return fun
+
+
 
 @dataclass
 class FitResult:
@@ -192,10 +240,19 @@ def build_residual_function(
     dataset: Dataset,
     par: Parameterization,
     mode: str = "ideal",
+    rel_error: float = 0.05,
+    floor_fraction: float = 0.01,
 ):
-    """Devolve ``f(x) -> vetor de resíduos ponderados`` e seu comprimento."""
+    """Devolve ``f(x) -> vetor de resíduos ponderados`` e seu comprimento.
+
+    Cada resíduo é dividido pela incerteza estimada daquela medida, não
+    por uma escala por espécie. É o que torna a soma de quadrados uma
+    verossimilhança de fato, e o que impede que pontos no piso de detecção
+    — abundantes em corridas de baixa conversão — dominem o ajuste.
+    """
     masks = [np.isfinite(e.Y) for e in dataset]
-    scales = [e.scale() for e in dataset]
+    referencia = dataset.reference_scale()
+    scales = [e.uncertainty(referencia, rel_error, floor_fraction) for e in dataset]
     n_res = int(sum(m.sum() for m in masks))
 
     def residual(x: np.ndarray) -> np.ndarray:
@@ -321,7 +378,7 @@ def fit_network(
     mode: str = "ideal",
     n_starts: int = 8,
     seed: int = 0,
-    max_nfev: int = 2000,
+    max_nfev: int = 0,
     non_isothermal: bool | None = None,
     fixed: dict[str, float] | None = None,
     x0: np.ndarray | None = None,
@@ -346,28 +403,42 @@ def fit_network(
     if x0 is not None and len(x0) == par.n_free:
         starts = np.vstack([np.asarray(x0, dtype=float)[None, :], starts])
 
+    deadline = t_start + time_budget_s
+    nfev_cap = max_nfev or NFEV_PER_PARAM * (par.n_free + 1)
     best = None
+    best_timeout = None
     used = 0
     for x0 in starts:
-        if time.perf_counter() - t_start > time_budget_s and best is not None:
+        if time.perf_counter() > deadline and (best is not None or best_timeout):
             break
         used += 1
+        guarded = _Deadline(residual, deadline)
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 res = least_squares(
-                    residual,
+                    guarded,
                     np.clip(x0, lo, hi),
                     bounds=(lo, hi),
                     method="trf",
-                    max_nfev=max_nfev,
+                    max_nfev=nfev_cap,
                     xtol=1e-10,
                     ftol=1e-12,
                 )
+        except _Timeout:
+            # aproveita o melhor ponto visitado antes do prazo
+            if guarded.best_x is not None and (
+                best_timeout is None or guarded.best_cost < best_timeout.best_cost
+            ):
+                best_timeout = guarded
+            break
         except Exception:  # noqa: BLE001 - modelo patológico: descarta a partida
             continue
         if best is None or res.cost < best.cost:
             best = res
+
+    if best is None and best_timeout is not None:
+        return _result_from_partial(net, par, best_timeout, used, t_start)
 
     elapsed = time.perf_counter() - t_start
     if best is None:
@@ -410,6 +481,39 @@ def fit_network(
         condition_number=stats[3],
         n_starts=used,
         elapsed_s=elapsed,
+        notes=net.notes,
+    )
+
+
+def _result_from_partial(
+    net: KineticNetwork,
+    par: Parameterization,
+    partial: "_Deadline",
+    used: int,
+    t_start: float,
+) -> FitResult:
+    """Resultado a partir do melhor ponto visitado antes do prazo.
+
+    Sem jacobiano não há covariância; o ajuste é marcado como não
+    convergido e, por isso, reprovado nos critérios de admissibilidade —
+    o desfecho correto para um modelo que não coube no orçamento.
+    """
+    fun = partial.best_fun
+    return FitResult(
+        model_id=net.model_id,
+        family=net.family,
+        rds_label=net.rds_label,
+        network=net,
+        parameterization=par,
+        x=partial.best_x,
+        residuals=fun,
+        sse=float(np.sum(fun ** 2)),
+        n_obs=len(fun),
+        n_params=par.n_free,
+        success=False,
+        message=f"orçamento de tempo esgotado após {partial.n_calls} avaliações",
+        n_starts=used,
+        elapsed_s=time.perf_counter() - t_start,
         notes=net.notes,
     )
 
@@ -496,16 +600,18 @@ def fit_differential(
     lo, hi = par.bounds()
     starts = _start_points(par, n_starts, seed)
 
-    best, used = None, 0
+    deadline = t_start + time_budget_s
+    best, best_timeout, used = None, None, 0
     for x0 in starts:
-        if time.perf_counter() - t_start > time_budget_s and best is not None:
+        if time.perf_counter() > deadline and (best is not None or best_timeout):
             break
         used += 1
+        guarded = _Deadline(residual, deadline)
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 res = least_squares(
-                    residual,
+                    guarded,
                     np.clip(x0, lo, hi),
                     bounds=(lo, hi),
                     method="trf",
@@ -514,10 +620,19 @@ def fit_differential(
                     xtol=1e-10,
                     ftol=1e-12,
                 )
+        except _Timeout:
+            if guarded.best_x is not None and (
+                best_timeout is None or guarded.best_cost < best_timeout.best_cost
+            ):
+                best_timeout = guarded
+            break
         except Exception:  # noqa: BLE001 - modelo patológico: descarta a partida
             continue
         if best is None or res.cost < best.cost:
             best = res
+
+    if best is None and best_timeout is not None:
+        return _result_from_partial(net, par, best_timeout, used, t_start)
 
     elapsed = time.perf_counter() - t_start
     if best is None:

@@ -202,6 +202,9 @@ class ResidualDiagnostics:
     shapiro_p: float
     mean_residual: float
     max_abs_residual: float
+    skewness: float = 0.0
+    excess_kurtosis: float = 0.0
+    n: int = 0
 
     @property
     def autocorrelated(self) -> bool:
@@ -209,19 +212,48 @@ class ResidualDiagnostics:
         return not (1.5 < self.durbin_watson < 2.5)
 
     @property
+    def skewed(self) -> bool:
+        """Resíduos assimétricos: o modelo erra mais para um lado.
+
+        É o diagnóstico que importa para a forma funcional — indica viés
+        sistemático, tipicamente um termo faltando na lei de velocidade.
+        """
+        return abs(self.skewness) > 1.0
+
+    @property
+    def heavy_tailed(self) -> bool:
+        """Caudas pesadas: alguns pontos muito distantes do modelo.
+
+        Ao contrário da assimetria, não condena a forma funcional. Aponta
+        pontos aberrantes — erro analítico, amostra contaminada, ponto fora
+        da faixa de validade — que convém identificar e justificar antes de
+        confiar nos intervalos de confiança.
+        """
+        return self.excess_kurtosis > 8.0
+
+    @property
     def non_normal(self) -> bool:
-        return self.shapiro_p < 0.01
+        """Desvio de normalidade grande o bastante para importar.
+
+        O teste de Shapiro-Wilk rejeita a normalidade para qualquer desvio,
+        por menor que seja, quando a amostra é grande — com mil resíduos ele
+        acusa quase sempre, e o alerta perde valor informativo. Aqui exige-se
+        também um tamanho de efeito.
+        """
+        return self.shapiro_p < 0.01 and (self.skewed or self.heavy_tailed)
 
     def report(self) -> str:
         flags = []
         if self.autocorrelated:
-            flags.append("autocorrelação (forma funcional suspeita)")
-        if self.non_normal:
-            flags.append("resíduos não normais")
+            flags.append("autocorrelação: forma funcional suspeita")
+        if self.skewed:
+            flags.append("assimetria: viés sistemático, provável termo faltando")
+        if self.heavy_tailed:
+            flags.append("caudas pesadas: verifique pontos aberrantes")
         tail = ("  <- " + "; ".join(flags)) if flags else ""
         return (
             f"  Durbin-Watson={self.durbin_watson:.2f}  "
-            f"Shapiro p={self.shapiro_p:.3g}  "
+            f"assimetria={self.skewness:+.2f}  curtose={self.excess_kurtosis:+.2f}  "
             f"média={self.mean_residual:+.3g}{tail}"
         )
 
@@ -232,14 +264,18 @@ def residual_diagnostics(fit: FitResult) -> ResidualDiagnostics:
     if r.size < 4:
         return ResidualDiagnostics(float("nan"), float("nan"), float("nan"), float("nan"))
     dw = float(np.sum(np.diff(r) ** 2) / max(np.sum(r**2), 1e-300))
-    if float(np.ptp(r)) <= 0:  # resíduos constantes: teste de normalidade não se aplica
-        p = float("nan")
+    if float(np.ptp(r)) <= 0:  # resíduos constantes: normalidade não se aplica
+        p, skew, kurt = float("nan"), 0.0, 0.0
     else:
         try:
             p = float(stats.shapiro(r[:5000]).pvalue)
         except Exception:  # noqa: BLE001 - amostra degenerada
             p = float("nan")
-    return ResidualDiagnostics(dw, p, float(r.mean()), float(np.max(np.abs(r))))
+        skew = float(stats.skew(r))
+        kurt = float(stats.kurtosis(r))  # já é o excesso de curtose
+    return ResidualDiagnostics(
+        dw, p, float(r.mean()), float(np.max(np.abs(r))), skew, kurt, len(r)
+    )
 
 
 # ----------------------------------------------------------------------
@@ -293,8 +329,11 @@ class Ranking:
         lines = [head, "-" * len(head)]
         for i, s in enumerate(rows, start=1):
             status = "admissível" if s.admissible else f"{len(s.admissibility.violations)} violações"
-            if s.residuals is not None and s.residuals.autocorrelated:
-                status += ", resíduos correlacionados"
+            if s.residuals is not None:
+                if s.residuals.autocorrelated:
+                    status += ", resíduos correlacionados"
+                elif s.residuals.skewed:
+                    status += ", resíduos assimétricos"
             lines.append(
                 f"{i:>3d} {s.model_id[:34]:<34s} {s.fit.n_params:>3d} "
                 f"{s.fit.sse:>10.4g} {s.aicc:>10.1f} {s.delta_aicc:>8.1f} "
@@ -322,6 +361,15 @@ class Ranking:
         best = adm[0]
         if len(adm) == 1:
             return f"Único candidato admissível: {best.model_id}."
+        if best.weight > 0.99:
+            return (
+                f"Discriminação encerrada: {best.model_id} concentra "
+                f"praticamente toda a probabilidade (peso {best.weight:.4f}). "
+                "Os demais candidatos estão descartados por estes dados. O "
+                "passo seguinte não é discriminar e sim refinar — experimentos "
+                "D-ótimos reduzem a incerteza dos parâmetros do modelo "
+                "escolhido (biokin.doe.d_optimal_design)."
+            )
         ratio = best.weight / adm[1].weight if adm[1].weight > 0 else float("inf")
         if ratio > 10:
             strength = "decisiva"
@@ -329,10 +377,14 @@ class Ranking:
             strength = "moderada"
         else:
             strength = "fraca"
+        # Diferenças grandes de AICc produzem razões de evidência de muitas
+        # ordens de grandeza; imprimi-las por extenso não informa nada além
+        # de "muito maior que 10".
+        razao = f"{ratio:.1f}" if ratio < 1e4 else f"> 10^{int(np.log10(ratio))}"
         txt = (
             f"Melhor candidato admissível: {best.model_id} "
             f"(peso {best.weight:.3f}). Evidência {strength} sobre o segundo "
-            f"colocado, {adm[1].model_id} (razão {ratio:.1f})."
+            f"colocado, {adm[1].model_id} (razão {razao})."
         )
         if ratio <= 3:
             txt += (

@@ -100,16 +100,23 @@ class RateLaw:
         return tuple(str(s)[2:] for s in self.conc_symbols)
 
     def numerator_denominator(self) -> tuple[sp.Expr, sp.Expr]:
+        """Numerador e denominador fatorados, com a força motriz em ordem direta.
+
+        A fatoração pode escolher o sinal oposto e apresentar a lei como
+        ``-k(C_B C_E - C_A C_M Keq)/...``, que é correto e ilegível. Aqui o
+        sinal é absorvido pelo fator polinomial, de modo que o termo direto
+        venha primeiro — como se escreve numa dissertação.
+        """
         num, den = sp.fraction(sp.together(self.expr))
-        return sp.factor(num), sp.factor(den)
+        return _normalize_sign(sp.factor(num)), sp.factor(den)
 
     def latex(self) -> str:
         num, den = self.numerator_denominator()
-        return sp.latex(num / den)
+        return sp.latex(num / den, order="none")
 
     def pretty(self) -> str:
         num, den = self.numerator_denominator()
-        return f"r = ({num}) / ({den})"
+        return f"r = ({sp.sstr(num, order='none')}) / ({sp.sstr(den, order='none')})"
 
     # -- avaliação ---------------------------------------------------
     def lambdify(self) -> Callable:
@@ -182,6 +189,34 @@ class RateLaw:
             denominator_exponent=self.denominator_exponent,
             notes=self.notes,
         )
+
+
+def _normalize_sign(expr: sp.Expr) -> sp.Expr:
+    """Move um sinal negativo global para dentro de um fator polinomial."""
+    if not expr.is_Mul:
+        return expr
+    coeff, rest = expr.as_coeff_Mul()
+    if not (coeff.is_number and coeff.is_negative):
+        return expr
+    fatores = list(rest.args) if rest.is_Mul else [rest]
+    for i, fator in enumerate(fatores):
+        if fator.is_Add:
+            fatores[i] = _positive_terms_first(sp.expand(-fator))
+            return sp.Mul(-coeff, *fatores)
+    return expr
+
+
+def _positive_terms_first(add: sp.Expr) -> sp.Expr:
+    """Reordena uma soma para que os termos positivos venham primeiro.
+
+    Sem isto o sympy imprime ``-C_DG*C_E + C_M*C_TG*Keq``, por ordem
+    alfabética dos símbolos. A convenção de escrita da cinética é a
+    contrária: força motriz direta menos reversa.
+    """
+    if not add.is_Add:
+        return add
+    termos = sorted(add.args, key=lambda t: (t.could_extract_minus_sign(), sp.default_sort_key(t)))
+    return sp.Add(*termos, evaluate=False)
 
 
 def _rename_species_token(name: str, mapping: dict[str, str]) -> str:

@@ -118,13 +118,22 @@ class Condition:
         )
 
 
-def default_design(include_monolith: bool = True) -> list[Condition]:
+def default_design(
+    include_monolith: bool = True, include_spiked: bool = True
+) -> list[Condition]:
     """Planejamento típico de um estudo cinético de bancada.
 
     Três temperaturas e três razões molares em batelada — o mínimo para
     separar dependência térmica de dependência de composição — mais
     corridas em monolito variando a velocidade, que é o que muda o tempo
     espacial sem mudar a composição de alimentação.
+
+    ``include_spiked`` acrescenta corridas com glicerol ou éster na
+    alimentação. Sem elas os dois produtos crescem juntos ao longo de toda
+    a trajetória e suas constantes de adsorção não são separáveis — nem
+    por regressão mecanística, nem por aprendizado de máquina. São poucas
+    corridas e mudam qualitativamente o que se pode concluir; ver
+    ``docs/guia_experimental.md``.
     """
     t_batch = np.array([0, 5, 10, 20, 30, 45, 60, 90, 120], dtype=float)
     conds: list[Condition] = []
@@ -139,6 +148,30 @@ def default_design(include_monolith: bool = True) -> list[Condition]:
                     catalyst_g_L=10.0,
                 )
             )
+    if include_spiked:
+        for T in (323.15, 333.15, 343.15):
+            for g in (0.2, 0.45):
+                conds.append(
+                    Condition(
+                        label=f"B-T{T - 273.15:.0f}-dopG{g:g}",
+                        T_K=T,
+                        molar_ratio=9.0,
+                        C_G0=g,
+                        times_min=t_batch,
+                        catalyst_g_L=10.0,
+                    )
+                )
+            for e in (0.6, 1.5):
+                conds.append(
+                    Condition(
+                        label=f"B-T{T - 273.15:.0f}-dopE{e:g}",
+                        T_K=T,
+                        molar_ratio=9.0,
+                        C_E0=e,
+                        times_min=t_batch,
+                        catalyst_g_L=10.0,
+                    )
+                )
     if include_monolith:
         geom = MonolithGeometry(length_m=0.30)
         for T in (333.15, 343.15):

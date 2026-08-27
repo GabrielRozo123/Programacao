@@ -1,0 +1,182 @@
+==============================================================================
+VARREDURA DE MECANISMOS — sintético
+==============================================================================
+sintético: 27 corridas, 1155 observações
+  temperaturas: 323.1 K, 333.1 K, 343.1 K
+  B-T50-R6           batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-R9           batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-R12          batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-R6           batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-R9           batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-R12          batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-R6           batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-R9           batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-R12          batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-dopG0.2      batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-dopG0.45     batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-dopE0.6      batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T50-dopE1.5      batch     T= 323.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-dopG0.2      batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-dopG0.45     batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-dopE0.6      batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T60-dopE1.5      batch     T= 333.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-dopG0.2      batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-dopG0.45     batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-dopE0.6      batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  B-T70-dopE1.5      batch     T= 343.1 K   9 pontos  medido: TG/DG/MG/E/G
+  M-T60-u2           monolith  T= 333.1 K   7 pontos  medido: TG/DG/MG/E/G
+  M-T60-u5           monolith  T= 333.1 K   7 pontos  medido: TG/DG/MG/E/G
+  M-T60-u10          monolith  T= 333.1 K   7 pontos  medido: TG/DG/MG/E/G
+  M-T70-u2           monolith  T= 343.1 K   7 pontos  medido: TG/DG/MG/E/G
+  M-T70-u5           monolith  T= 343.1 K   7 pontos  medido: TG/DG/MG/E/G
+  M-T70-u10          monolith  T= 343.1 K   7 pontos  medido: TG/DG/MG/E/G
+
+------------------------------------------------------------------------------
+1. DIAGNÓSTICO DE TRANSPORTE
+------------------------------------------------------------------------------
+  M-T60-u2:
+  !! Weisz-Prater = 0.175 (< 0.15 -> sem limitação interna)
+  !! Mears        = 0.203 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.203  (fração da força motriz consumida no filme)
+     efetividade  = 0.945  (phi = 0.419)
+     k_c·a_v      = 0.449 1/min
+  M-T60-u5:
+  !! Weisz-Prater = 0.181 (< 0.15 -> sem limitação interna)
+  !! Mears        = 0.164 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.164  (fração da força motriz consumida no filme)
+     efetividade  = 0.944  (phi = 0.425)
+     k_c·a_v      = 0.5747 1/min
+  M-T60-u10:
+  OK Weisz-Prater = 0.031 (< 0.15 -> sem limitação interna)
+  OK Mears        = 0.0221 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.0221  (fração da força motriz consumida no filme)
+     efetividade  = 0.990  (phi = 0.176)
+     k_c·a_v      = 0.7303 1/min
+  M-T70-u2:
+  !! Weisz-Prater = 0.348 (< 0.15 -> sem limitação interna)
+  !! Mears        = 0.404 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.404  (fração da força motriz consumida no filme)
+     efetividade  = 0.898  (phi = 0.59)
+     k_c·a_v      = 0.449 1/min
+  M-T70-u5:
+  !! Weisz-Prater = 0.32 (< 0.15 -> sem limitação interna)
+  !! Mears        = 0.29 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.29  (fração da força motriz consumida no filme)
+     efetividade  = 0.906  (phi = 0.565)
+     k_c·a_v      = 0.5747 1/min
+  M-T70-u10:
+  !! Weisz-Prater = 0.602 (< 0.15 -> sem limitação interna)
+  !! Mears        = 0.429 (< 0.15 -> sem limitação externa)
+     Carberry     = 0.429  (fração da força motriz consumida no filme)
+     efetividade  = 0.838  (phi = 0.776)
+     k_c·a_v      = 0.7303 1/min
+
+  ATENÇÃO: 5 corrida(s) reprovaram nos critérios. Os parâmetros estimados no modo 'ideal' serão aparentes, não intrínsecos. Use mode='full' ou reduza a espessura do washcoat / aumente a velocidade.
+
+------------------------------------------------------------------------------
+2. DADOS DIFERENCIAIS
+------------------------------------------------------------------------------
+  177 pontos diferenciais | erro de fechamento 6.4% | r1 ∈ [8.79e-05, 0.00238]
+
+  COLINEARIDADE detectada entre espécies:
+    TG e MG: correlação -0.965
+    VIF: MG=32, TG=20, DG=6
+    Os termos de adsorção destas espécies não são separáveis com estes dados.
+    Remédio: corridas com o produto adicionado à alimentação (ver biokin.doe.candidate_grid, argumento 'spikes').
+
+------------------------------------------------------------------------------
+3. REFERÊNCIA SEM MECANISMO (rede neural)
+------------------------------------------------------------------------------
+  rede neural (6,) — 55 pesos, validação cruzada em 5 dobras
+  R² fora da amostra: R1=0.8231  R2=0.7460  R3=0.6817
+  R² médio = 0.7502 — teto alcançável por uma função flexível sem estrutura mecanística. Um modelo cinético que chegue perto capturou o que há nos dados.
+
+------------------------------------------------------------------------------
+4. FORMA FUNCIONAL DESCOBERTA (regressão racional esparsa)
+------------------------------------------------------------------------------
+   50.0 °C  (R² = 0.6204)
+      r = (+0.0001564·C_TG·C_M +0.001489·C_TG -3.634e-05·C_DG·C_E) / (1 +0.4771·C_TG +1.37·C_DG +8.706e-12·C_MG +0.72·C_G +0.005772·C_E)^3.00
+   60.0 °C  (R² = 0.5469)
+      r = (+0.07067·C_TG·C_M +0.7919·C_TG) / (1 +1.156·C_M +54.63·C_TG +362.7·C_MG)^1.71
+   70.0 °C  (R² = 0.9656)
+      r = (+0.0006289·C_TG·C_M) / (1 +0.04023·C_M +0.008558·C_TG +0.09493·C_MG +0.3566·C_G)^3.00
+
+  Ordem média do denominador: 2.57 — bimolecular (~2): compatível com Langmuir-Hinshelwood, reação superficial determinante.
+  Competição pelos sítios detectada de forma consistente em 3 temperaturas: C_G, C_M, C_MG, C_TG.
+  Termos que aparecem em algumas temperaturas e não em outras (C_DG, C_E) provavelmente são ruído ou reflexo de colinearidade.
+  R² médio 0.711, contra teto de 0.750 nestes dados — a forma racional explica o que há para explicar.
+
+------------------------------------------------------------------------------
+5. TRIAGEM DIFERENCIAL — 41 candidatos
+------------------------------------------------------------------------------
+  # modelo                               p        SSE       AICc    ΔAICc    peso  situação
+-------------------------------------------------------------------------------------------
+  1 ER-M[G]|RDS=sr                      10      7.332    -5263.9      0.0   1.000  admissível
+  2 ER-M2[sem inib.]|RDS=form           14      9.723    -4956.0    307.9   0.000  admissível
+  3 ER-M[sem inib.]|RDS=sr               8         10    -4938.1    325.7   0.000  admissível
+  4 ER-A[sem inib.]|RDS=ads_A           12      10.39    -4889.7    374.2   0.000  admissível
+  5 Potência|RDS=—                      12      10.61    -4867.9    396.0   0.000  admissível
+  6 PH-2ord|RDS=—                        6      11.33    -4810.3    453.6   0.000  admissível
+  7 ER-M[G+E]|RDS=sr                    12      7.332    -5259.8      nan   0.000  1 violações
+  8 ER-M2[G]|RDS=dec                    16      7.324    -5252.9      nan   0.000  6 violações
+  9 ER-M2[G]|RDS=form                   16      7.332    -5251.7      nan   0.000  6 violações
+ 10 ER-M2[G+E]|RDS=dec                  18      7.324    -5248.7      nan   0.000  6 violações
+ 11 ER-M2[G+E]|RDS=form                 18      7.332    -5247.5      nan   0.000  6 violações
+ 12 ER-A[G]|RDS=ads_A                   14       8.07    -5153.9      nan   0.000  4 violações
+
+------------------------------------------------------------------------------
+6. REGRESSÃO INTEGRAL DOS SOBREVIVENTES
+------------------------------------------------------------------------------
+  # modelo                               p        SSE       AICc    ΔAICc    peso  situação
+-------------------------------------------------------------------------------------------
+  1 ER-M[G]|RDS=sr                      10      583.4     -768.6      0.0   1.000  admissível
+  2 ER-M[sem inib.]|RDS=sr               8       3002     1119.4   1888.0   0.000  admissível, resíduos correlacionados
+  3 Potência|RDS=—                      12       3231     1212.4   1981.0   0.000  admissível, resíduos correlacionados
+  4 ER-M2[sem inib.]|RDS=form           14       2883     1085.0      nan   0.000  2 violações, resíduos correlacionados
+  5 ER-A[sem inib.]|RDS=ads_A           12       3299     1236.4      nan   0.000  2 violações, resíduos correlacionados
+
+  Discriminação encerrada: ER-M[G]|RDS=sr concentra praticamente toda a probabilidade (peso 1.0000). Os demais candidatos estão descartados por estes dados. O passo seguinte não é discriminar e sim refinar — experimentos D-ótimos reduzem a incerteza dos parâmetros do modelo escolhido (biokin.doe.d_optimal_design).
+
+  Modelo vencedor:
+  ER-M[G]|RDS=sr
+    família ER-M | RDS sr | 10 parâmetros | 1155 obs
+    SSE=583.42  RMSE=0.7107  cond(J'J)=1.12e+07
+           parâmetro   estimativa      ± IC95%   nota
+         ln(K_ads_G)        1.374       0.0938   
+          E[K_ads_G]       -47.33          8.8   
+         ln(K_ads_M)       -1.096        0.116   
+          E[K_ads_M]       -24.12         10.5   
+             ln(k_1)       -6.317       0.0325   
+              E[k_1]        51.21         2.99   
+             ln(k_2)       -5.393       0.0332   
+              E[k_2]        45.71         3.11   
+             ln(k_3)       -4.704       0.0343   
+              E[k_3]        38.95          3.3   
+
+  admissível: todas as regras termodinâmicas satisfeitas
+  Durbin-Watson=2.06  assimetria=+0.08  curtose=+5.26  média=-0.0156
+
+  Equação de velocidade (reação 1):
+    r = (K_ads_M*k_1*(C_M*C_TG*Keq_1 - C_DG*C_E)) / (Keq_1*(1 + C_G*K_ads_G + C_M*K_ads_M))
+
+------------------------------------------------------------------------------
+7. PRÓXIMOS EXPERIMENTOS (refino dos parâmetros, D-ótimo)
+------------------------------------------------------------------------------
+  A discriminação está encerrada: um modelo concentra toda a
+  probabilidade. Estas são as condições que mais reduzem a
+  incerteza dos parâmetros dele.
+
+    # condição                    T [°C]   M:TG  log det(J'J)
+  ------------------------------------------------------------
+    1 T80-R6-w10                    80.0    6.0       -155.94
+    2 T80-R9-w10                    80.0    9.0       -156.05
+    3 T80-R6-w20                    80.0    6.0       -156.17
+    4 T70-R6-w20                    70.0    6.0       -156.61
+    5 T80-R12-w10                   80.0   12.0       -156.64
+    6 T80-R9-w20                    80.0    9.0       -156.77
+    7 T70-R9-w20                    70.0    9.0       -157.14
+    8 T70-R6-w10                    70.0    6.0       -157.59
+
+==============================================================================
+tempo por etapa: transporte 0s  dados diferenciais 1s  rede neural 3s  regressão esparsa 8s  enumeração 22s  triagem diferencial 310s  regressão integral 234s  planejamento 3s
+tempo total: 580.4 s

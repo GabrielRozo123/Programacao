@@ -41,8 +41,39 @@ from .transport import (
 KEY_REACTANTS: tuple[str, ...] = ("TG", "DG", "MG")
 
 
+#: Teto de avaliações do lado direito por integração.
+#: Uma integração saudável desta rede gasta alguns milhares de avaliações.
+#: Combinações de parâmetros que o otimizador visita durante a busca podem
+#: tornar o sistema rígido a ponto de o integrador moer por minutos numa
+#: única chamada — e como o prazo da regressão só é conferido *entre*
+#: avaliações de resíduo, isso escaparia a qualquer orçamento de tempo.
+#: Estourar o teto é tratado como falha de integração, o que já leva o
+#: otimizador a descartar a região.
+MAX_RHS_CALLS = 200_000
+
+
 class IntegrationFailure(RuntimeError):
     """A integração da rede não convergiu para os parâmetros dados."""
+
+
+class _CallCounter:
+    """Conta avaliações do lado direito e aborta ao passar do teto."""
+
+    __slots__ = ("func", "limit", "calls")
+
+    def __init__(self, func, limit: int) -> None:
+        self.func = func
+        self.limit = limit
+        self.calls = 0
+
+    def __call__(self, t: float, C: np.ndarray) -> np.ndarray:
+        self.calls += 1
+        if self.calls > self.limit:
+            raise IntegrationFailure(
+                f"integração abortada após {self.limit} avaliações: "
+                "sistema rígido para estes parâmetros"
+            )
+        return self.func(t, C)
 
 
 def concentration_vector(C0: dict[str, float]) -> np.ndarray:
@@ -61,6 +92,7 @@ def simulate_batch(
     catalyst_g_L: float,
     rtol: float = 1e-8,
     atol: float = 1e-10,
+    max_rhs_calls: int = MAX_RHS_CALLS,
 ) -> np.ndarray:
     """Reator de batelada perfeitamente agitado (ensaio de bancada).
 
@@ -68,9 +100,10 @@ def simulate_batch(
     Devolve matriz ``(len(t_eval), n_espécies)``.
     """
 
-    def rhs(_t: float, C: np.ndarray) -> np.ndarray:
+    def _rhs(_t: float, C: np.ndarray) -> np.ndarray:
         return catalyst_g_L * net.rhs(C, pvec)
 
+    rhs = _CallCounter(_rhs, max_rhs_calls)
     t_eval = np.asarray(t_eval, dtype=float)
     sol = solve_ivp(
         rhs,
@@ -189,6 +222,7 @@ def simulate_monolith(
     mode: str = "ideal",
     rtol: float = 1e-8,
     atol: float = 1e-10,
+    max_rhs_calls: int = MAX_RHS_CALLS,
 ) -> np.ndarray:
     """Monolito em escoamento pistonado.
 
@@ -202,20 +236,21 @@ def simulate_monolith(
 
     if mode == "ideal":
 
-        def rhs(_t: float, C: np.ndarray) -> np.ndarray:
+        def _rhs(_t: float, C: np.ndarray) -> np.ndarray:
             return w * net.rhs(C, pvec)
 
     else:
         use_eta = mode == "full"
         cache: dict[str, np.ndarray] = {}
 
-        def rhs(_t: float, C: np.ndarray) -> np.ndarray:
+        def _rhs(_t: float, C: np.ndarray) -> np.ndarray:
             Cs, eta = _surface_concentrations(
                 net, np.maximum(C, 0.0), pvec, op, use_eta, cache.get("Cs")
             )
             cache["Cs"] = Cs
             return w * (net.nu @ (eta * net.rates(Cs, pvec)))
 
+    rhs = _CallCounter(_rhs, max_rhs_calls)
     tau_eval = np.asarray(tau_eval, dtype=float)
     sol = solve_ivp(
         rhs,

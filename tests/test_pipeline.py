@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from biokin.data import Dataset, read_csv, write_csv
+from biokin.species import FLUID_SPECIES
 from biokin.screening import ScreeningConfig, run_screening
 from biokin.synthetic import TRUE_MODEL_ID, Condition, generate_dataset
 
@@ -169,3 +170,71 @@ def test_teto_da_rede_neural_e_fora_da_amostra():
     assert base.n_parameters < len(tabela)
     # com 5% de ruído nos perfis, o teto fora da amostra fica longe de 1
     assert base.r2_mean < 0.98
+
+
+def test_ponderacao_usa_incerteza_de_medida(dados_pequenos):
+    """Pontos no piso de detecção não podem dominar o ajuste.
+
+    Ponderar pelo máximo de cada espécie dentro da corrida quebra nas
+    corridas de baixa conversão: ali o glicerol não passa do limite de
+    detecção, o máximo da corrida é da ordem do próprio ruído analítico, e
+    o ponto recebe peso enorme. A incerteza correta combina precisão
+    relativa com piso de detecção.
+    """
+    referencia = dados_pequenos.reference_scale()
+    exp = dados_pequenos.experiments[0]
+    sigma = exp.uncertainty(referencia, rel_error=0.05, floor_fraction=0.01)
+
+    assert sigma.shape == exp.Y.shape
+    assert np.all(sigma > 0), "incerteza nula geraria divisão por zero"
+
+    iG = FLUID_SPECIES.index("G")
+    # no primeiro ponto o glicerol é nulo: a incerteza vem só do piso
+    assert sigma[0, iG] == pytest.approx(0.01 * referencia[iG], rel=1e-9)
+    # no último, o termo relativo já domina
+    assert sigma[-1, iG] > sigma[0, iG]
+
+
+def test_sigma_informado_pelo_usuario_prevalece(dados_pequenos):
+    """Quem tem réplicas pode informar a incerteza e ela é respeitada."""
+    exp = dados_pequenos.experiments[0]
+    proprio = np.full_like(exp.Y, 0.007)
+    exp.sigma = proprio
+    try:
+        obtido = exp.uncertainty(dados_pequenos.reference_scale())
+        assert np.allclose(obtido, proprio)
+    finally:
+        exp.sigma = None
+
+
+def test_residuos_ficam_quase_normais_com_a_ponderacao_correta():
+    """A ponderação por incerteza deve remover as caudas pesadas.
+
+    Com a ponderação por escala de corrida, os resíduos do conjunto
+    sintético completo chegavam a curtose ~100, concentrada nas corridas
+    em monolito de baixa conversão.
+    """
+    from scipy import stats
+
+    from biokin.estimation import fit_differential, fit_network
+    from biokin.ml.surrogate import estimate_rate_table
+    from biokin.synthetic import true_network
+
+    dados = generate_dataset()
+    tabela = estimate_rate_table(dados)
+    rede = true_network()
+    diferencial = fit_differential(
+        rede, dados, tabela, n_starts=6, seed=0, fixed=KEQ_CONHECIDOS, time_budget_s=15
+    )
+    integral = fit_network(
+        rede,
+        dados,
+        n_starts=0,
+        seed=0,
+        fixed=KEQ_CONHECIDOS,
+        x0=diferencial.x,
+        time_budget_s=200,
+    )
+    r = integral.residuals
+    assert abs(float(stats.skew(r))) < 1.5
+    assert float(stats.kurtosis(r)) < 20.0
