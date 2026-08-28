@@ -85,3 +85,36 @@ isolamento em 100 % da área para resolver um problema que existe em 8 %.
 A perda de calor cai de **7 673 W/m²** (aço oxidado) para **196 W/m²** com isolamento
 — **redução de 39 vezes**. Se houver interesse em recuperação térmica a jusante ou
 em manter a temperatura da corrente até o próximo equipamento, isso entra na conta.
+
+---
+
+## 6. Texto pronto para o slide
+
+**Legenda (abaixo da tabela):**
+
+> Três isolantes dimensionados pelo mesmo critério de resistências em série do bloco
+> térmico, na condição governante de **50 % de vazão** (h_i = 93,4 W/m²·K), gás a
+> 400 °C, ambiente a 25 °C, chapa de aço carbono de 6 mm e jaqueta externa de
+> alumínio (ε = 0,20). A espessura de cada material é a necessária para levar a
+> **face externa a 60 °C** — limite usual de contato.
+
+**Bullet 1 — o achado:**
+
+> **Os três isolantes entregam a mesma temperatura de metal (395–398 °C).** A
+> resistência do isolante (0,6–0,9 m²·K/W) é ~60× a resistência convectiva interna
+> (0,011), então a parede assume a temperatura do gás com qualquer um deles — todos
+> com folga de ~50 °C sobre a hipótese mais severa de orvalho (343 °C). A escolha
+> **não é decidida pela condensação**, e sim por espessura, segurança de contato e custo.
+
+**Bullet 2 — a recomendação:**
+
+> **Lã de rocha, 95 mm**, aplicada apenas aos **8 % inferiores** do ciclone
+> (configuração D: refletivo no corpo, isolamento só abaixo do fim do vórtice). O
+> aerogel faz o mesmo com 40 mm, reservado a onde faltar envelope; o silicato de
+> cálcio só se houver exigência mecânica. Ganho lateral: a perda cai de 7 673 para
+> 196 W/m² — **39 vezes menos**.
+
+**Bullet 3 (opcional, se couber):**
+
+> Isolar o ciclone inteiro também funcionaria, mas custaria isolamento em 100 % da
+> área para resolver um problema que existe em 8 %.
