@@ -285,6 +285,39 @@ nunca assuma D = F − B.**
 
 ---
 
+## O degrau de preço obriga margem de projeto
+
+Antes de subir os estágios, um achado que muda o alvo. A especificação de grau
+polímero é 99,5 % e o preço salta de US$ 950/t para US$ 1150/t ao cruzá-la.
+Projetar **exatamente** na especificação é inútil:
+
+| N | R | Pureza de topo | Q refervedor | Lucro (MUSD/ano) |
+|---|---|---|---|---|
+| 300 | 16,281 | 99,5000 % | 45,6 MW | 62,62 |
+| 300 | 16,930 | 99,6000 % | 47,4 MW | 61,99 |
+| 300 | **17,804** | **99,7000 %** | 49,7 MW | **61,13** |
+| 300 | 19,118 | 99,8000 % | 53,1 MW | 59,86 |
+
+Com R = 16,281 a pureza dá 99,4999…, o produto é classificado como grau
+**químico**, e o lucro despenca de ~62 para ~12 MUSD/ano. **Um milésimo de
+ponto percentual vale 50 MUSD por ano.**
+
+E a margem é barata: subir de 99,5 % para 99,7 % custa **1,5 MUSD/ano**, ou
+2,4 % do lucro. É seguro a 2,4 % contra um precipício de 50 MUSD. Nenhuma
+planta real opera em cima de um degrau desses — o alvo de projeto passa a ser
+**99,7 %**.
+
+Com margem, a varredura de estágios dá:
+
+| N | R para 99,7 % | Q refervedor | Lucro (MUSD/ano) |
+|---|---|---|---|
+| 250 | 19,71 | 54,7 MW | 60,34 |
+| 300 | 17,80 | 49,7 MW | 61,13 |
+| **325** | **17,18** | **48,0 MW** | **61,36** |
+| 350 | 16,65 | 46,6 MW | 61,31 |
+
+De novo o topo é plano: de N = 300 a 350 o lucro varia 0,4 %.
+
 ## Passo 3 — Subir para 200 estágios em degraus ✋
 
 Agora sim. **Não pule direto.** A cada passo, a solução convergida vira a
