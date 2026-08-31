@@ -61,7 +61,17 @@ ANTOINE_PROPENO = (4.182428, 901.4496, -8.8200)
 ANTOINE_PROPANO = (4.283326, 985.8223, 0.3200)
 
 # Calor latente de referencia do propeno, para escalonamento de Watson.
-LAMBDA_REF = 343.0   # kJ/kg a 298,15 K
+#
+# ANCORADO EM MEDICAO. O valor de literatura (343,0 kJ/kg a 298,15 K) produzia
+# cargas termicas 3,2 % acima do DWSIM em cinco rodadas de coluna. O lambda
+# implicito nas cargas do DWSIM foi identico em rodadas com refluxo 15 e 17,8
+# — 12 351,8 e 12 352,9 kJ/kmol, diferenca de 0,009 % — o que confirma um
+# unico parametro errado, e nao erro estrutural do modelo.
+#
+# A ancoragem e de uma temperatura so (topo a 18 bar, 43,6 C), porque todas as
+# rodadas foram nessa pressao. O expoente de Watson, que governa a dependencia
+# com a temperatura, continua sem verificacao.
+LAMBDA_REF = 332.4181   # kJ/kg a 298,15 K
 T_LAMBDA_REF = 298.15
 EXPOENTE_WATSON = 0.38
 

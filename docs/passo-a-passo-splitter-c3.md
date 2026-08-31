@@ -344,6 +344,53 @@ Cargas térmicas no DWSIM ao longo dos quatro degraus: 40 895 → 40 933 →
 40 947 → 40 953 kW. Variação de 0,14 % enquanto os estágios quadruplicaram —
 estágios não compram energia, só refluxo compra.
 
+### ✅ Degrau 5 — grau polímero atingido, e o modelo fechado
+
+Com N = 300, alimentação no Stage150 e R = 17,80:
+
+| Grandeza | Previsto | DWSIM | Erro |
+|---|---|---|---|
+| Propeno no topo | 99,7000 % | **99,7001 %** | **0,0001 ponto** |
+| Propano no fundo | 97,544 % | 97,503 % | 0,041 ponto |
+| Carga do condensador | ~48 100 kW | 48 134 kW | 0,02 % |
+
+A previsão de carga foi feita **antes** da rodada, aplicando aos 49 664 kW do
+modelo o viés de +3,2 % observado nos quatro degraus anteriores. Errou por
+0,02 %.
+
+### Correção final: o calor latente
+
+O viés de +3,2 % nas cargas era um único parâmetro. A prova: o λ implícito nas
+cargas do DWSIM foi idêntico em rodadas com refluxos bem diferentes —
+
+| R | V (kmol/h) | λ implícito |
+|---|---|---|
+| 15,000 | 11 936 | 12 351,8 kJ/kmol |
+| 17,804 | 14 028 | 12 352,9 kJ/kmol |
+
+Diferença de 0,009 % com 17 % de variação na vazão de vapor. Se fosse erro
+estrutural do modelo, os dois divergiriam. `LAMBDA_REF` foi reancorado de
+343,0 para **332,4181 kJ/kg**.
+
+Ressalva: a ancoragem é de **uma temperatura só** (topo a 18 bar), porque todas
+as rodadas foram nessa pressão. O expoente de Watson, que governa a dependência
+com a temperatura, segue sem verificação.
+
+### Validação final, com o modelo calibrado
+
+| N | R | Topo Py/DW | Erro | Fundo Py/DW | Erro | Q Py/DW | Erro |
+|---|---|---|---|---|---|---|---|
+| 50 | 15,00 | 92,236 / 92,239 | −0,004 | 75,621 / 75,633 | −0,012 | 40 955 / 40 895 | +0,15 % |
+| 100 | 15,00 | 96,500 / 96,506 | −0,006 | 88,145 / 88,221 | −0,076 | 40 955 / 40 933 | +0,05 % |
+| 150 | 15,00 | 97,839 / 97,845 | −0,006 | 92,079 / 92,109 | −0,029 | 40 955 / 40 947 | +0,02 % |
+| 200 | 15,00 | 98,514 / 98,519 | −0,005 | 94,060 / 94,038 | +0,023 | 40 955 / 40 953 | 0,00 % |
+| 300 | 17,80 | 99,700 / 99,700 | −0,000 | 97,544 / 97,503 | +0,041 | 48 132 / 48 134 | 0,00 % |
+
+**O atalho de 22 ms reproduz a coluna rigorosa em pureza de topo dentro de
+0,006 ponto percentual e em carga térmica dentro de 0,15 %**, ao longo de cinco
+configurações que varrem 92 % a 99,7 % de pureza e dois refluxos. É o que
+autoriza usar surrogate no lugar da coluna na etapa de otimização.
+
 ### ⚠️ Sempre mova a alimentação junto com os estágios
 
 Ao subir de 150 para 201 estágios é fácil esquecer de reposicionar a
