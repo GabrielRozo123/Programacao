@@ -108,28 +108,78 @@ splitter C3 à escolha do pacote termodinâmico".
 Ainda não vamos para 200. Uma coluna de α baixo com 200 estágios raramente
 converge do zero.
 
+### ⚠️ Antes de tudo: resete a corrente de alimentação
+
+Se você usou a mesma corrente do Passo 1, ela está com a **última composição
+medida** (99/1) e com **fração de vapor 0,5**. Para alimentar a coluna ela
+precisa voltar a ser líquido saturado na composição de projeto:
+
+| Campo | Valor |
+|---|---|
+| Composição | 0,75 propeno / 0,25 propano |
+| Flash Spec | Pressure and Vapour Fraction (PVF) |
+| Vapour Fraction | **0** (líquido saturado, não 0,5) |
+| Pressão | 18 bar |
+| Vazão molar | 1000 kmol/h |
+
+### Quatro armadilhas nos padrões da coluna
+
+O DWSIM cria a coluna com valores que **não** servem para este caso:
+
+| Campo | Padrão | Corrigir para | Por quê |
+|---|---|---|---|
+| Column Pressure Drop | **NaN** | **0** | Campo vazio, não zero. Deixado assim, o cálculo falha |
+| Condenser/Top Pressure | 1,01325 bar | **18 bar** | O padrão é pressão atmosférica |
+| Number of Stages | 12 | **51** | Ver a nota de contagem abaixo |
+| Reflux Ratio | 5 | **15** | Em Specifications → Condenser |
+
+**Contagem de estágios.** Na aba *Stages* o DWSIM lista `Condenser` como
+estágio 0, depois `Stage1`, `Stage2`… e o refervedor por último. O modelo
+Python conta N estágios de equilíbrio com o refervedor incluído e o
+condensador total **fora** da contagem. Então `Number of Stages` no DWSIM
+deve ser **N + 1**. Confirme rolando a aba *Stages* até o fim: a última linha
+tem de ser `Reboiler`, e o total de linhas igual ao valor digitado.
+
+**Sobre o solver.** Eu havia recomendado Inside-Out, mas vale corrigir: o
+padrão do DWSIM, **Wang-Henke (Bubble Point)**, é o método clássico justamente
+para misturas de ebulição próxima — que é exatamente o nosso caso. Comece com
+ele. Se travar quando o número de estágios subir, aí sim troque para Inside-Out
+ou Napthali-Sandholm.
+
+**Estimativas iniciais.** Na aba *Estimates* os valores aparecem como −273,15 °C
+e vazões zeradas: são apenas marcadores de "não definido". Deixe as caixas
+`Temperatures`, `LiqFlows`, `VapFlows` e `Compositions` **desmarcadas** — assim
+o gerador `Internal 3 (Robust)` monta a estimativa sozinho.
+
+### Configuração
+
 1. Na paleta **Columns**, arraste uma **Distillation Column** (coluna
    rigorosa, não a Shortcut).
 2. Configure:
 
 | Parâmetro | Valor |
 |---|---|
-| Número de estágios | **50** |
-| Condensador | Total |
+| Number of Stages | **51** (= 50 de equilíbrio + condensador) |
+| Condensador | Total, perda de carga 0 |
 | Refervedor | Kettle / parcial |
 | Estágio de alimentação | 25 |
-| Pressão no condensador | 18 bar |
-| Pressão no refervedor | **18 bar** (perda de carga zero por enquanto) |
-| Método de solução | **Inside-Out** |
+| Condenser/Top Pressure | 18 bar |
+| Column Pressure Drop | **0** (não deixe NaN) |
+| Tray Spacing | 0,6 m (alinha com o modelo Python) |
+| Método de solução | **Wang-Henke**, com Inside-Out de reserva |
 
 3. Conecte a corrente de alimentação no estágio 25, e crie as correntes de
    destilado, de fundo e as duas correntes de energia.
 4. **Especificações** — de operação, não de pureza:
 
-| Especificação | Valor |
-|---|---|
-| Condensador | Reflux Ratio = **15** |
-| Refervedor | Distillate Molar Flow = **746 kmol/h** |
+| Aba | Especificação | Valor |
+|---|---|---|
+| Condenser | Reflux Ratio | **15** |
+| Reboiler | Product Molar Flow Rate | **254 kmol/h** |
+
+O produto de fundo de 254 kmol/h equivale a destilado de 746 kmol/h numa
+alimentação de 1000. **Confira a unidade** no menu ao lado do campo: o padrão
+do DWSIM costuma vir em `mol/s`, e 254 kmol/h são 70,56 mol/s.
 
    Especificação de pureza numa coluna de α ≈ 1,1 é muito mais difícil de
    convergir. Além disso, para o DOE do AI4Tech elas são melhores: com
