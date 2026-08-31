@@ -71,11 +71,12 @@ Preencha esta tabela — é ela que eu preciso:
 | Peng-Robinson | 18 | 1/99 | 0,010808 | 0,009192 | **1,177690** | 51,978 |
 | Peng-Robinson | 18 | 5/95 | 0,053816 | 0,046184 | **1,174670** | 51,516 |
 | Peng-Robinson | 18 | 50/50 | 0,515650 | 0,484350 | **1,133423** | 46,996 |
-| Peng-Robinson | 18 | **95/5** | | | *falta medir* | |
-| Peng-Robinson | 18 | **99/1** | | | *falta medir* | |
+| Peng-Robinson | 18 | 95/5 | 0,951833 | 0,948167 | **1,080285** | 43,883 |
+| Peng-Robinson | 18 | 99/1 | 0,990358 | 0,989642 | **1,075116** | 43,681 |
 
-✅ **Passo 1 concluído** (faltam os dois pontos ricos em propeno). Resultado
-incorporado ao modelo como superfície α(x, P) — ver
+✅ **Passo 1 concluído.** Oito medições, cobrindo x de 0,009 a 0,990 e P de 14 a
+22 bar. Incorporadas ao modelo como superfície α(x, P), e usadas também para
+reancorar as constantes de Antoine dos dois componentes. Ver
 [CONFIG do caso 02](../casos-python/02-splitter-c3/CONFIG.md).
 | SRK | 14 | | | | |
 | SRK | 18 | | | | |
@@ -177,11 +178,18 @@ modelo Python dá:
 | Grandeza | Python (atalho) | Seu DWSIM |
 |---|---|---|
 | Propeno no topo | 98,51 % mol | |
-| Propano no fundo | 94,14 % mol | |
-| Carga do refervedor | 42,1 MW | |
-| T topo | 44,2 °C | |
-| T fundo | 52,4 °C | |
+| Propano no fundo | 94,15 % mol | |
+| Carga do refervedor | 42,3 MW | |
+| T topo | 43,6 °C | |
+| T fundo | 52,1 °C | |
 | Vazão de vapor no topo | 11 940 kmol/h | |
+
+> **Atenção ao resultado esperado.** Com α calibrado, esta configuração
+> **não atinge grau polímero** — para em 98,51 %, não em 99,5 %. Isso é o
+> previsto, não erro de montagem. A configuração serve como ponto de
+> comparação com o modelo Python; o projeto que fecha a especificação é
+> N ≈ 275–300 com R ≈ 16,3, e está na tabela de varredura do
+> [CONFIG do caso 02](../casos-python/02-splitter-c3/CONFIG.md).
 
 **A diferença entre as colunas não é defeito — é resultado.** O modelo Python
 assume α constante, fluxo molar constante e perda de carga nula; o DWSIM não

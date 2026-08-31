@@ -25,18 +25,18 @@ dilema de projeto de uma unidade de verdade.
 | Grandeza | Valor | Comentário |
 |---|---|---|
 | Pureza de topo | 98,51 % mol | **grau químico — não atinge polímero** |
-| Pureza de fundo | 94,14 % mol propano | GLP |
+| Pureza de fundo | 94,15 % mol propano | GLP |
 | Recuperação de propeno | 98,02 % | |
-| α no topo / no fundo | 1,0756 / 1,1736 | varia 9 % ao longo da coluna |
-| Refervedor / condensador | 42,1 MW | dominante no OPEX |
-| T topo / T fundo | 44,2 / 52,4 °C | água de resfriamento no limite |
+| α no topo / no fundo | 1,0757 / 1,1736 | varia 9 % ao longo da coluna |
+| Refervedor / condensador | 42,3 MW | dominante no OPEX |
+| T topo / T fundo | 43,6 / 52,1 °C | calibrado contra o DWSIM |
 | Diâmetro | 4,44 m | |
 | Altura | 145 m em 3 cascos | splitters reais são cascos em série |
 | N/Nmin | 3,34 | acima do típico — a coluna está sobredimensionada em estágios e ainda assim não fecha a especificação |
 | R/Rmin | 1,25 | faixa típica 1,1–1,5 |
-| CAPEX instalado | 40,8 MUSD | |
+| CAPEX instalado | 41,4 MUSD | |
 | OPEX | 11,7 MUSD/ano | ~96 % é vapor |
-| Lucro | 15,4 MUSD/ano | derrubado pelo rebaixamento de grau |
+| Lucro | 15,3 MUSD/ano | derrubado pelo rebaixamento de grau |
 
 ## Duas decisões de modelagem que valem para qualquer caso
 
@@ -125,8 +125,12 @@ tal. A superfície abaixo foi ajustada a seis medições de flash PVF no DWSIM
 | 0,04618 | 1,174670 |
 | 0,48435 | 1,133423 |
 | 0,74063 | 1,105152 |
+| 0,94817 | 1,080285 |
+| 0,98964 | 1,075116 |
 
-Ajuste `ln α` quadrático em x, rms = 7,7 × 10⁻⁶.
+Ajuste `ln α` quadrático em x, rms = 1,2 × 10⁻⁵. Um termo cúbico baixa o rms
+para 3,7 × 10⁻⁶, mas o ganho é menor que a própria resolução dos dados — não
+vale o parâmetro extra com seis pontos.
 
 **Com a pressão, a x ≈ 0,74:**
 
@@ -139,8 +143,11 @@ Ajuste `ln α` quadrático em x, rms = 7,7 × 10⁻⁶.
 Linear, inclinação **−0,003363 por bar**, resíduos ~2,5 × 10⁻⁴.
 
 ```
-α(x, P) = exp(0,164196 − 0,068548·x − 0,024510·x²) − 0,003363·(P − 18)
+α(x, P) = exp(0,164200 − 0,068679·x − 0,024311·x²) − 0,003363·(P − 18)
 ```
+
+As medições vão de x = 0,009 a x = 0,990, cobrindo toda a faixa útil da coluna:
+**a superfície não extrapola em nenhum ponto de operação.**
 
 ### Por que isso importa tanto
 
@@ -153,14 +160,64 @@ O efeito no caso base é brutal: a pureza de topo caiu de 99,55 % para 98,51 %.
 **O projeto deixou de atingir grau polímero** e o lucro despencou de 65,6 para
 15,4 MUSD/ano, porque o produto foi rebaixado de US$ 1150/t para US$ 950/t.
 
-### ⚠️ Limite atual da calibração
+### Validação da extrapolação
 
-**Acima de x = 0,74 a superfície extrapola.** Não há medição no extremo rico em
-propeno — que é exatamente onde fica o destilado. A extrapolação prevê
-α ≈ 1,074 a x = 0,995, valor plausível diante da literatura de splitters C3,
-mas não medido. **A conclusão de que o caso base não atinge grau polímero
-depende dessa extrapolação e é provisória.** Duas medições a 95/5 e 99/1
-fecham a questão.
+O ajuste feito só com os quatro primeiros pontos previa α nos dois pontos ricos
+em propeno **antes** de eles serem medidos:
+
+| x propeno | previsto | medido | erro |
+|---|---|---|---|
+| 0,948167 | 1,080221 | 1,080285 | −0,01 % |
+| 0,989642 | 1,075035 | 1,075116 | −0,01 % |
+
+A forma funcional estava certa, e a conclusão sobre o grau do produto se
+confirmou.
+
+### Antoine reancorado
+
+Os dois pontos quase puros também expuseram um viés nas constantes de Antoine.
+Extrapolando as medições a 18 bar ao componente puro:
+
+| Componente | DWSIM | Antoine original | Viés |
+|---|---|---|---|
+| Propeno | 43,631 °C | 44,153 °C | +0,522 °C |
+| Propano | 52,093 °C | 52,382 °C | +0,289 °C |
+
+Ambos corriam quentes. O intercepto `A` foi reancorado (mantendo `B` e `C`,
+o que preserva a forma da curva): propeno 4,182428 e propano 4,283326. A
+ancoragem é de um ponto só, adequada na faixa estreita de 14 a 22 bar.
+
+Consequência prática: o limiar de refrigeração — o ponto em que o condensador
+cai abaixo de 40 °C e a água de resfriamento deixa de servir — se desloca de
+16,42 para **16,61 bar**, dentro da faixa do DOE.
+
+## O projeto que realmente atinge grau polímero
+
+Com α(x, P) calibrado, **N = 200 e R = 15 não fecham a especificação** — param
+em 98,51 %. Varrendo o refluxo mínimo necessário para 99,5 % em cada número de
+estágios (z = 0,75, P = 18 bar, corte = 0,995):
+
+| N | R mínimo | Q refervedor (MW) | Diâmetro (m) | Custo (MUSD/ano) | Lucro (MUSD/ano) |
+|---|---|---|---|---|---|
+| 150 | 26,25 | 72,0 | 5,79 | 26,11 | 56,52 |
+| 175 | 22,33 | 61,7 | 5,36 | 23,38 | 59,25 |
+| 200 | 20,19 | 56,0 | 5,11 | 21,89 | 60,74 |
+| 250 | 17,66 | 49,3 | 4,79 | 20,32 | 62,31 |
+| **275** | **16,85** | **47,2** | **4,69** | **20,16** | **62,47** |
+| **300** | **16,28** | **45,7** | **4,61** | **19,96** | **62,67** |
+| 350 | 15,43 | 43,4 | 4,50 | 20,04 | 62,59 |
+| 400 | 14,85 | 41,9 | 4,42 | 20,13 | 62,50 |
+
+O ótimo fica em torno de **N = 275–300 com R ≈ 16,3**, rendendo 62,7 MUSD/ano
+contra 15,3 do projeto original. Duas leituras que valem mais que o número:
+
+- **A 200 estágios o refluxo tem de subir de 15 para 20,2** para fechar a
+  especificação, e o refervedor sai de 42 para 56 MW. Estágio e refluxo são
+  substitutos, e o preço de economizar aço é energia — para sempre.
+- **O ótimo é chatíssimo de plano.** De N = 250 a N = 400 o lucro varia menos
+  de 0,6 %. Isso é típico de destilação e tem consequência prática: a escolha
+  final não sai da economia, sai de restrição de altura, de layout ou de
+  perda de carga — coisas que este modelo não vê e o DWSIM vê.
 
 ## Roteiro na plataforma
 

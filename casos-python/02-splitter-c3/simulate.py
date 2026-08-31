@@ -48,10 +48,17 @@ MM_PROPANO = 44.10   # kg/kmol
 TC_PROPENO = 364.9   # K, temperatura critica
 
 # Antoine na forma log10(Psat[bar]) = A - B/(T[K] + C).
-# Constantes ajustadas aqui a pontos de saturacao de referencia a 0, 25 e 50 C
-# (residuo do ajuste da ordem de 1e-14). Validas aproximadamente de 270 a 335 K.
-ANTOINE_PROPENO = (4.17747, 901.4496, -8.8200)
-ANTOINE_PROPANO = (4.28064, 985.8223, 0.3200)
+#
+# B e C vem de ajuste a pontos de saturacao de literatura a 0, 25 e 50 C. O
+# intercepto A foi depois REANCORADO no DWSIM 10.2.3.0 com Peng-Robinson: as
+# medicoes quase puras a 18 bar, extrapoladas ao componente puro, dao 43,631 C
+# para o propeno e 52,093 C para o propano, contra 44,153 C e 52,382 C das
+# constantes originais. Os dois Antoine corriam quentes — 0,52 C e 0,29 C.
+#
+# A ancoragem e de um ponto so (18 bar) e preserva a forma da curva. Na faixa
+# estreita de 14 a 22 bar isso e adequado; fora dela, remedir.
+ANTOINE_PROPENO = (4.182428, 901.4496, -8.8200)
+ANTOINE_PROPANO = (4.283326, 985.8223, 0.3200)
 
 # Calor latente de referencia do propeno, para escalonamento de Watson.
 LAMBDA_REF = 343.0   # kJ/kg a 298,15 K
@@ -65,23 +72,29 @@ R_GAS = 8.314        # kJ/(kmol.K)
 # Volatilidade relativa — superficie ajustada a medicoes no DWSIM 10.2.3.0
 # com Peng-Robinson (flash PVF, fracao de vapor 0,5).
 #
-# Dependencia com a COMPOSICAO, a 18 bar (quatro medicoes):
+# Dependencia com a COMPOSICAO, a 18 bar (seis medicoes cobrindo toda a faixa
+# util da coluna, do fundo ao topo):
 #     x = 0,00919 -> alfa = 1,177690
 #     x = 0,04618 -> alfa = 1,174670
 #     x = 0,48435 -> alfa = 1,133423
 #     x = 0,74063 -> alfa = 1,105152
-#   ln(alfa) quadratico em x, rms = 7,7e-6.
+#     x = 0,94817 -> alfa = 1,080285
+#     x = 0,98964 -> alfa = 1,075116
+#   ln(alfa) quadratico em x, rms = 1,2e-5. Um termo cubico reduz o rms para
+#   3,7e-6, mas o ganho e menor que a propria resolucao dos dados: nao vale o
+#   parametro extra com seis pontos.
 #
 # Dependencia com a PRESSAO, a x = 0,74 (tres medicoes, 14/18/22 bar):
 #   linear, inclinacao -0,003363 por bar, residuos ~2,5e-4.
 #
-# ATENCAO: acima de x = 0,74 a superficie EXTRAPOLA — nao ha medicao no
-# extremo rico em propeno, que e justamente onde fica o destilado. A
-# extrapolacao preve alfa ~ 1,074 a x = 0,995. Medir a 95/5 e 99/1 fecha isso.
+# A superficie NAO extrapola dentro da coluna: as medicoes vao de x = 0,009 a
+# x = 0,990, e o destilado opera em torno de x = 0,99. O ajuste anterior, feito
+# so com os quatro primeiros pontos, previa 1,080221 e 1,075035 nos dois
+# ultimos — erro de 0,01 % contra o medido.
 # --------------------------------------------------------------------------
-ALFA_C0 = 0.164196
-ALFA_C1 = -0.068548
-ALFA_C2 = -0.024510
+ALFA_C0 = 0.164200
+ALFA_C1 = -0.068679
+ALFA_C2 = -0.024311
 ALFA_POR_BAR = -0.003363
 ALFA_P_REFERENCIA = 18.0
 
