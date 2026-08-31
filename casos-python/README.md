@@ -30,6 +30,14 @@ de variáveis. Nome no wizard e chave no código precisam bater exatamente.
 4. **Só números finitos.** Nada de `None`, string, lista ou `NaN`.
 5. **Aceite entradas ausentes** usando o valor padrão, para que variáveis
    marcadas como `Fixed` no wizard continuem funcionando.
+6. **Nunca escreva no `stdout`.** A plataforma executa o script como
+   subprocesso e lê o `stdout` para parsear o resultado como JSON. Um `print()`
+   no nível do módulo — ou num bloco `if __name__ == "__main__"` — corrompe
+   essa saída e produz `Dry run failed: Invalid JSON output from script`.
+   Por isso nenhum caso aqui tem bloco `__main__`: para rodar localmente,
+   use `ferramentas/validar_caso.py`, que já faz um run com os padrões.
+
+O validador local checa as regras 1, 2, 4 e 6 automaticamente.
 
 ## Criando um caso novo
 

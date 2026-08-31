@@ -19,7 +19,10 @@ Sem dependencias externas: roda em qualquer Python 3.8+.
 """
 
 import argparse
+import contextlib
 import importlib.util
+import io
+import json
 import math
 import os
 import random
@@ -31,14 +34,35 @@ import time
 # Carregamento do caso
 # --------------------------------------------------------------------------
 def carregar_caso(caminho):
-    """Importa um arquivo .py isolado como modulo e devolve o objeto modulo."""
+    """
+    Importa um arquivo .py isolado como modulo e devolve o objeto modulo.
+
+    Captura o stdout durante a importacao: a plataforma executa o script como
+    subprocesso e le o stdout para parsear o resultado como JSON, entao
+    qualquer print() no nivel do modulo corrompe a saida e produz
+    "Invalid JSON output from script" no Test Run.
+    """
     caminho = os.path.abspath(caminho)
     if not os.path.isfile(caminho):
         sys.exit("ERRO: arquivo nao encontrado: {}".format(caminho))
 
     spec = importlib.util.spec_from_file_location("caso_ai4tech", caminho)
     modulo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(modulo)
+    capturado = io.StringIO()
+    with contextlib.redirect_stdout(capturado):
+        spec.loader.exec_module(modulo)
+
+    sujeira = capturado.getvalue()
+    if sujeira:
+        print("ERRO: o script escreveu {} bytes no stdout ao ser carregado."
+              .format(len(sujeira)))
+        print("      A plataforma le o stdout como JSON — isso quebra o Test Run")
+        print("      com 'Invalid JSON output from script'.")
+        print("      Primeiras linhas do que foi impresso:")
+        for linha in sujeira.splitlines()[:3]:
+            print("        | {}".format(linha))
+        print("      Remova os print() e o bloco if __name__ == \'__main__\'.")
+        sys.exit(1)
 
     if not hasattr(modulo, "simulate"):
         sys.exit("ERRO: o arquivo nao define a funcao simulate(inputs: dict) -> dict")
@@ -280,6 +304,17 @@ def main():
     nominal = modulo.simulate({})
     for chave, valor in nominal.items():
         print("  {:<18} = {:>14.5g}".format(chave, float(valor)))
+
+    try:
+        if json.loads(json.dumps(nominal)) != nominal:
+            print("\n  AVISO: o dicionario nao sobrevive a ida e volta em JSON.")
+        else:
+            print("\n  JSON: serializa e retorna identico ({} chaves). OK."
+                  .format(len(nominal)))
+    except (TypeError, ValueError) as erro:
+        print("\nERRO: a saida de simulate() nao e serializavel em JSON: {}".format(erro))
+        print("      A plataforma devolveria 'Invalid JSON output from script'.")
+        return 1
 
     print("\nExecutando DOE local (LHS, {} pontos)...".format(args.n))
     linhas, ents, sais, falhas, duracao = executar(modulo, args.n, args.semente)

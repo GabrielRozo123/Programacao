@@ -20,6 +20,17 @@ Regras que evitam dor de cabeca na plataforma
 4. So devolva numeros (int/float). Nada de None, string, lista ou NaN.
 5. Aceite entradas ausentes usando os valores padrao — assim variaveis marcadas
    como Fixed no wizard continuam funcionando.
+
+IMPORTANTE — NAO IMPRIMA NADA NO STDOUT
+---------------------------------------
+A plataforma executa o script como subprocesso e le o stdout para parsear o
+resultado como JSON. Qualquer print() no nivel do modulo, ou num bloco
+if __name__ == "__main__", contamina essa saida e produz o erro
+
+    Dry run failed: Invalid JSON output from script
+
+Por isso este arquivo nao tem bloco __main__. Para rodar o caso localmente use
+ferramentas/validar_caso.py, que ja executa um run com os valores padrao.
 """
 
 import math  # noqa: F401 — disponivel para o seu modelo
@@ -74,8 +85,3 @@ def simulate(inputs):
     y2 = math.sin(val["x1"]) * val["x2"]
 
     return {"y1": y1, "y2": y2, "convergiu": 1.0}
-
-
-if __name__ == "__main__":
-    for chave, valor in simulate({}).items():
-        print("{:<12} = {:.6g}".format(chave, valor))

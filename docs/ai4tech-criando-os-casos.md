@@ -64,6 +64,14 @@ As correntes estão com os nomes automáticos `1`, `3` e `4`. Além de quebradi�
    - **Description**: `Splitter propeno/propano, gemeo calibrado contra DWSIM 10.2.3.0`
    - **Python Script**: suba o `simulate.py`
 4. Aguarde o status verde: *"Script valid — simulate() function found"*.
+
+   > ⚠️ **O script não pode escrever no `stdout`.** A plataforma executa o
+   > arquivo como subprocesso e lê o `stdout` para parsear o resultado como
+   > JSON. Um `print()` no nível do módulo, ou num bloco
+   > `if __name__ == "__main__"`, produz
+   > `Dry run failed: Invalid JSON output from script` no Test Run. Os casos
+   > deste repositório não têm bloco `__main__` por esse motivo, e o
+   > `validar_caso.py` reprova o script se encontrar qualquer saída.
 5. **Timeout**: deixe o padrão de 30 s. O caso roda em 22 ms, sobra folga de
    três ordens de grandeza.
 6. Cadastre as entradas (tabela abaixo).

@@ -34,6 +34,17 @@ possa ser estudado explicitamente.
 Parametros do modelo: conjunto classico de Seborg, Edgar, Mellichamp & Doyle,
 "Process Dynamics and Control" (CSTR nao-isotermico).
 Unidades: minuto, litro, mol, joule, kelvin.
+
+IMPORTANTE — NAO IMPRIMA NADA NO STDOUT
+---------------------------------------
+A plataforma executa o script como subprocesso e le o stdout para parsear o
+resultado como JSON. Qualquer print() no nivel do modulo, ou num bloco
+if __name__ == "__main__", contamina essa saida e produz o erro
+
+    Dry run failed: Invalid JSON output from script
+
+Por isso este arquivo nao tem bloco __main__. Para rodar o caso localmente use
+ferramentas/validar_caso.py, que ja executa um run com os valores padrao.
 """
 
 import math
@@ -234,10 +245,3 @@ def simulate(inputs):
         "runaway": runaway,
         "convergiu": 1.0,
     }
-
-
-if __name__ == "__main__":
-    resultado = simulate({})
-    print("Ponto nominal (q=100, V=100, CAf=1.0, Tf=350, Tc=300, UA=5e4):")
-    for chave, valor in resultado.items():
-        print("  {:<16} = {:>12.4f}".format(chave, valor))

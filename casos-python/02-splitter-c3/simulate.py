@@ -36,6 +36,17 @@ fornece a resposta rigorosa e este modelo fornece a resposta instantanea. A
 diferenca entre os dois e o objeto de estudo, nao um defeito.
 
 Unidades: kmol/h, bar, K, m, kW, USD.
+
+IMPORTANTE — NAO IMPRIMA NADA NO STDOUT
+---------------------------------------
+A plataforma executa o script como subprocesso e le o stdout para parsear o
+resultado como JSON. Qualquer print() no nivel do modulo, ou num bloco
+if __name__ == "__main__", contamina essa saida e produz o erro
+
+    Dry run failed: Invalid JSON output from script
+
+Por isso este arquivo nao tem bloco __main__. Para rodar o caso localmente use
+ferramentas/validar_caso.py, que ja executa um run com os valores padrao.
 """
 
 import math
@@ -523,10 +534,3 @@ def simulate(inputs):
         "lucro": lucro / milhao,
         "convergiu": 1.0,
     }
-
-
-if __name__ == "__main__":
-    resultado = simulate({})
-    print("Caso base: N=200, alim. no meio, R=15, corte 99,5 %, P=18 bar, z=0.75\n")
-    for chave, valor in resultado.items():
-        print("  {:<16} = {:>12.4f}".format(chave, valor))
