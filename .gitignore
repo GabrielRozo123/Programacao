@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
+# CSVs de trabalho sao descartaveis; os de dados/ sao resultado e vao para o repo.
 *.csv
 doe_local*.csv
+!dados/*.csv
 .venv/
 .DS_Store
