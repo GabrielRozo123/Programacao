@@ -210,10 +210,78 @@ Com 50 estágios a pureza vai ficar **bem abaixo** de 99,5 % — é esperado e n
 - Confira se a alimentação está em líquido saturado (fração de vapor = 0).
 - Comece com refluxo menor (R = 8), converja, e suba para 15.
 
-### ✋ CHECKPOINT 2
+### Se falhar o balanço de massa
 
-Me diga: convergiu? Em quantas iterações e quanto tempo? Qual pureza de topo e
-de fundo deu? Se não convergiu, me mande a mensagem de erro.
+Sintoma típico: `Failed to fulfill mass balance for Propylene: Relative Error
+= 1,2e-3 [Tolerance = 1e-4]`, com poucas iterações usadas (14 de 100).
+
+O diagnóstico está no número de iterações. Se ele parou muito antes do limite,
+**não faltou orçamento — ele achou que tinha convergido**. O critério interno
+foi satisfeito e só depois a verificação de balanço reprovou. Aumentar
+`Maximum Number of Iterations` não resolve nada. Na ordem:
+
+1. `Convergence Tolerance` de `1E-05` para `1E-07`. É o botão certo.
+2. Se persistir, solver para **Inside-Out (Russell)**.
+3. Em último caso, **Napthali-Sandholm**: resolve o sistema MESH inteiro por
+   Newton, então o balanço de massa é uma das equações sendo zeradas em vez de
+   uma verificação a posteriori.
+
+### ✅ CHECKPOINT 2 — resultado obtido
+
+Convergiu em **11 iterações, 0,67 s**. Confronto com o modelo Python nas mesmas
+condições (N = 50, alimentação no estágio 25, R = 15, D = 745 kmol/h, 18 bar):
+
+| Grandeza | Python | DWSIM | Diferença |
+|---|---|---|---|
+| Propeno no topo | 92,236 % | 92,239 % | **0,004 ponto** |
+| Propano no fundo | 75,621 % | 75,633 % | **0,012 ponto** |
+| Carga do refervedor | 42 259 kW | 40 895 kW | +3,3 % |
+| Diâmetro | 4,44 m | 5,50 m | −19 % |
+
+O atalho reproduz a coluna rigorosa em purezas **dentro de um centésimo de
+ponto percentual**. Sobram duas discrepâncias, ambas explicáveis e nenhuma no
+equilíbrio: o calor latente por escalonamento de Watson está ~3 % alto, e o
+dimensionamento hidráulico difere (o DWSIM estava com espaçamento de pratos de
+0,5 m contra 0,6 m do modelo, e faz hidráulica bem mais rigorosa).
+
+### Validação cruzada do α pelos K-values internos
+
+A superfície α(x, P) foi ajustada a medições de **flash isolado**. O perfil da
+coluna permite conferi-la contra os K-values **internos da coluna rigorosa**,
+que é um teste completamente independente:
+
+| Estágio | x propeno | α do DWSIM | α do ajuste | Erro |
+|---|---|---|---|---|
+| Condensador | 0,92239 | 1,083459 | 1,083468 | 0,00 % |
+| Stage1 | 0,91641 | 1,084195 | 1,084204 | 0,00 % |
+| Stage10 | 0,85906 | 1,091160 | 1,091179 | 0,00 % |
+| Stage30 | 0,70085 | 1,109724 | 1,109740 | 0,00 % |
+| Stage49 | 0,27100 | 1,154705 | 1,154656 | 0,00 % |
+
+Concordância na quinta casa em toda a coluna.
+
+### Como ler o perfil: duas coisas que parecem erradas e não são
+
+**A linha `Condenser` em `[V]` soma exatamente 1,00000.** Não é vazão de
+1 kmol/h — é **fração molar**. Um condensador total não tem vapor saindo, então
+o DWSIM mostra a composição de equilíbrio numa base unitária. Confere: com
+x = 0,922392 no líquido, o equilíbrio dá y = 0,927940, contra 0,92794
+reportado — diferença de 2 × 10⁻⁷.
+
+**O líquido salta no estágio de alimentação e o vapor não.** De 11 204,7 para
+12 205,8 kmol/h, um salto de 1001 ≈ F. Correto para alimentação em líquido
+saturado: ela engrossa só a fase líquida.
+
+### ⚠️ Um ponto a verificar
+
+D + B = 745 + 254 = **999 kmol/h**, contra alimentação de 1000. Pela vazão
+mássica da corrente 3 (31 466 kg/h, MM = 42,237), o destilado dá 745,0 — não é
+arredondamento de 746. E `0,92794/750 = 0,0012373` é justamente o erro relativo
+de 0,0012370 que a mensagem anterior reportava.
+
+Sobra 1 kmol/h (0,1 %). Não muda nenhuma conclusão, mas tem consequência
+prática: **no DOE do AI4Tech, leia as vazões de produto das próprias correntes,
+nunca assuma D = F − B.**
 
 ---
 
