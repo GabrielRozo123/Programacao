@@ -320,6 +320,51 @@ De novo o topo é plano: de N = 300 a 350 o lucro varia 0,4 %.
 
 ## Passo 3 — Subir para 200 estágios em degraus ✋
 
+### ✅ Resultado dos quatro degraus
+
+Todos com R = 15, produto de fundo 254 kmol/h, 18 bar, alimentação no meio.
+
+| N | Topo Python | Topo DWSIM | Erro | Fundo Python | Fundo DWSIM | Erro |
+|---|---|---|---|---|---|---|
+| 50 | 92,236 % | 92,239 % | −0,0035 | 75,621 % | 75,633 % | −0,0117 |
+| 100 | 96,500 % | 96,506 % | −0,0058 | 88,145 % | 88,221 % | −0,0763 |
+| 150 | 97,839 % | 97,845 % | −0,0057 | 92,079 % | 92,109 % | −0,0291 |
+| 200 | 98,514 % | 98,519 % | −0,0050 | 94,060 % | 94,038 % | +0,0226 |
+
+**O erro no topo é −0,004 / −0,006 / −0,006 / −0,005 ponto.** Constante e
+desprezível em quatro rodadas independentes, com a pureza indo de 92 % a 98,5 %.
+O erro no fundo oscila entre 0,01 e 0,08 ponto sem tendência — não acumula com
+o número de estágios.
+
+**Confirmado no rigoroso: 200 estágios com refluxo 15 param em 98,52 % e não
+atingem grau polímero.** A conclusão que o modelo vinha anunciando desde a
+calibração de α se sustenta na coluna rigorosa.
+
+Cargas térmicas no DWSIM ao longo dos quatro degraus: 40 895 → 40 933 →
+40 947 → 40 953 kW. Variação de 0,14 % enquanto os estágios quadruplicaram —
+estágios não compram energia, só refluxo compra.
+
+### ⚠️ Sempre mova a alimentação junto com os estágios
+
+Ao subir de 150 para 201 estágios é fácil esquecer de reposicionar a
+alimentação. O sintoma é característico e vale reconhecer:
+
+| Alimentação (de 200) | Topo | Fundo |
+|---|---|---|
+| Stage15 | 92,40 % | 76,10 % |
+| Stage25 | 94,27 % | 81,60 % |
+| Stage50 | 96,70 % | 88,72 % |
+| Stage100 | 98,51 % | 94,06 % |
+
+Alimentar muito no alto degrada **as duas pontas ao mesmo tempo**: a seção de
+retificação quase desaparece e o topo despenca, e o excesso de estágios de
+esgotamento não compensa porque quem limita é o refluxo.
+
+O diagnóstico rápido: **se as purezas caírem mas a carga térmica não mudar**, o
+refluxo e a vazão de destilado estão intactos — o problema é estrutural
+(posição de alimentação ou número de estágios), não operacional.
+
+
 Agora sim. **Não pule direto.** A cada passo, a solução convergida vira a
 estimativa inicial do próximo:
 
