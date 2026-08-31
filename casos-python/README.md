@@ -7,6 +7,7 @@ Cada subpasta é um caso pronto para subir na plataforma em
 |---|---|---|
 | [`_template/`](_template/simulate.py) | Esqueleto comentado para casos novos | — |
 | [`01-cstr-nao-isotermico/`](01-cstr-nao-isotermico/CONFIG.md) | CSTR exotérmico com multiplicidade de estados estacionários | pronto |
+| [`02-splitter-c3/`](02-splitter-c3/CONFIG.md) | Splitter propeno/propano, com dimensionamento e economia anual | pronto |
 
 ## O contrato da plataforma
 

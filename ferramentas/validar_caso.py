@@ -130,16 +130,17 @@ def imprimir_tabela(modulo):
     """Imprime as tabelas prontas para colar no wizard de variaveis da suite."""
     var = modulo.VARIAVEIS
     print("\n### Variaveis de entrada\n")
-    print("| Name | Cell | Unit | Type | Default | Min | Max |")
-    print("|---|---|---|---|---|---|---|")
+    print("| Name | Cell | Unit | Type | Default | Min | Max | Step |")
+    print("|---|---|---|---|---|---|---|---|")
     for v in var["entradas"]:
         tipo = v.get("tipo", "Continuous")
         if tipo == "Fixed":
-            faixa = ("—", "—")
+            lo = hi = "—"
         else:
-            faixa = ("{:g}".format(v["min"]), "{:g}".format(v["max"]))
-        print("| {} | `{}` | {} | {} | {:g} | {} | {} |".format(
-            v["nome"], v["nome"], v["unidade"], tipo, v["padrao"], faixa[0], faixa[1]))
+            lo, hi = "{:g}".format(v["min"]), "{:g}".format(v["max"])
+        passo = "{:g}".format(v["passo"]) if v.get("passo") else "—"
+        print("| {} | `{}` | {} | {} | {:g} | {} | {} | {} |".format(
+            v["nome"], v["nome"], v["unidade"], tipo, v["padrao"], lo, hi, passo))
 
     print("\n### Variaveis de saida\n")
     print("| Name | Cell | Unit |")

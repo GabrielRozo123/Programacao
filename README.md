@@ -12,8 +12,11 @@ casos-python/        Python Cases prontos para upload na plataforma
   _template/         Esqueleto comentado para criar um caso novo
   01-cstr-nao-isotermico/
                      CSTR com multiplicidade de estados estacionários
+  02-splitter-c3/    Splitter propeno/propano — gêmeo rápido do caso DWSIM
 docs/
   roadmap-ai4tech.md Seis projetos propostos, em ordem de ambição
+  dwsim-splitter-c3.md
+                     Montagem no DWSIM, convergência e ligação com a suite
 ferramentas/
   validar_caso.py    Validador e DOE local — rode antes de gastar quota
 ```
