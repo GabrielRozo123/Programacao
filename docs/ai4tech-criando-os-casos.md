@@ -78,14 +78,21 @@ As correntes estão com os nomes automáticos `1`, `3` e `4`. Além de quebradi�
 | `N_estagios` | - | Discrete | 200 | 100 | 260 | 10 |
 | `pos_alimentacao` | - | Continuous | 0.5 | 0.3 | 0.7 | — |
 | `razao_refluxo` | - | Continuous | 15 | 8 | 24 | — |
-| `corte` | - | Continuous | 0.995 | 0.97 | 0.999 | — |
+| `corte_pct` | % | Continuous | 99.5 | 97.0 | 99.9 | — |
 | `pressao` | bar | Continuous | 18 | 14 | 22 | — |
 | `z_propeno` | - | Continuous | 0.75 | 0.6 | 0.9 | — |
 | `F_alimentacao` | kmol/h | Fixed | 1000 | — | — | — |
 
-O nome **é** a chave do dicionário. Um typo aqui vira `KeyError` na primeira
-rodada — mas como o `simulate()` usa o valor padrão para chave ausente, o erro
-seria silencioso: a variável simplesmente não teria efeito no DOE. Confira.
+O nome **é** a chave do dicionário. Um typo aqui não dá erro: como o
+`simulate()` usa o valor padrão para chave ausente, a variável simplesmente
+não teria efeito nenhum no DOE. Falha silenciosa. Confira.
+
+> ⚠️ **O campo numérico do wizard trunca em duas casas decimais.** Foi por isso
+> que `corte_pct` está em porcento e não como fração: a faixa original de 0,970
+> a 0,999 virava 0,97 a 0,99 sem nenhum aviso, cortando fora a região de maior
+> recuperação — e o otimizador reportaria o teto artificial como ótimo.
+> **Ao definir qualquer faixa, digite o valor, clique fora e confira se ele
+> ficou.**
 
 ### Conferência do Test Run
 

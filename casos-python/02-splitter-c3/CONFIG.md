@@ -40,6 +40,14 @@ dilema de projeto de uma unidade de verdade.
 
 ## Duas decisões de modelagem que valem para qualquer caso
 
+**Escala que a interface aceita.** O `corte` era originalmente uma fração de
+0,970 a 0,999 — três casas decimais. O campo numérico do wizard do AI4Tech
+trunca em duas, e reduzia silenciosamente o máximo de 0,999 para 0,99,
+amputando a região de maior recuperação sem emitir aviso nenhum. Expresso em
+porcento (97,0 a 99,9), uma casa decimal basta. **Ao definir faixas, verifique
+quantas casas decimais a interface preserva** — restrição artificial imposta
+por widget não aparece nos resultados, só na conta no fim do ano.
+
 **Alimentação como fração, não como número de prato.** Se `estagio_alim` e
 `N_estagios` forem variáveis independentes, o DOE gera combinações com
 alimentação acima do topo. Usando `pos_alimentacao` ∈ [0,3; 0,7] como fração de
@@ -48,14 +56,14 @@ N, *toda* combinação é viável.
 **Corte relativo ao propeno alimentado, não a D/F.** Com `D/F` fixo e `z_propeno`
 variando, boa parte do domínio vira projeto impossível — com `z = 0,60` e
 `D/F = 0,82` a pureza de topo não passa de 73 %, faça o que fizer. Definindo
-`corte = D/(F·z)`, a recuperação fica entre 97 % e 99,9 % **para qualquer
-composição de alimentação**:
+`corte_pct = 100·D/(F·z)`, a recuperação fica entre 97 % e 99,9 % **para
+qualquer composição de alimentação**:
 
-| corte | z=0,60 | z=0,75 | z=0,90 |
+| corte_pct | z=0,60 | z=0,75 | z=0,90 |
 |---|---|---|---|
-| 0,975 | 96,9 % | 97,4 % | 97,5 % |
-| 0,990 | 98,4 % | 98,9 % | 99,0 % |
-| 1,000 | 99,3 % | 99,9 % | 100,0 % |
+| 97,5 | 96,9 % | 97,4 % | 97,5 % |
+| 99,0 | 98,4 % | 98,9 % | 99,0 % |
+| 100,0 | 99,3 % | 99,9 % | 100,0 % |
 
 A lição é geral: **reparametrizar é mais barato que descartar pontos**. Num DOE
 de 500 rodadas na nuvem, a diferença entre as duas formulações são centenas de
@@ -68,7 +76,7 @@ simulações jogadas fora.
 | N_estagios | `N_estagios` | - | Discrete | 200 | 100 | 260 | 10 |
 | pos_alimentacao | `pos_alimentacao` | - | Continuous | 0.5 | 0.3 | 0.7 | — |
 | razao_refluxo | `razao_refluxo` | - | Continuous | 15 | 8 | 24 | — |
-| corte | `corte` | - | Continuous | 0.995 | 0.97 | 0.999 | — |
+| corte_pct | `corte_pct` | % | Continuous | 99.5 | 97.0 | 99.9 | — |
 | pressao | `pressao` | bar | Continuous | 18 | 14 | 22 | — |
 | z_propeno | `z_propeno` | - | Continuous | 0.75 | 0.6 | 0.9 | — |
 | F_alimentacao | `F_alimentacao` | kmol/h | Fixed | 1000 | — | — | — |
@@ -195,7 +203,7 @@ cai abaixo de 40 °C e a água de resfriamento deixa de servir — se desloca de
 
 Com α(x, P) calibrado, **N = 200 e R = 15 não fecham a especificação** — param
 em 98,51 %. Varrendo o refluxo mínimo necessário para 99,5 % em cada número de
-estágios (z = 0,75, P = 18 bar, corte = 0,995):
+estágios (z = 0,75, P = 18 bar, corte_pct = 99,5):
 
 | N | R mínimo | Q refervedor (MW) | Diâmetro (m) | Custo (MUSD/ano) | Lucro (MUSD/ano) |
 |---|---|---|---|---|---|

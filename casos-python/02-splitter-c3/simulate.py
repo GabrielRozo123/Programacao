@@ -170,9 +170,9 @@ VARIAVEIS = {
         {"nome": "razao_refluxo", "unidade": "-", "tipo": "Continuous",
          "padrao": 15.0, "min": 8.0, "max": 24.0,
          "descricao": "Razao de refluxo L/D"},
-        {"nome": "corte", "unidade": "-", "tipo": "Continuous",
-         "padrao": 0.995, "min": 0.970, "max": 0.999,
-         "descricao": "D/(F.z) — vazao de destilado por propeno alimentado"},
+        {"nome": "corte_pct", "unidade": "%", "tipo": "Continuous",
+         "padrao": 99.5, "min": 97.0, "max": 99.9,
+         "descricao": "100*D/(F.z) — vazao de destilado como % do propeno alimentado"},
         {"nome": "pressao", "unidade": "bar", "tipo": "Continuous",
          "padrao": 18.0, "min": 14.0, "max": 22.0,
          "descricao": "Pressao de operacao da coluna"},
@@ -406,7 +406,12 @@ def simulate(inputs):
     if volatilidade_relativa(zF, P) <= 1.0:
         return falha
 
-    D_sobre_F = val["corte"] * zF
+    # Expresso em porcento de proposito: a faixa util vai de 97,0 a 99,9, e como
+    # fracao ela exigiria tres casas decimais (0,970 a 0,999). Campos numericos
+    # de interface costumam truncar em duas casas — foi o que aconteceu no
+    # wizard do AI4Tech Suite, que reduzia 0,999 a 0,99 e amputava justamente a
+    # regiao de maior recuperacao. Em porcento, uma casa decimal basta.
+    D_sobre_F = (val["corte_pct"] / 100.0) * zF
     if not (0.0 < D_sobre_F < 1.0):
         return falha
 
@@ -522,6 +527,6 @@ def simulate(inputs):
 
 if __name__ == "__main__":
     resultado = simulate({})
-    print("Caso base: N=200, alim. no meio, R=15, corte=0.995, P=18 bar, z=0.75\n")
+    print("Caso base: N=200, alim. no meio, R=15, corte 99,5 %, P=18 bar, z=0.75\n")
     for chave, valor in resultado.items():
         print("  {:<16} = {:>12.4f}".format(chave, valor))
