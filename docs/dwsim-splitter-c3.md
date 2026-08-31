@@ -6,10 +6,9 @@ Suite como **DWSIM Case**. O gêmeo rápido em Python está em
 serve de referência para conferir se a coluna do DWSIM convergiu para algo
 fisicamente sensato.
 
-> **Sobre a versão.** Você mencionou que o DWSIM atualizou. Os nomes de menu
-> abaixo seguem a organização usual do DWSIM Pro/Patreon Edition; se algum item
-> tiver mudado de lugar na sua versão, o conceito continua o mesmo. Me diga a
-> versão e eu ajusto o guia.
+> **Versão de referência: DWSIM Patreon Edition 10.2.3.0**, Windows 11, .NET
+> CLR 4.0. Para o roteiro clicável, passo a passo e com pontos de parada, veja
+> [`passo-a-passo-splitter-c3.md`](passo-a-passo-splitter-c3.md).
 
 ---
 
@@ -129,13 +128,43 @@ variável manipulável pelo AI4Tech. Confira no wizard. Se não estiverem:
 - Ou deixe a estrutura fixa e otimize só a operação — que é, aliás, o problema
   real de quem já tem a coluna construída.
 
-### O campo Cell
+### O campo Cell — onde encontrar o formato
 
-No wizard do DWSIM Case, cada variável precisa de uma referência ao objeto do
-flowsheet. **Não vou chutar a sintaxe** — ela mudou entre versões e a suite
-costuma oferecer um seletor de objetos e propriedades. Use o seletor, e se ele
-mostrar o caminho em texto, me mande um exemplo que eu monto a tabela completa
-no formato certo.
+O DWSIM tem a descoberta embutida. Três caminhos, do mais simples ao mais
+completo:
+
+**1. Spreadsheet, botão direito.** Na aba Spreadsheet, clique com o botão
+direito numa célula e escolha **Select Object/Property**. Selecione o objeto e
+a propriedade nas listas; o DWSIM escreve sozinho a fórmula no formato
+
+```
+GETPROPVAL("objeto", "separador", "propriedade")
+```
+
+Os textos entre aspas são os nomes canônicos do objeto e da propriedade.
+
+**2. Script Manager, inventário completo.** Rode
+[`ferramentas/dwsim_inventario.py`](../ferramentas/dwsim_inventario.py) no
+Script Manager. Ele percorre todos os objetos e imprime nome interno, tag e
+todos os identificadores de propriedade — no formato `PROP_MS_0`, `PROP_CO_3`
+etc. — com valor e unidade. É a lista completa de uma vez.
+
+**3. O próprio wizard do AI4Tech.** No Edit modal do DWSIM Case a suite
+costuma oferecer um seletor de objetos e propriedades. Quando houver seletor,
+é ele que manda: use-o e confira contra o inventário.
+
+Por baixo, a automação do DWSIM funciona assim:
+
+```python
+obj = Flowsheet.GetFlowsheetSimulationObject("nome-do-objeto")
+valor = obj.GetPropertyValue("PROP_MS_0")
+unidade = obj.GetPropertyUnit("PROP_MS_0")
+```
+
+Os identificadores seguem o padrão `PROP_<abreviação do tipo>_<índice>` —
+`PROP_MS_*` para material stream, `PROP_CO_*` para compressor, e assim por
+diante. Por isso o inventário é útil: ele traduz cada código para o valor e a
+unidade que você reconhece na tela.
 
 ### Custo de execução, e como não desperdiçar quota
 

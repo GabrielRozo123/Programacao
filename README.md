@@ -17,8 +17,12 @@ docs/
   roadmap-ai4tech.md Seis projetos propostos, em ordem de ambição
   dwsim-splitter-c3.md
                      Montagem no DWSIM, convergência e ligação com a suite
+  passo-a-passo-splitter-c3.md
+                     Roteiro clicável, com pontos de parada
 ferramentas/
   validar_caso.py    Validador e DOE local — rode antes de gastar quota
+  dwsim_inventario.py
+                     Inventário de objetos/propriedades, para o campo Cell
 ```
 
 ## Começando

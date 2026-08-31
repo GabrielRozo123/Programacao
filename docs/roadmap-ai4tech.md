@@ -35,7 +35,7 @@ mapa entrada → saída descontínuo na fronteira de ignição.
 
 ## P2 · Splitter propeno/propano no DWSIM: surrogate para otimização econômica 🟡
 
-**Backend:** DWSIM Case · **em andamento** — [guia de montagem](dwsim-splitter-c3.md) e [gêmeo rápido em Python](../casos-python/02-splitter-c3/CONFIG.md) prontos
+**Backend:** DWSIM Case · **em andamento** — [guia de montagem](dwsim-splitter-c3.md), [roteiro passo a passo](passo-a-passo-splitter-c3.md) e [gêmeo rápido em Python](../casos-python/02-splitter-c3/CONFIG.md) prontos
 
 Uma coluna rigorosa leva segundos por avaliação; o NSGA-II quer dezenas de
 milhares. Aí está a razão de existir do surrogate — não é enfeite, é o que
