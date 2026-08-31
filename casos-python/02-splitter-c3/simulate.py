@@ -169,11 +169,22 @@ def volatilidade_relativa(pressao):
     """
     Volatilidade relativa propeno/propano em funcao da pressao.
 
-    Correlacao linear ajustada a valores publicados (alfa ~ 1,215 a 1 bar;
-    ~1,12 a 18 bar). Aproximacao deliberada: o valor rigoroso vem do DWSIM com
-    Peng-Robinson, e a diferenca entre os dois e parte do que se quer medir.
+    ANCORADA EM MEDICAO. O intercepto foi ajustado para reproduzir o valor
+    medido no DWSIM 10.2.3.0 com Peng-Robinson, flash PVF a 18 bar e fracao de
+    vapor 0,5, alimentacao 75/25 molar:
+
+        fase vapor   y = 0,75937 propeno / 0,24063 propano
+        fase liquida x = 0,74063 propeno / 0,25937 propano
+        alfa = (y1/x1)/(y2/x2) = 1,105152
+
+    A correlacao anterior, ajustada so a valores de literatura, dava 1,1166 a
+    18 bar — 1,04 % acima. Parece pouco, mas N_min e proporcional a 1/ln(alfa),
+    e nessa faixa 1 % em alfa vira 10,3 % em numero de estagios.
+
+    A INCLINACAO (-0,0058 por bar) ainda vem da literatura: so ha um ponto
+    medido. Com medicoes a 14 e 22 bar da para ajustar os dois coeficientes.
     """
-    return 1.221 - 0.0058 * pressao
+    return 1.2096 - 0.0058 * pressao
 
 
 def temperatura_saturacao(pressao, constantes):

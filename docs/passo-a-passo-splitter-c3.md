@@ -66,7 +66,7 @@ Preencha esta tabela — é ela que eu preciso:
 | Pacote | P (bar) | y propeno | x propeno | α calculado | T de equilíbrio (°C) |
 |---|---|---|---|---|---|
 | Peng-Robinson | 14 | | | | |
-| Peng-Robinson | 18 | | | | |
+| **Peng-Robinson** | **18** | **0,75937** | **0,74063** | **1,105152** | **45,0796** |
 | Peng-Robinson | 22 | | | | |
 | SRK | 14 | | | | |
 | SRK | 18 | | | | |
@@ -167,8 +167,8 @@ modelo Python dá:
 
 | Grandeza | Python (atalho) | Seu DWSIM |
 |---|---|---|
-| Propeno no topo | 99,85 % mol | |
-| Propano no fundo | 98,09 % mol | |
+| Propeno no topo | 99,55 % mol | |
+| Propano no fundo | 97,20 % mol | |
 | Carga do refervedor | 42,1 MW | |
 | T topo | 44,2 °C | |
 | T fundo | 52,4 °C | |
@@ -209,11 +209,17 @@ Independente do script, o DWSIM tem um jeito visual de descobrir a mesma coisa:
 1. Vá na aba **Spreadsheet**.
 2. **Clique com o botão direito** numa célula → **Select Object/Property**.
 3. Escolha o objeto e a propriedade nas listas.
-4. O DWSIM escreve sozinho a fórmula, no formato
-   `GETPROPVAL("objeto", "separador", "propriedade")`.
+4. O DWSIM escreve sozinho a fórmula. Exemplo real do seu 10.2.3.0:
 
-Os textos que aparecem entre aspas nessa fórmula são os nomes canônicos que
-qualquer camada de automação usa — inclusive a suite.
+```
+=GETPROPVAL("MAT-9c4e4e77-638c-40c3-8607-0cd1fbd38802";"PROP_MS_0";"C")
+```
+
+São três argumentos — **objeto ; propriedade ; unidade** — e o objeto vem com
+**GUID, não com a tag**. Confirmado também: `PROP_MS_0` é a temperatura.
+
+> ⚠️ Se você apagar e redesenhar uma corrente, o GUID muda e toda referência a
+> ela quebra. Monte o flowsheet inteiro antes de coletar os identificadores.
 
 ### ✋ CHECKPOINT 4
 

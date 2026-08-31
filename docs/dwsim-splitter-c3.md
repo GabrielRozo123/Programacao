@@ -84,8 +84,8 @@ D = 746 kmol/h a 18 bar, o modelo em Python dá:
 
 | Grandeza | Python (atalho) |
 |---|---|
-| Propeno no topo | 99,85 % mol |
-| Propano no fundo | 98,09 % mol |
+| Propeno no topo | 99,55 % mol |
+| Propano no fundo | 97,20 % mol |
 | Refervedor | 42,1 MW |
 | T topo / fundo | 44,2 / 52,4 °C |
 
@@ -135,13 +135,22 @@ completo:
 
 **1. Spreadsheet, botão direito.** Na aba Spreadsheet, clique com o botão
 direito numa célula e escolha **Select Object/Property**. Selecione o objeto e
-a propriedade nas listas; o DWSIM escreve sozinho a fórmula no formato
+a propriedade nas listas; o DWSIM escreve sozinho a fórmula. Exemplo real,
+capturado no 10.2.3.0:
 
 ```
-GETPROPVAL("objeto", "separador", "propriedade")
+=GETPROPVAL("MAT-9c4e4e77-638c-40c3-8607-0cd1fbd38802";"PROP_MS_0";"C")
 ```
 
-Os textos entre aspas são os nomes canônicos do objeto e da propriedade.
+Os três argumentos são **objeto ; propriedade ; unidade**, separados por
+ponto-e-vírgula.
+
+> ⚠️ **O objeto é referenciado pelo nome interno com GUID**
+> (`MAT-<guid>`), não pela tag que aparece no flowsheet. Duas consequências
+> práticas: a referência sobrevive a renomear a corrente, mas **quebra se você
+> recriar o objeto** — apagar e redesenhar uma corrente gera GUID novo e
+> invalida todas as referências a ela. Monte o flowsheet e só depois colete os
+> identificadores.
 
 **2. Script Manager, inventário completo.** Rode
 [`ferramentas/dwsim_inventario.py`](../ferramentas/dwsim_inventario.py) no

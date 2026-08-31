@@ -24,18 +24,18 @@ dilema de projeto de uma unidade de verdade.
 
 | Grandeza | Valor | Comentário |
 |---|---|---|
-| Pureza de topo | 99,85 % mol | grau polímero |
-| Pureza de fundo | 98,09 % mol propano | GLP |
-| Recuperação de propeno | 99,35 % | |
+| Pureza de topo | 99,55 % mol | grau polímero, **por 0,05 ponto** |
+| Pureza de fundo | 97,20 % mol propano | GLP |
+| Recuperação de propeno | 99,05 % | |
 | Refervedor / condensador | 42,1 MW | dominante no OPEX |
 | T topo / T fundo | 44,2 / 52,4 °C | água de resfriamento no limite |
 | Diâmetro | 4,44 m | |
 | Altura | 145 m em 3 cascos | splitters reais são cascos em série |
-| N/Nmin | 2,11 | faixa típica 1,5–2,5 |
-| R/Rmin | 1,32 | faixa típica 1,1–1,5 |
+| N/Nmin | 2,24 | faixa típica 1,5–2,5 |
+| R/Rmin | 1,21 | faixa típica 1,1–1,5 |
 | CAPEX instalado | 40,8 MUSD | |
 | OPEX | 11,7 MUSD/ano | ~96 % é vapor |
-| Lucro | 65,6 MUSD/ano | |
+| Lucro | 65,6 MUSD/ano | α calibrado contra o DWSIM |
 
 ## Duas decisões de modelagem que valem para qualquer caso
 
@@ -105,8 +105,15 @@ python3 ferramentas/validar_caso.py casos-python/02-splitter-c3/simulate.py --n 
 ```
 
 Resultado esperado: 300/300 convergidos, ~3 ms por run. O DOE varre pureza de
-83 % a 100 %, lucro de −81 a +96 MUSD/ano e 30 % dos projetos exigindo
-refrigeração — sinal de sobra para treinar surrogate e otimizar.
+81 % a 100 %, lucro de −82 a +95 MUSD/ano e cerca de 30 % dos projetos
+exigindo refrigeração — sinal de sobra para treinar surrogate e otimizar.
+
+> **α calibrado contra o DWSIM.** A volatilidade relativa usada aqui está
+> ancorada numa medição real: flash PVF a 18 bar no DWSIM 10.2.3.0 com
+> Peng-Robinson deu α = 1,105152. A correlação anterior, só de literatura,
+> dava 1,1166 — 1,04 % acima, o que inflava a pureza de topo do caso base de
+> 99,55 % para 99,85 % e escondia que o projeto está na borda da especificação.
+> A inclinação da correlação ainda é de literatura: falta medir a 14 e 22 bar.
 
 ## Roteiro na plataforma
 
