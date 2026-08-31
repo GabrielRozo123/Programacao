@@ -63,11 +63,20 @@ sensível a arredondamento.
 
 Preencha esta tabela — é ela que eu preciso:
 
-| Pacote | P (bar) | y propeno | x propeno | α calculado | T de equilíbrio (°C) |
-|---|---|---|---|---|---|
-| Peng-Robinson | 14 | | | | |
-| **Peng-Robinson** | **18** | **0,75937** | **0,74063** | **1,105152** | **45,0796** |
-| Peng-Robinson | 22 | | | | |
+| Pacote | P (bar) | Alimentação | y propeno | x propeno | α | T (°C) |
+|---|---|---|---|---|---|---|
+| Peng-Robinson | 14 | 75/25 | 0,760566 | 0,739434 | **1,119362** | 34,063 |
+| Peng-Robinson | 18 | 75/25 | 0,759370 | 0,740630 | **1,105152** | 45,080 |
+| Peng-Robinson | 22 | 75/25 | 0,758288 | 0,741712 | **1,092456** | 54,421 |
+| Peng-Robinson | 18 | 1/99 | 0,010808 | 0,009192 | **1,177690** | 51,978 |
+| Peng-Robinson | 18 | 5/95 | 0,053816 | 0,046184 | **1,174670** | 51,516 |
+| Peng-Robinson | 18 | 50/50 | 0,515650 | 0,484350 | **1,133423** | 46,996 |
+| Peng-Robinson | 18 | **95/5** | | | *falta medir* | |
+| Peng-Robinson | 18 | **99/1** | | | *falta medir* | |
+
+✅ **Passo 1 concluído** (faltam os dois pontos ricos em propeno). Resultado
+incorporado ao modelo como superfície α(x, P) — ver
+[CONFIG do caso 02](../casos-python/02-splitter-c3/CONFIG.md).
 | SRK | 14 | | | | |
 | SRK | 18 | | | | |
 | SRK | 22 | | | | |
@@ -167,8 +176,8 @@ modelo Python dá:
 
 | Grandeza | Python (atalho) | Seu DWSIM |
 |---|---|---|
-| Propeno no topo | 99,55 % mol | |
-| Propano no fundo | 97,20 % mol | |
+| Propeno no topo | 98,51 % mol | |
+| Propano no fundo | 94,14 % mol | |
 | Carga do refervedor | 42,1 MW | |
 | T topo | 44,2 °C | |
 | T fundo | 52,4 °C | |

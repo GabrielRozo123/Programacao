@@ -84,8 +84,8 @@ D = 746 kmol/h a 18 bar, o modelo em Python dá:
 
 | Grandeza | Python (atalho) |
 |---|---|
-| Propeno no topo | 99,55 % mol |
-| Propano no fundo | 97,20 % mol |
+| Propeno no topo | 98,51 % mol |
+| Propano no fundo | 94,14 % mol |
 | Refervedor | 42,1 MW |
 | T topo / fundo | 44,2 / 52,4 °C |
 

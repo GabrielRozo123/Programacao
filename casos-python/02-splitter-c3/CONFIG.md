@@ -24,18 +24,19 @@ dilema de projeto de uma unidade de verdade.
 
 | Grandeza | Valor | Comentário |
 |---|---|---|
-| Pureza de topo | 99,55 % mol | grau polímero, **por 0,05 ponto** |
-| Pureza de fundo | 97,20 % mol propano | GLP |
-| Recuperação de propeno | 99,05 % | |
+| Pureza de topo | 98,51 % mol | **grau químico — não atinge polímero** |
+| Pureza de fundo | 94,14 % mol propano | GLP |
+| Recuperação de propeno | 98,02 % | |
+| α no topo / no fundo | 1,0756 / 1,1736 | varia 9 % ao longo da coluna |
 | Refervedor / condensador | 42,1 MW | dominante no OPEX |
 | T topo / T fundo | 44,2 / 52,4 °C | água de resfriamento no limite |
 | Diâmetro | 4,44 m | |
 | Altura | 145 m em 3 cascos | splitters reais são cascos em série |
-| N/Nmin | 2,24 | faixa típica 1,5–2,5 |
-| R/Rmin | 1,21 | faixa típica 1,1–1,5 |
+| N/Nmin | 3,34 | acima do típico — a coluna está sobredimensionada em estágios e ainda assim não fecha a especificação |
+| R/Rmin | 1,25 | faixa típica 1,1–1,5 |
 | CAPEX instalado | 40,8 MUSD | |
 | OPEX | 11,7 MUSD/ano | ~96 % é vapor |
-| Lucro | 65,6 MUSD/ano | α calibrado contra o DWSIM |
+| Lucro | 15,4 MUSD/ano | derrubado pelo rebaixamento de grau |
 
 ## Duas decisões de modelagem que valem para qualquer caso
 
@@ -88,7 +89,9 @@ simulações jogadas fora.
 | diametro | `diametro` | m | resposta |
 | altura_total | `altura_total` | m | resposta |
 | n_cascos | `n_cascos` | - | diagnóstico |
-| N_min | `N_min` | - | diagnóstico (Fenske) |
+| alfa_topo | `alfa_topo` | - | diagnóstico |
+| alfa_fundo | `alfa_fundo` | - | diagnóstico |
+| N_min | `N_min` | - | diagnóstico (Fenske, média geométrica de α) |
 | R_min | `R_min` | - | diagnóstico (Underwood) |
 | R_sobre_Rmin | `R_sobre_Rmin` | - | diagnóstico |
 | CAPEX | `CAPEX` | MUSD | resposta |
@@ -104,16 +107,60 @@ simulações jogadas fora.
 python3 ferramentas/validar_caso.py casos-python/02-splitter-c3/simulate.py --n 300
 ```
 
-Resultado esperado: 300/300 convergidos, ~3 ms por run. O DOE varre pureza de
-81 % a 100 %, lucro de −82 a +95 MUSD/ano e cerca de 30 % dos projetos
-exigindo refrigeração — sinal de sobra para treinar surrogate e otimizar.
+Resultado esperado: 300/300 convergidos, ~22 ms por run. O DOE varre pureza de
+85 % a 100 %, lucro de −81 a +82 MUSD/ano e cerca de 30 % dos projetos
+exigindo refrigeração.
 
-> **α calibrado contra o DWSIM.** A volatilidade relativa usada aqui está
-> ancorada numa medição real: flash PVF a 18 bar no DWSIM 10.2.3.0 com
-> Peng-Robinson deu α = 1,105152. A correlação anterior, só de literatura,
-> dava 1,1166 — 1,04 % acima, o que inflava a pureza de topo do caso base de
-> 99,55 % para 99,85 % e escondia que o projeto está na borda da especificação.
-> A inclinação da correlação ainda é de literatura: falta medir a 14 e 22 bar.
+## α(x, P) calibrado contra o DWSIM
+
+A volatilidade relativa **não é constante** e o modelo deixou de tratá-la como
+tal. A superfície abaixo foi ajustada a seis medições de flash PVF no DWSIM
+10.2.3.0 com Peng-Robinson.
+
+**Com a composição, a 18 bar:**
+
+| x propeno (líquido) | α medido |
+|---|---|
+| 0,00919 | 1,177690 |
+| 0,04618 | 1,174670 |
+| 0,48435 | 1,133423 |
+| 0,74063 | 1,105152 |
+
+Ajuste `ln α` quadrático em x, rms = 7,7 × 10⁻⁶.
+
+**Com a pressão, a x ≈ 0,74:**
+
+| P (bar) | α medido |
+|---|---|
+| 14 | 1,119362 |
+| 18 | 1,105152 |
+| 22 | 1,092456 |
+
+Linear, inclinação **−0,003363 por bar**, resíduos ~2,5 × 10⁻⁴.
+
+```
+α(x, P) = exp(0,164196 − 0,068548·x − 0,024510·x²) − 0,003363·(P − 18)
+```
+
+### Por que isso importa tanto
+
+α cai de ~1,178 no fundo para ~1,076 no topo — quase 10 %. Como `N_min` é
+proporcional a `1/ln α` e `ln α` é minúsculo nessa faixa, **separar no topo é
+mais de 50 % mais difícil que no fundo**. Tratar α como constante era o maior
+erro deste modelo, muito maior que o erro de 1 % corrigido antes.
+
+O efeito no caso base é brutal: a pureza de topo caiu de 99,55 % para 98,51 %.
+**O projeto deixou de atingir grau polímero** e o lucro despencou de 65,6 para
+15,4 MUSD/ano, porque o produto foi rebaixado de US$ 1150/t para US$ 950/t.
+
+### ⚠️ Limite atual da calibração
+
+**Acima de x = 0,74 a superfície extrapola.** Não há medição no extremo rico em
+propeno — que é exatamente onde fica o destilado. A extrapolação prevê
+α ≈ 1,074 a x = 0,995, valor plausível diante da literatura de splitters C3,
+mas não medido. **A conclusão de que o caso base não atinge grau polímero
+depende dessa extrapolação e é provisória.** Duas medições a 95/5 e 99/1
+fecham a questão.
 
 ## Roteiro na plataforma
 

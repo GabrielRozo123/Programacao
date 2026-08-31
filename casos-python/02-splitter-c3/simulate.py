@@ -62,6 +62,30 @@ Z_VAPOR = 0.80       # fator de compressibilidade medio na faixa de operacao
 R_GAS = 8.314        # kJ/(kmol.K)
 
 # --------------------------------------------------------------------------
+# Volatilidade relativa — superficie ajustada a medicoes no DWSIM 10.2.3.0
+# com Peng-Robinson (flash PVF, fracao de vapor 0,5).
+#
+# Dependencia com a COMPOSICAO, a 18 bar (quatro medicoes):
+#     x = 0,00919 -> alfa = 1,177690
+#     x = 0,04618 -> alfa = 1,174670
+#     x = 0,48435 -> alfa = 1,133423
+#     x = 0,74063 -> alfa = 1,105152
+#   ln(alfa) quadratico em x, rms = 7,7e-6.
+#
+# Dependencia com a PRESSAO, a x = 0,74 (tres medicoes, 14/18/22 bar):
+#   linear, inclinacao -0,003363 por bar, residuos ~2,5e-4.
+#
+# ATENCAO: acima de x = 0,74 a superficie EXTRAPOLA — nao ha medicao no
+# extremo rico em propeno, que e justamente onde fica o destilado. A
+# extrapolacao preve alfa ~ 1,074 a x = 0,995. Medir a 95/5 e 99/1 fecha isso.
+# --------------------------------------------------------------------------
+ALFA_C0 = 0.164196
+ALFA_C1 = -0.068548
+ALFA_C2 = -0.024510
+ALFA_POR_BAR = -0.003363
+ALFA_P_REFERENCIA = 18.0
+
+# --------------------------------------------------------------------------
 # Geometria e hidraulica
 # --------------------------------------------------------------------------
 EFICIENCIA_PRATO = 0.85     # eficiencia de Murphree tipica para hidrocarbonetos proximos
@@ -149,7 +173,9 @@ VARIAVEIS = {
         {"nome": "diametro",         "unidade": "m",       "descricao": "Diametro da coluna"},
         {"nome": "altura_total",     "unidade": "m",       "descricao": "Altura somada dos cascos"},
         {"nome": "n_cascos",         "unidade": "-",       "descricao": "Cascos em serie necessarios"},
-        {"nome": "N_min",            "unidade": "-",       "descricao": "Estagios minimos (Fenske)"},
+        {"nome": "alfa_topo",        "unidade": "-",       "descricao": "Volatilidade relativa na composicao do topo"},
+        {"nome": "alfa_fundo",       "unidade": "-",       "descricao": "Volatilidade relativa na composicao do fundo"},
+        {"nome": "N_min",            "unidade": "-",       "descricao": "Estagios minimos (Fenske, media geometrica de alfa)"},
         {"nome": "R_min",            "unidade": "-",       "descricao": "Refluxo minimo (Underwood)"},
         {"nome": "R_sobre_Rmin",     "unidade": "-",       "descricao": "Folga de refluxo sobre o minimo"},
         {"nome": "CAPEX",            "unidade": "MUSD",    "descricao": "Investimento instalado"},
@@ -165,26 +191,20 @@ VARIAVEIS = {
 # --------------------------------------------------------------------------
 # Termodinamica
 # --------------------------------------------------------------------------
-def volatilidade_relativa(pressao):
+def volatilidade_relativa(x, pressao):
     """
-    Volatilidade relativa propeno/propano em funcao da pressao.
+    Volatilidade relativa propeno/propano no ponto (x, P), com x a fracao molar
+    de propeno na fase liquida.
 
-    ANCORADA EM MEDICAO. O intercepto foi ajustado para reproduzir o valor
-    medido no DWSIM 10.2.3.0 com Peng-Robinson, flash PVF a 18 bar e fracao de
-    vapor 0,5, alimentacao 75/25 molar:
-
-        fase vapor   y = 0,75937 propeno / 0,24063 propano
-        fase liquida x = 0,74063 propeno / 0,25937 propano
-        alfa = (y1/x1)/(y2/x2) = 1,105152
-
-    A correlacao anterior, ajustada so a valores de literatura, dava 1,1166 a
-    18 bar — 1,04 % acima. Parece pouco, mas N_min e proporcional a 1/ln(alfa),
-    e nessa faixa 1 % em alfa vira 10,3 % em numero de estagios.
-
-    A INCLINACAO (-0,0058 por bar) ainda vem da literatura: so ha um ponto
-    medido. Com medicoes a 14 e 22 bar da para ajustar os dois coeficientes.
+    Alfa NAO e constante ao longo da coluna: entre o fundo e o topo ele cai de
+    ~1,178 para ~1,074, uma variacao de quase 10 %. Como N_min e proporcional
+    a 1/ln(alfa) e ln(alfa) e pequeno nessa faixa, essa variacao vale mais de
+    50 % de diferenca em dificuldade de separacao entre as duas pontas da
+    coluna. Tratar alfa como constante era o maior erro deste modelo.
     """
-    return 1.2096 - 0.0058 * pressao
+    x = min(max(x, 0.0), 1.0)
+    base = math.exp(ALFA_C0 + ALFA_C1 * x + ALFA_C2 * x * x)
+    return base + ALFA_POR_BAR * (pressao - ALFA_P_REFERENCIA)
 
 
 def temperatura_saturacao(pressao, constantes):
@@ -217,15 +237,32 @@ def _limitar(v):
     return min(max(v, 1e-15), 1.0 - 1e-15)
 
 
-def _y_equilibrio(x, alfa):
+def _y_equilibrio(x, pressao):
+    """Vapor em equilibrio com o liquido de composicao x."""
+    alfa = volatilidade_relativa(x, pressao)
     return alfa * x / (1.0 + (alfa - 1.0) * x)
 
 
-def _x_equilibrio(y, alfa):
-    return y / (alfa - (alfa - 1.0) * y)
+def _x_equilibrio(y, pressao):
+    """
+    Liquido em equilibrio com o vapor de composicao y.
+
+    Com alfa dependendo de x a relacao fica implicita, entao resolvemos por
+    ponto fixo. Alfa varia devagar com x, o que torna a iteracao fortemente
+    contrativa: converge em poucos passos.
+    """
+    x = y
+    for _ in range(50):
+        alfa = volatilidade_relativa(x, pressao)
+        novo = y / (alfa - (alfa - 1.0) * y)
+        novo = min(max(novo, 0.0), 1.0)
+        if abs(novo - x) < 1e-14:
+            return novo
+        x = novo
+    return x
 
 
-def _residuo_coluna(xD, N, Nf, R, D_sobre_F, zF, alfa):
+def _residuo_coluna(xD, N, Nf, R, D_sobre_F, zF, pressao):
     """
     Marcha a secao de retificacao do topo para baixo e a de esgotamento do fundo
     para cima, e devolve a diferenca entre as duas no estagio de alimentacao.
@@ -250,29 +287,29 @@ def _residuo_coluna(xD, N, Nf, R, D_sobre_F, zF, alfa):
 
     # Retificacao: condensador total, portanto y_1 = xD.
     y = xD
-    x = _x_equilibrio(y, alfa)
+    x = _x_equilibrio(y, pressao)
     for _ in range(1, max(Nf - 1, 1)):
         y = _limitar((L / V) * x + (D / V) * xD)
-        x = _x_equilibrio(y, alfa)
+        x = _x_equilibrio(y, pressao)
     y_por_cima = _limitar((L / V) * x + (D / V) * xD)
 
     # Esgotamento: refervedor parcial e o estagio N.
     x = xB
-    y = _y_equilibrio(x, alfa)
+    y = _y_equilibrio(x, pressao)
     for _ in range(N, Nf, -1):
         x = _limitar((y + (B / V_linha) * xB) / (L_linha / V_linha))
-        y = _y_equilibrio(x, alfa)
+        y = _y_equilibrio(x, pressao)
 
     return y_por_cima - y
 
 
-def resolver_coluna(N, Nf, R, D_sobre_F, zF, alfa):
+def resolver_coluna(N, Nf, R, D_sobre_F, zF, pressao):
     """
     Encontra xD por bisseccao sobre o residuo de casamento no prato de
     alimentacao. Devolve (xD, xB) ou None se nao houver solucao na faixa.
     """
     def f(xd):
-        return _residuo_coluna(xd, N, Nf, R, D_sobre_F, zF, alfa)
+        return _residuo_coluna(xd, N, Nf, R, D_sobre_F, zF, pressao)
 
     lo, hi = zF + 1e-9, 1.0 - 1e-12
     f_lo, f_hi = f(lo), f(hi)
@@ -298,16 +335,26 @@ def resolver_coluna(N, Nf, R, D_sobre_F, zF, alfa):
     return xD, xB
 
 
-def estagios_minimos(xD, xB, alfa):
-    """Equacao de Fenske."""
-    if not (0.0 < xB < xD < 1.0) or alfa <= 1.0:
+def estagios_minimos(xD, xB, pressao):
+    """
+    Equacao de Fenske com a media geometrica de alfa entre topo e fundo — a
+    pratica usual quando alfa varia ao longo da coluna, e aqui ele varia muito.
+    """
+    if not (0.0 < xB < xD < 1.0):
+        return 0.0
+    alfa = math.sqrt(volatilidade_relativa(xD, pressao)
+                     * volatilidade_relativa(xB, pressao))
+    if alfa <= 1.0:
         return 0.0
     return math.log((xD / (1.0 - xD)) * ((1.0 - xB) / xB)) / math.log(alfa)
 
 
-def refluxo_minimo(xD, zF, alfa):
-    """Underwood para binario com alimentacao liquido saturado."""
-    if alfa <= 1.0 or not (0.0 < zF < 1.0):
+def refluxo_minimo(xD, zF, pressao):
+    """Underwood para binario com alimentacao liquido saturado, alfa no prato de alimentacao."""
+    if not (0.0 < zF < 1.0):
+        return 0.0
+    alfa = volatilidade_relativa(zF, pressao)
+    if alfa <= 1.0:
         return 0.0
     valor = (xD / zF - alfa * (1.0 - xD) / (1.0 - zF)) / (alfa - 1.0)
     return max(valor, 0.0)
@@ -333,15 +380,14 @@ def simulate(inputs):
     if N < 5 or R <= 0.0 or P <= 0.1 or not (0.0 < zF < 1.0) or F <= 0.0:
         return falha
 
-    alfa = volatilidade_relativa(P)
-    if alfa <= 1.0:
+    if volatilidade_relativa(zF, P) <= 1.0:
         return falha
 
     D_sobre_F = val["corte"] * zF
     if not (0.0 < D_sobre_F < 1.0):
         return falha
 
-    solucao = resolver_coluna(N, Nf, R, D_sobre_F, zF, alfa)
+    solucao = resolver_coluna(N, Nf, R, D_sobre_F, zF, P)
     if solucao is None:
         return falha
     xD, xB = solucao
@@ -437,9 +483,11 @@ def simulate(inputs):
         "diametro": diametro,
         "altura_total": altura,
         "n_cascos": float(n_cascos),
-        "N_min": estagios_minimos(xD, xB, alfa),
-        "R_min": refluxo_minimo(xD, zF, alfa),
-        "R_sobre_Rmin": R / max(refluxo_minimo(xD, zF, alfa), 1e-9),
+        "alfa_topo": volatilidade_relativa(xD, P),
+        "alfa_fundo": volatilidade_relativa(xB, P),
+        "N_min": estagios_minimos(xD, xB, P),
+        "R_min": refluxo_minimo(xD, zF, P),
+        "R_sobre_Rmin": R / max(refluxo_minimo(xD, zF, P), 1e-9),
         "CAPEX": capex / milhao,
         "CAPEX_anual": capex_anual / milhao,
         "OPEX": opex / milhao,
