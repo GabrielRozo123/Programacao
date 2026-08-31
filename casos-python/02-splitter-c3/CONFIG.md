@@ -28,15 +28,15 @@ dilema de projeto de uma unidade de verdade.
 | Pureza de fundo | 94,15 % mol propano | GLP |
 | Recuperação de propeno | 98,02 % | |
 | α no topo / no fundo | 1,0757 / 1,1736 | varia 9 % ao longo da coluna |
-| Refervedor / condensador | 42,3 MW | dominante no OPEX |
+| Refervedor / condensador | 41,0 MW | calibrado contra o DWSIM |
 | T topo / T fundo | 43,6 / 52,1 °C | calibrado contra o DWSIM |
 | Diâmetro | 4,44 m | |
 | Altura | 145 m em 3 cascos | splitters reais são cascos em série |
 | N/Nmin | 3,34 | acima do típico — a coluna está sobredimensionada em estágios e ainda assim não fecha a especificação |
 | R/Rmin | 1,25 | faixa típica 1,1–1,5 |
-| CAPEX instalado | 41,4 MUSD | |
-| OPEX | 11,7 MUSD/ano | ~96 % é vapor |
-| Lucro | 15,3 MUSD/ano | derrubado pelo rebaixamento de grau |
+| CAPEX instalado | 41,1 MUSD | |
+| OPEX | 11,3 MUSD/ano | ~96 % é vapor |
+| Lucro | 15,7 MUSD/ano | derrubado pelo rebaixamento de grau |
 
 ## Duas decisões de modelagem que valem para qualquer caso
 
