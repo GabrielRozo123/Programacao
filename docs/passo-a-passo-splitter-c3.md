@@ -133,12 +133,19 @@ O DWSIM cria a coluna com valores que **não** servem para este caso:
 | Number of Stages | 12 | **51** | Ver a nota de contagem abaixo |
 | Reflux Ratio | 5 | **15** | Em Specifications → Condenser |
 
-**Contagem de estágios.** Na aba *Stages* o DWSIM lista `Condenser` como
-estágio 0, depois `Stage1`, `Stage2`… e o refervedor por último. O modelo
-Python conta N estágios de equilíbrio com o refervedor incluído e o
-condensador total **fora** da contagem. Então `Number of Stages` no DWSIM
-deve ser **N + 1**. Confirme rolando a aba *Stages* até o fim: a última linha
-tem de ser `Reboiler`, e o total de linhas igual ao valor digitado.
+**Contagem de estágios — verificada no 10.2.3.0.** Com `Number of Stages = 51`
+a aba *Stages* lista `Condenser` no índice 0, `Stage1` a `Stage49`, e
+`Reboiler` no índice 50.
+
+| DWSIM | | Modelo Python |
+|---|---|---|
+| Stage 0 | Condenser | fora da contagem (condensador total) |
+| Stage 1 … Stage 49 | pratos | estágios 1 … 49 |
+| Stage 50 | Reboiler | estágio 50 |
+
+Portanto **`Number of Stages` = N + 1**, e os estágios internos correspondem
+um a um: `StageK` do DWSIM é o estágio K do modelo. O estágio de alimentação
+não precisa de conversão.
 
 **Sobre o solver.** Eu havia recomendado Inside-Out, mas vale corrigir: o
 padrão do DWSIM, **Wang-Henke (Bubble Point)**, é o método clássico justamente
@@ -168,8 +175,13 @@ o gerador `Internal 3 (Robust)` monta a estimativa sozinho.
 | Tray Spacing | 0,6 m (alinha com o modelo Python) |
 | Método de solução | **Wang-Henke**, com Inside-Out de reserva |
 
-3. Conecte a corrente de alimentação no estágio 25, e crie as correntes de
-   destilado, de fundo e as duas correntes de energia.
+3. Crie as correntes de destilado, de fundo e as duas correntes de energia, e
+   conecte a alimentação.
+
+   > **Conectar não basta.** Depois de ligar a corrente à coluna é preciso
+   > atribuir o estágio dela na aba *Connections*. Sem isso o DWSIM devolve
+   > `Please set the Column Stage for Feed Stream` e não resolve. Para 51
+   > estágios, alimente em `Stage25`.
 4. **Especificações** — de operação, não de pureza:
 
 | Aba | Especificação | Valor |
