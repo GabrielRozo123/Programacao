@@ -80,6 +80,47 @@ Praticamente o mesmo número. A frente de Pareto é, na prática, uma
 **decomposição de variância legível**: cada degrau de complexidade compra a
 próxima fatia de variância explicada.
 
+## A equação em notação de engenharia
+
+Com `corte_pct = 100σ`, a equação descoberta se escreve:
+
+$$Q = (R + 1)\,\sigma\,z\,(4{,}6753 - 0{,}06907\,P) \qquad [\text{MW}]$$
+
+| Símbolo | Grandeza | Unidade |
+|---|---|---|
+| $Q$ | carga do refervedor | MW |
+| $R$ | razão de refluxo | – |
+| $\sigma$ | corte, $D/(F z)$ | – |
+| $z$ | fração molar de propeno na alimentação | mol/mol |
+| $P$ | pressão de operação | bar |
+
+Válida para $F = 1000$ kmol/h; para outra vazão, multiplique por $F/1000$.
+
+Conferência no ponto base ($R=15$, $\sigma=0{,}995$, $z=0{,}75$, $P=18$):
+
+| | |
+|---|---|
+| Equação | 40,979 MW |
+| Modelo rigoroso | 40,969 MW |
+
+### E o termo de pressão é o calor latente disfarçado
+
+$$\lambda(P) = 3600\,(4{,}6753 - 0{,}06907\,P) \qquad [\text{kJ/kmol}]$$
+
+| P (bar) | Equação | Modelo |
+|---|---|---|
+| 14 | 13 350,0 | 13 363,5 |
+| 18 | 12 355,3 | 12 352,3 |
+| 22 | 11 360,7 | 11 367,5 |
+
+Substituindo de volta, a equação inteira colapsa em:
+
+$$Q = \frac{V\,\lambda(P)}{3600}, \qquad V = (R+1)\,\sigma\,z\,F$$
+
+**A regressão simbólica não achou uma correlação empírica — achou o balanço de
+energia.** "O refervedor ferve o tráfego de vapor." É a definição de
+refervedor, recuperada de mil observações de carga térmica.
+
 ## Por que isso importa além da curiosidade
 
 Um surrogate de rede neural com R² = 0,999 é uma caixa-preta: você confia ou
