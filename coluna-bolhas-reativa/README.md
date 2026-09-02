@@ -296,11 +296,11 @@ Alvo experimental: **ε = 0,0381 (ajuste de Wallis) a 0,0408 (ajuste de enxame)*
 | **Nível 1b** | + semente radial na entrada (Field Function) | 0,049795 | 0,229–0,238 | estrutura só no fundo |
 | **Nível 1c** | + Particle Induced Turbulence Source | 0,049604 | 0,220–0,239 | liso (0,02%) |
 | **A** (remontagem) | idem 1c, montagem refeita do zero | 0,049430 | 0,233 | liso |
-| **E** | S-Gamma dirigindo a Interaction Length Scale | ~0,0338 ⚠ | — | 0,5% na parede ⚠ |
+| **E** | S-Gamma dirigindo a Interaction Length Scale | **0,036100** | — | 0,5% na parede |
 
-⚠ A rodada E **não está convergida**: o acoplamento de duas vias só fechou aos 43 s, quando a
-Interaction Length Scale passou de constante para o diâmetro de Sauter. O d₃₂ caiu de 30,6 para
-18,8 mm e ainda derivava aos 59 s.
+A rodada E convergiu aos 125 s. O acoplamento de duas vias fechou aos 43 s, quando a Interaction
+Length Scale passou de constante para o diâmetro de Sauter: o d₃₂ caiu de 30,6 para **18,78 mm** e
+travou; o holdup caiu de 0,0494 para **0,03610** e travou. Doze tempos de residência de platô.
 
 **Quatro rodadas, o holdup não se moveu: 0,0498 → 0,0496.** Isso não é fracasso —
 cada uma respondeu uma pergunta, e as respostas convergem para a mesma causa.
@@ -331,15 +331,53 @@ Faltava `Particle Induced Turbulence Source`. Com ela ligada, ε_diss saltou 67�
     A  d = 4,5 mm fixo    0.04943      +21,2%      +29,8%
            alvo enxame    0.04078           0      + 7,1%
            alvo Wallis    0.03807      − 6,6%           0
-            E  S-Gamma    0.03380      −17,1%      −11,2%
+            E  S-Gamma    0.03610      −11,5%      − 5,2%
 ```
 
 **As duas rodadas cercam a faixa experimental.** O diâmetro não só é o lever certo — ele move o
 holdup através do alvo inteiro. Nenhum outro candidato testado (contaminação, Simonnet, circulação)
 chegava a 3% do necessário.
 
-O S-Gamma previu **d₃₂ = 18,8 mm sem nenhum parâmetro ajustado**, contra 14,1 a 16,9 mm exigidos
+A rodada E fica a **5,2%** do ajuste de Wallis — e a própria faixa experimental tem **7,1%** de
+largura entre os dois ajustes do artigo. O erro do modelo é menor que a discordância entre as duas
+leituras dos mesmos dados experimentais.
+
+O S-Gamma previu **d₃₂ = 18,78 mm sem nenhum parâmetro ajustado**, contra 14,1 a 16,9 mm exigidos
 pelo holdup medido — excesso de 11 a 33%.
+
+### Terceira verificação: o acoplado contra o analítico
+
+| | valor |
+|---|---|
+| d₃₂ previsto pelo S-Gamma | 18,78 mm |
+| u_term de Tomiyama nesse d₃₂ | 0,3158 m/s |
+| ε = U_g/u_term | 0,03641 |
+| **ε_global medido no CFD** | **0,03610** |
+| erro | **−0,9%** |
+
+A solução acoplada reproduz o balanço analítico no próprio d₃₂ que ela previu. Três verificações
+independentes já fecharam neste estudo: o slip contra Tomiyama no Nível 0 (3 algarismos), o balanço
+de massa no degassing (0,3%), e agora esta.
+
+### O holdup varia com a altura — e isso é resultado
+
+| | ε |
+|---|---|
+| a meia altura (line probe) | 0,03380 |
+| média da coluna (ε_global) | 0,03610 |
+| diferença | **+6,8%** |
+
+O holdup local é U_g/u_term local. Se ele é **menor** a meia altura que na média, o d₃₂ tem de
+**crescer com a altura** — pequeno no distribuidor, grande acima. Os números fecham:
+
+```
+   d32 na entrada (lei de Tate)                   4,5 mm
+   d32 medio da coluna                           18,8 mm
+   d32 implicado pelo holdup a meia altura       22,3 mm
+```
+
+É a coalescência acontecendo ao longo dos 3 m, medida indiretamente. Um perfil axial de d₃₂
+tornaria isso direto.
 
 ### Verificação cruzada: S-Gamma contra Martinez-Bazan
 
