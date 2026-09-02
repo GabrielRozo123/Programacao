@@ -284,25 +284,135 @@ construção, já que todo modelo capaz de produzi-la foi removido. Não sobra r
 
 ---
 
-## 6.6. Níveis seguintes
+## 6.6. Histórico das rodadas — onde o estudo está
+
+Todas em U_g = 0,0115 m/s, malha de 10 mm, 113 449 células, batelada.
+Alvo experimental: **ε = 0,0381 (ajuste de Wallis) a 0,0408 (ajuste de enxame)**.
+
+| rodada | o que mudou | ε | slip [m/s] | perfil radial |
+|---|---|---|---|---|
+| **Nível 0** | arrasto + gravidade, d_b = 4,5 mm | 0,049844 | 0,2329–0,2338 | liso |
+| **Nível 1** | + sustentação, dispersão turbulenta, lubrificação de parede | 0,049853 | 0,2330–0,2331 | liso (0,02%) |
+| **Nível 1b** | + semente radial na entrada (Field Function) | 0,049795 | 0,229–0,238 | estrutura só no fundo |
+| **Nível 1c** | + Particle Induced Turbulence Source | 0,049604 | 0,220–0,239 | liso (0,02%) |
+
+**Quatro rodadas, o holdup não se moveu: 0,0498 → 0,0496.** Isso não é fracasso —
+cada uma respondeu uma pergunta, e as respostas convergem para a mesma causa.
+
+### O que cada rodada estabeleceu
+
+**Nível 0 — verificação exata.** Slip 0,2329–0,2338 contra Tomiyama analítico 0,2330.
+Três algarismos significativos. O solver está certo; o modelo é que é incompleto.
+
+**Nível 1 — resultado nulo, e o nulo tinha duas causas.** As três forças são todas
+proporcionais a gradientes (F_L ∝ u_r × ∇×u_c, F_TD ∝ −∇α). Campo uniforme → gradientes
+zero → forças zero → campo uniforme. Estado estável e degenerado, sem semente.
+*A segunda causa só apareceu no Nível 1c.*
+
+**Nível 1b — a semente funciona, mas não sobrevive.** A Field Function na entrada
+criou estrutura radial pela primeira vez. Ela morre nos primeiros ~40 cm.
+
+**Nível 1c — a turbulência estava desligada.** Balanço de energia (ver `balanco_energia.py`):
+em batelada e regime permanente toda a potência do empuxo entra no líquido pelo arrasto e
+tem de dissipar, o que dá 0,12 m²/s³ **sem CFD nenhum**. O caso reportava 4,3e-4 — fator 281.
+Faltava `Particle Induced Turbulence Source`. Com ela ligada, ε_diss saltou 67× para
+0,0285 m²/s³ e o holdup não se mexeu, como previsto.
+
+### A causa única: o diâmetro prescrito
+
+Tudo converge para a Interaction Length Scale fixada em **4,5 mm** (lei de Tate, formação
+no furo). Esse valor estraga **duas** coisas ao mesmo tempo — ver `diagnostico_slip.py`:
+
+```
+   4,5 mm cai no MÍNIMO da curva de velocidade terminal
+       →  u_term = 0,233 m/s  →  holdup superestimado em 21 a 31%
+
+   4,5 mm cai ABAIXO do diâmetro de inversão da sustentação (5,8 mm)
+       →  C_L = +0,268  →  gás migra para a PAREDE, sem pluma central
+```
+
+Coluna de grande diâmetro tem pluma **central**, o que exige C_L **negativo**, o que
+exige **d > 5,8 mm**. Não existe tempo de máquina que conserte isso com 4,5 mm fixo.
+
+### Candidatos descartados, com número
+
+| candidato | efeito | veredito |
+|---|---|---|
+| estado de contaminação | ramo de Eötvös domina a 4,5 mm nas 3 variantes | **inerte** |
+| correção de enxame (Simonnet) | f → 1/(1−ε) em ε baixo: **−2,5%**, lado errado | **inerte até ε ≈ 0,2** |
+| circulação (C₀ de Zuber-Findlay) | em batelada ⟨j⟩ = U_g, 20× menor que o slip; exigiria C₀ = 7,0 | **teto de ~1%** |
+| **diâmetro** | 16 mm → u_term 0,296, ε 0,0405, C_L −0,27 | **único com magnitude** |
+
+### Moda não é d₃₂ — a reconciliação com a BSD medida
+
+O artigo mede modas de 0,67 e 4–6 mm. Isso é densidade de **número**. O arrasto responde
+ao diâmetro de Sauter, que pesa d³/d² e é dominado pela **cauda**:
+
+```
+  n de 20 mm   % do número   % do volume     d10     d32
+           0          0.0%          0.0%    2.83    4.92
+         100          4.8%         86.5%    3.65   14.14
+```
+
+5% das bolhas em 20 mm carregam 87% do gás e levam o d₃₂ de 4,9 para 14 mm — **sem mexer
+em nenhuma das duas modas medidas**. A BSD do artigo e um d₃₂ grande são compatíveis.
+
+E o mesmo d₃₂ governa a área interfacial `a = 6ε/d₃₂` da Fase 2: errar d₃₂ por 3× erra
+o k_L·a por 3×.
+
+---
+
+## 6.7. Próximo passo — varredura de diâmetro
+
+A faixa defensável para o diâmetro máximo estável ficou entre **10 e 17 mm**, dependendo
+de qual dissipação alimenta o critério de Martinez-Bazan:
+
+| ε_diss usado | valor [m²/s³] | d_crit [mm] |
+|---|---|---|
+| medido com BIT (cascata turbulenta) | 0,0285 | 17,1 |
+| balanço de energia (mecânica total) | 0,1197 | 9,6 |
+
+Martinez-Bazan pede a flutuação **na escala da bolha**, que vem da cascata — logo 17 mm.
+Mas o balanço mostra que a cascata é só 24% da dissipação mecânica, e essa diferença não
+está fechada.
+
+**Como a faixa é ampla, escolher um valor seria escolher o que dá certo.** Então a próxima
+etapa não é um diâmetro:
+
+> **Três rodadas, trocando só a Interaction Length Scale: 8, 12 e 16 mm.**
+
+O entregável não é um ponto que bate — é a **curva ε(d)** cruzando a faixa experimental,
+com a leitura *"a coluna se comporta como se o d₃₂ fosse X mm"*.
+
+A varredura entrega **duas** observáveis pelo preço de uma:
+
+1. **ε(d)** — onde cruza 0,0381–0,0408
+2. **a pluma** — o C_L inverte entre 4,5 e 8 mm, então a estrutura radial deve *aparecer*
+   em algum ponto da varredura. Se aparecer em 8 mm e não em 4,5, o mecanismo fica provado
+   diretamente, sem argumento.
+
+Registrar em cada rodada: monitor de ε, line probe radial de VF, cena de VF.
+
+### Previsão falsificável, registrada antes de rodar
+
+- **d₃₂ entre 15 e 18 mm reproduz o holdup** → a hipótese do diâmetro fecha, e o Nível 2
+  ganha uma meta independente: **prever** esse d₃₂ sozinho.
+- **holdup cai mas a pluma não aparece** → o problema é dispersão turbulenta alta demais.
+- **nada muda** → a hipótese morre inteira e o erro é do arrasto.
+
+Os três desfechos são publicáveis. É isso que separa verificação de ajuste de curva.
+
+---
+
+## 6.8. Depois da varredura
 
 | nível | o que entra | valida contra |
 |---|---|---|
-| 0 ✅ | arrasto + gravidade | **holdup global** |
-| 1 | sustentação (Tomiyama), dispersão turbulenta, lubrificação de parede | **perfil radial** |
-| 2 | AMUSIG multi-speed, quebra (Martinez-Bazan), coalescência (Luo) | **BSD parede vs centro** |
+| 2 | AMUSIG multi-speed, quebra (Martinez-Bazan), coalescência (Luo) | **BSD parede vs centro**, e o d₃₂ previsto contra o da varredura |
+| Fase 2 | quimissorção CO₂/NaOH na coluna do Darmana | E1 hidrodinâmica (PIV), E2 reação (pH transiente nos primeiros 60 s) |
 
-### Escolhas do Nível 1, justificadas
-
-| item | escolha | por quê |
-|---|---|---|
-| Lift Coefficient | **Tomiyama** | captura a inversão de sinal em 5,2–5,8 mm |
-| Lift Correction | **Podowski Near Wall Adjustment** | zera a sustentação junto à parede, evitando o comportamento singular |
-| Wall Lubrication | **Lubchenko** | par projetado com o Podowski; **Antal** atua em ~1 diâmetro de bolha (9 mm) contra célula de 10 mm — seria dependente de malha |
-| Turb. Disp. Prandtl | **Inertial Correction** | o manual a recomenda para *large bubbles*; 4,5 mm em água tem Stokes alto |
-| Volume Fraction Smoothing | **ligado** | o manual: *"does not affect the converged solution"* — estabilidade de graça |
-
-**Alvo do Nível 1:** slip de 0,233 → ~0,282 m/s, ε de 0,0498 → ~0,0409.
+Faltam ainda as outras duas condições de U_g (0,0037 e 0,0223), a rodar **depois** que o
+modelo estiver fechado — não antes.
 
 ---
 
@@ -310,14 +420,24 @@ construção, já que todo modelo capaz de produzi-la foi removido. Não sobra r
 
 | Arquivo | Conteúdo |
 |---|---|
-| `memorial.py` | Todos os cálculos acima, executável e comentado |
+| `memorial.py` | Fase 1 (hidrodinâmica) e Fase 2 (quimissorção), executável e comentado |
+| `gerar_coluna.py` | Gera um STEP por condição, com altura = altura aerada |
+| `diagnostico_slip.py` | De onde vem a diferença de holdup: descarta contaminação, Simonnet e circulação; isola o diâmetro; C_L de Tomiyama; moda vs d₃₂ |
+| `balanco_energia.py` | Balanço de energia da coluna; detectou o BIT desligado; registra a rodada 1c |
 
 ---
 
 ## 8. Pendências
 
-- **Figura 3 do Ferrario** — geometria do distribuidor aranha. O texto diz "6 braços de tubos de
-  aço de 0,12 m de diâmetro", o que é impossível numa coluna de 0,24 m: 0,12 m é o **raio**, logo
-  deve ser o comprimento do braço. Falta também o **número de furos por braço**.
+- **Varredura de diâmetro (8 / 12 / 16 mm)** — o próximo passo imediato.
+- **O fator 4 na dissipação.** ε_diss medido com BIT é 24% do balanço mecânico. A leitura
+  que sustento é que balanço = dissipação mecânica total e ε do modelo = parcela que vira
+  cascata, e parte do trabalho do arrasto dissipa direto na interface. Vale conferir se o
+  fechamento do STAR tem coeficiente inspecionável.
+- **Figura 3 do Ferrario** — geometria do distribuidor aranha. O texto diz "6 braços de tubos
+  de aço de 0,12 m de diâmetro", o que é impossível numa coluna de 0,24 m: 0,12 m é o **raio**,
+  logo deve ser o comprimento do braço. Falta o **número de furos por braço** (presumidos 10).
+- **Reports órfãos** da era AMUSIG (`d32_Centro`, `d32_Parede`, slip por grupo) — deletar,
+  estão gerando "Non-finite value detected".
 - Definir se a Fase 2 roda na coluna do Darmana (validação ponto a ponto) ou na do Ferrario
-  (escala industrial, validação por correlação).
+  (escala industrial, validação por correlação). **Decidido: Darmana**, E1 depois E2.
