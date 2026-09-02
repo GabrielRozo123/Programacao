@@ -1,0 +1,564 @@
+<title>Splitter C3 — Do Atalho ao Rigoroso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  --ground:#F2F5F6; --surface:#FFFFFF; --sunk:#E7EBED;
+  --ink:#161D23; --muted:#5B6874; --faint:#8A96A1;
+  --rule:#D4DBDF; --hair:#E2E7EA;
+  --copper:#A94E24; --copper-soft:#F2E3DB;
+  --cold:#26688F; --cold-soft:#DCE8F0;
+  --good:#2A6E51; --bad:#9C332C;
+  --disp:'Archivo',system-ui,sans-serif;
+  --body:'Source Serif 4',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#10151A; --surface:#171E25; --sunk:#1E262E;
+  --ink:#E4E9ED; --muted:#95A2AD; --faint:#6D7B87;
+  --rule:#2B343D; --hair:#232C34;
+  --copper:#D9814F; --copper-soft:#33231B;
+  --cold:#63A8D2; --cold-soft:#16252F;
+  --good:#5FB68C; --bad:#D9736A;
+}}
+:root[data-theme="dark"]{
+  --ground:#10151A; --surface:#171E25; --sunk:#1E262E;
+  --ink:#E4E9ED; --muted:#95A2AD; --faint:#6D7B87;
+  --rule:#2B343D; --hair:#232C34;
+  --copper:#D9814F; --copper-soft:#33231B;
+  --cold:#63A8D2; --cold-soft:#16252F;
+  --good:#5FB68C; --bad:#D9736A;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:0 28px 96px}
+.col{max-width:66ch}
+h1,h2,h3,.eyebrow,.num,th,.tag{font-family:var(--disp)}
+h1{font-size:clamp(2.3rem,5.2vw,3.6rem);font-weight:800;line-height:1.02;
+  letter-spacing:-.032em;margin:0 0 .5rem;text-wrap:balance}
+h2{font-size:1.55rem;font-weight:700;letter-spacing:-.018em;margin:0 0 .2rem;text-wrap:balance}
+h3{font-size:1.02rem;font-weight:700;letter-spacing:-.005em;margin:2.2rem 0 .5rem}
+p{margin:0 0 1.05rem}
+a{color:var(--cold)}
+strong{font-weight:600}
+.eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--copper)}
+
+header{padding:76px 0 40px;border-bottom:2px solid var(--ink)}
+.lede{font-size:1.2rem;line-height:1.52;color:var(--muted);max-width:60ch;margin:1.2rem 0 0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:26px;
+  font-family:var(--mono);font-size:.74rem;color:var(--faint);letter-spacing:.02em}
+
+/* headline result */
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);margin:40px 0 8px}
+.cell{background:var(--surface);padding:20px 18px}
+.cell .k{font-family:var(--disp);font-size:.66rem;font-weight:700;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+.cell .v{font-family:var(--mono);font-size:1.72rem;font-weight:600;
+  letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.cell .u{font-family:var(--body);font-size:.82rem;color:var(--muted);margin-top:6px}
+.v.hot{color:var(--copper)} .v.cool{color:var(--cold)}
+.cap{font-size:.82rem;color:var(--faint);margin:0}
+
+section{padding-top:58px}
+.head{display:flex;gap:18px;align-items:baseline;margin-bottom:1.5rem;
+  padding-bottom:.7rem;border-bottom:1px solid var(--rule)}
+.num{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--copper);
+  padding-top:.28rem;letter-spacing:.04em}
+
+figure{margin:32px 0}
+.chart{background:var(--surface);border:1px solid var(--rule);padding:18px 16px 10px}
+svg{display:block;width:100%;height:auto}
+.ct{font-family:var(--mono);font-size:9.5px;fill:var(--faint)}
+.cl{font-family:var(--disp);font-size:10.5px;font-weight:700;fill:var(--muted);
+  letter-spacing:.07em;text-transform:uppercase}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:12px;max-width:62ch}
+
+.tbl{overflow-x:auto;margin:26px 0;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.87rem}
+th{font-size:.66rem;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--faint);text-align:left;padding:12px 15px;border-bottom:1px solid var(--rule);
+  white-space:nowrap}
+td{padding:10px 15px;border-bottom:1px solid var(--hair);vertical-align:baseline}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.hi td{background:var(--copper-soft)}
+tr.hi td.n{font-weight:600}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--bad);font-weight:600}
+
+blockquote{margin:30px 0;padding:20px 24px;background:var(--sunk);
+  border-left:3px solid var(--copper);font-size:.98rem}
+blockquote p:last-child{margin-bottom:0}
+.eq{background:var(--surface);border:1px solid var(--rule);padding:24px 20px;
+  margin:26px 0;text-align:center;overflow-x:auto}
+.eq .f{font-family:var(--mono);font-size:1.06rem;font-weight:600;
+  color:var(--ink);white-space:nowrap;letter-spacing:-.01em}
+.eq .n2{font-size:.8rem;color:var(--faint);margin-top:12px;font-family:var(--body)}
+.tag{display:inline-block;font-size:.63rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;
+  vertical-align:1px;margin-left:6px}
+.tag.g{color:var(--good)} .tag.b{color:var(--bad)}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunk);padding:1px 5px}
+
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:1px;background:var(--rule);border:1px solid var(--rule);margin:28px 0}
+.spec div{background:var(--surface);padding:15px 17px;display:flex;
+  justify-content:space-between;align-items:baseline;gap:14px}
+.spec dt{font-size:.85rem;color:var(--muted)}
+.spec dd{margin:0;font-family:var(--mono);font-weight:600;font-size:.94rem;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+
+footer{margin-top:70px;padding-top:26px;border-top:2px solid var(--ink);
+  font-size:.83rem;color:var(--faint)}
+@media (max-width:640px){body{font-size:16px}.wrap{padding:0 20px 64px}
+  .head{flex-direction:column;gap:4px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Splitter propeno/propano · estudo de projeto</div>
+  <h1>Do atalho ao rigoroso</h1>
+  <p class="lede">Oito medições de equilíbrio mudaram um projeto de coluna de
+  200 para 260 estágios — e o lucro anual de 15,7 para 63,5 milhões de dólares.
+  Um registro do caminho, com os erros incluídos.</p>
+  <div class="meta">
+    <span>DWSIM Patreon 10.2.3.0</span><span>AI4Tech Suite</span>
+    <span>Peng-Robinson</span><span>1000 pontos · LHS seed 42</span>
+  </div>
+</header>
+
+<div class="result">
+  <div class="cell"><div class="k">Projeto original</div>
+    <div class="v">15,68</div><div class="u">MUSD/ano — não atingia a especificação</div></div>
+  <div class="cell"><div class="k">Projeto final</div>
+    <div class="v hot">63,08</div><div class="u">MUSD/ano — medido na coluna rigorosa</div></div>
+  <div class="cell"><div class="k">Erro do gêmeo</div>
+    <div class="v cool">0,048</div><div class="u">ponto percentual no projeto final</div></div>
+  <div class="cell"><div class="k">Custo do estudo</div>
+    <div class="v">≈ 4 h</div><div class="u">e nenhuma simulação desperdiçada</div></div>
+</div>
+<p class="cap">Todos os números validados no modelo rigoroso. Nenhum é previsão de surrogate.</p>
+
+<section><div class="head"><span class="num">01</span><div>
+  <h2>O problema</h2></div></div>
+<div class="col">
+<p>Separar propeno de propano é a destilação mais ingrata da petroquímica. As duas
+moléculas fervem a temperaturas quase idênticas — a volatilidade relativa fica em
+torno de <strong>1,1</strong>, contra 2 ou 3 de uma separação comum.</p>
+<p>A consequência é brutal: a coluna precisa de mais de duzentos estágios e razão de
+refluxo acima de quinze. É uma torre de 150 metros, dividida em cascos, que consome
+mais de 40 MW só para ferver o próprio produto de volta.</p>
+<p>E a economia tem um degrau. Propeno com <strong>99,5 % molar</strong> é grau polímero e
+vale US$ 1150 por tonelada. Com 99,49 % é grau químico e vale US$ 950. Um centésimo
+de ponto percentual separa duzentos dólares por tonelada.</p>
+</div></section>
+
+<section><div class="head"><span class="num">02</span><div>
+  <h2>A medição que mudou tudo</h2></div></div>
+<div class="col">
+<p>O ponto de partida era um modelo de atalho em Python com volatilidade relativa tirada
+da literatura. Antes de construir qualquer coisa, oito flashes bifásicos no DWSIM —
+meia hora de trabalho — para medir α de verdade.</p>
+<p>O primeiro resultado já corrigiu o rumo: a 18 bar o DWSIM deu <strong>α = 1,1052</strong>
+contra 1,1166 da literatura. Um por cento de diferença. Como o número mínimo de estágios
+é proporcional a 1/ln α, e ln α é minúsculo nessa faixa, esse 1 % virou
+<strong>10,3 % em estágios</strong>.</p>
+<p>Mas o achado maior veio das outras medições: <strong>α não é constante.</strong></p>
+</div>
+
+<figure><div class="chart">
+<svg viewBox="0 0 640 300" role="img" aria-label="Volatilidade relativa em função da fração molar de propeno no líquido, a 18 bar">
+  <line x1="56" y1="258" x2="622" y2="258" stroke="var(--rule)" stroke-width="1"/>
+  <line x1="56" y1="16" x2="56" y2="258" stroke="var(--rule)" stroke-width="1"/>
+  <line x1="56" y1="237.0" x2="622" y2="237.0" stroke="var(--hair)"/>
+  <line x1="56" y1="194.9" x2="622" y2="194.9" stroke="var(--hair)"/>
+  <line x1="56" y1="152.8" x2="622" y2="152.8" stroke="var(--hair)"/>
+  <line x1="56" y1="110.7" x2="622" y2="110.7" stroke="var(--hair)"/>
+  <line x1="56" y1="68.6" x2="622" y2="68.6" stroke="var(--hair)"/>
+  <line x1="56" y1="26.5" x2="622" y2="26.5" stroke="var(--hair)"/>
+  <text class="ct" x="50" y="240.5" text-anchor="end">1,08</text>
+  <text class="ct" x="50" y="198.4" text-anchor="end">1,10</text>
+  <text class="ct" x="50" y="156.3" text-anchor="end">1,12</text>
+  <text class="ct" x="50" y="114.2" text-anchor="end">1,14</text>
+  <text class="ct" x="50" y="72.1" text-anchor="end">1,16</text>
+  <text class="ct" x="50" y="30.0" text-anchor="end">1,18</text>
+  <text class="ct" x="56" y="272" text-anchor="middle">0</text>
+  <text class="ct" x="197.5" y="272" text-anchor="middle">0,25</text>
+  <text class="ct" x="339" y="272" text-anchor="middle">0,50</text>
+  <text class="ct" x="480.5" y="272" text-anchor="middle">0,75</text>
+  <text class="ct" x="622" y="272" text-anchor="middle">1,00</text>
+  <text class="cl" x="339" y="291" text-anchor="middle">fração molar de propeno no líquido</text>
+  <text class="cl" x="16" y="137" text-anchor="middle" transform="rotate(-90 16 137)">α a 18 bar</text>
+  <polyline fill="none" stroke="var(--cold)" stroke-width="2.2" points="56.0,29.8 91.4,40.6 126.8,51.9 162.1,63.6 197.5,75.7 232.9,88.2 268.2,101.1 303.6,114.4 339.0,128.0 374.4,142.0 409.8,156.4 445.1,171.2 480.5,186.3 515.9,201.7 551.2,217.5 586.6,233.6 622.0,250.0"/>
+  <circle cx="61.2" cy="31.4" r="5" fill="var(--copper)"/>
+  <circle cx="82.1" cy="37.7" r="5" fill="var(--copper)"/>
+  <circle cx="330.1" cy="124.5" r="5" fill="var(--copper)"/>
+  <circle cx="475.2" cy="184.0" r="5" fill="var(--copper)"/>
+  <circle cx="592.7" cy="236.4" r="5" fill="var(--copper)"/>
+  <circle cx="616.1" cy="247.2" r="5" fill="var(--copper)"/>
+  <text class="ct" x="120" y="34" fill="var(--copper)">fundo · 1,178</text>
+  <text class="ct" x="560" y="232" text-anchor="end" fill="var(--copper)">topo · 1,075</text>
+</svg>
+</div>
+<figcaption>Seis medições de flash no DWSIM (pontos) e a superfície ajustada
+(linha). α cai <strong>8,4 %</strong> do fundo para o topo da coluna.</figcaption>
+</figure>
+
+<div class="col">
+<p>Separar no topo é <strong>64 % mais difícil</strong> que no fundo. Tratar α como constante
+era o maior erro do modelo — muito maior que o 1 % corrigido antes. O equilíbrio passou
+a ser avaliado na composição local de cada estágio.</p>
+<p>Os dois pontos ricos em propeno foram medidos <em>depois</em> do ajuste, como teste:
+a superfície previu 1,080221 e 1,075035 antes de existirem os dados.
+Medido: <strong>1,080285 e 1,075116</strong>. Erro de 0,01 %.</p>
+</div></section>
+
+<section><div class="head"><span class="num">03</span><div>
+  <h2>Validação contra a coluna rigorosa</h2></div></div>
+<div class="col">
+<p>Com α calibrado, a coluna foi montada no DWSIM e resolvida em cinco configurações,
+subindo de 50 a 300 estágios. Cada uma comparada com o gêmeo em Python.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Estágios</th><th>Refluxo</th><th>Topo · Python</th><th>Topo · DWSIM</th>
+<th>Erro</th><th>Carga · erro</th></tr></thead>
+<tbody>
+<tr><td class="n">50</td><td class="n">15,00</td><td class="n">92,236</td><td class="n">92,239</td><td class="n">−0,004</td><td class="n">+0,15 %</td></tr>
+<tr><td class="n">100</td><td class="n">15,00</td><td class="n">96,500</td><td class="n">96,506</td><td class="n">−0,006</td><td class="n">+0,05 %</td></tr>
+<tr><td class="n">150</td><td class="n">15,00</td><td class="n">97,839</td><td class="n">97,845</td><td class="n">−0,006</td><td class="n">+0,02 %</td></tr>
+<tr><td class="n">200</td><td class="n">15,00</td><td class="n">98,514</td><td class="n">98,519</td><td class="n">−0,005</td><td class="n">0,00 %</td></tr>
+<tr class="hi"><td class="n">300</td><td class="n">17,80</td><td class="n">99,700</td><td class="n">99,700</td><td class="n">−0,000</td><td class="n">0,00 %</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>Um atalho de <strong>22 ms</strong> reproduzindo uma coluna rigorosa de 300 estágios dentro
+de seis milésimos de ponto percentual, ao longo de purezas de 92 % a 99,7 %.</p>
+<p>A carga térmica ficou com viés sistemático de +3,2 % nas cinco rodadas. Viés constante
+é assinatura de <em>um parâmetro errado</em>, não de modelo errado — era o calor latente,
+reancorado depois com uma linha de código. E a primeira rodada já confirmou algo
+estrutural: a carga variou 0,14 % enquanto os estágios quadruplicaram.
+<strong>Estágios não compram energia. Só refluxo compra.</strong></p>
+</div></section>
+
+<section><div class="head"><span class="num">04</span><div>
+  <h2>A máquina reencontrou o balanço de energia</h2></div></div>
+<div class="col">
+<p>Regressão simbólica sobre a carga do refervedor, com os operadores restritos às quatro
+operações aritméticas. É um dos raros experimentos de aprendizado de máquina com gabarito:
+a fórmula exata era conhecida.</p>
+</div>
+<div class="eq">
+  <div class="f">Q = (R + 1) · σ · z · (4,6753 − 0,06907 · P)</div>
+  <div class="n2">Q em MW · R razão de refluxo · σ corte · z propeno na alimentação · P em bar</div>
+</div>
+<div class="col">
+<p>Ela achou o termo <code>(R + 1)</code> com erro de 0,11 % no próprio 1. E linearizou o calor
+latente: o λ implícito no termo de pressão reproduz o do modelo com erro entre
+<strong>0,01 % e 0,10 %</strong> de 14 a 22 bar — recuperando o comportamento de Watson sobre
+Antoine, duas correlações encadeadas que ela nunca viu.</p>
+<p>Substituindo de volta, a equação colapsa em <code>Q = V·λ/3600</code>. Não é correlação
+empírica: é o <strong>balanço de energia</strong>, a definição de refervedor, recuperada de mil
+observações de carga térmica.</p>
+<blockquote><p>O teste de controle: <code>N_estagios</code> e <code>pos_alimentacao</code> foram
+deixadas no arquivo de propósito, por não entrarem na fórmula. Nas dez soluções da frente
+de Pareto elas aparecem <strong>zero vezes</strong>. A restrição de operadores não foi
+limitação — foi o que produziu o resultado.</p></blockquote>
+</div></section>
+
+<section><div class="head"><span class="num">05</span><div>
+  <h2>O projeto que ganha e não funciona</h2></div></div>
+<div class="col">
+<p>Um DOE de mil pontos alimentou a análise. O melhor projeto do lote rendia
+85,6 MUSD/ano — e estava com a composição de alimentação em 0,897, o extremo rico da faixa.</p>
+<p><strong>Ninguém escolhe a composição da alimentação.</strong> Ela vem da unidade a montante.
+Aquele projeto não era melhor; era mais sortudo.</p>
+<p>Avaliando os mil projetos sob cinco composições diferentes:</p>
+</div>
+<div class="result" style="margin-top:26px">
+  <div class="cell"><div class="k">Grau polímero no ponto amostrado</div>
+    <div class="v">174</div><div class="u">de 1000 projetos</div></div>
+  <div class="cell"><div class="k">Grau polímero em toda a faixa</div>
+    <div class="v hot">102</div><div class="u">de 1000 projetos</div></div>
+  <div class="cell"><div class="k">Eram grau polímero por sorte</div>
+    <div class="v" style="color:var(--bad)">41 %</div><div class="u">perdem o grau com alimentação pobre</div></div>
+</div>
+<div class="col">
+<blockquote><p>Um otimizador não conhece a diferença entre variável de decisão e
+distúrbio. Ele usa o que estiver na lista, e devolve com prazer um projeto que só
+funciona com sorte.</p></blockquote>
+</div></section>
+
+<section><div class="head"><span class="num">06</span><div>
+  <h2>O otimizador explora o surrogate</h2></div></div>
+<div class="col">
+<p>O surrogate de processo gaussiano previa pureza com erro típico de 0,078 ponto
+percentual no conjunto de teste. Excelente. Alimentou um NSGA-II com cem gerações.</p>
+<p>Cada uma das cem soluções de Pareto foi então reavaliada no modelo rigoroso.</p>
+</div>
+
+<figure><div class="chart">
+<svg id="g2" viewBox="0 0 640 300" role="img" aria-label="Pureza prevista pelo surrogate contra pureza real, nas cem soluções de Pareto">
+  <line x1="56" y1="258" x2="622" y2="258" stroke="var(--rule)"/>
+  <line x1="56" y1="16" x2="56" y2="258" stroke="var(--rule)"/>
+  <line x1="56" y1="258" x2="622" y2="16" stroke="var(--faint)" stroke-width="1" stroke-dasharray="4 4"/>
+  <line x1="56" y1="168.8" x2="622" y2="168.8" stroke="var(--bad)" stroke-width="1.4"/>
+  <text class="ct" x="618" y="164" text-anchor="end" fill="var(--bad)">especificação real · 99,7</text>
+  <text class="ct" x="50" y="248.8" text-anchor="end">99,4</text>
+  <text class="ct" x="50" y="197.8" text-anchor="end">99,6</text>
+  <text class="ct" x="50" y="146.9" text-anchor="end">99,8</text>
+  <text class="ct" x="50" y="95.9" text-anchor="end">100,0</text>
+  <text class="ct" x="85.8" y="272" text-anchor="middle">99,4</text>
+  <text class="ct" x="204.9" y="272" text-anchor="middle">99,6</text>
+  <text class="ct" x="324.1" y="272" text-anchor="middle">99,8</text>
+  <text class="ct" x="443.3" y="272" text-anchor="middle">100,0</text>
+  <text class="ct" x="562.4" y="272" text-anchor="middle">100,2</text>
+  <text class="cl" x="339" y="291" text-anchor="middle">pureza prevista pelo surrogate (%)</text>
+  <text class="cl" x="16" y="137" text-anchor="middle" transform="rotate(-90 16 137)">pureza real (%)</text>
+  <g id="pts"></g>
+</svg>
+</div>
+<figcaption>Cada ponto é uma solução da frente de Pareto. A diagonal tracejada seria a
+previsão perfeita; todos os pontos estão <strong>abaixo</strong> dela. Em
+<span class="no">vermelho</span>, as 45 que violam a especificação na realidade.</figcaption>
+</figure>
+
+<div class="col">
+<p>Cinquenta e quatro soluções previam pureza <strong>acima de 100 %</strong> — até 100,25 %.
+O processo gaussiano é ilimitado: não sabe que fração molar não passa de 1. O otimizador
+descobriu a brecha e foi direto para ela.</p>
+<p>E o viés é sistemático. No conjunto de teste o erro típico era 0,078 ponto. Na frente
+de Pareto, <strong>0,292</strong> — quatro vezes pior. Não porque o modelo piorou: porque o
+otimizador <em>procurou</em> onde ele é otimista.</p>
+<blockquote><p>Um otimizador sobre surrogate não amostra o espaço. Ele busca ativamente as
+regiões onde o modelo promete mais — que são exatamente as regiões onde o modelo erra
+para cima. <strong>O erro medido num conjunto de teste aleatório subestima o erro no
+ótimo.</strong> Validar no rigoroso não é zelo: é parte do método.</p></blockquote>
+<p>Quarenta e cinco soluções violavam a especificação de pureza na realidade.
+Sobraram cinquenta e cinco.</p>
+</div></section>
+
+<section><div class="head"><span class="num">07</span><div>
+  <h2>Onde a calibração encontrou o ótimo</h2></div></div>
+<div class="col">
+<p>Entre as sobreviventes, a pressão convergiu para <strong>16,62 bar</strong>. O otimizador
+desceu a pressão — menos pressão significa maior α e menos energia — até encostar numa
+restrição.</p>
+<p>Essa restrição é a temperatura do condensador acima de 40 °C, abaixo da qual a água de
+resfriamento deixa de servir e é preciso refrigeração. O limiar, calculado ao reancorar as
+constantes de Antoine contra o DWSIM: <strong>16,61 bar</strong>.</p>
+<p>A calibração termodinâmica determinou o ótimo econômico. Com o viés original de
++0,52 °C que as constantes de literatura carregavam, o ótimo teria saído em 16,42 bar — e
+o projeto operaria com o condensador fora da faixa da água de resfriamento.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Projeto</th><th>Estágios</th><th>Refluxo</th><th>Pressão</th>
+<th>Lucro</th><th>Robusto?</th></tr></thead>
+<tbody>
+<tr><td>Original</td><td class="n">200</td><td class="n">15,00</td><td class="n">18,00</td><td class="n">15,68</td><td><span class="no">nem faz a spec</span></td></tr>
+<tr><td>Varredura analítica</td><td class="n">300</td><td class="n">16,28</td><td class="n">18,00</td><td class="n">62,67</td><td>—</td></tr>
+<tr><td>Melhor do DOE</td><td class="n">260</td><td class="n">16,30</td><td class="n">17,19</td><td class="n">62,11</td><td><span class="ok">sim</span></td></tr>
+<tr><td>NSGA-II · maior lucro</td><td class="n">260</td><td class="n">15,55</td><td class="n">16,62</td><td class="n">63,62</td><td><span class="no">não</span></td></tr>
+<tr><td>NSGA-II · robusto</td><td class="n">260</td><td class="n">15,66</td><td class="n">16,62</td><td class="n">63,52</td><td><span class="ok">sim</span></td></tr>
+<tr><td>Revisado · 3 cascos</td><td class="n">240</td><td class="n">16,25</td><td class="n">16,62</td><td class="n">63,44</td><td><span class="no">condensador impossível</span></td></tr>
+<tr class="hi"><td><strong>Final · validado</strong></td><td class="n">240</td><td class="n">18,69</td><td class="n">19,00</td><td class="n">63,08</td><td><span class="ok">sim</span></td></tr>
+</tbody></table></div>
+<div class="col">
+<p>A solução de maior lucro é a <strong>única das cinco melhores que perde grau polímero com
+alimentação pobre</strong> — fica em 99,50 %, exatamente sobre o degrau. A escolhida é a
+segunda: custa <strong>0,10 MUSD/ano</strong> e sobrevive a toda a faixa de alimentação.</p>
+<p>Cem mil dólares por ano de seguro contra um risco de cinquenta milhões.</p>
+</div></section>
+
+<section><div class="head"><span class="num">08</span><div>
+  <h2>O custo que o modelo não vê</h2></div></div>
+<div class="col">
+<p>O número de estágios havia encostado no teto de 260 do DOE — sinal de que o ótimo
+verdadeiro podia estar além. Varrendo com o gêmeo, à pureza fixa e achando o refluxo
+mínimo em cada caso, o ótimo sai em <strong>N = 300 com 63,67 MUSD/ano</strong>, contra
+63,49 no teto. Ganho de 0,3 %, e a curva vira e cai depois disso.</p>
+<p>A faixa amostrada estava adequada. <strong>Não valia rodar outro DOE.</strong> Mas a
+varredura revelou outra coisa.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Estágios</th><th>Refluxo</th><th>Carga</th><th>Altura</th>
+<th>Cascos</th><th>Lucro</th></tr></thead>
+<tbody>
+<tr><td class="n">220</td><td class="n">16,94</td><td class="n">47,4 MW</td><td class="n">159 m</td><td class="n">3</td><td class="n">63,08</td></tr>
+<tr class="hi"><td class="n">240</td><td class="n">16,25</td><td class="n">45,6 MW</td><td class="n">173 m</td><td class="n">3</td><td class="n">63,44</td></tr>
+<tr><td class="n">260</td><td class="n">15,69</td><td class="n">44,1 MW</td><td class="n">187 m</td><td class="n">4</td><td class="n">63,49</td></tr>
+<tr><td class="n">300</td><td class="n">14,95</td><td class="n">42,1 MW</td><td class="n">215 m</td><td class="n">4</td><td class="n">63,67</td></tr>
+<tr><td class="n">400</td><td class="n">13,88</td><td class="n">39,3 MW</td><td class="n">286 m</td><td class="n">5</td><td class="n">63,21</td></tr>
+<tr><td class="n">500</td><td class="n">13,35</td><td class="n">37,9 MW</td><td class="n">357 m</td><td class="n">6</td><td class="n">62,29</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>O custeio calcula o casco por diâmetro e altura, e divide a coluna quando passa de
+60 m. O que ele <strong>não</strong> custeia é tudo que vem junto com mais um casco:
+fundação e estrutura, tubulação de interligação de grande diâmetro, bombeamento do
+líquido cinquenta metros acima, área de terreno.</p>
+<p>Isso dá para quantificar. O melhor projeto com três cascos rende 63,44; o melhor com
+quatro, 63,67. <strong>O quarto casco vale 0,23 MUSD/ano.</strong> Anualizado pelo fator
+de recuperação de capital, ele só se paga se custar menos que:</p>
+</div>
+<div class="eq">
+  <div class="f">0,23 ÷ 0,1315 = 1,72 MUSD de capital adicional</div>
+  <div class="n2">fundação, estrutura, interligação e bombeamento entre cascos custam de 3 a 8</div>
+</div>
+<div class="col">
+<blockquote><p>O modelo aponta para colunas mais altas do que se constrói, porque não
+paga o preço de dividi-las. É limitação de escopo do custeio, não erro de cálculo — e o
+remédio é reconhecê-la, não refinar o otimizador.</p></blockquote>
+<p>Splitters C3 reais têm dois a três cascos. O projeto vai para
+<strong>240 estágios</strong>: troca 0,08 MUSD/ano de lucro nominal por um casco a menos —
+uma coluna que se constrói, em vez de uma que o modelo prefere.</p>
+</div>
+
+<h3>Projeto proposto <span class="tag">antes da revisão de custeio</span></h3>
+<div class="spec">
+  <div><dt>Estágios teóricos</dt><dd>240</dd></div>
+  <div><dt>Estágio de alimentação</dt><dd>159</dd></div>
+  <div><dt>Razão de refluxo</dt><dd>16,25</dd></div>
+  <div><dt>Pressão de operação</dt><dd>16,62 bar</dd></div>
+  <div><dt>Pureza de topo</dt><dd>99,72 %</dd></div>
+  <div><dt>Pior caso (z = 0,60)</dt><dd>99,53 %</dd></div>
+  <div><dt>Recuperação de propeno</dt><dd>99,62 %</dd></div>
+  <div><dt>Carga do refervedor</dt><dd>45,6 MW</dd></div>
+  <div><dt>Altura</dt><dd>173 m · 3 cascos</dd></div>
+  <div><dt>Lucro anual</dt><dd>63,44 MUSD</dd></div>
+</div>
+<div class="col">
+<p class="cap">Este ponto nunca chegou a ser montado. Ao prepará-lo, a pressão de
+16,62 bar não sobreviveu a uma conferência — e o motivo é a seção seguinte.</p>
+</div></section>
+
+<section><div class="head"><span class="num">09</span><div>
+  <h2>O bug que o otimizador achou no custeio</h2></div></div>
+<div class="col">
+<p>Ao preparar a montagem do projeto revisado, uma conferência de rotina expôs um erro
+meu. A restrição que eu havia imposto — temperatura do condensador acima de 40 °C — marca
+onde a água de resfriamento deixa de ser <em>possível</em>, não onde ela é
+<em>econômica</em>. A 16,62 bar, o condensador ficava a 40,03 °C: aproximação de
+<strong>0,03 K</strong>.</p>
+<p>Com força motriz quase nula, a área de troca explode. E o meu código mascarava isso: no
+cálculo da média logarítmica havia um piso artificial de 1 K que mantinha a área finita
+onde a física manda ao infinito. O otimizador encontrou essa brecha e foi direto nela,
+propondo um condensador de <strong>53 000 m²</strong>.</p>
+<blockquote><p>É o mesmo mecanismo do surrogate, um nível acima. O otimizador não distingue
+uma folga física de uma folga de código — ele explora a que estiver disponível. Dessa vez a
+brecha estava no meu custeio.</p></blockquote>
+<p>Corrigido o piso, a pressão ótima sobe para <strong>19,0 bar</strong>, com aproximação de
+6,12 K. E o lucro quase não muda: o ganho de descer a pressão era em boa parte artificial.</p>
+</div></section>
+
+<section><div class="head"><span class="num">10</span><div>
+  <h2>A coluna rigorosa confirma</h2></div></div>
+<div class="col">
+<p>Projeto final montado no DWSIM e resolvido em 6,4 s.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Grandeza</th><th>Previsto</th><th>DWSIM</th><th>Erro</th></tr></thead>
+<tbody>
+<tr><td>Propeno no topo</td><td class="n">99,7201 %</td><td class="n">99,7682 %</td><td class="n">−0,048</td></tr>
+<tr><td>Propano no fundo</td><td class="n">98,8646 %</td><td class="n">98,8723 %</td><td class="n">−0,008</td></tr>
+<tr><td>Carga do condensador</td><td class="n">49 608 kW</td><td class="n">49 873 kW</td><td class="n">−0,53 %</td></tr>
+</tbody></table></div>
+<div class="col">
+<p>O erro é <strong>dez vezes maior</strong> que na escada de validação — e a causa é
+diagnosticável. Duas calibrações foram feitas com um único ponto, a 18 bar: as constantes
+de Antoine e o calor latente. Só a superfície de α foi medida em três pressões. A 19 bar
+as duas âncoras extrapolam, e o λ implícito na carga do DWSIM explica exatamente os
+0,53 % de desvio.</p>
+<blockquote><p>O erro apareceu onde a calibração era mais fraca, não onde o modelo é mais
+complexo. Uma âncora de um ponto só é uma dívida que se paga na primeira extrapolação.</p></blockquote>
+<p>E está na <strong>direção segura</strong>: a pureza real é maior que a prevista, e a
+margem sobre a especificação sobe de 0,220 para 0,268 ponto. A carga real, 0,53 % maior,
+leva o lucro de 63,16 para <strong>63,08 MUSD/ano</strong> — meio ponto percentual de carga
+térmica custa setenta e três mil dólares por ano.</p>
+</div>
+
+<h3>Projeto final, confirmado</h3>
+<div class="spec">
+  <div><dt>Estágios teóricos</dt><dd>240</dd></div>
+  <div><dt>Estágio de alimentação</dt><dd>159</dd></div>
+  <div><dt>Razão de refluxo</dt><dd>18,69</dd></div>
+  <div><dt>Pressão de operação</dt><dd>19,00 bar</dd></div>
+  <div><dt>Pureza de topo · medida</dt><dd>99,768 %</dd></div>
+  <div><dt>Pior caso (z = 0,60)</dt><dd>99,56 %</dd></div>
+  <div><dt>Carga do condensador</dt><dd>49 873 kW</dd></div>
+  <div><dt>Aproximação do condensador</dt><dd>6,12 K</dd></div>
+  <div><dt>Altura</dt><dd>173 m · 3 cascos</dd></div>
+  <div><dt>Lucro anual</dt><dd>63,08 MUSD</dd></div>
+</div>
+<div class="col">
+<p class="cap">Nenhum número desta tabela é previsão de surrogate. Todos foram medidos na
+coluna rigorosa ou calculados a partir de medições dela.</p>
+</div></section>
+
+<section><div class="head"><span class="num">11</span><div>
+  <h2>O que ficou de método</h2></div></div>
+<div class="col">
+<h3>Meça a propriedade antes de projetar</h3>
+<p>Meia hora de flashes mudou o projeto de 200 para 260 estágios. Numa separação de α baixo,
+1 % de erro numa propriedade vira 10 % de erro no equipamento.</p>
+
+<h3>Não peça a um modelo que aprenda o que você sabe calcular</h3>
+<p>O lucro reconstrói exatamente das saídas físicas mais a regra de preço — erro de
+10⁻¹³. Treinar surrogate para ele obrigaria a rede a aprender a física <em>e</em> o degrau
+descontínuo. Aprenda a física, calcule a economia.</p>
+
+<h3>Restrinja os operadores antes de restringir a complexidade</h3>
+<p>A regressão simbólica achou uma lei limpa porque só tinha soma, subtração, multiplicação
+e divisão. Com seno e exponencial ligados, sobre dados determinísticos, ela teria fabricado
+um monstro ilegível com o mesmo R².</p>
+
+<h3>Separe variável de decisão de distúrbio</h3>
+<p>41 % dos projetos "grau polímero" eram grau polímero por sorte da alimentação.
+O otimizador não faz essa distinção sozinho.</p>
+
+<h3>O que o modelo de custo não vê muda a resposta</h3>
+<p>O otimizador apontou para 300 estágios e quatro cascos porque o custeio não paga
+fundação, interligação e bombeamento do casco adicional. Reconhecer o limite de escopo
+mudou o projeto mais que qualquer refinamento do algoritmo teria mudado.</p>
+
+<h3>Uma âncora de um ponto só é dívida</h3>
+<p>Antoine e calor latente foram calibrados a 18 bar apenas. Funcionaram perfeitamente a
+18 bar e erraram dez vezes mais a 19. Toda calibração de ponto único cobra na primeira
+extrapolação — e cobra exatamente ali, não onde o modelo parece mais frágil.</p>
+
+<h3>O ótimo é onde o surrogate é menos confiável</h3>
+<p>Por construção. O otimizador busca onde o modelo promete mais, e é lá que ele erra para
+cima. Toda solução de otimização sobre surrogate precisa voltar ao modelo rigoroso.</p>
+
+<h3>Um índice de sensibilidade baixo não condena a variável</h3>
+<p>O corte apareceu com 0,2 % de índice de Sobol — mas tem a mesma sensibilidade relativa
+que o refluxo. A diferença estava na faixa amostrada: 3 % contra 300 %. Índices medem
+contribuição à variância na faixa escolhida, não importância física.</p>
+</div></section>
+
+<footer>
+  <p>Estudo conduzido com DWSIM Patreon Edition 10.2.3.0 e AI4Tech Suite. Modelo de atalho
+  em Python puro, sem dependências externas, validado contra a coluna rigorosa em cinco
+  configurações. Dados, código e registro completo — incluindo as previsões que erraram —
+  versionados em repositório público.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  var raw="264.6,226.4,0;591.2,110.1,1;265.2,223.4,0;299.6,202.3,0;339.7,191.9,0;590.8,111.5,1;381.0,189.0,0;526.7,141.7,1;585.8,116.0,1;408.0,181.6,0;591.0,110.8,1;265.9,226.4,0;386.7,190.0,0;532.4,141.0,1;315.1,208.4,0;559.9,130.3,1;477.3,158.9,1;330.2,201.3,0;400.6,183.6,0;582.1,117.8,1;540.6,140.4,1;549.2,131.8,1;568.8,128.0,1;265.3,223.4,0;266.1,221.5,0;583.4,117.4,1;557.7,132.4,1;265.4,221.7,0;483.9,157.1,1;589.1,114.0,1;513.1,146.6,1;267.1,224.2,0;265.9,224.2,0;537.3,141.6,1;414.6,178.5,0;369.0,192.2,0;440.2,172.6,0;281.3,212.7,0;520.1,144.5,1;580.4,120.6,1;264.9,222.3,0;575.0,122.5,1;522.4,144.0,1;267.2,224.2,0;362.4,194.0,0;265.6,221.6,0;572.7,124.7,1;346.4,198.4,0;543.8,139.2,1;588.5,113.8,1;532.9,142.5,1;451.3,164.8,1;552.7,135.8,1;358.7,195.0,0;570.8,127.0,1;429.1,173.3,0;298.3,213.1,0;586.7,115.9,1;472.4,161.4,1;266.0,224.9,0;590.1,112.4,1;467.5,164.6,1;490.8,152.8,1;496.6,154.4,1;264.9,224.2,0;563.3,127.3,1;502.6,151.7,1;375.1,190.6,0;322.8,200.1,0;457.6,165.5,1;442.8,169.0,0;319.8,200.9,0;417.9,176.3,0;274.7,216.4,0;512.2,149.7,1;576.5,121.8,1;503.0,151.6,1;352.7,196.7,0;563.4,127.3,1;507.8,151.1,1;545.8,138.5,1;436.0,168.6,1;551.6,136.2,1;328.9,201.6,0;487.6,157.1,1;435.1,168.9,0;275.6,210.5,0;589.9,112.9,1;351.5,197.0,0;463.9,162.7,1;372.7,191.3,0;507.9,151.0,1;566.6,126.3,1;487.5,156.1,1;577.0,119.2,1;421.7,175.3,0;291.3,210.2,0;288.0,210.9,0;587.2,116.2,1;463.4,162.8,1;";
+  var g=document.getElementById("pts");
+  if(!g) return;
+  var ns="http://www.w3.org/2000/svg";
+  raw.split(";").forEach(function(s){
+    if(!s) return;
+    var p=s.split(","); if(p.length<3) return;
+    var c=document.createElementNS(ns,"circle");
+    c.setAttribute("cx",p[0]); c.setAttribute("cy",p[1]); c.setAttribute("r","4");
+    c.setAttribute("fill", p[2]==="1" ? "var(--cold)" : "var(--bad)");
+    c.setAttribute("fill-opacity","0.72");
+    g.appendChild(c);
+  });
+})();
+</script>

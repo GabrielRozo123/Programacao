@@ -190,3 +190,9 @@ assim o interior do domínio fica vazio. LHS com 200 pontos cobre melhor.
 
 **P1** e **P2** (em andamento) → **P3** (rápido e bonito) → **P4** (a disciplina que faz
 diferença) → **P2** (o caso econômico completo) → **P5** → **P6**.
+
+## Relatório de fechamento
+
+O estudo completo, do atalho calibrado à validação na coluna rigorosa, está
+consolidado em [`relatorio.html`](relatorio.html) — publicado também como página
+compartilhável.
