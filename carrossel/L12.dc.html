@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #63A8D2; } a:hover { color: #8FC4E2; }
+  </style>
+</helmet>
+<div style="width: 1080px; height: 1080px; background: #10151A; color: #E4E9ED; font-family: 'Source Serif 4', Georgia, serif; padding: 84px; display: flex; flex-direction: column; box-sizing: border-box">
+  <div style="display: flex; justify-content: space-between; align-items: baseline">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">O veredito</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #6D7B87">12 / 12</div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 38px">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 70px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">Aí a coluna rigorosa deu o veredito.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #2B343D; border: 1px solid #2B343D">
+      <div style="background: #171E25; padding: 28px 26px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 12px">Previsto</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 600; color: #95A2AD">99,7201</div>
+      </div>
+      <div style="background: #171E25; padding: 28px 26px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 12px">DWSIM</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 600; color: #63A8D2">99,7682</div>
+      </div>
+      <div style="background: #171E25; padding: 28px 26px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 12px">Erro</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 40px; font-weight: 600; color: #D9814F">−0,048</div>
+      </div>
+    </div>
+
+    <div style="font-size: 30px; line-height: 1.44; color: #95A2AD">Dez vezes mais erro do que na escada de validação — e o motivo é diagnosticável. Antoine e o calor latente eu tinha calibrado num ponto só, a 18 bar. O projeto final opera a 19.</div>
+
+    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 32px; line-height: 1.4">O erro apareceu onde a <strong style="font-weight: 600">calibração era mais fraca</strong>, não onde o modelo é mais complexo. Âncora de um ponto só é dívida.</div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #2B343D; padding-top: 24px; gap: 30px">
+    <div style="font-size: 25px; line-height: 1.35; color: #95A2AD; max-width: 560px">Código, dados e as previsões que erraram estão versionados. Comenta aí se quiser o link do repositório.</div>
+    <div style="text-align: right">
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 42px; font-weight: 600; color: #D9814F; line-height: 1">63,08</div>
+      <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-top: 8px">MUSD/ano</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

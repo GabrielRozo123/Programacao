@@ -12,3 +12,4 @@ carrossel/splitter-c3-carrossel.html
 carrossel/node_modules/
 carrossel/previa/
 carrossel/package*.json
+carrossel/_svg_*.svg
