@@ -1,0 +1,10 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0,    "y": 0, "w": 1080, "h": 1080, "title": "01 · O problema" },
+    { "file": "L02.dc.html",  "x": 1180, "y": 0, "w": 1080, "h": 1080, "title": "02 · Como fizemos" },
+    { "file": "L03.dc.html",  "x": 2360, "y": 0, "w": 1080, "h": 1080, "title": "03 · Onde está o dinheiro" },
+    { "file": "L04.dc.html",  "x": 3540, "y": 0, "w": 1080, "h": 1080, "title": "04 · Onde agir" },
+    { "file": "L05.dc.html",  "x": 4720, "y": 0, "w": 1080, "h": 1080, "title": "05 · A conclusão" }
+  ],
+  "launch": { "view": "canvas" }
+}
