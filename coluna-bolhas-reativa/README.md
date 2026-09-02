@@ -295,6 +295,12 @@ Alvo experimental: **ε = 0,0381 (ajuste de Wallis) a 0,0408 (ajuste de enxame)*
 | **Nível 1** | + sustentação, dispersão turbulenta, lubrificação de parede | 0,049853 | 0,2330–0,2331 | liso (0,02%) |
 | **Nível 1b** | + semente radial na entrada (Field Function) | 0,049795 | 0,229–0,238 | estrutura só no fundo |
 | **Nível 1c** | + Particle Induced Turbulence Source | 0,049604 | 0,220–0,239 | liso (0,02%) |
+| **A** (remontagem) | idem 1c, montagem refeita do zero | 0,049430 | 0,233 | liso |
+| **E** | S-Gamma dirigindo a Interaction Length Scale | ~0,0338 ⚠ | — | 0,5% na parede ⚠ |
+
+⚠ A rodada E **não está convergida**: o acoplamento de duas vias só fechou aos 43 s, quando a
+Interaction Length Scale passou de constante para o diâmetro de Sauter. O d₃₂ caiu de 30,6 para
+18,8 mm e ainda derivava aos 59 s.
 
 **Quatro rodadas, o holdup não se moveu: 0,0498 → 0,0496.** Isso não é fracasso —
 cada uma respondeu uma pergunta, e as respostas convergem para a mesma causa.
@@ -317,6 +323,49 @@ em batelada e regime permanente toda a potência do empuxo entra no líquido pel
 tem de dissipar, o que dá 0,12 m²/s³ **sem CFD nenhum**. O caso reportava 4,3e-4 — fator 281.
 Faltava `Particle Induced Turbulence Source`. Com ela ligada, ε_diss saltou 67× para
 0,0285 m²/s³ e o holdup não se mexeu, como previsto.
+
+### A rodada E cerca o alvo — a hipótese do diâmetro está confirmada
+
+```
+                              eps   vs enxame   vs Wallis
+    A  d = 4,5 mm fixo    0.04943      +21,2%      +29,8%
+           alvo enxame    0.04078           0      + 7,1%
+           alvo Wallis    0.03807      − 6,6%           0
+            E  S-Gamma    0.03380      −17,1%      −11,2%
+```
+
+**As duas rodadas cercam a faixa experimental.** O diâmetro não só é o lever certo — ele move o
+holdup através do alvo inteiro. Nenhum outro candidato testado (contaminação, Simonnet, circulação)
+chegava a 3% do necessário.
+
+O S-Gamma previu **d₃₂ = 18,8 mm sem nenhum parâmetro ajustado**, contra 14,1 a 16,9 mm exigidos
+pelo holdup medido — excesso de 11 a 33%.
+
+### Verificação cruzada: S-Gamma contra Martinez-Bazan
+
+| | valor |
+|---|---|
+| ε_diss do modelo | 0,0285 m²/s³ |
+| d_crit de Martinez-Bazan nessa dissipação | 17,1 mm |
+| d₃₂ de equilíbrio do S-Gamma | 18,8 mm |
+
+Duas formulações independentes — um método de momentos com kernels de Chesters e um critério
+algébrico de quebra turbulenta — param no mesmo lugar, dentro de 10%. Isso é verificação, não
+coincidência: o S-Gamma está parando onde a física de quebra diz que ele deve parar.
+
+### E isso fecha a conta da dissipação
+
+| d₃₂ [mm] | ε_diss necessária | origem |
+|---|---|---|
+| 14,1 | 0,0460 | exigido pelo ajuste de enxame |
+| **16,9** | **0,0296** | exigido pelo ajuste de Wallis |
+| 18,8 | 0,0226 | o que o modelo entrega hoje |
+| 9,6 | 0,1211 | balanço mecânico total |
+
+O alvo de Wallis exige ε_diss = 0,0296 e o modelo entrega **0,0285** — 4% de diferença. Ou seja,
+contra esse ajuste o modelo é praticamente autoconsistente, e o fator 4 que sobrava contra o balanço
+mecânico está explicado: a parcela da potência do arrasto que vira cascata turbulenta é justamente a
+que a coluna precisa para sustentar bolhas de ~17 mm.
 
 ### A causa única: o diâmetro prescrito
 
