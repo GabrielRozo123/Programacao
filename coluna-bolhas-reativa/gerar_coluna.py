@@ -28,9 +28,9 @@ abaixo da resolucao. Modelar a pegada seria fidelidade falsa.
 
 O que importa fisicamente e (a) a velocidade superficial e (b) o diametro de
 bolha na formacao -- e o segundo vem da lei de Tate a partir do furo de 2 mm,
-nao da geometria do braco. Logo: FUNDO INTEIRO como velocity inlet, com a
-fracao volumetrica e a velocidade ajustadas para reproduzir tanto a vazao
-quanto a velocidade real no orificio.
+nao da geometria do braco. Logo: FUNDO INTEIRO como velocity inlet.
+
+E a velocidade a impor NAO e a do furo. Ver entrada_de_equilibrio().
 
 Requisitos: cadquery >= 2.8
 """
@@ -80,21 +80,21 @@ G = 9.81
 
 
 def condicao_de_entrada(ug):
-    """Fracao volumetrica e velocidade do gas no contorno de entrada.
+    """Condicao de entrada CASADA COM O ORIFICIO -- NAO USAR. Ver abaixo.
 
-    Reproduz simultaneamente a vazao volumetrica e a velocidade real no
-    orificio, como o tutorial do tanque de aeracao faz com o prato perfurado
-    (fracao = area aberta, velocidade = velocidade no furo).
+    Reproduz a velocidade real no furo (fracao = area aberta, velocidade =
+    velocidade no furo), como o tutorial do tanque de aeracao faz com o prato
+    perfurado.
 
-    CORRECAO DE EXPANSAO -- o artigo referencia Ug a MEIA COLUNA ("the
-    operative pressure was assumed equivalent to the pressure of half a
-    column"). A entrada esta no FUNDO, onde a pressao e maior e o mesmo
-    numero de moles ocupa MENOS volume:
+    POR QUE NAO USAR: com furos de 2 mm a velocidade no orificio da 2,45 m/s
+    em Ug = 0,0115. Numa celula de 10 mm isso e CFL ~2,5 no proprio contorno,
+    e os residuos divergem cinco ordens de grandeza. Ja aconteceu.
 
-        Q_fundo = Q_meio * p_meio / p_fundo        (~0,888)
+    A velocidade no furo so faz sentido se a malha resolver o furo. Nao
+    resolve, e nem deve: o que o furo determina fisicamente e o DIAMETRO DE
+    BOLHA (lei de Tate), nao o campo de velocidade a jusante.
 
-    Ignorar isso injeta ~11% de gas a mais e infla o holdup -- quase tres
-    vezes a incerteza experimental de 4,1%.
+    Mantida no codigo como registro do que foi tentado.
     """
     a_coluna = math.pi / 4 * D_C ** 2
     a_furos = FURO_TOTAL * math.pi / 4 * D_HOLE ** 2
@@ -106,6 +106,31 @@ def condicao_de_entrada(ug):
     alpha = a_furos / a_coluna
     v_gas = q / a_furos
     return alpha, v_gas, q, a_furos
+
+
+V_ENTRADA = 0.29          # [m/s] proxima da velocidade terminal da bolha
+
+
+def entrada_de_equilibrio(ug, v_gas=V_ENTRADA):
+    """A condicao de entrada QUE SE USA.
+
+    O contorno tem de entregar a VELOCIDADE SUPERFICIAL correta. Qualquer par
+    (alpha, v) com  alpha * v = Ug  entrega a mesma vazao; a escolha define
+    apenas o quanto o campo precisa se reacomodar logo acima do distribuidor.
+
+    Escolhe-se v perto da velocidade terminal da bolha (0,233 m/s) e alpha
+    perto do holdup de equilibrio. Assim o gas ja entra quase no estado em que
+    vai viajar, e nao existe frente violenta no fundo.
+
+    NAO SE APLICA CORRECAO DE EXPANSAO. O caso roda com Constant Density (a
+    Ideal Gas liga a equacao de energia silenciosamente -- ja aconteceu, o
+    residuo "Energy of Ar" apareceu na legenda). Num gas incompressivel a
+    coluna carrega a MESMA velocidade superficial em toda altura, e o valor a
+    impor e o proprio Ug de referencia do artigo, medido a meia coluna.
+    """
+    a_coluna = math.pi / 4 * D_C ** 2
+    alpha = ug / v_gas
+    return alpha, v_gas, ug * a_coluna
 
 
 def relatorio():
@@ -121,22 +146,59 @@ def relatorio():
     print(f"  Diametro de bolha (Tate)   {bolha_de_formacao(D_HOLE)*1000:8.2f} mm")
     print("=" * 78)
 
-    print(f"\n{'Ug':>9s}{'eps':>9s}{'ALTURA':>10s}{'volume':>10s}"
-          f"{'alpha in':>10s}{'v_gas in':>11s}{'Q':>10s}")
-    print(f"{'[m/s]':>9s}{'[-]':>9s}{'[m]':>10s}{'[L]':>10s}"
-          f"{'[-]':>10s}{'[m/s]':>11s}{'[L/s]':>10s}")
+    print(f"\n{'Ug':>9s}{'eps alvo':>10s}{'ALTURA':>10s}{'volume':>10s}"
+          f"{'Q':>10s}")
+    print(f"{'[m/s]':>9s}{'[-]':>10s}{'[m]':>10s}{'[L]':>10s}{'[L/s]':>10s}")
     print("-" * 78)
     for ug in CONDICOES:
         eps = holdup_wallis(ug, U_INF["ar"])
         h = altura_aerada(ug, U_INF["ar"])
         vol = math.pi / 4 * D_C ** 2 * h * 1000.0
-        alpha, v_gas, q, _ = condicao_de_entrada(ug)
-        print(f"{ug:9.4f}{eps:9.4f}{h:10.3f}{vol:10.1f}"
-              f"{alpha:10.5f}{v_gas:11.2f}{q*1000:10.3f}")
+        _, _, q = entrada_de_equilibrio(ug)
+        print(f"{ug:9.4f}{eps:10.4f}{h:10.3f}{vol:10.1f}{q*1000:10.3f}")
     print("-" * 78)
     print("  A altura muda de condicao para condicao porque o dominio TEM de")
     print("  ser o liquido aerado -- so assim a media volumetrica do CFD e")
     print("  comparavel ao eps = (h-h0)/h que o experimento mede.")
+    print("=" * 78)
+
+    print("\nCONDICAO DE ENTRADA  --  Sparger_Inlet, Velocity Inlet")
+    print("=" * 78)
+    print(f"{'Ug':>9s}{'alpha Ar':>11s}{'v do Ar':>11s}{'v da Agua':>12s}"
+          f"{'CFL na celula de 10 mm':>26s}")
+    print(f"{'[m/s]':>9s}{'[-]':>11s}{'[m/s]':>11s}{'[m/s]':>12s}"
+          f"{'(dt = 0,01 s)':>26s}")
+    print("-" * 78)
+    for ug in CONDICOES:
+        alpha, v, _ = entrada_de_equilibrio(ug)
+        print(f"{ug:9.4f}{alpha:11.5f}{v:11.3f}{0.0:12.1f}"
+              f"{v*0.01/0.010:26.2f}")
+    print("-" * 78)
+    print("  Regra: alpha * v = Ug. Qualquer par entrega a mesma vazao.")
+    print("  Escolhe-se v ~ velocidade terminal da bolha para que o gas entre")
+    print("  ja no estado em que vai viajar.")
+    print("-" * 78)
+    print("  NAO USAR a condicao casada com o orificio:")
+    print(f"{'Ug':>9s}{'alpha':>11s}{'v no furo':>12s}{'CFL':>10s}")
+    for ug in CONDICOES:
+        alpha, v_gas, _, _ = condicao_de_entrada(ug)
+        print(f"{ug:9.4f}{alpha:11.5f}{v_gas:12.2f}{v_gas*0.01/0.010:10.1f}")
+    print("  CFL de 2,4 no proprio contorno. Os residuos divergem. Ja aconteceu.")
+    print("=" * 78)
+
+    print("\nINICIALIZACAO  --  o outro tropeco")
+    print("-" * 78)
+    for ug in CONDICOES:
+        eps = holdup_wallis(ug, U_INF["ar"])
+        print(f"  Ug = {ug:.4f}   ->   inicializar Volume Fraction of Ar em "
+              f"{eps:.3f}, NAO em zero")
+    print("-" * 78)
+    print("  Partir de alpha = 0 cria uma frente violenta subindo a coluna.")
+    print("  Partir do holdup esperado economiza a transiente inteira de")
+    print("  enchimento e nao muda o estado final.")
+    print("-" * 78)
+    print("  E o gas fica em CONSTANT DENSITY. A Ideal Gas liga a equacao de")
+    print("  energia sem avisar -- o residuo 'Energy of Ar' aparece na legenda.")
     print("=" * 78)
 
     print("\nCONTORNOS  (3 faces por STEP)")
