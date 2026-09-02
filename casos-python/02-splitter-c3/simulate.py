@@ -135,6 +135,10 @@ ALTURA_MAX_CASCO = 60.0     # m; acima disso a coluna e dividida em cascos em se
 T_AGUA_ENTRADA = 303.15     # K (30 C)
 T_AGUA_SAIDA = 313.15       # K (40 C)
 T_MIN_AGUA = 313.15         # K; condensador abaixo disso exige refrigeracao
+# Aproximacao minima no lado quente do condensador. Abaixo disso a forca motriz
+# some, a area explode e o projeto e inviavel na pratica — mesmo que a agua
+# ainda seja "possivel". Pratica usual de projeto: 5 a 10 K.
+APROX_MIN_CONDENSADOR = 5.0  # K
 T_VAPOR_BAIXA = 403.15      # K (130 C), vapor de baixa pressao
 LAMBDA_VAPOR_AGUA = 2160.0  # kJ/kg
 U_CONDENSADOR = 500.0       # W/(m2.K)
@@ -204,6 +208,7 @@ VARIAVEIS = {
         {"nome": "T_condensador",    "unidade": "C",       "descricao": "Temperatura de topo"},
         {"nome": "T_refervedor",     "unidade": "C",       "descricao": "Temperatura de fundo"},
         {"nome": "precisa_refrig",   "unidade": "-",       "descricao": "1 se o topo exige refrigeracao"},
+        {"nome": "aprox_condensador","unidade": "K",       "descricao": "Aproximacao no lado quente do condensador"},
         {"nome": "diametro",         "unidade": "m",       "descricao": "Diametro da coluna"},
         {"nome": "altura_total",     "unidade": "m",       "descricao": "Altura somada dos cascos"},
         {"nome": "n_cascos",         "unidade": "-",       "descricao": "Cascos em serie necessarios"},
@@ -463,12 +468,19 @@ def simulate(inputs):
     altura_casco = altura / n_cascos
 
     # ---- areas de troca ----
+    # Aproximacao no lado quente: e ela que decide se o condensador existe.
+    aprox_cond = (T_topo - T_AGUA_SAIDA) if not precisa_refrigeracao else 10.0
+
     if precisa_refrigeracao:
         delta_t_cond = 10.0                # refrigerante a temperatura constante
     else:
-        d1 = max(T_topo - T_AGUA_SAIDA, 1.0)
-        d2 = max(T_topo - T_AGUA_ENTRADA, 2.0)
-        delta_t_cond = (d2 - d1) / math.log(d2 / d1) if abs(d2 - d1) > 1e-6 else d1
+        # SEM piso artificial. Uma versao anterior usava max(d1, 1.0), o que
+        # mantinha a area finita onde a fisica manda ela ao infinito — e o
+        # otimizador explorou exatamente essa brecha, propondo um condensador
+        # com 0,03 K de aproximacao. O guarda abaixo so evita divisao por zero.
+        d1 = max(T_topo - T_AGUA_SAIDA, 1e-3)
+        d2 = max(T_topo - T_AGUA_ENTRADA, 2e-3)
+        delta_t_cond = (d2 - d1) / math.log(d2 / d1) if abs(d2 - d1) > 1e-9 else d1
     area_cond = Q_cond * 1000.0 / (U_CONDENSADOR * delta_t_cond)
     delta_t_reb = max(T_VAPOR_BAIXA - T_fundo, 5.0)
     area_reb = Q_reb * 1000.0 / (U_REFERVEDOR * delta_t_reb)
@@ -519,6 +531,7 @@ def simulate(inputs):
         "T_condensador": T_topo - 273.15,
         "T_refervedor": T_fundo - 273.15,
         "precisa_refrig": precisa_refrigeracao,
+        "aprox_condensador": aprox_cond,
         "diametro": diametro,
         "altura_total": altura,
         "n_cascos": float(n_cascos),
