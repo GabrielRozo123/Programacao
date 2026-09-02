@@ -341,8 +341,26 @@ def main():
     eps_alvo = UG / U_SWARM["ar"]
 
     def eps_1d(dmm):
+        """Holdup de equilibrio a partir da velocidade terminal.
+
+        CORRECAO -- esta funcao usava a forma de Wallis
+        eps = (1 - sqrt(1 - 4Ug/u))/2, que vem de Ug = u*eps*(1-eps). Essa e
+        a relacao do AJUSTE do artigo, que descreve como a velocidade de
+        ascensao DEPENDE do holdup (ascensao impedida). Nao e o que o CFD faz.
+
+        No CFD, em batelada, o fluxo liquido de liquido e zero, logo v_l = 0 e
+
+            slip = v_g - v_l = Ug/eps      ->      eps = Ug / slip
+
+        exatamente. E o CFD nao tem correcao de enxame ligada, entao
+        slip = velocidade terminal isolada. Verificado na rodada A:
+        Ug/0,233 = 0,04936 contra 0,049430 medido -- 0,14%.
+
+        A forma antiga superestimava o holdup em 5% e deslocava o diametro
+        alvo de ~14 para ~16 mm.
+        """
         u = terminal(dmm / 1000.0, "contaminated")
-        return u, (1.0 - math.sqrt(1.0 - 4.0 * UG / u)) / 2.0
+        return u, UG / u
 
     _, base_1d = eps_1d(4.5)
     for dmm in (4.5, 8, 10, 12, 16, 18):
@@ -354,12 +372,12 @@ def main():
     print(f"  CFD a 4,5 mm                 eps = {EPS_CFD:.5f}   "
           f"({100*(EPS_CFD/base_1d-1):+.1f}% contra o 1D)")
     print(f"  alvo experimental (enxame)   eps = {eps_alvo:.5f}")
-    print("  O 1D erra 4% contra o CFD porque ignora a expansao do gas e o")
-    print("  perfil radial. Serve para ordenar candidatos, nao para prever.")
+    print("  Depois da correcao (eps = Ug/slip) o 1D e o CFD batem em 1%.")
+    print("  A rodada A confirmou: 0,04936 previsto contra 0,049430 medido.")
     print("-" * 78)
-    print("  Se a dissipacao real travar o d32 em 10 mm, o diametro fecha ~37%")
-    print("  do erro e sobra bastante coisa por explicar. Prefiro")
-    print("  saber disso ANTES de gastar a rodada do que depois.")
+    print("  Se a dissipacao real travar o d32 em 10 mm, o diametro fecha 43%")
+    print("  do erro e sobra metade por explicar. Prefiro saber disso ANTES")
+    print("  de gastar a rodada do que depois.")
     print("=" * 78)
 
     print("\nCONCLUSAO")
@@ -376,15 +394,21 @@ def main():
     print("=" * 78)
     print("\nPREVISAO FALSIFICAVEL PARA O NIVEL 2")
     print("-" * 78)
-    print("  Registrada ANTES de rodar. Uma unica rodada de diametro fixo em")
-    print("  16 mm, tudo o mais igual ao Nivel 1, tem de entregar as DUAS:")
-    print("      holdup            eps -> 0,040 +/- 0,002  (hoje 0,0499)")
-    print("      estrutura radial  C_L = -0,27 -> pluma CENTRAL persistente,")
-    print("                        com recirculacao descendente na parede")
+    print("  Registrada ANTES de rodar, com a relacao ja corrigida:")
+    print("      eps = Ug/slip   ->   o alvo experimental exige")
+    print("          d = 14,1 mm  para bater o ajuste de enxame  (0,0408)")
+    print("          d = 16,9 mm  para bater o ajuste de Wallis   (0,0381)")
     print("-" * 78)
-    print("  Se o holdup cair mas a pluma nao aparecer, o problema e de")
-    print("  turbulencia (dispersao alta demais), nao de diametro.")
-    print("  Se nenhuma das duas mudar, a hipotese do diametro morre inteira.")
+    print("  A varredura 8 / 12 / 16 mm cerca essa faixa. E ela separa os")
+    print("  dois mecanismos, porque eles respondem em ritmos diferentes:")
+    print("      d = 8 mm    holdup anda so -2,7%, mas C_L ja virou a -0,27")
+    print("                  -> testa a SUSTENTACAO quase isolada do holdup")
+    print("      d = 16 mm   holdup cruza o alvo; C_L ja estava saturado")
+    print("                  -> testa o ARRASTO com a sustentacao constante")
+    print("-" * 78)
+    print("  Se a pluma aparecer em 8 mm, o mecanismo da sustentacao esta")
+    print("  provado sem depender do holdup. Se o holdup cruzar a faixa entre")
+    print("  12 e 16 mm, a hipotese do diametro fecha. Sao testes separaveis.")
     print("  Os tres desfechos sao informativos. E o que faz disso verificacao")
     print("  e nao ajuste de curva.")
     print("=" * 78)
