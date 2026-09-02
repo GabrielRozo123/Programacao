@@ -13,35 +13,39 @@
   <style>
     body { margin: 0; }
     a { color: #63A8D2; } a:hover { color: #8FC4E2; }
+    svg { display: block; width: 100%; height: auto; }
   </style>
 </helmet>
 <div style="width: 1080px; height: 1080px; background: #10151A; color: #E4E9ED; font-family: 'Source Serif 4', Georgia, serif; padding: 84px; display: flex; flex-direction: column; box-sizing: border-box">
   <div style="display: flex; justify-content: space-between; align-items: baseline">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">O mesmo mecanismo, um nível acima</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">A decisão que o modelo não sabe tomar</div>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #6D7B87">09 / 12</div>
   </div>
-
-  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 40px">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 74px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">Depois ele achou um bug no meu código.</div>
-
-    <div style="font-size: 31px; line-height: 1.45; color: #95A2AD">No cálculo da média logarítmica eu tinha deixado um piso artificial de 1 K, que mantinha a área do condensador finita onde a física manda ao infinito.</div>
-
-    <div style="display: flex; gap: 1px; background: #2B343D; border: 1px solid #2B343D">
-      <div style="background: #171E25; padding: 30px 28px; flex-grow: 1">
-        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 14px">Força motriz proposta</div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 600; color: #D9814F">0,03 K</div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 64px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">O otimizador apontava para uma coluna que ninguém constrói.</div>
+    <div style="font-size: 29px; line-height: 1.42; color: #95A2AD">Acima de 60 metros a coluna precisa ser dividida em cascos. O modelo de custo paga o casco — mas não paga a fundação, a interligação de grande diâmetro, o bombeamento de cinquenta metros nem a área de terreno.</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: #2B343D; border: 1px solid #2B343D">
+      <div style="background: #171E25; padding: 28px 24px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 13px">O quarto casco rende</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 46px; font-weight: 600; color: #5798CE">0,23</div>
+        <div style="font-size: 23px; color: #6D7B87; margin-top: 8px">MUSD/ano</div>
       </div>
-      <div style="background: #171E25; padding: 30px 28px; flex-grow: 1">
-        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 14px">Condensador resultante</div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 600; color: #D9814F">53 000 m²</div>
+      <div style="background: #171E25; padding: 28px 24px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 13px">Só se paga se custar</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 46px; font-weight: 600; color: #5798CE">&lt; 1,72</div>
+        <div style="font-size: 23px; color: #6D7B87; margin-top: 8px">MUSD de capital</div>
+      </div>
+      <div style="background: #171E25; padding: 28px 24px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 13px">Custa de fato</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 46px; font-weight: 600; color: #D9814F">3 a 8</div>
+        <div style="font-size: 23px; color: #6D7B87; margin-top: 8px">MUSD</div>
       </div>
     </div>
-
-    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 32px; line-height: 1.4">Ele não distingue uma folga física de uma <strong style="font-weight: 600">folga de código</strong>. Explora a que estiver disponível.</div>
+    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 30px; line-height: 1.38">O modelo otimiza exatamente aquilo que você custeia. <strong style="color: #E4E9ED; font-weight: 600">O que fica fora da planilha, ele distribui de graça</strong> — e aponta para a resposta errada com toda a confiança do mundo.</div>
   </div>
   <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2B343D; padding-top: 24px">
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 · AI4Tech Suite</div>
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize →</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 &middot; AI4Tech Suite</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize &rarr;</div>
   </div>
 </div>
 </x-dc>

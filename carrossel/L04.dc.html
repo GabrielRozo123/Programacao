@@ -13,32 +13,45 @@
   <style>
     body { margin: 0; }
     a { color: #63A8D2; } a:hover { color: #8FC4E2; }
+    svg { display: block; width: 100%; height: auto; }
   </style>
 </helmet>
 <div style="width: 1080px; height: 1080px; background: #10151A; color: #E4E9ED; font-family: 'Source Serif 4', Georgia, serif; padding: 84px; display: flex; flex-direction: column; box-sizing: border-box">
   <div style="display: flex; justify-content: space-between; align-items: baseline">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">Lição 1 · calibração</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">Capacidade 2 · análise de sensibilidade</div>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #6D7B87">04 / 12</div>
   </div>
-
-  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 44px">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 74px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">Meia hora de flashes mudou o projeto inteiro.</div>
-
-    <div style="font-size: 31px; line-height: 1.45; color: #95A2AD">Rodei o DWSIM em oito pontos só para medir a volatilidade relativa e reancorar as constantes de Antoine. A correção foi de menos de 1 %.</div>
-
-    <div style="display: flex; align-items: center; gap: 34px; background: #171E25; border: 1px solid #2B343D; padding: 34px 38px">
-      <div style="font-family: 'JetBrains Mono', monospace; font-size: 54px; font-weight: 600; color: #6D7B87">200</div>
-      <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 40px; font-weight: 700; color: #D9814F">→</div>
-      <div style="font-family: 'JetBrains Mono', monospace; font-size: 54px; font-weight: 600; color: #D9814F">260</div>
-      <div style="font-size: 27px; line-height: 1.35; color: #95A2AD; flex-grow: 1">estágios teóricos, depois de medir</div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 26px">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 58px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">Seis variáveis. Duas decidem três quartos do resultado.</div>
+    <div style="display: flex; gap: 32px; align-items: center; font-size: 23px; color: #95A2AD">
+      <div style="display: flex; align-items: center; gap: 11px"><div style="width: 17px; height: 17px; border-radius: 3px; background: #5798CE"></div>você decide</div>
+      <div style="display: flex; align-items: center; gap: 11px"><div style="width: 17px; height: 17px; border-radius: 3px; background: #D37642"></div>você recebe</div>
     </div>
-
-    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 32px; line-height: 1.4">Numa separação de <span style="font-family: 'JetBrains Mono', monospace">α</span> baixo, 1 % de erro numa propriedade vira <strong style="font-weight: 600">10 % de erro no equipamento</strong>.</div>
+    <div><svg viewBox="0 0 912 350" role="img" aria-label="Indices de sensibilidade do lucro por variavel de entrada">
+<text x="352.0" y="33.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Composição da alimentação</text>
+<rect x="372" y="6" width="396.4" height="40" rx="4" fill="#D37642"/>
+<text x="782.4" y="34.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">39,3 %</text>
+<text x="352.0" y="88.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Razão de refluxo</text>
+<rect x="372" y="61" width="376.2" height="40" rx="4" fill="#5798CE"/>
+<text x="762.2" y="89.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">37,3 %</text>
+<text x="352.0" y="143.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Pressão de operação</text>
+<rect x="372" y="116" width="108.9" height="40" rx="4" fill="#5798CE"/>
+<text x="494.9" y="144.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">10,8 %</text>
+<text x="352.0" y="198.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Número de estágios</text>
+<rect x="372" y="171" width="58.5" height="40" rx="4" fill="#5798CE"/>
+<text x="444.5" y="199.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">5,8 %</text>
+<text x="352.0" y="253.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Posição da alimentação</text>
+<rect x="372" y="226" width="52.5" height="40" rx="4" fill="#5798CE"/>
+<text x="438.5" y="254.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">5,2 %</text>
+<text x="352.0" y="308.2" text-anchor="end" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="25" font-weight="500">Corte do destilado</text>
+<rect x="372" y="281" width="16.1" height="40" rx="4" fill="#5798CE"/>
+<text x="402.1" y="309.8" text-anchor="start" fill="#E4E9ED" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="600">1,6 %</text>
+</svg></div>
+    <div style="font-size: 27px; line-height: 1.42; color: #95A2AD">Quanto cada variável explica da variação do lucro. Serve para decidir onde gastar atenção de engenharia — e o que é ruído. <strong style="color: #E4E9ED; font-weight: 600">A maior influência isolada é a composição da alimentação</strong>, que chega pela tubulação e ninguém escolhe.</div>
   </div>
-
   <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2B343D; padding-top: 24px">
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 · AI4Tech Suite</div>
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize →</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 &middot; AI4Tech Suite</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize &rarr;</div>
   </div>
 </div>
 </x-dc>

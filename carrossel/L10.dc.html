@@ -13,47 +13,54 @@
   <style>
     body { margin: 0; }
     a { color: #63A8D2; } a:hover { color: #8FC4E2; }
+    svg { display: block; width: 100%; height: auto; }
   </style>
 </helmet>
 <div style="width: 1080px; height: 1080px; background: #10151A; color: #E4E9ED; font-family: 'Source Serif 4', Georgia, serif; padding: 84px; display: flex; flex-direction: column; box-sizing: border-box">
   <div style="display: flex; justify-content: space-between; align-items: baseline">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">Decisão multicritério · TOPSIS</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">Como as três coisas se encaixam</div>
     <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #6D7B87">10 / 12</div>
   </div>
-
-  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 36px">
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 70px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">O peso que você digita não é o peso que age.</div>
-
-    <div style="font-size: 30px; line-height: 1.42; color: #95A2AD">O TOPSIS normaliza dividindo cada coluna pela sua norma. Amplitude que sobra para cada critério depois disso:</div>
-
-    <div style="display: flex; flex-direction: column; gap: 14px">
-      <div style="display: flex; align-items: center; gap: 20px">
-        <div style="font-size: 26px; color: #95A2AD; width: 250px">carga térmica</div>
-        <div style="height: 30px; width: 620px; background: #63A8D2"></div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #E4E9ED">0,0933</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 20px">
-        <div style="font-size: 26px; color: #95A2AD; width: 250px">nº de cascos</div>
-        <div style="height: 30px; width: 511px; background: #63A8D2"></div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #E4E9ED">0,0769</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 20px">
-        <div style="font-size: 26px; color: #95A2AD; width: 250px">lucro</div>
-        <div style="height: 30px; width: 203px; background: #63A8D2"></div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #E4E9ED">0,0305</div>
-      </div>
-      <div style="display: flex; align-items: center; gap: 20px">
-        <div style="font-size: 26px; color: #D9814F; width: 250px">robustez</div>
-        <div style="height: 30px; width: 9px; background: #D9814F"></div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 26px; color: #D9814F">0,0013</div>
-      </div>
-    </div>
-
-    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 30px; line-height: 1.38">Com <strong style="font-weight: 600">45 % do peso declarado sobre robustez</strong>, o método escolheu a única solução da frente que perde grau polímero.</div>
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 30px">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 64px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">Nenhuma das três resolve sozinha.</div>
+    <div><svg viewBox="0 0 912 262" role="img" aria-label="O ciclo: simulacao rigorosa calibra o modelo rapido, o aprendizado de maquina explica, a otimizacao propoe e a simulacao rigorosa confirma">
+<rect x="1.0" y="34" width="158" height="116" rx="3" fill="#171E25" stroke="#D37642" stroke-width="2.5"/>
+<text x="80.0" y="74.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">SIMULAÇÃO</text>
+<text x="80.0" y="94.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">RIGOROSA</text>
+<text x="80.0" y="134.0" text-anchor="middle" fill="#8A96A1" font-family="'JetBrains Mono', monospace" font-size="17" font-weight="400">calibra</text>
+<line x1="165.0" y1="92.0" x2="175.0" y2="92.0" stroke="#8A96A1" stroke-width="2"/>
+<path d="M174.0,87.0 L183.0,92.0 L174.0,97.0 Z" fill="#8A96A1"/>
+<rect x="189.0" y="34" width="158" height="116" rx="3" fill="#171E25" stroke="#2B343D" stroke-width="1"/>
+<text x="268.0" y="74.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">MODELO</text>
+<text x="268.0" y="94.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">RÁPIDO</text>
+<text x="268.0" y="134.0" text-anchor="middle" fill="#8A96A1" font-family="'JetBrains Mono', monospace" font-size="17" font-weight="400">varre</text>
+<line x1="353.0" y1="92.0" x2="363.0" y2="92.0" stroke="#8A96A1" stroke-width="2"/>
+<path d="M362.0,87.0 L371.0,92.0 L362.0,97.0 Z" fill="#8A96A1"/>
+<rect x="377.0" y="34" width="158" height="116" rx="3" fill="#171E25" stroke="#2B343D" stroke-width="1"/>
+<text x="456.0" y="74.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">MACHINE</text>
+<text x="456.0" y="94.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">LEARNING</text>
+<text x="456.0" y="134.0" text-anchor="middle" fill="#8A96A1" font-family="'JetBrains Mono', monospace" font-size="17" font-weight="400">explica</text>
+<line x1="541.0" y1="92.0" x2="551.0" y2="92.0" stroke="#8A96A1" stroke-width="2"/>
+<path d="M550.0,87.0 L559.0,92.0 L550.0,97.0 Z" fill="#8A96A1"/>
+<rect x="565.0" y="34" width="158" height="116" rx="3" fill="#171E25" stroke="#2B343D" stroke-width="1"/>
+<text x="644.0" y="84.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">OTIMIZAÇÃO</text>
+<text x="644.0" y="134.0" text-anchor="middle" fill="#8A96A1" font-family="'JetBrains Mono', monospace" font-size="17" font-weight="400">propõe</text>
+<line x1="729.0" y1="92.0" x2="739.0" y2="92.0" stroke="#8A96A1" stroke-width="2"/>
+<path d="M738.0,87.0 L747.0,92.0 L738.0,97.0 Z" fill="#8A96A1"/>
+<rect x="753.0" y="34" width="158" height="116" rx="3" fill="#171E25" stroke="#D37642" stroke-width="2.5"/>
+<text x="832.0" y="74.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">SIMULAÇÃO</text>
+<text x="832.0" y="94.0" text-anchor="middle" fill="#E4E9ED" font-family="'Archivo', system-ui, sans-serif" font-size="16" font-weight="700" letter-spacing="0.04em">RIGOROSA</text>
+<text x="832.0" y="134.0" text-anchor="middle" fill="#8A96A1" font-family="'JetBrains Mono', monospace" font-size="17" font-weight="400">confirma</text>
+<path d="M832.0,150 L832.0,184 L80.0,184 L80.0,159" fill="none" stroke="#D37642" stroke-width="2" stroke-dasharray="6 5"/>
+<path d="M75.0,160 L80.0,150 L85.0,160 Z" fill="#D37642"/>
+<text x="456.0" y="224.0" text-anchor="middle" fill="#D37642" font-family="'JetBrains Mono', monospace" font-size="21" font-weight="400">toda resposta volta para o rigoroso antes de virar projeto</text>
+</svg></div>
+    <div style="font-size: 27px; line-height: 1.42; color: #95A2AD">A simulação rigorosa é exata e lenta demais para varrer milhares de cenários. O modelo rápido varre, mas só vale calibrado contra ela. O aprendizado de máquina explica e a otimização propõe — e nenhuma das duas tem autoridade para aprovar nada.</div>
+    <div style="border-left: 3px solid #D9814F; padding: 6px 0 6px 28px; font-size: 28px; line-height: 1.38">O que torna isso um método de engenharia, e não um exercício de dados, é o <strong style="color: #E4E9ED; font-weight: 600">fechamento do ciclo</strong>: a proposta volta para o rigoroso antes de virar projeto.</div>
   </div>
   <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2B343D; padding-top: 24px">
-    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 · AI4Tech Suite</div>
-    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize →</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 &middot; AI4Tech Suite</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize &rarr;</div>
   </div>
 </div>
 </x-dc>

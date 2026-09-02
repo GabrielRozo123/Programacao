@@ -41,15 +41,15 @@ def parede():
     fx = lambda R: x0 + (R - RMIN) / (RMAX - RMIN) * (x1 - x0)
 
     # painel de cima: pureza
-    ay0, ay1 = 26, 210
+    ay0, ay1 = 24, 192
     PMIN, PMAX = 95.4, 100.05
     fy1 = lambda p: ay1 - (p - PMIN) / (PMAX - PMIN) * (ay1 - ay0)
     # painel de baixo: lucro
-    by0, by1 = 274, 456
+    by0, by1 = 252, 414
     LMIN, LMAX = 0.0, 70.0
     fy2 = lambda v: by1 - (v - LMIN) / (LMAX - LMIN) * (by1 - by0)
 
-    o = [f'<svg viewBox="0 0 {W} 532" role="img" aria-label="Pureza de topo e lucro anual '
+    o = [f'<svg viewBox="0 0 {W} 492" role="img" aria-label="Pureza de topo e lucro anual '
          f'em funcao da razao de refluxo, com o degrau de grau polimero em 99,5 por cento">']
 
     # ---- painel 1
@@ -158,7 +158,83 @@ def paridade():
     return "\n".join(o)
 
 
+# ==================================== 3) o que move o resultado: indices de Sobol
+def sobol():
+    """Indices de sensibilidade do lucro. Cinza = voce decide; cobre = voce recebe."""
+    dados = [("Composição da alimentação", 39.3, False),
+             ("Razão de refluxo",          37.3, True),
+             ("Pressão de operação",       10.8, True),
+             ("Número de estágios",         5.8, True),
+             ("Posição da alimentação",     5.2, True),
+             ("Corte do destilado",         1.6, True)]
+    x0, x1 = 372, W - 76
+    fw = lambda v: (v / 46.0) * (x1 - x0)
+    alt, esp = 40, 15
+    H = len(dados) * (alt + esp) + 20
+    o = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="Indices de sensibilidade '
+         f'do lucro por variavel de entrada">']
+    y = 6
+    for nome, v, decide in dados:
+        cor = AZUL if decide else COBRE
+        o.append(texto(x0 - 20, y + alt * 0.68, nome, TINTA, 25, "disp", "end", 500))
+        o.append(f'<rect x="{x0}" y="{y}" width="{fw(v):.1f}" height="{alt}" rx="4" fill="{cor}"/>')
+        o.append(texto(x0 + fw(v) + 14, y + alt * 0.72, ("%.1f %%" % v).replace(".", ","),
+                       TINTA, 24, "mono", "start", 600))
+        y += alt + esp
+    o.append("</svg>")
+    return "\n".join(o)
+
+
+# ================================================ 4) o ciclo: nada vai para a planta sem voltar
+def ciclo():
+    passos = [("SIMULAÇÃO\nRIGOROSA", "calibra"), ("MODELO\nRÁPIDO", "varre"),
+              ("MACHINE\nLEARNING", "explica"), ("OTIMIZAÇÃO", "propõe"),
+              ("SIMULAÇÃO\nRIGOROSA", "confirma")]
+    n = len(passos)
+    cx, gap = 158, 30
+    larg = n * cx + (n - 1) * gap
+    x0 = (W - larg) / 2
+    topo_y, alt = 34, 116
+    o = [f'<svg viewBox="0 0 {W} 262" role="img" aria-label="O ciclo: simulacao rigorosa '
+         f'calibra o modelo rapido, o aprendizado de maquina explica, a otimizacao propoe '
+         f'e a simulacao rigorosa confirma">']
+    for i, (rot, papel) in enumerate(passos):
+        x = x0 + i * (cx + gap)
+        borda = COBRE if i in (0, n - 1) else RETICULA
+        larg_b = 2.5 if i in (0, n - 1) else 1
+        o.append(f'<rect x="{x:.1f}" y="{topo_y}" width="{cx}" height="{alt}" rx="3" '
+                 f'fill="#171E25" stroke="{borda}" stroke-width="{larg_b}"/>')
+        linhas = rot.split("\n")
+        ty = topo_y + (alt / 2) - (len(linhas) - 1) * 10 - 8
+        for L in linhas:
+            o.append(texto(x + cx / 2, ty, L, TINTA, 16, "disp", "middle", 700,
+                           ' letter-spacing="0.04em"'))
+            ty += 20
+        o.append(texto(x + cx / 2, topo_y + alt - 16, papel, FRACO, 17, "mono"))
+        if i < n - 1:
+            xa, xb = x + cx + 6, x + cx + gap - 6
+            ym = topo_y + alt / 2
+            o.append(f'<line x1="{xa:.1f}" y1="{ym}" x2="{xb - 8:.1f}" y2="{ym}" '
+                     f'stroke="{FRACO}" stroke-width="2"/>')
+            o.append(f'<path d="M{xb - 9:.1f},{ym - 5} L{xb:.1f},{ym} L{xb - 9:.1f},{ym + 5} Z" '
+                     f'fill="{FRACO}"/>')
+    # o retorno: o rigoroso do fim realimenta o do comeco
+    ya = topo_y + alt + 34
+    xi, xf = x0 + larg - cx / 2, x0 + cx / 2
+    o.append(f'<path d="M{xi:.1f},{topo_y + alt} L{xi:.1f},{ya} L{xf:.1f},{ya} '
+             f'L{xf:.1f},{topo_y + alt + 9}" fill="none" stroke="{COBRE}" stroke-width="2" '
+             f'stroke-dasharray="6 5"/>')
+    o.append(f'<path d="M{xf - 5:.1f},{topo_y + alt + 10} L{xf:.1f},{topo_y + alt} '
+             f'L{xf + 5:.1f},{topo_y + alt + 10} Z" fill="{COBRE}"/>')
+    o.append(texto(W / 2, ya + 40, "toda resposta volta para o rigoroso antes de virar projeto",
+                   COBRE, 21, "mono"))
+    o.append("</svg>")
+    return "\n".join(o)
+
+
 if __name__ == "__main__":
     open(os.path.join(AQUI, "_svg_parede.svg"), "w", encoding="utf-8").write(parede())
     open(os.path.join(AQUI, "_svg_paridade.svg"), "w", encoding="utf-8").write(paridade())
+    open(os.path.join(AQUI, "_svg_sobol.svg"), "w", encoding="utf-8").write(sobol())
+    open(os.path.join(AQUI, "_svg_ciclo.svg"), "w", encoding="utf-8").write(ciclo())
     print("svgs gerados")

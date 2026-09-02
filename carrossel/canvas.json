@@ -1,17 +1,103 @@
 {
   "artboards": [
-    { "file": "Main.dc.html", "x": 0,    "y": 0,    "w": 1080, "h": 1080, "title": "01 · Capa" },
-    { "file": "L02.dc.html",  "x": 1180, "y": 0,    "w": 1080, "h": 1080, "title": "02 · O problema" },
-    { "file": "L03.dc.html",  "x": 2360, "y": 0,    "w": 1080, "h": 1080, "title": "03 · O penhasco" },
-    { "file": "L04.dc.html",  "x": 3540, "y": 0,    "w": 1080, "h": 1080, "title": "04 · Meça antes" },
-    { "file": "L05.dc.html",  "x": 4720, "y": 0,    "w": 1080, "h": 1080, "title": "05 · Por que a dupla" },
-    { "file": "L06.dc.html",  "x": 5900, "y": 0,    "w": 1080, "h": 1080, "title": "06 · Regressão simbólica" },
-    { "file": "L07.dc.html",  "x": 0,    "y": 1260, "w": 1080, "h": 1080, "title": "07 · Decisão x distúrbio" },
-    { "file": "L08.dc.html",  "x": 1180, "y": 1260, "w": 1080, "h": 1080, "title": "08 · O surrogate" },
-    { "file": "L09.dc.html",  "x": 2360, "y": 1260, "w": 1080, "h": 1080, "title": "09 · O bug no custeio" },
-    { "file": "L10.dc.html",  "x": 3540, "y": 1260, "w": 1080, "h": 1080, "title": "10 · Peso efetivo" },
-    { "file": "L11.dc.html",  "x": 4720, "y": 1260, "w": 1080, "h": 1080, "title": "11 · A frente errada" },
-    { "file": "L12.dc.html",  "x": 5900, "y": 1260, "w": 1080, "h": 1080, "title": "12 · O veredito" }
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "01 · O penhasco"
+    },
+    {
+      "file": "L02.dc.html",
+      "x": 1180,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "02 · O que estava em jogo"
+    },
+    {
+      "file": "L03.dc.html",
+      "x": 2360,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "03 · Simulação rigorosa"
+    },
+    {
+      "file": "L04.dc.html",
+      "x": 3540,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "04 · Sensibilidade"
+    },
+    {
+      "file": "L05.dc.html",
+      "x": 4720,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "05 · O achado"
+    },
+    {
+      "file": "L06.dc.html",
+      "x": 5900,
+      "y": 0,
+      "w": 1080,
+      "h": 1080,
+      "title": "06 · Aprendizado de máquina"
+    },
+    {
+      "file": "L07.dc.html",
+      "x": 0,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "07 · Por que validar"
+    },
+    {
+      "file": "L08.dc.html",
+      "x": 1180,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "08 · O risco da alimentação"
+    },
+    {
+      "file": "L09.dc.html",
+      "x": 2360,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "09 · Decisão de capital"
+    },
+    {
+      "file": "L10.dc.html",
+      "x": 3540,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "10 · O ciclo"
+    },
+    {
+      "file": "L11.dc.html",
+      "x": 4720,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "11 · O resultado"
+    },
+    {
+      "file": "L12.dc.html",
+      "x": 5900,
+      "y": 1260,
+      "w": 1080,
+      "h": 1080,
+      "title": "12 · Fecho"
+    }
   ],
-  "launch": { "view": "canvas" }
+  "launch": {
+    "view": "canvas"
+  }
 }
