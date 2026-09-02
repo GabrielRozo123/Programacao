@@ -376,8 +376,44 @@ O holdup local é U_g/u_term local. Se ele é **menor** a meia altura que na mé
    d32 implicado pelo holdup a meia altura       22,3 mm
 ```
 
-É a coalescência acontecendo ao longo dos 3 m, medida indiretamente. Um perfil axial de d₃₂
-tornaria isso direto.
+### O perfil axial de d₃₂ — a coalescência medida direto
+
+Sonda na linha de centro, de z = 0,22 a z = 3,05 m, com `Sauter Mean Diameter of Ar` no eixo Y.
+O crescimento é praticamente **linear** com a altura:
+
+| z [m] | d₃₂ [mm] | Eo | u_term [m/s] | ε local | C_L |
+|---|---|---|---|---|---|
+| 0,22 | 4,3 | 2,6 | 0,2338 | 0,04919 | **+0,288** |
+| 1,56 | 21,2 | 60,7 | 0,3327 | 0,03456 | −0,270 |
+| 3,05 | 32,7 | 144,4 | 0,4058 | 0,02834 | −0,270 |
+
+**Quarta verificação.** O d₃₂ a meia altura tinha sido *inferido* do holdup local em 22,3 mm, antes
+de existir esta sonda. A medida direta dá **21,2 mm** — 5%.
+
+**A condição de contorno é respeitada.** Lei de Tate no furo de 2 mm dá 4,46 mm; impôs-se 4,50 mm na
+entrada; mede-se **4,35 mm** em z = 0,22 m. O modelo começa exatamente onde a física do orifício manda.
+
+### ⚠ Mas o topo da coluna não é físico
+
+| | |
+|---|---|
+| d_crit de Martinez-Bazan em ε_diss = 0,0285 | 17,1 mm |
+| d₃₂ medido no topo | **32,7 mm** (+91%) |
+| d₃₂ / D_coluna no topo | 0,136 |
+| Eo no topo | 144 → calota esférica |
+
+O artigo mede modas de 0,67 e 4–6 mm e classifica a coluna como de grande diâmetro **sem regime de
+slug**. Bolha de 33 mm num tubo de 240 mm apareceria na análise de imagem. **O modelo coalesce
+demais**, e o excesso é cumulativo com a altura.
+
+Isso é coerente com a limitação já registrada: nenhum dos modelos de eficiência de coalescência
+disponíveis (Luo, Coulaloglou-Tsouris, Constant, Field Function) tem parâmetro de mobilidade de
+interface ou força iônica, então o efeito inibidor dos eletrólitos da água de torneira **não é
+representável**. O sinal do desvio é o que a física prevê.
+
+> **O resultado honesto:** o modelo acerta a **média** com a **distribuição errada**. O d₃₂ médio de
+> volume (18,8 mm) entrega o holdup dentro de 5,2%, mas o perfil que produz essa média vai de 4,3 a
+> 32,7 mm, e o topo é insustentável. Um holdup validado não valida a BSD.
 
 ### Verificação cruzada: S-Gamma contra Martinez-Bazan
 
