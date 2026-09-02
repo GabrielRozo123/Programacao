@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #63A8D2; } a:hover { color: #8FC4E2; }
+  </style>
+</helmet>
+<div style="width: 1080px; height: 1080px; background: #10151A; color: #E4E9ED; font-family: 'Source Serif 4', Georgia, serif; padding: 84px; display: flex; flex-direction: column; box-sizing: border-box">
+  <div style="display: flex; justify-content: space-between; align-items: baseline">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 21px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #D9814F">Lição 3 · surrogate</div>
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; color: #6D7B87">06 / 10</div>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 40px">
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 74px; font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; text-wrap: balance">O ótimo fica onde o modelo é menos confiável. Por construção.</div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: #2B343D; border: 1px solid #2B343D">
+      <div style="background: #171E25; padding: 30px 28px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 14px">Erro no conjunto de teste</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 600; color: #63A8D2">0,078</div>
+        <div style="font-size: 24px; color: #6D7B87; margin-top: 8px">ponto percentual</div>
+      </div>
+      <div style="background: #171E25; padding: 30px 28px">
+        <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 17px; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: #6D7B87; margin-bottom: 14px">Erro na frente de Pareto</div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 600; color: #D9814F">0,292</div>
+        <div style="font-size: 24px; color: #6D7B87; margin-top: 8px">quatro vezes pior</div>
+      </div>
+    </div>
+
+    <div style="font-size: 31px; line-height: 1.45; color: #95A2AD">Não porque o modelo piorou. Porque o otimizador <strong style="color: #E4E9ED; font-weight: 600">procura</strong> onde ele é otimista. Cinquenta e quatro das cem soluções previam pureza acima de 100 %.</div>
+  </div>
+  <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2B343D; padding-top: 24px">
+    <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; color: #6D7B87; letter-spacing: 0.04em">DWSIM 10.2.3 · AI4Tech Suite</div>
+    <div style="font-family: 'Archivo', system-ui, sans-serif; font-size: 19px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #D9814F">deslize →</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

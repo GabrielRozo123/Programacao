@@ -6,3 +6,6 @@ doe_local*.csv
 !dados/*.csv
 .venv/
 .DS_Store
+
+# canvas semeado do carrossel (2,5 MB de editor embutido; as laminas .dc.html sao a fonte)
+carrossel/splitter-c3-carrossel.html
