@@ -135,14 +135,110 @@ Registrado para o futuro: *"you can also import simulation files run previously
 
 ---
 
-## 6. O que estes cinco documentos NÃO cobrem
+## 6. Reuso de malha — confirmado para `Manual`
+
+> *"The following design study types permit mesh caching and reuse: Sweep, DOE (2 Level
+> and 3 Level only), **Manual**. In addition, designs must share the same **Geometry**
+> and **Meshing** parameters. When these conditions apply, a design that qualifies need
+> only run the **Solver Block** and **Result Block**."*
+
+As nossas 7 só variam parâmetros de física. **Malha calculada uma vez, reusada seis.**
+
+O Design Manager reordena a execução para isso: os designs que precisam malhar começam
+primeiro, os que reusam esperam o cache ficar pronto.
+
+---
+
+## 7. Lagrangeano — a rodada é em duas etapas, e isso exige macro
+
+Questionamento do Marcus: *"eu acho que o DM não faz LMP."*
+
+**Nada nas oito páginas restringe modelo de física.** O Design Manager lança o STAR-CCM+
+em batch, modifica parâmetros, roda e grava reports — é agnóstico ao modelo. As únicas
+restrições de física documentadas são para o solver Adjoint (otimização SQP) e para o
+AI ROM, nenhum dos quais está no nosso caminho.
+
+**Mas o problema real é outro, e o instinto do Marcus aponta para ele.** A nossa rodada
+é de duas etapas (`07_EXECUCAO_lagrangeano_Dc307.md`): converge o campo gasoso com o
+solver Lagrangeano **congelado**, depois descongela e rastreia as 5 082 parcelas. O
+bloco padrão do Design Manager roda a simulação **uma vez**, até o critério de parada.
+
+**Saída documentada:** macro Java no Solver Block.
+
+> *"you can customize the simulation run by inserting **Java macros** that contain
+> additional setup for the simulation… four types of macros can be inserted into
+> different blocks of the workflow."*
+
+### ⚠️ O risco de falha silenciosa
+
+Armadilha nº 1 do nosso próprio doc de execução:
+
+> *"Lagrangian Solver NÃO está `Frozen`* — ⛔ nenhum erro, **todos os reports devolvem
+> zero corretamente**"
+
+Automatizado, isso produz **7 designs marcados como concluídos com sucesso e η = 0**.
+Não há erro para o Design Manager detectar.
+
+**Blindagem:** declarar o `balanco_010` (detector de fraude, tem de dar 1,00 ± 0,01)
+como **Constraint**. Qualquer design com balanço quebrado sai marcado *infeasible*
+automaticamente na tabela de saída. Transforma a nossa checagem manual em porta
+automática.
+
+### Outra parada abrupta a conhecer
+
+> *"The design study will stop when the **baseline design fails**"* — se houver ao menos
+> um objetivo com `Baseline Normalization`. Com a η global declarada como Objective,
+> uma falha do baseline **aborta o estudo inteiro**. Rodar o baseline sozinho primeiro.
+
+---
+
+## 8. Análise dos resultados
+
+Três objetos de pós-processamento, sincronizados entre si (selecionar um design em um
+atualiza os outros):
+
+| objeto | serve para |
+|---|---|
+| **Output Tables** | tabela com Design# · State · responses · Performance · parâmetros |
+| **Snapshots** | comparação lado a lado das scenes/plots exportadas de cada design |
+| **Design Plots** | XY, coordenadas paralelas e pizza cruzando todos os designs |
+
+**Design Sets** predefinidos que interessam: `Feasible` (atende todos os constraints —
+é onde o critério de 40 mbar aparece sozinho), `Error`, `Successful`, `All`.
+
+Para o relatório: um XY plot de **ΔP × ρ** sobre os 7 designs mostra a hipérbole
+`ΔP = 7 717/ρ` medida, com a linha dos 4 000 Pa cortando entre os cenários A e B.
+É o gráfico que fecha o argumento com o cliente.
+
+---
+
+## 9. Execução
+
+Local ou cluster; sequencial ou concorrente; serial ou paralelo. Para cluster há dois
+modos, e o **pré-alocação** é descrito como *"most efficient usage for the following
+study types: **Manual**, Sweep, DOE, and Robustness and Reliability"* — reserva as
+licenças antes e ninguém as toma no meio. ⚠️ Só Linux.
+
+Workflow oficial (7 passos): montar o sim de referência → criar o projeto → montar o
+estudo → *(opcional: surrogate)* → rodar → monitorar → analisar.
+
+⚠️ *"no update is done once the study starts running"* — parâmetros e responses são
+passados ao HEEDS no início. Mudança exige parar e retomar.
+
+---
+
+## 10. O que estes oito documentos NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Setting Up Simulation Effect for Simulation Parameters`** — citada mas não
-   incluída; é o item de maior impacto no tempo de máquina
-2. **`Global Parameters`** — como criar e como apontar um valor de física para um
-3. **Manual study / Design Table** — como se preenche a tabela (importa CSV?)
-4. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
-5. Como criar o projeto do Design Manager e apontá-lo para o sim de referência
-   (execução: sequencial vs concorrente, serial vs paralelo, alocação de recursos)
+1. **`Customizing the Workflow Using Java Macros`** — subiu para primeiro lugar. Sem
+   ela não há como orquestrar as duas etapas do Lagrangeano (§7)
+2. **`Setting Up Simulation Effect for Simulation Parameters`** — citada duas vezes,
+   nunca incluída; decide o reuso de malha
+3. **`Global Parameters`** — como criar e como apontar um valor de física para um
+4. **Manual study / Design Table** — como se preenche a tabela (importa CSV?)
+5. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
+
+Também úteis, em segundo plano: `Responses`, `Creating Design Plots`, e o tutorial
+*Design Manager: Design Sweep of a Static Mixer* (o de sweep, não o de otimização — é
+o mais próximo do nosso caso).
