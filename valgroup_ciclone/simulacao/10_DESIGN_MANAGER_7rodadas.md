@@ -1,8 +1,16 @@
 # Design Manager — as 7 rodadas de sensibilidade ρ × µ
 
-> Base: documentação Simcenter STAR-CCM+ 21.02.007-R8 (páginas *Design Manager*,
-> *Study Types*, *Study Inputs*, *Study Outputs*, *AI Reduced Order Models*).
-> Matriz aprovada pelo Marcus em `dados_cliente/ANALISE_memorial_Vozza_rev01.md` §6.
+> Base: **39 páginas** da documentação Simcenter STAR-CCM+ **21.02.007-R8** — do
+> conceito (`Design Manager`, `Study Types`) às referências (`Derived Reports`,
+> `Input Parameters`, `Macro Files`).
+> Matriz de 7 rodadas aprovada pelo Marcus em
+> `dados_cliente/ANALISE_memorial_Vozza_rev01.md` §6.
+>
+> ⚠️ **Confirmar a versão instalada na WS3.** Se não for a 21.02, alguns menus podem
+> estar em lugar diferente do descrito aqui.
+>
+> **Guia de leitura:** §11 e §15 são o procedimento operacional. §3 e §14 são o que
+> digitar. §10, §12, §21 e §27 são as armadilhas de falha silenciosa.
 
 ---
 
