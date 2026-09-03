@@ -71,7 +71,35 @@ alguém contestar o 2,5e-5 por ser baixo demais, o argumento vai no sentido cont
 
 ---
 
-## 6. Não muda o escopo
+## 6. A temperatura move ρ e µ juntos — e eles quase se cancelam
+
+Marcus perguntou depois a massa específica rodada: **3,946 kg/m³**. Esse valor
+**não está em disputa** (nossa planilha e a dos colegas coincidem) e não é hipótese
+independente — sai de gás ideal com três inputs do cliente:
+
+$$\rho = \frac{PM}{RT} = \frac{120\,000 \times 184}{8\,314 \times 673{,}15} = 3{,}946\ \text{kg/m³}$$
+
+(1,2 bar · 400 °C · M = 184 kg/kmol)
+
+O que pode mexer nesse número não é a densidade, é a **temperatura**: o TT-209 marca
+**~343 °C**, não 400 (`PEDIDO_valgroup.md` §4).
+
+| | 400 °C (rodado) | 343 °C (TT-209) | variação |
+|---|---|---|---|
+| ρ | 3,946 kg/m³ | **4,310 kg/m³** | **+9,2 %** |
+| µ (∝ T^0,7) | — | — | **−6,0 %** |
+| **d\*** (∝ √(ρµ)) | — | — | **+1,3 %** |
+
+Os +9,2 % em ρ são **maiores que os ±5 % já testados**, mas a µ cai junto e o
+diâmetro de corte, que vai com `√(ρ·µ)`, praticamente não se move.
+
+**Consequência para a hierarquia das pendências:** a temperatura é mais alavancada
+que a densidade isolada, porque move as duas propriedades — e move em sentidos
+opostos. Confirmar **onde o ciclone entra na linha** encerra ρ e µ de uma vez.
+
+---
+
+## 7. Não muda o escopo
 
 A rodada planejada continua sendo **uma só**: ρ −5 % + µ = 2,5e-5, com as previsões
 já registradas antes de rodar — ξ ≈ 4,98 · ΔP ≈ 1 910 Pa · d\* = 3,42 µm ·
