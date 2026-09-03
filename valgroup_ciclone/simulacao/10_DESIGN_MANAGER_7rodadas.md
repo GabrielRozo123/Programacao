@@ -721,22 +721,99 @@ Travar um snapshot num design e abrir outro ao lado dá a comparação lado a la
 
 ---
 
-## 27. O que os trinta e dois documentos ainda NÃO cobrem
+## 27. Como produzir o macro do Lagrangeano
+
+O macro **se grava, não se escreve**:
+
+> *"It is more effective to use the workspace to **record** the actions you want to
+> perform. Then you can **edit the Java file** using your favorite text editor."*
+
+### Receita
+
+1. Abrir o `.sim` de referência com o campo gasoso já convergido
+2. `File > Macro > **Start Recording…**` → nomear (ex. `lagrangeano_estagio2.java`)
+3. ⚠️ **Desmarcar `Include Graphics Commands`** no diálogo de salvar — o macro roda em
+   batch, código de scene só polui
+4. Executar **exatamente** os passos do estágio 2: descongelar o solver Lagrangeano ·
+   injetar as classes · ajustar o critério de parada do rastreio · rodar
+5. `File > Macro > **Stop Recording**`
+6. Editar o `.java` (§ abaixo)
+
+> *"Plan which steps to include **before** you begin recording. This ensures that the
+> macro is not cluttered with superfluous commands, and is easier to edit."*
+
+Existe `Pause Recording` para executar passos sem registrá-los.
+
+Acompanhar o que está entrando: aba com o nome do macro na janela **Output**.
+
+### As duas edições depois de gravar
+
+**1. Trocar `step` por `run`** — é o exemplo que a própria doc dá:
+
+```java
+simulation_0.getSimulationIterator().step(1);   // o que o gravador registra
+simulation_0.getSimulationIterator().run();     // "or better still, use the run function"
+```
+
+O gravador congela o número de iterações que você clicou. `.run()` respeita o critério de
+parada, que é o que se quer num estudo de sete designs.
+
+**2. Acrescentar a guarda** (§13). Não escrever a chamada de leitura de cabeça: **gravar
+um macro que consulte o report de parcelas ativas**, copiar a linha que o STAR gerou, e
+envolvê-la:
+
+```java
+double n = /* linha copiada do macro gravado */;
+
+if (n < 1.0) {
+    throw new RuntimeException(
+        "GUARDA: nenhuma parcela ativa — solver Lagrangeano congelado. Design invalido.");
+}
+```
+
+Como *"if a macro throws an error during execution, the corresponding design is **marked
+as a failure**"*, a falha silenciosa vira falha visível na Output Table.
+
+### ⚠️ `StarMacro` vs `MdxMacro`
+
+| onde roda | classe base | acesso |
+|---|---|---|
+| **dentro da simulação** de cada design (`Macro Files`, §13) | `extends StarMacro` | `getActiveSimulation()` |
+| dirigindo o **projeto** do Design Manager (§17, batch) | `extends MdxMacro` | `getActiveMdxProject()` |
+
+Não são intercambiáveis. O nosso é o primeiro.
+
+### Detalhes práticos
+
+- **Java SDK é requisito** para compilar macros — *"The Java SDK is required for this key
+  reason: to compile the Java macros."* Confirmar na WS3.
+- Erro de sintaxe **não** passa silenciosamente: *"error messages are displayed so that
+  you have specific file names, line numbers, and issues to fix."*
+- Caminhos: usar `resolvePath` para torná-los relativos ao `.java` — importante porque o
+  macro fica na raiz do projeto mas cada design roda na sua própria pasta.
+- O macro é Java puro: laços, condicionais, tudo disponível.
+
+---
+
+## 28. O que os trinta e cinco documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Global Parameters`** — como criar e como apontar um valor de física para um.
-   **É a única lacuna que ainda bloqueia**: sem ela a etapa 1 (§11) não sai do papel,
-   e §21 mostra que parâmetro errado não tem conserto depois
-2. **`Recording a Macro` / `Scripting the Application`** — a sintaxe Java para
-   descongelar o solver Lagrangeano e para lançar a exceção da guarda (§13)
-3. **`Derived Reports Reference`** — a sintaxe das expressões (§23)
-4. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
-   `Goal` (§15, passo 6)
-5. **`Creating XY Plots`** — para montar o gráfico ΔP × ρ antes de rodar (§19)
+1. **`Global Parameters`** — 🔴 **a única lacuna que ainda bloqueia.** Sem ela a etapa 1
+   (§11) não sai do papel, e §21 mostra que parâmetro errado não tem conserto depois.
+   *(A página `Study Inputs` foi enviada duas vezes; a de Global Parameters ainda não
+   veio.)*
+2. **`Derived Reports Reference`** — a sintaxe das expressões (§23)
+3. **`Constraint Properties`** e **`Objective Properties`** — `Type` e `Goal` (§15, passo 6)
+4. **`Creating XY Plots`** — para montar o gráfico ΔP × ρ antes de rodar (§19)
+5. **`Design Manager Licensing`**
 
-Em segundo plano: `Design Manager Licensing`, `Run Settings Reference`, `Output Table
-Reference`, e o tutorial *Design Manager: Design **Sweep** of a Static Mixer*.
+Em segundo plano: `Run Settings Reference`, `Output Table Reference`, e o tutorial
+*Design Manager: Design **Sweep** of a Static Mixer*.
+
+✅ Macros resolvidos (§27): gravar em vez de escrever, desmarcar graphics, trocar `step`
+por `run`, deixar o gravador produzir a leitura do report para a guarda, e a distinção
+`StarMacro` × `MdxMacro`.
 
 ✅ Resolvido: tipos de estudo (§1), inputs (§2), reuso de malha (§6), Lagrangeano e
 macros (§7, §13), análise (§8), `Simulation Effect` (§10), projeto e procedimento
