@@ -318,20 +318,138 @@ sete designs "bem-sucedidos" e sem sentido.
 
 ---
 
-## 13. O que os doze documentos ainda NÃO cobrem
+## 13. O macro Java — o ponto de inserção existe e resolve os dois problemas
+
+Quatro pontos de inserção: `Before Update Model` · `Before Meshing` · `Before Running`
+· **`Before Results`**.
+
+> *"**Before Results** — if you want to perform the actions **after the Simcenter
+> STAR-CCM+ solver completes**, and before any results are returned to Design Manager."*
+
+E a doc traz o nosso padrão como exemplo literal: *"modify the run settings, extend the
+number of iterations in the stopping criteria, and then **re-run the solver**… Using
+this technique you can perform two runs… for a single design."*
+
+### A arquitetura
+
+```
+Solver Block (padrão)   → converge o campo gasoso, Lagrangeano CONGELADO
+   ↓
+macro em Before Results → descongela o Lagrangeano
+                          injeta as 8 classes
+                          ajusta o critério de parada da fase de rastreio
+                          roda
+                          ⚠️ VERIFICA e lança exceção se parcelas ativas = 0
+   ↓
+Result Block (padrão)   → grava ΔP, η, ξ, balanco_010, v_i
+```
+
+### A guarda vai dentro do macro
+
+> *"If a macro throws an error during execution, the corresponding design is **marked as
+> a failure**. The error message includes the name of the macro file in which the failure
+> occurred."*
+
+Isso **converte a falha silenciosa em falha detectada**. Se o macro checar a contagem de
+parcelas ativas e lançar exceção quando for zero, o design sai marcado como erro em vez
+de devolver η = 0 com aparência de sucesso (§7).
+
+Com o `balanco_010` como Constraint, ficam **dois portões independentes**:
+o macro pega o solver congelado; o constraint pega perda de parcela em voo.
+
+### Como adicionar
+
+`[design study] > Settings > Macro Files > New` → selecionar o `.java` →
+`Macro Insertion Point = Before Results`. Vários macros são permitidos por estudo.
+
+O `.java` se produz gravando os passos no próprio STAR-CCM+ (`Recording a Macro`).
+
+---
+
+## 14. A tabela de designs — CSV pronto
+
+Formato documentado:
+
+```
+Design#, Name, <param1>, <param2>, ...
+```
+
+`Design#` e `Name` são opcionais. **O cabeçalho de cada coluna tem de bater exatamente
+com o nome do parâmetro** no estudo.
+
+Arquivo gerado: **`designs_7rodadas.csv`** (nesta pasta)
+
+```
+Design#,Name,MW_gas,mu_gas,mdot_gas
+1,A_100,130.5939,1.100000e-05,0.505556
+2,B_100,83.9532,1.400000e-05,0.505556
+3,C_100,51.3047,1.700000e-05,0.505556
+4,A_050,130.5939,1.100000e-05,0.252778
+5,B_050,83.9532,1.400000e-05,0.252778
+6,C_050,51.3047,1.700000e-05,0.252778
+7,canto_pior_dstar,130.5939,1.700000e-05,0.505556
+```
+
+Unidades: `MW_gas` kg/kmol · `mu_gas` Pa·s · `mdot_gas` kg/s. Os Global Parameters têm
+de estar declarados nessas unidades, senão o CSV entra com número certo e grandeza errada.
+
+`MW = ρ·RT/P` com R = 8314,4621 J/(kmol·K), T = 673,15 K, P = 120 000 Pa
+(fator 46,64067). Verificado nos dois sentidos: os sete MW devolvem exatamente
+2,8 / 1,8 / 1,1 kg/m³.
+
+**Importar:** `[design study] > Design Table` → `Import CSV…`. Alternativas: `Add Row`
+manual ou `From Sweep…` (este último **não** usar — é o que gera as 9).
+
+---
+
+## 15. Montagem do estudo, passo a passo
+
+1. `Design Studies > New`, renomear
+   ⚠️ No Windows o **caminho inteiro, incluindo este nome, não pode passar de 260
+   caracteres**. Pasta de projeto profunda quebra aqui.
+2. No nó do estudo: `Study Type = Manual` · `Simulation = [sim de referência]` ·
+   `Evaluation Method = **Simulation**` (não `Surrogates` — não temos surrogate)
+3. **`Simulation Effect = Solver` nos três parâmetros** — a doc manda fazer isto
+   *antes* de selecionar os input parameters (§10)
+4. `Input Parameters`: arrastar `MW_gas`, `mu_gas`, `mdot_gas` do nó `Parameters` do sim
+   de referência, ou `botão direito > Edit`
+5. `Design Table` → `Import CSV…` → `designs_7rodadas.csv`
+6. `Responses`: arrastar os reports. Depois, por response:
+   - **η global** → `Is Objective` ✔ · `Objective Properties > Goal = Maximum`
+   - **ΔP** → `Is Constraint` ✔ · `Constraint Properties > Type = Maximum` · valor **4000**
+   - **`balanco_010`** → `Is Constraint` ✔ · faixa 0,99–1,01
+   - ξ, v_i, η de 10 µm → Information Only
+7. *(opcional)* `Responses > Create User Response` — expressão sobre responses já
+   existentes. Útil para a folga: `1 - dP/4000`. Vira coluna na tabela de saída.
+8. `Scenes` e `Plots`: arrastar do sim; definir `Export Formats` (preferir `.sce` a
+   hardcopy, por causa da memória de GPU) e `Compression Level`
+9. `Settings > Macro Files > New` → macro do Lagrangeano, `Before Results` (§13)
+10. `Auto Save` no nó do projeto (§11)
+
+O **badge de aviso** no nó do estudo some quando a montagem está completa e correta.
+Enquanto estiver lá, falta coisa.
+
+---
+
+## 16. O que os dezessete documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Customizing the Workflow Using Java Macros`** — continua em primeiro. Sem ela não
-   há como orquestrar as duas etapas do Lagrangeano (§7)
-2. **`Global Parameters`** — como criar e como apontar um valor de física para um
-   (etapa 1 do procedimento, §11)
-3. **Manual study / Design Table** — como se preenche a tabela de 7 linhas; aceita CSV?
-4. **`Responses`** — como declarar Objective vs Constraint e fixar o limite de 4 000 Pa
-5. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
+1. **`Global Parameters`** — como criar e como apontar um valor de física para um. É a
+   única lacuna que ainda bloqueia a etapa 1 do procedimento (§11)
+2. **`Recording a Macro` / `Scripting the Application`** — a sintaxe Java para
+   descongelar o solver Lagrangeano e para lançar a exceção da guarda (§13)
+3. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
+4. **`Validating a Design Study`** — como ler o badge de aviso quando não sumir
+5. **`Running a Design Study`** / `Monitoring` — disparar, acompanhar, retomar
 
-Em segundo plano: `Creating Design Plots` e o tutorial *Design Manager: Design **Sweep**
-of a Static Mixer* (o de sweep, não o de otimização — é o mais próximo do nosso caso).
+Em segundo plano: `Constraint Properties` e `Objective Properties` (os detalhes de
+`Type` e `Goal`), `Creating Design Plots`, e o tutorial *Design Manager: Design
+**Sweep** of a Static Mixer*.
 
-✅ Já resolvido: `Setting Up Simulation Effect` (§10), workflow de projeto (§11),
-`Update` (§12).
+✅ Já resolvido: tipos de estudo e licenciamento por tipo (§1), inputs (§2), reuso de
+malha (§6), macros Java (§13), CSV da tabela (§14), montagem do estudo (§15),
+`Simulation Effect` (§10), projeto (§11), `Update` (§12).
+
+**Não se aplicam ao nosso caso:** `Substituting Geometry Parts in a Study` (não trocamos
+peça) e `Seeding a Study with Predefined Designs` (é para semear otimização).
