@@ -431,25 +431,124 @@ Enquanto estiver lá, falta coisa.
 
 ---
 
-## 16. O que os dezessete documentos ainda NÃO cobrem
+## 16. Validar antes de rodar
+
+O badge de aviso (⚠) no nó do estudo significa que a montagem está incompleta.
+
+`botão direito no [design study] > **Validate Study**` → abre a janela **Validation
+Warnings**, com `Message` e `Source` de cada aviso. Clicar num aviso **seleciona o nó
+de origem na árvore**. A validação é dinâmica: some sozinho quando resolvido.
+
+Reabrir: `Window > Validation > [projeto]`, ou o ícone de aviso no canto inferior direito.
+
+⚠️ *"The warning badging tool can not dynamically validate a design study as long as
+another design study is running in the same Design Manager Project."* Validar **antes**
+de disparar qualquer coisa.
+
+---
+
+## 17. Rodar localmente — parâmetros de execução
+
+### `[design study] > Settings > Run Settings`
+
+| propriedade | o que fazer |
+|---|---|
+| **`Simultaneous Jobs`** | designs em paralelo |
+| **`Compute Processes`** | cores por design |
+| **`Save Simulation Files`** | quais designs guardam o `.sim` ← **alavanca de disco** |
+| `Save Log files` | ligado por padrão, manter |
+| **`Output Auxiliary File Types`** | *"output files whose extensions you do not specify are **deleted**"* |
+| **`Design Reuse`** | **deixar DESLIGADO** — ver abaixo |
+| `Clear History` | apagar histórico computacional |
+
+⚠️ *"check that you have enough cores available (**simultaneous jobs × compute
+processes**)"*. Conferir os cores da WS3 antes.
+
+**Estratégia de execução recomendada**, casando com o reuso de malha (§6) e com a
+checagem de baseline (§11, etapa 6): rodar o **design 1 sozinho** primeiro — ele é o
+único que precisa malhar, e é onde se confere o baseline. Depois soltar os 2–7 em
+paralelo, todos reusando a malha em cache.
+
+### ⚠️ `Design Reuse` — desligado nesta rodada
+
+> *"activates the initialization of new designs using results from previous successful
+> designs."*
+
+Economizaria iteração, mas **enviesa a medida que este estudo existe para fazer**. A
+pergunta é se ξ continua 5,364 num Reynolds sete vezes maior (§7 das previsões). Um
+design que herda o campo do anterior e não converge por completo herda junto o estado
+dele — e some com a atribuição.
+
+Além disso o salto entre designs é grande: de A para C a velocidade de entrada vai de
+19,2 para 48,8 m/s. Não é vizinhança, é extrapolação.
+
+Ligar só numa segunda campanha, se o tempo apertar — e aí sabendo o que mudou.
+
+### `Compute Resource`
+
+`Type = **Direct**` (máquina local) · `STAR-CCM+ Command Line Options` para opções de
+licença, ex. `-power`.
+
+### Disparar
+
+- Um estudo: `botão direito no [design study] > **Run Study**`
+- Todos em sequência: `botão direito em Design Studies > Run All Studies`
+- Em lote: `starccm+ -batch run [RAIZ]/[PROJETO].dmprj`
+  (`-dmnoshare` ativa o esquema *Unlicensed Design Manager Server*; omitir usa o padrão.
+  Aspas obrigatórias se o caminho tiver espaço.)
+
+⚠️ **Salvar o `.dmprj` antes de rodar** — sem isso ele abre diálogo e aborta.
+
+---
+
+## 18. Estrutura de saída e disco
+
+| pasta | conteúdo |
+|---|---|
+| `Design_Exploration` | raiz do projeto: `.dmprj`, `.sim` de referência, `.java` |
+| `Design_Manager_Project` | artefatos, criada em tempo de execução |
+| `Design_Study_n` | uma por estudo |
+| **`Design_m`** | **uma por design: `.sim` completo, `.log`, `.sce`/`.png`** |
+| `.mdxruntime` | temporária, apagada no fim |
+
+**São sete cópias do ciclone convergido.** Antes de rodar:
+
+- redirecionar a pasta de artefatos para um disco grande — *"customize the location of
+  the project artifact directory… particularly useful when you run low on disk space"*
+- restringir `Save Simulation Files` aos designs que realmente precisam do `.sim`
+
+Depois de re-rodar um estudo, os artefatos antigos ficam **órfãos e continuam ocupando
+espaço**: `botão direito no [design manager project] > **Clean Project Artifacts**`.
+
+Para abrir a pasta de um design: `botão direito na linha da Output Table > Show Design
+Details` → link em `Design Artifact`.
+
+---
+
+## 19. O que os vinte e dois documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Global Parameters`** — como criar e como apontar um valor de física para um. É a
-   única lacuna que ainda bloqueia a etapa 1 do procedimento (§11)
+1. **`Global Parameters`** — como criar e como apontar um valor de física para um.
+   **É a única lacuna que ainda bloqueia**: sem ela a etapa 1 (§11) não sai do papel
 2. **`Recording a Macro` / `Scripting the Application`** — a sintaxe Java para
    descongelar o solver Lagrangeano e para lançar a exceção da guarda (§13)
-3. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
-4. **`Validating a Design Study`** — como ler o badge de aviso quando não sumir
-5. **`Running a Design Study`** / `Monitoring` — disparar, acompanhar, retomar
+3. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter, e o que muda com
+   `-dmnoshare`
+4. **`Monitoring a Design Study`** — acompanhar e retomar depois de parada
+5. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
+   `Goal` (§15, passo 6)
 
-Em segundo plano: `Constraint Properties` e `Objective Properties` (os detalhes de
-`Type` e `Goal`), `Creating Design Plots`, e o tutorial *Design Manager: Design
-**Sweep** of a Static Mixer*.
+Em segundo plano: `Run Settings Reference`, `Creating Design Plots`, e o tutorial
+*Design Manager: Design **Sweep** of a Static Mixer*.
 
-✅ Já resolvido: tipos de estudo e licenciamento por tipo (§1), inputs (§2), reuso de
-malha (§6), macros Java (§13), CSV da tabela (§14), montagem do estudo (§15),
-`Simulation Effect` (§10), projeto (§11), `Update` (§12).
+✅ Resolvido: tipos de estudo (§1), inputs (§2), reuso de malha (§6), Lagrangeano e
+macros (§7, §13), análise (§8), `Simulation Effect` (§10), projeto e procedimento
+(§11), `Update` (§12), CSV (§14), montagem (§15), validação (§16), execução (§17),
+disco (§18).
 
 **Não se aplicam ao nosso caso:** `Substituting Geometry Parts in a Study` (não trocamos
-peça) e `Seeding a Study with Predefined Designs` (é para semear otimização).
+peça), `Seeding a Study with Predefined Designs` (é para semear otimização), `Setting Up
+a Smart Sweep Study` (mapa de compressor) e `Setting up a Gradient-Based Optimization
+Study` (SQP — exige licença Intelligent Design Exploration e compatibilidade com o
+solver Adjoint).
