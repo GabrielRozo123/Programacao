@@ -623,7 +623,105 @@ Para propagar **novo plot ou scene** a todos os designs já rodados: `Update Res
 
 ---
 
-## 23. O que os vinte e sete documentos ainda NÃO cobrem
+## 23. ⭐ `Derived Reports` — a medida de ξ vira uma coluna
+
+> *"Derived reports are **expressions that operate on design variables**, such as input
+> parameters and responses, or existing derived report values. The design study output
+> table lists all the derived report values."*
+
+`[design study] > **Derived Reports** > New > Derived Report`
+
+### Por que isso resolve a incerteza do estudo
+
+$$\Delta P = \frac{\xi\,\dot m^2}{2\rho A^2} \quad\Longrightarrow\quad
+\boxed{\Delta P \cdot \rho = \frac{\xi\,\dot m^2}{2A^2}}$$
+
+O produto é **constante se ξ for invariante**: **7 717** nos designs de 100 % e **1 847**
+nos de 50 %.
+
+Como ρ = P·MW/(RT) = MW_gas / 46,64067, a expressão do derived report é:
+
+```
+dP * MW_gas / 46.64067
+```
+
+**Uma coluna que responde de relance a única previsão que eu não sei antecipar.** Se ler
+7 717 nos designs 1, 2, 3 e 7, ξ segurou e as sete previsões valem. Se derivar, ξ caiu
+com o Reynolds — e é exatamente isso que decide se o cenário B viola os 40 mbar
+(previsto 4 287 Pa, só 7 % acima do limite).
+
+Outros derived reports úteis: `1 - dP/4000` (folga) e `rho = MW_gas/46.64067`.
+
+---
+
+## 24. Output Table
+
+**Abrir:** duplo clique no `[design study]` abre o **Dashboard**; nele, `botão direito na
+Output Table > Layout > Maximize View`. Ou `Design Sets > [design set] > Open Output
+Table`.
+
+> ⭐ *"If a study response has a constraint defined and the constraint is not satisfied,
+> the affected value is **highlighted in red**. A tool tip explains the violation."*
+
+A rodada 3 (7 015 Pa) aparece vermelha sozinha, sem ninguém conferir.
+
+**Manejo:** clicar no cabeçalho reordena · ícone no canto superior direito liga/desliga
+colunas · arrastar cabeçalho move coluna (as três primeiras — `Design#`, `Name`, `State`
+— são fixas). Selecionar um ponto num plot destaca a linha correspondente, e vice-versa.
+
+⚠️ A ordem das colunas é perdida ao mudar o tipo de estudo ou ao adicionar/remover
+parâmetro ou response.
+
+**Exportar:** `Design Sets > [design set] > **Export to CSV…**` — é assim que os
+resultados saem para o relatório. Também `Export to Scene file` (`.sce`).
+
+**Dashboard do tipo `Manual`** (categoria *Other Types*): Output Table · Pie Chart ·
+History Plot · Parallel Plot · Snapshot. `Restore Dashboard Defaults` desfaz bagunça de
+layout.
+
+---
+
+## 25. 🔄 Revisão: salvar os sete `.sim`
+
+O **pós-processamento assíncrono** permite, depois do estudo rodar, abrir um design em
+modo só-pós-processamento (`botão direito na linha > Open for Post Processing`), criar
+report, scene, plot ou derived part, aplicar ao sim de referência, e propagar a todos com
+`Update Results`. Mas:
+
+> *"This option is **disabled if you chose to not save** the design simulation files."*
+> *"If there is no Simulation file present for a particular design, Design Manager
+> **re-runs the designs** to generate the results."*
+
+**Isso inverte a recomendação de §17.** Com espaço em disco na WS3, `Save Simulation
+Files` deve cobrir **todos os sete**. Report esquecido passa a custar meia hora em vez de
+sete rodadas de CFD — e a nossa lista (ΔP, η global, η de 10 µm, ξ, v_i, `balanco_010`) é
+longa o bastante para esquecer um.
+
+**Fluxo:** abrir o design → adicionar objetos → fechar → `Apply` → os designs ficam
+marcados *out of date* → `botão direito no [design study] > Update Results`.
+
+⚠️ Sincronizar com a **mesma versão** do STAR-CCM+ usada para criar os objetos.
+
+---
+
+## 26. Snapshots para o relatório
+
+`Snapshots > New > Scene Snapshot` (ou `Plot Snapshot`) → definir `Design Study`,
+`Design Set` e `Scene/Plot`.
+
+Clip planes e plane sections da scene do sim de referência **são herdados
+automaticamente** — a nossa seção do vórtice vem junto.
+
+**Anotações:** `[snapshot] > Annotations` aceita `Design Name` e `Performance Value`, e
+**dá para arrastar Responses e Input Parameters para dentro**. Ou seja: a imagem do
+vórtice de cada design já sai rotulada com ρ, µ e ΔP. Pronta para o slide, sem montagem
+manual.
+
+Travar um snapshot num design e abrir outro ao lado dá a comparação lado a lado.
+
+---
+
+## 27. O que os trinta e dois documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
@@ -632,14 +730,13 @@ Faltam as páginas de procedimento. Em ordem de utilidade:
    e §21 mostra que parâmetro errado não tem conserto depois
 2. **`Recording a Macro` / `Scripting the Application`** — a sintaxe Java para
    descongelar o solver Lagrangeano e para lançar a exceção da guarda (§13)
-3. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
+3. **`Derived Reports Reference`** — a sintaxe das expressões (§23)
+4. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
    `Goal` (§15, passo 6)
-4. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter, e o que muda com
-   `-dmnoshare`
 5. **`Creating XY Plots`** — para montar o gráfico ΔP × ρ antes de rodar (§19)
 
-Em segundo plano: `Run Settings Reference`, `Output Table Reference`, e o tutorial
-*Design Manager: Design **Sweep** of a Static Mixer*.
+Em segundo plano: `Design Manager Licensing`, `Run Settings Reference`, `Output Table
+Reference`, e o tutorial *Design Manager: Design **Sweep** of a Static Mixer*.
 
 ✅ Resolvido: tipos de estudo (§1), inputs (§2), reuso de malha (§6), Lagrangeano e
 macros (§7, §13), análise (§8), `Simulation Effect` (§10), projeto e procedimento
