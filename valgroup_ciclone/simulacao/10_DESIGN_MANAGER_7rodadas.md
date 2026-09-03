@@ -55,6 +55,38 @@ tipo (a doc cita explicitamente *"Boundary physics values—such as inlet veloci
 física e do contorno para eles** — hoje estão digitados direto. Sem isso o Design
 Manager não tem o que modificar.
 
+### ⭐ Como criar — use o atalho do botão `x`, não crie do zero
+
+Selecionar a propriedade (ex.: `Dynamic Viscosity`) faz aparecer um botão **`x`**:
+
+> *"When you click `x`, the [propriedade] changes from a constant to a parameter…
+> Within `Automation > Parameters`, a global parameter node is added. When you use this
+> technique, the **`Value` and `Dimensions` properties are already defined** based on the
+> properties of the physical quantity object."*
+
+Valor e dimensões vêm prontos e o **vínculo é feito automaticamente** — que é justamente
+o que se quer, porque parâmetro mal vinculado não tem conserto depois (§21). Depois é só
+renomear o nó em `Automation > Parameters` para `MW_gas`, `mu_gas`, `mdot_gas`.
+
+O caminho manual existe (`Automation > Parameters > New > Scalar`, depois preencher
+`Value` e `Dimensions` como expoentes — Temperature 1 ⇒ K, Length 2 ⇒ m²), mas exige
+ligar a propriedade à mão depois, via `Custom Editor > Definition > ${nome}`. Mais passos,
+mais chance de errar.
+
+### ⚠️ Duas restrições
+
+> *"**Only SI units** are available for this feature."*
+
+O CSV de §14 já está em SI (kg/kmol · Pa·s · kg/s). ✅
+
+> *"Simulation parameter expressions can only reference **other simulation parameters**.
+> References to **reports or field functions are not allowed**."*
+
+Então não dá para definir um parâmetro em função de um report. Se ξ precisar de ρ, ρ tem
+de ser calculado como **report** no `.sim` (§4), não como parâmetro derivado.
+
+Referência em expressão: `${MW_gas}`.
+
 ### ⚠️ `Simulation Effect` — o item de maior impacto
 
 > *"For each parameter, you specify whether changing the parameter value would require
@@ -104,13 +136,34 @@ incerteza de temperatura é um eixo separado, ainda aberto.
 Responses vêm de **Reports do sim de referência**. Cada estudo exige pelo menos um.
 Três papéis possíveis: *Information Only*, *Objective*, *Constraint*.
 
+> 🔴 **`Is Objective` é *"only for Optimization and Sweep studies"*.** Num estudo
+> `Manual` **não existe objetivo** — η global entra como informação, não como meta.
+> `Is Constraint` é *"not for DOE studies"*, ou seja, **funciona em Manual**. ✅
+
 | response | report de origem | papel |
 |---|---|---|
-| **ΔP** | queda de pressão entrada→saída | **Constraint ≤ 4 000 Pa** |
-| **η global** | eficiência de coleta | **Objective (maximizar)** |
+| **ΔP** | queda de pressão entrada→saída | **`Is Constraint`** · `Type = Maximum` · **4 000 Pa** |
+| **`balanco_010`** | detector de fraude do Lagrangeano | **`Valid Min/Max`** · 0,99–1,01 |
+| **η global** | eficiência de coleta | Information Only *(não pode ser Objective)* |
 | η da classe de 10 µm | | Information Only |
-| ξ (número de Euler) | `2ΔP/(ρv_i²)` | Information Only — **é a checagem de consistência** |
+| **ξ** (número de Euler) | `2ΔP/(ρv_i²)` — report no `.sim` | Information Only — **é a checagem de consistência** (§23) |
+| ρ | densidade do gás | Information Only — necessária se for usar `User Response` (§23) |
 | v_i | velocidade de entrada | Information Only — vigiar re-entranhamento acima de ~30 m/s |
+
+### Dois portões, com significados diferentes
+
+| mecanismo | classifica como | quando usar |
+|---|---|---|
+| **`Is Constraint`** | *infeasible* | resultado **confiável** que viola especificação → **ΔP** |
+| **`Specify Valid Minimum/Maximum`** | **Error** | resultado **não confiável** → **`balanco_010`** |
+
+ΔP = 7 015 Pa é medida boa que não atende o cliente. `balanco_010` = 0,3 significa
+simulação quebrada. São coisas distintas, e o Design Manager sabe separar.
+
+E a faixa é revisável de graça: design reprovado por `Valid Min/Max` é *"re-evaluated
+with the new range **without actually re-running the simulations**"* (§21).
+
+`Lock Name` e `Relink Response…` existem para responses igual aos input parameters (§28).
 
 ### O critério dos 40 mbar vira coluna automática
 
@@ -192,11 +245,14 @@ como **Constraint**. Qualquer design com balanço quebrado sai marcado *infeasib
 automaticamente na tabela de saída. Transforma a nossa checagem manual em porta
 automática.
 
-### Outra parada abrupta a conhecer
+### ✅ A parada por falha do baseline NÃO se aplica a nós
 
-> *"The design study will stop when the **baseline design fails**"* — se houver ao menos
-> um objetivo com `Baseline Normalization`. Com a η global declarada como Objective,
-> uma falha do baseline **aborta o estudo inteiro**. Rodar o baseline sozinho primeiro.
+*"The design study will stop when the baseline design fails"* — mas só *"if at least one
+**objective** is defined"* e *"set to Baseline Normalization"*. Como `Is Objective` não
+existe em estudo `Manual` (§4), **esse aborto não pode ocorrer aqui**.
+
+Rodar o design 1 sozinho antes continua valendo — pela malha (§6) e para pegar o solver
+congelado (§27) —, mas não por medo de abortar a campanha.
 
 ---
 
@@ -423,12 +479,15 @@ manual ou `From Sweep…` (este último **não** usar — é o que gera as 9).
    de referência, ou `botão direito > Edit`
 5. `Design Table` → `Import CSV…` → `designs_7rodadas.csv`
 6. `Responses`: arrastar os reports. Depois, por response:
-   - **η global** → `Is Objective` ✔ · `Objective Properties > Goal = Maximum`
    - **ΔP** → `Is Constraint` ✔ · `Constraint Properties > Type = Maximum` · valor **4000**
-   - **`balanco_010`** → `Is Constraint` ✔ · faixa 0,99–1,01
-   - ξ, v_i, η de 10 µm → Information Only
-7. *(opcional)* `Responses > Create User Response` — expressão sobre responses já
-   existentes. Útil para a folga: `1 - dP/4000`. Vira coluna na tabela de saída.
+   - **`balanco_010`** → `Specify Valid Minimum` **0,99** · `Specify Valid Maximum` **1,01**
+   - η global, η de 10 µm, ξ, ρ, v_i → Information Only
+     ⚠️ **não** marcar `Is Objective` — não existe em estudo `Manual` (§4)
+7. *(opcional)* `Responses > **Create User Response**` — expressão sobre responses já
+   existentes; *"the output table adds the user response as a new column"*. Útil para a
+   folga: `1 - dP/4000`.
+   ⚠️ *"you can only use existing study **responses** as variables"* — input parameter
+   não entra na expressão.
 8. `Scenes` e `Plots`: arrastar do sim; definir `Export Formats` (preferir `.sce` a
    hardcopy, por causa da memória de GPU) e `Compression Level`
 9. `Settings > Macro Files > New` → macro do Lagrangeano, `Before Results` (§13)
@@ -854,19 +913,20 @@ Não são intercambiáveis. O nosso é o primeiro.
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Global Parameters`** — 🔴 **a única lacuna que ainda bloqueia.** Sem ela a etapa 1
-   (§11) não sai do papel, e §21 mostra que parâmetro errado não tem conserto depois.
-   *(A página `Study Inputs` veio duas vezes; a de Global Parameters ainda não veio.)*
-2. **`Responses Reference`** — a sintaxe do `Create User Response` (§23), e
-   `Constraint Properties` / `Objective Properties` (§15, passo 6)
-3. **`Expression Report`** — a sintaxe de expressão para montar ξ como report no `.sim`
-4. **`Creating XY Plots`** — para o gráfico ΔP × ρ antes de rodar (§19)
-5. **`Design Manager Licensing`**
+**Nenhuma lacuna bloqueia mais a montagem.** O que falta é secundário:
 
-Em segundo plano: `Run Settings Reference`, `Output Table Reference`, `Design Sets
-Reference`, e o tutorial *Design Manager: Design **Sweep** of a Static Mixer*.
+1. **`Expression Report`** — a sintaxe de expressão do STAR-CCM+ para montar ξ e ρ como
+   reports no `.sim` de referência (§4). É a única coisa que ainda tem de ser descoberta
+   na tela, e dá para resolver gravando macro.
+2. **`Design Manager Licensing`** — confirmar o que a CAEXPERTS tem (§1)
+3. `Output Table Reference` e `Design Sets Reference` — detalhes de filtro e colunas
+4. `Run Settings Reference` — o restante das propriedades de execução (§17)
+5. Tutorial *Design Manager: Design **Sweep** of a Static Mixer* — para ver o fluxo
+   inteiro montado por alguém
 
-**Não se aplica:** `Smart Sweep Settings Reference`.
+**Não se aplicam:** `Smart Sweep Settings Reference`, `Substituting Geometry Parts`,
+`Seeding a Study with Predefined Designs`, `Setting up a Gradient-Based Optimization
+Study`, e toda a parte de `Objective Properties` (não existe objetivo em Manual, §4).
 
 ✅ Macros resolvidos (§27): gravar em vez de escrever, desmarcar graphics, trocar `step`
 por `run`, deixar o gravador produzir a leitura do report para a guarda, e a distinção
