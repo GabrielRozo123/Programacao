@@ -227,18 +227,111 @@ passados ao HEEDS no início. Mudança exige parar e retomar.
 
 ---
 
-## 10. O que estes oito documentos NÃO cobrem
+## 10. ⚠️ `Simulation Effect` — o padrão trabalha contra nós
+
+> *"By default, 3D-CAD and CAD Client parameters have Simulation Effect set to
+> `Geometry`, and **global parameters have Simulation Effect set to `Unknown`**."*
+>
+> *"**Unknown**: Implies the parameter affects **everything** (geometry, meshing, and
+> solver)."*
+>
+> *"If all of the simulation parameters affect meshing (that is, `Unknown`, `Geometry`
+> or `Meshing` for **every** parameter), **there is no possibility of reusing a mesh so
+> caching is disabled**."*
+
+Os nossos três parâmetros são Global Parameters. **No padrão, os três entram como
+`Unknown` e o cache é desabilitado** — o estudo remalharia 4,4 M de células sete vezes.
+
+| Simulation Effect | significa |
+|---|---|
+| `Unknown` | afeta tudo — **é o padrão de global parameter** |
+| `Geometry` | afeta geometria (⇒ malha e solver) |
+| `Meshing` | afeta malha (⇒ solver) |
+| **`Solver`** | **afeta só o solver** ← é o nosso |
+
+**Ação:** `Simulations > [sim de referência] > Parameters > Simulation Parameters >
+[parâmetro]` → `Simulation Effect = Solver`, nos três (`MW_gas`, `mu_gas`, `mdot_gas`).
+
+Com isso, *"only the solve and result blocks are re-executed during a study run."*
+
+---
+
+## 11. Procedimento de montagem, em ordem
+
+### Etapa 1 — no `.sim` de referência (tudo antes de criar o projeto)
+
+> *"You can **not** create these objects in the Design Manager project. Instead, you
+> must go to the reference simulation directly."*
+
+1. Criar os **Global Parameters** `MW_gas`, `mu_gas`, `mdot_gas`
+2. Apontar Molecular Weight, Dynamic Viscosity e Mass Flow Rate **para eles** (hoje os
+   valores estão digitados direto)
+3. Garantir que existam os **Reports**: ΔP · η global · η da classe de 10 µm · ξ ·
+   v_i · **`balanco_010`**
+4. Preparar as **scenes/plots** a exportar por design (vórtice, η×d)
+5. Salvar e fechar
+
+### Etapa 2 — criar o projeto
+
+Duas vias: botão direito na raiz do `.sim` → `Create Design Manager Project`; ou
+`Create a File` → Type `Design Manager Project` → `Read Reference Simulation…`.
+
+⚠️ *"Design Manager requires that the Design Manager project is located in the **same
+file folder** of the reference simulation."* Arquivo `.dmprj`.
+
+### Etapa 3 — corrigir o `Simulation Effect` (§10)
+
+**Antes de qualquer outra coisa.** É o passo que decide o tempo de máquina do estudo.
+
+### Etapa 4 — montar o estudo
+
+Tipo **`Manual`**, tabela de 7 linhas (§3). Responses com os papéis de §4 —
+`balanco_010` e ΔP como **Constraints**.
+
+### Etapa 5 — ligar o `Auto Save`
+
+No nó do projeto. *"You are strongly advised to activate this option. If the Design
+Manager project crashes for any reason, you can resume the project from the completed
+designs."* Custa desempenho, mas perder o design 6 de 7 custa mais.
+
+### Etapa 6 — rodar o baseline sozinho antes
+
+Duas razões: falha do baseline **aborta o estudo inteiro** (§7), e é onde se detecta o
+solver Lagrangeano congelado antes de queimar sete rodadas.
+
+---
+
+## 12. 🔁 A armadilha do `Update`
+
+Depois de qualquer uma destas mudanças no `.sim`, é obrigatório salvar, fechar e dar
+**botão direito no `[reference simulation]` → `Update`**:
+
+- criar ou remover parâmetro, report, scene ou plot
+- **mudar valor de parâmetro**
+- renomear qualquer um deles
+
+Para o resto (trocar o campo escalar de uma scene, por exemplo) não precisa.
+
+Esquecer o `Update` faz o estudo rodar com a definição velha, **sem aviso**. É o
+mesmo padrão de falha silenciosa do solver congelado — e as duas juntas produziriam
+sete designs "bem-sucedidos" e sem sentido.
+
+---
+
+## 13. O que os doze documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
-1. **`Customizing the Workflow Using Java Macros`** — subiu para primeiro lugar. Sem
-   ela não há como orquestrar as duas etapas do Lagrangeano (§7)
-2. **`Setting Up Simulation Effect for Simulation Parameters`** — citada duas vezes,
-   nunca incluída; decide o reuso de malha
-3. **`Global Parameters`** — como criar e como apontar um valor de física para um
-4. **Manual study / Design Table** — como se preenche a tabela (importa CSV?)
+1. **`Customizing the Workflow Using Java Macros`** — continua em primeiro. Sem ela não
+   há como orquestrar as duas etapas do Lagrangeano (§7)
+2. **`Global Parameters`** — como criar e como apontar um valor de física para um
+   (etapa 1 do procedimento, §11)
+3. **Manual study / Design Table** — como se preenche a tabela de 7 linhas; aceita CSV?
+4. **`Responses`** — como declarar Objective vs Constraint e fixar o limite de 4 000 Pa
 5. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter
 
-Também úteis, em segundo plano: `Responses`, `Creating Design Plots`, e o tutorial
-*Design Manager: Design Sweep of a Static Mixer* (o de sweep, não o de otimização — é
-o mais próximo do nosso caso).
+Em segundo plano: `Creating Design Plots` e o tutorial *Design Manager: Design **Sweep**
+of a Static Mixer* (o de sweep, não o de otimização — é o mais próximo do nosso caso).
+
+✅ Já resolvido: `Setting Up Simulation Effect` (§10), workflow de projeto (§11),
+`Update` (§12).
