@@ -45,11 +45,18 @@ Só três tipos de objeto são aceitos como input: *3D-CAD Design Parameters*, *
 Client Design Parameters* e **Global Parameters**. Os nossos três são todos do terceiro
 tipo (a doc cita explicitamente *"Boundary physics values—such as inlet velocities"*).
 
-| parâmetro | objeto no sim de referência | alavanca |
-|---|---|---|
-| `MW_gas` | Molecular Weight do gás ideal | define ρ = PM/RT |
-| `mu_gas` | Dynamic Viscosity (Constant) | define µ |
-| `mdot_gas` | Mass Flow Rate no inlet | 100 % vs 50 % |
+| parâmetro | objeto no sim de referência | alavanca | estado |
+|---|---|---|---|
+| `mu_gas` | `Gás_Pirolise > Material Properties > Dynamic Viscosity > Constant` | define µ | ✅ criado |
+| `MW_gas` | `Gás_Pirolise > Material Properties > Molecular Weight` | define ρ = PM/RT | ⬜ |
+| `mdot_gas` | Mass Flow Rate no `Inlet` | 100 % vs 50 % | ⬜ |
+| **`mdot_inj`** | injeção Lagrangeana (já era Global Parameter) | carga de char | ⬜ vincular |
+
+> ⚠️ **São quatro, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
+> `mdot_inj` vale **0,0027778 kg/s** no de 100 % e **0,001389 kg/s** no de 50 % —
+> exatamente metade. A carga de char acompanha a vazão de gás (razão poeira/gás
+> constante em 4,4 %), então ela **tem de ser parâmetro**. Como parâmetro não se
+> adiciona depois (§21), essa conferência evitou refazer o estudo inteiro.
 
 **Trabalho de preparação:** criar os três Global Parameters e **apontar os valores da
 física e do contorno para eles** — hoje estão digitados direto. Sem isso o Design
@@ -101,6 +108,11 @@ malha entra na conta sem necessidade. Conferir antes de disparar.
 > 📌 A malha do ciclone é de **516 744 células** (`ciclone_307_100_Copy_lagrangeana.sim`,
 > WS3) — o estudo é leve. *(Correção: uma versão anterior desta nota citava 4,4 M de
 > células, número que é do aerador do Ito, não deste caso.)*
+>
+> O `.sim` de 50 % tem **516 696** células — 48 a menos, 0,009 %, ruído do malhador.
+> Usar **só o de 100 % como referência** faz as 7 rodadas compartilharem exatamente a
+> mesma malha, melhor do que a campanha anterior tinha. Consequência a saber: os novos
+> resultados de 50 % não serão bit-idênticos aos antigos.
 
 ### ⚠️ Detecção de duplicatas
 
@@ -118,15 +130,17 @@ descartada. Mesmo para 2/5 e 3/6.
 
 `ρ = PM/RT` com P = 120 000 Pa e T = 673,15 K ⇒ `MW = ρ·RT/P = ρ × 46,64`.
 
-| # | alvo | **MW_gas** (kg/kmol) | **mu_gas** (Pa·s) | **mdot_gas** (kg/s) | ρ resultante |
-|---|---|---|---|---|---|
-| 1 | A · 100 % | **130,59** | 1,1e-5 | 0,505556 | 2,8 |
-| 2 | B · 100 % | **83,95** | 1,4e-5 | 0,505556 | 1,8 |
-| 3 | C · 100 % | **51,30** | 1,7e-5 | 0,505556 | 1,1 |
-| 4 | A · 50 % | 130,59 | 1,1e-5 | **0,252778** | 2,8 |
-| 5 | B · 50 % | 83,95 | 1,4e-5 | 0,252778 | 1,8 |
-| 6 | C · 50 % | 51,30 | 1,7e-5 | 0,252778 | 1,1 |
-| 7 | canto pior d\* | 130,59 | **1,7e-5** | 0,505556 | 2,8 |
+| # | alvo | **MW_gas** | **mu_gas** | **mdot_gas** | **mdot_inj** | ρ | char |
+|---|---|---|---|---|---|---|---|
+| 1 | A · 100 % | **130,5939** | 1,1e-5 | 0,505556 | 0,0027778 | 2,8 | 80 kg/h |
+| 2 | B · 100 % | **83,9532** | 1,4e-5 | 0,505556 | 0,0027778 | 1,8 | 80 kg/h |
+| 3 | C · 100 % | **51,3047** | 1,7e-5 | 0,505556 | 0,0027778 | 1,1 | 80 kg/h |
+| 4 | A · 50 % | 130,5939 | 1,1e-5 | **0,252778** | **0,0013889** | 2,8 | 40 kg/h |
+| 5 | B · 50 % | 83,9532 | 1,4e-5 | 0,252778 | 0,0013889 | 1,8 | 40 kg/h |
+| 6 | C · 50 % | 51,3047 | 1,7e-5 | 0,252778 | 0,0013889 | 1,1 | 40 kg/h |
+| 7 | canto pior d\* | 130,5939 | **1,7e-5** | 0,505556 | 0,0027778 | 2,8 | 80 kg/h |
+
+`mdot_inj` é **por classe** (8 classes × 10 kg/h = 80 kg/h a vazão plena).
 
 **Nota de modelagem:** a densidade é variada pela **massa molar a T fixa**, não pela
 temperatura. Isso isola a incerteza de *composição*, que é o que o memorial do Vozza
@@ -448,18 +462,19 @@ com o nome do parâmetro** no estudo.
 Arquivo gerado: **`designs_7rodadas.csv`** (nesta pasta)
 
 ```
-Design#,Name,MW_gas,mu_gas,mdot_gas
-1,A_100,130.5939,1.100000e-05,0.505556
-2,B_100,83.9532,1.400000e-05,0.505556
-3,C_100,51.3047,1.700000e-05,0.505556
-4,A_050,130.5939,1.100000e-05,0.252778
-5,B_050,83.9532,1.400000e-05,0.252778
-6,C_050,51.3047,1.700000e-05,0.252778
-7,canto_pior_dstar,130.5939,1.700000e-05,0.505556
+Design#,Name,MW_gas,mu_gas,mdot_gas,mdot_inj
+1,A_100,130.5939,1.100000e-05,0.505556,0.0027778
+2,B_100,83.9532,1.400000e-05,0.505556,0.0027778
+3,C_100,51.3047,1.700000e-05,0.505556,0.0027778
+4,A_050,130.5939,1.100000e-05,0.252778,0.0013889
+5,B_050,83.9532,1.400000e-05,0.252778,0.0013889
+6,C_050,51.3047,1.700000e-05,0.252778,0.0013889
+7,canto_pior_dstar,130.5939,1.700000e-05,0.505556,0.0027778
 ```
 
-Unidades: `MW_gas` kg/kmol · `mu_gas` Pa·s · `mdot_gas` kg/s. Os Global Parameters têm
-de estar declarados nessas unidades, senão o CSV entra com número certo e grandeza errada.
+Unidades: `MW_gas` kg/kmol · `mu_gas` Pa·s · `mdot_gas` e `mdot_inj` kg/s. Os Global
+Parameters têm de estar nessas unidades, senão o CSV entra com número certo e grandeza
+errada.
 
 `MW = ρ·RT/P` com R = 8314,4621 J/(kmol·K), T = 673,15 K, P = 120 000 Pa
 (fator 46,64067). Verificado nos dois sentidos: os sete MW devolvem exatamente
