@@ -623,34 +623,53 @@ Para propagar **novo plot ou scene** a todos os designs já rodados: `Update Res
 
 ---
 
-## 23. ⭐ `Derived Reports` — a medida de ξ vira uma coluna
-
-> *"Derived reports are **expressions that operate on design variables**, such as input
-> parameters and responses, or existing derived report values. The design study output
-> table lists all the derived report values."*
-
-`[design study] > **Derived Reports** > New > Derived Report`
-
-### Por que isso resolve a incerteza do estudo
+## 23. Medir ξ — três mecanismos distintos, não confundir
 
 $$\Delta P = \frac{\xi\,\dot m^2}{2\rho A^2} \quad\Longrightarrow\quad
 \boxed{\Delta P \cdot \rho = \frac{\xi\,\dot m^2}{2A^2}}$$
 
-O produto é **constante se ξ for invariante**: **7 717** nos designs de 100 % e **1 847**
-nos de 50 %.
+Constante se ξ for invariante: **7 717** a 100 % e **1 847** a 50 %.
+(Conferido contra as previsões de §7: 7 716,8 · 7 716,5 · 1 845,2.)
 
-Como ρ = P·MW/(RT) = MW_gas / 46,64067, a expressão do derived report é:
+### ⚠️ Correção — `Derived Report` é agregado, não coluna por design
 
-```
-dP * MW_gas / 46.64067
-```
+A página de referência é explícita. Um **Derived Report** tem **um** `Source Variable`
+(input parameter, response ou performance) e um `Operator` — `Average` · `Min` · `Max` ·
+`Sum` · `Median` · `Std Dev` · `Index` — aplicado sobre um **Design Set**.
 
-**Uma coluna que responde de relance a única previsão que eu não sei antecipar.** Se ler
-7 717 nos designs 1, 2, 3 e 7, ξ segurou e as sete previsões valem. Se derivar, ξ caiu
-com o Reynolds — e é exatamente isso que decide se o cenário B viola os 40 mbar
-(previsto 4 287 Pa, só 7 % acima do limite).
+E o **User Derived Report** *"uses **previously defined derived reports** as input
+variables"* — opera sobre agregados, não sobre valores por design.
 
-Outros derived reports úteis: `1 - dP/4000` (folga) e `rho = MW_gas/46.64067`.
+**Portanto uma expressão do tipo `dP * MW_gas / 46.64067` não produz coluna por design.**
+
+### Os três mecanismos, e para que serve cada um
+
+| mecanismo | onde vive | granularidade | uso nosso |
+|---|---|---|---|
+| **Report** no `.sim` de referência | reference simulation | **por design** | **ξ mora aqui** — vira response e coluna |
+| **User Response** | `[design study] > Responses > Create User Response` | **por design** | combinar responses já existentes numa coluna nova |
+| **Derived Report** | `[design study] > Derived Reports` | **agregado sobre um design set** | resumo |
+
+**1. ξ como report no `.sim`.** Já estava no plano (§4). É onde a medida por design
+acontece. `2·dP/(rho·v_i²)`, ou direto o produto `dP·rho`.
+
+**2. `User Response`** — passo 9 de `Setting Up a Design Study`: *"create a user response
+as an expression of the existing study responses… **The output table adds the user
+response as a new column**."*
+⚠️ *"In the expression, you can **only use existing study responses** as variables"* — ρ
+precisa existir como **response**, não basta ser input parameter.
+
+**3. `Derived Report` com `Std Dev`** — e aqui ele fica melhor do que a ideia original:
+
+> **`Std Dev` do ξ sobre os quatro designs de 100 % é um número único que diz se ξ
+> segurou.** Fração de 1 % ⇒ invariância confirmada e as sete previsões valem. Se abrir,
+> ξ caiu com o Reynolds — que é exatamente o que decide se o cenário B viola os 40 mbar
+> (previsto 4 287 Pa, só 7 % acima).
+
+Mais direto do que comparar sete linhas a olho. `Max` de ΔP sobre o design set também
+resume o pior caso numa célula.
+
+`Evaluate` (botão direito) calcula e imprime no Output window.
 
 ---
 
@@ -795,21 +814,51 @@ Não são intercambiáveis. O nosso é o primeiro.
 
 ---
 
-## 28. O que os trinta e cinco documentos ainda NÃO cobrem
+## 28. Detalhes de referência que evitam retrabalho
+
+### Input Parameters
+
+- **`Simulation Effect` é read-only** no nó do input parameter — ele só **exibe** o que
+  está no sim de referência. Confirma §10: o ajuste é lá, aqui só se confere.
+- **`Lock Name`** — com `Off` (padrão), o nome do input parameter **segue** o nome do
+  parâmetro no sim de referência. Renomear lá **quebra o cabeçalho do CSV** (§14).
+  Ligar `On` depois de importar a tabela.
+- **`Relink Parameter…`** — reconecta um input parameter a outro parâmetro do sim,
+  *"particularly useful if changes in the reference simulation break the link"*. É a
+  única recuperação disponível, já que parâmetro não se adiciona depois (§21).
+- `Reference Value` (read-only) mostra o valor no sim de referência — bom para conferir
+  que o vínculo pegou no parâmetro certo.
+- `Parameter Type` (Continuous / Discrete / Constant) **não se aplica a estudo Manual** —
+  só a Sweep, Optimization, LHS DOE e CAD Robustness. No Manual os valores vêm da
+  Design Table.
+- `Create History Plot` por parâmetro, se quiser ver o valor contra o número do design.
+
+### Macro Files
+
+- `Macro File`: *"By default, Design Manager uses the **relative path to the project root
+  directory**."* Guardar o `.java` na raiz do projeto, junto do `.dmprj` e do `.sim` (§18).
+- ⚠️ `New` **não cria** arquivo: *"The file must exist already."* Gravar primeiro (§27).
+- Design Manager e simulações têm **listas de Recent Macro separadas**.
+
+---
+
+## 29. O que os trinta e nove documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
 1. **`Global Parameters`** — 🔴 **a única lacuna que ainda bloqueia.** Sem ela a etapa 1
    (§11) não sai do papel, e §21 mostra que parâmetro errado não tem conserto depois.
-   *(A página `Study Inputs` foi enviada duas vezes; a de Global Parameters ainda não
-   veio.)*
-2. **`Derived Reports Reference`** — a sintaxe das expressões (§23)
-3. **`Constraint Properties`** e **`Objective Properties`** — `Type` e `Goal` (§15, passo 6)
-4. **`Creating XY Plots`** — para montar o gráfico ΔP × ρ antes de rodar (§19)
+   *(A página `Study Inputs` veio duas vezes; a de Global Parameters ainda não veio.)*
+2. **`Responses Reference`** — a sintaxe do `Create User Response` (§23), e
+   `Constraint Properties` / `Objective Properties` (§15, passo 6)
+3. **`Expression Report`** — a sintaxe de expressão para montar ξ como report no `.sim`
+4. **`Creating XY Plots`** — para o gráfico ΔP × ρ antes de rodar (§19)
 5. **`Design Manager Licensing`**
 
-Em segundo plano: `Run Settings Reference`, `Output Table Reference`, e o tutorial
-*Design Manager: Design **Sweep** of a Static Mixer*.
+Em segundo plano: `Run Settings Reference`, `Output Table Reference`, `Design Sets
+Reference`, e o tutorial *Design Manager: Design **Sweep** of a Static Mixer*.
+
+**Não se aplica:** `Smart Sweep Settings Reference`.
 
 ✅ Macros resolvidos (§27): gravar em vez de escrever, desmarcar graphics, trocar `step`
 por `run`, deixar o gravador produzir a leitura do report para a guarda, e a distinção
