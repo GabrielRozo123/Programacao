@@ -50,13 +50,17 @@ tipo (a doc cita explicitamente *"Boundary physics values—such as inlet veloci
 | `mu_gas` | `Gás_Pirolise > Material Properties > Dynamic Viscosity > Constant` | define µ | ✅ criado |
 | `MW_gas` | `Gás_Pirolise > Material Properties > Molecular Weight` | define ρ = PM/RT | ⬜ |
 | `mdot_gas` | Mass Flow Rate no `Inlet` | 100 % vs 50 % | ⬜ |
-| **`mdot_inj`** | injeção Lagrangeana (já era Global Parameter) | carga de char | ⬜ vincular |
+| **`mdot_inj`** | `Injectors > inj_XXXum > Values > Mass Flow Rate` | carga de char | ✅ já vinculado |
+| **`d_particula`** | `Injectors > inj_XXXum > Values > Particle Diameter` | classe granulométrica | ⬜ |
 
-> ⚠️ **São quatro, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
+> ⚠️ **São cinco, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
 > `mdot_inj` vale **0,0027778 kg/s** no de 100 % e **0,001389 kg/s** no de 50 % —
 > exatamente metade. A carga de char acompanha a vazão de gás (razão poeira/gás
 > constante em 4,4 %), então ela **tem de ser parâmetro**. Como parâmetro não se
 > adiciona depois (§21), essa conferência evitou refazer o estudo inteiro.
+>
+> E o **`d_particula`** entra porque há **um único injetor**: cada rodada resolve **uma
+> classe monodispersa**. Ver §3b.
 
 **Trabalho de preparação:** criar os três Global Parameters e **apontar os valores da
 física e do contorno para eles** — hoje estão digitados direto. Sem isso o Design
@@ -140,12 +144,93 @@ descartada. Mesmo para 2/5 e 3/6.
 | 6 | C · 50 % | 51,3047 | 1,7e-5 | 0,252778 | 0,0013889 | 1,1 | 40 kg/h |
 | 7 | canto pior d\* | 130,5939 | **1,7e-5** | 0,505556 | 0,0027778 | 2,8 | 80 kg/h |
 
-`mdot_inj` é **por classe** (8 classes × 10 kg/h = 80 kg/h a vazão plena).
+`mdot_inj` é **por classe** (10 kg/h; a PSD entra na ponderação depois, não na injeção).
 
 **Nota de modelagem:** a densidade é variada pela **massa molar a T fixa**, não pela
 temperatura. Isso isola a incerteza de *composição*, que é o que o memorial do Vozza
 descreve — mesma convenção do estudo de ρ (`09_RODADA_sensibilidade_rho.md`). A
 incerteza de temperatura é um eixo separado, ainda aberto.
+
+---
+
+## 3b. A classe granulométrica — por que 1 e 2 µm
+
+### O método da campanha anterior
+
+A curva base está **completa**: 10 classes (1 · 2 · 5 · 7 · 10 · 15 · 20 · 50 · 75 · 150 µm)
+× 2 cargas = 20 pontos medidos (`08_CURVA_eta_x_d.md`).
+
+No estudo de ρ **não se rodou 10 classes por condição**. Mediu-se ΔP + **uma classe
+diagnóstica (10 µm)** por condição, e a η global saiu deslocando a curva base pelo número
+de Stokes (`eta_desloc` em `sensibilidade_rho_gas.py`). Uma rodada por condição.
+
+### Por que 10 µm não serve mais
+
+Aquela classe foi escolhida por ficar sobre o d\* antigo (6,84 µm), onde a curva é íngreme.
+Nas condições novas o d\* cai para 1,5–2,8 µm e o 10 µm **satura**:
+
+| classe | cenário A | cenário B | cenário C | separação |
+|---|---|---|---|---|
+| 10 µm *(antiga)* | 100 % | 100 % | 100 % | **0 pontos** ❌ |
+| **2 µm** | **51,1 %** | **58,0 %** | **69,5 %** | **18 pontos** ✅ |
+| 5 µm | 98,8 % | 99,7 % | 100 % | 1 ponto ❌ |
+
+### E 1 µm testa o patamar
+
+A curva base tem um **patamar em ~22 % abaixo de 2 µm** (`08_CURVA` §2): a captura deixa
+de ser inercial e passa a ser **deposição turbulenta na parede** — a partícula vira traçador.
+
+**O deslocamento de Stokes não vale nesse regime**, porque assume inércia. Então: o patamar
+escala junto com a curva (indo a ~0,6 µm), ou fica ancorado em ~1–2 µm?
+
+Se ficar, ele invade o novo ponto de corte e a previsão do 2 µm erra. Rodar 1 µm responde.
+
+### Bônus: as duas classes são finas
+
+Pela tabela do `08_CURVA` §4, classe fina pede **150 000 sub-steps** e grossa 20 000. Como
+1 e 2 µm são as duas finas, **nenhuma configuração varia por classe** — não é preciso um
+sexto parâmetro para sub-steps. (Incluir 50 µm exigiria.)
+
+---
+
+## 3c. As 14 rodadas — previsões registradas ANTES
+
+Arquivo: **`designs_14rodadas.csv`**
+
+O custo é **7 convergências de campo gasoso**; cada classe é **uma iteração** de rastreio
+sobre o campo já convergido (foi como a campanha anterior foi feita à mão).
+
+| # | nome | ρ | µ | vazão | d_p | **ΔP prev.** | **η prev.** |
+|---|---|---|---|---|---|---|---|
+| 1 | A_100_2um | 2,8 | 1,1e-5 | 100 % | 2 µm | **2 756 Pa** | **51,1 %** |
+| 2 | B_100_2um | 1,8 | 1,4e-5 | 100 % | 2 µm | **4 287 Pa** ❌ | **58,0 %** |
+| 3 | C_100_2um | 1,1 | 1,7e-5 | 100 % | 2 µm | **7 015 Pa** ❌ | **69,5 %** |
+| 4 | A_050_2um | 2,8 | 1,1e-5 | 50 % | 2 µm | 659 Pa | 33,0 % |
+| 5 | B_050_2um | 1,8 | 1,4e-5 | 50 % | 2 µm | 1 026 Pa | 37,2 % |
+| 6 | C_050_2um | 1,1 | 1,7e-5 | 50 % | 2 µm | 1 679 Pa | 44,4 % |
+| 7 | canto_100_2um | 2,8 | 1,7e-5 | 100 % | 2 µm | 2 756 Pa | 37,5 % |
+| 8 | A_100_1um | 2,8 | 1,1e-5 | 100 % | 1 µm | 2 756 Pa | 26,8 % |
+| 9 | B_100_1um | 1,8 | 1,4e-5 | 100 % | 1 µm | 4 287 Pa ❌ | 27,9 % |
+| 10 | C_100_1um | 1,1 | 1,7e-5 | 100 % | 1 µm | 7 015 Pa ❌ | 29,8 % |
+| 11 | A_050_1um | 2,8 | 1,1e-5 | 50 % | 1 µm | 659 Pa | 25,3 % |
+| 12 | B_050_1um | 1,8 | 1,4e-5 | 50 % | 1 µm | 1 026 Pa | 25,6 % |
+| 13 | C_050_1um | 1,1 | 1,7e-5 | 50 % | 1 µm | 1 679 Pa | 25,9 % |
+| 14 | canto_100_1um | 2,8 | 1,7e-5 | 100 % | 1 µm | 2 756 Pa | 24,7 % |
+
+❌ = viola os 40 mbar (previsto)
+
+### ⭐ Checagem de consistência de graça
+
+**Os pares 1/8, 2/9, 3/10, 4/11, 5/12, 6/13 e 7/14 têm de dar o MESMO ΔP** — rodam o mesmo
+campo gasoso, só muda a classe rastreada. Sete verificações automáticas de que a montagem
+está correta, sem custo nenhum.
+
+### A previsão mais frágil
+
+Continua sendo a invariância de ξ (§7 das previsões). Mas agora há uma segunda: **se o
+patamar de deposição turbulenta for absoluto**, os designs 8–14 virão bem acima de 25–30 %,
+perto de 22 %. Não é erro — é achado.
+
 
 ---
 
