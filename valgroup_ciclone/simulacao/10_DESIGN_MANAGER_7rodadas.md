@@ -525,27 +525,127 @@ Details` → link em `Design Artifact`.
 
 ---
 
-## 19. O que os vinte e dois documentos ainda NÃO cobrem
+## 19. Acompanhar a rodada
+
+`Design Sets > All > **Open Output Table**` — tabela ao vivo com `State`, responses e
+`Performance` de cada design.
+
+Assim que um design conclui, dá para inspecionar sem esperar o resto: `botão direito na
+linha > Open Scenes > [scene]` ou `Open Plots > [plot]`.
+
+**Project plots atualizam ao vivo:** *"Once a design simulation completes, a new data
+point appears in the plot."*
+
+> 💡 Montar **antes de rodar** o plot de **ΔP × ρ**. A hipérbole `ΔP = 7 717/ρ` se
+> desenha ponto a ponto, e a linha dos 4 000 Pa mostra na hora se o cenário B fica
+> dentro ou fora — que é a única das sete previsões que eu não sei antecipar.
+
+---
+
+## 20. Parar, abortar, retomar
+
+| ação | comportamento |
+|---|---|
+| **`Stop Study`** | impede novos designs de começar; **os que já rodam terminam** |
+| **`Abort Study`** | **mata** as simulações em andamento |
+| `Abort All Studies` | idem, em todos os estudos do projeto |
+
+**Retomar:** `Run Study`. Ele *"automatically detects the completed designs and runs the
+remaining design simulations"*.
+
+**Abortar em lote:** criar um arquivo chamado **`DM_ABORT`** na pasta de execução (no
+Windows um `.txt` vazio basta; no Linux `touch DM_ABORT`). O nome é customizável.
+
+### ⚠️ `Auto Save` é requisito, não recomendação
+
+> *"Design Manager can **only** resume from the last completed design **if** the Design
+> Manager project is automatically saved when each design simulation completes. For this
+> reason, you are advised to **always** activate the Auto Save option."*
+
+Sem ele, queda no design 5 significa recomeçar do 1.
+
+---
+
+## 21. Re-rodar
+
+### Estudo inteiro (quando mudou tipo, parâmetro, response, scene ou run settings)
+
+`botão direito no [design study] > **Clear Study**` → ajustar → `File > Save` →
+`Run Study`.
+
+⚠️ *"Clearing a design study **does not remove** the Design Manager output files from
+the disk."* Os artefatos velhos ficam e os novos ganham subscritos. Apagar a pasta do
+estudo à mão, ou usar `Clean Project Artifacts` (§18).
+
+### Só os que falharam
+
+`Design Sets > **Error** > Rerun Designs` — ou selecionar linhas na Output Table (ou
+pontos num plot) e `Rerun Designs`.
+
+### 🔒 A restrição que obriga a acertar de primeira
+
+> *"You **can** add and remove **responses** in the design study before you re-run
+> selected designs. Adding and removing **parameters** is not supported."*
+
+**Report esquecido tem conserto** — adiciona o response e re-roda os designs.
+**Parâmetro esquecido não tem** — o estudo teria de ser refeito.
+
+Por isso `MW_gas`, `mu_gas` e `mdot_gas` precisam estar corretos já na etapa 1 (§11).
+
+⚠️ *"re-running a baseline design can change the performance value of other designs."*
+
+### `Valid Minimum` / `Valid Maximum`
+
+Se um design falhou por cair fora da faixa válida de um response, mudar a faixa faz o
+design ser *"re-evaluated with the new range **without actually re-running the
+simulations**"*.
+
+---
+
+## 22. `Update Metrics` — o limite de 40 mbar fica editável
+
+> *"After running the design studies, you can modify constraints and assess the impact
+> of the change on results **without re-running the design study**… select `Update
+> Metrics` to recompute these values and update related plots and charts."*
+
+`botão direito no [design study] > **Update Metrics**`.
+
+**É o argumento mais forte para codificar os 4 000 Pa como Constraint em vez de conferir
+na mão.** O limite é especificação de cliente e pode mudar: se a Valgroup disser que são
+50 mbar, ou se o Daniel questionar a origem do número, muda-se o valor da constraint e a
+coluna *feasible/infeasible* se recalcula na hora. As sete rodadas de CFD ficam
+preservadas.
+
+Vale o mesmo para a faixa do `balanco_010`.
+
+Para propagar **novo plot ou scene** a todos os designs já rodados: `Update Results`
+(pós-processamento assíncrono).
+
+---
+
+## 23. O que os vinte e sete documentos ainda NÃO cobrem
 
 Faltam as páginas de procedimento. Em ordem de utilidade:
 
 1. **`Global Parameters`** — como criar e como apontar um valor de física para um.
-   **É a única lacuna que ainda bloqueia**: sem ela a etapa 1 (§11) não sai do papel
+   **É a única lacuna que ainda bloqueia**: sem ela a etapa 1 (§11) não sai do papel,
+   e §21 mostra que parâmetro errado não tem conserto depois
 2. **`Recording a Macro` / `Scripting the Application`** — a sintaxe Java para
    descongelar o solver Lagrangeano e para lançar a exceção da guarda (§13)
-3. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter, e o que muda com
-   `-dmnoshare`
-4. **`Monitoring a Design Study`** — acompanhar e retomar depois de parada
-5. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
+3. **`Constraint Properties`** e **`Objective Properties`** — os detalhes de `Type` e
    `Goal` (§15, passo 6)
+4. **`Design Manager Licensing`** — o que a CAEXPERTS precisa ter, e o que muda com
+   `-dmnoshare`
+5. **`Creating XY Plots`** — para montar o gráfico ΔP × ρ antes de rodar (§19)
 
-Em segundo plano: `Run Settings Reference`, `Creating Design Plots`, e o tutorial
+Em segundo plano: `Run Settings Reference`, `Output Table Reference`, e o tutorial
 *Design Manager: Design **Sweep** of a Static Mixer*.
 
 ✅ Resolvido: tipos de estudo (§1), inputs (§2), reuso de malha (§6), Lagrangeano e
 macros (§7, §13), análise (§8), `Simulation Effect` (§10), projeto e procedimento
 (§11), `Update` (§12), CSV (§14), montagem (§15), validação (§16), execução (§17),
-disco (§18).
+disco (§18), monitoramento (§19), parar/retomar (§20), re-rodar (§21),
+`Update Metrics` (§22).
 
 **Não se aplicam ao nosso caso:** `Substituting Geometry Parts in a Study` (não trocamos
 peça), `Seeding a Study with Predefined Designs` (é para semear otimização), `Setting Up
