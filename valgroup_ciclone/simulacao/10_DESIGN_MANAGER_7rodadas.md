@@ -95,8 +95,12 @@ Referência em expressão: `${MW_gas}`.
 Os três parâmetros são **puramente físicos** — nenhum mexe na geometria nem na malha.
 Configurados assim, o Design Manager **reusa a malha nas 7 rodadas**.
 
-Se ficarem marcados como afetando a malha, ele remalha **4,4 milhões de células sete
-vezes** e o tempo de malha domina o estudo. Conferir antes de disparar.
+Se ficarem marcados como afetando a malha, ele **remalha as sete vezes** e o tempo de
+malha entra na conta sem necessidade. Conferir antes de disparar.
+
+> 📌 A malha do ciclone é de **516 744 células** (`ciclone_307_100_Copy_lagrangeana.sim`,
+> WS3) — o estudo é leve. *(Correção: uma versão anterior desta nota citava 4,4 M de
+> células, número que é do aerador do Ito, não deste caso.)*
 
 ### ⚠️ Detecção de duplicatas
 
