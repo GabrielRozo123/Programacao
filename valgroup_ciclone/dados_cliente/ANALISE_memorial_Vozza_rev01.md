@@ -191,7 +191,31 @@ Além disso: **o pior caso de ΔP já está nos 3 pares** (é ρ mínimo, e µ n
 | 4 | A · 50 % | 2,8 | 1,1e-5 | 910 kg/h |
 | 5 | B · 50 % | 1,8 | 1,4e-5 | 910 kg/h |
 | 6 | C · 50 % | 1,1 | 1,7e-5 | 910 kg/h |
-| *(7)* | *canto de pior d\** | *2,8* | *1,7e-5* | *1 820 kg/h* | *opcional, atende o pedido formal de bracketing* |
+| **7** | **canto de pior d\*** | **2,8** | **1,7e-5** | 1 820 kg/h |
+
+> ✅ **Matriz aprovada pelo Marcus** (14:07): *"3 a 100 % de vazão, 3 a 50 % de vazão e
+> uma considerando maior densidade e maior viscosidade. Por mais que não exista, fecha
+> o cenário da eficiência"*.
+
+### ⚠️ Qual rodada fecha qual pior caso
+
+O Marcus descreveu a 7ª como fechando *"eficiência e queda máxima de pressão"*. Ela
+fecha só a primeira. **`ΔP ∝ 1/ρ`, então densidade máxima é queda MÍNIMA.**
+
+| pior caso | rodada | valor |
+|---|---|---|
+| **pior eficiência** (maior `ρ·µ` ⇒ maior d\*) | **7** — ρ = 2,8 · µ = 1,7e-5 | **d\* = 2,44 µm** |
+| **pior queda de pressão** (menor ρ) | **3** — ρ = 1,1 · 100 % | **ΔP = 7 015 Pa** |
+
+A ΔP da rodada 7 é 2 756 Pa — a **menor** das três densidades. Corrigir antes de
+comunicar ao Daniel.
+
+### Ressalva do Marcus, procedente
+
+A afirmação analítica de que "a eficiência melhora em todos os cenários" vale enquanto
+não houver re-entranhamento. No cenário C a entrada vai a **48,8 m/s**, acima da faixa
+(~30 m/s) em que re-entranhamento começa a degradar a coleta. **A eficiência tem que
+ser medida, não escalada** — é o que as rodadas 3 e 6 vão mostrar.
 
 O eixo de **vazão** substitui os cantos impossíveis porque o estudo anterior mostrou
 que **50 % é a condição governante da eficiência**: η da classe de 10 µm cai de
@@ -217,6 +241,7 @@ Mesma disciplina do estudo de ρ (dez previsões registradas, dez confirmadas).
 | 4 | 2,8 | 1,1e-5 | 9,58 m/s | 748 500 | **660 Pa** | **2,84 µm** |
 | 5 | 1,8 | 1,4e-5 | 14,90 m/s | 588 000 | **1 026 Pa** | **2,57 µm** |
 | 6 | 1,1 | 1,7e-5 | 24,38 m/s | 484 500 | **1 679 Pa** | **2,21 µm** |
+| **7** | 2,8 | 1,7e-5 | 19,16 m/s | 968 700 | **2 756 Pa** | **2,44 µm** ← pior |
 
 **A previsão mais frágil, e a que mais importa checar:** a invariância de ξ. Ela foi
 provada entre Re = 173 mil e 173 mil (a ρ variava, mas Re não). Aqui Re salta para
