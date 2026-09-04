@@ -47,13 +47,14 @@ tipo (a doc cita explicitamente *"Boundary physics values—such as inlet veloci
 
 | parâmetro | objeto no sim de referência | alavanca | estado |
 |---|---|---|---|
-| `mu_gas` | `Gás_Pirolise > Material Properties > Dynamic Viscosity > Constant` | define µ | ✅ criado |
-| `MW_gas` | `Gás_Pirolise > Material Properties > Molecular Weight` | define ρ = PM/RT | ⬜ |
-| `mdot_gas` | Mass Flow Rate no `Inlet` | 100 % vs 50 % | ⬜ |
+| `mu_gas` | `Gás_Pirolise > Material Properties > Dynamic Viscosity > Constant` | define µ | ✅ |
+| `MW_gas` | `Gás_Pirolise > Material Properties > Molecular Weight` | define ρ = PM/RT | ✅ |
+| `T_gas` | `Inlet > Physics Values > Total Temperature` | fixa 673,15 K; abre o eixo 350–400 °C | ✅ |
+| `mdot_gas` | `Inlet > Physics Values > Mass Flow Rate` | 100 % vs 50 % | ✅ |
 | **`mdot_inj`** | `Injectors > inj_XXXum > Values > Mass Flow Rate` | carga de char | ✅ já vinculado |
 | **`d_particula`** | `Injectors > inj_XXXum > Values > Particle Diameter` | classe granulométrica | ⬜ |
 
-> ⚠️ **São cinco, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
+> ⚠️ **São seis, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
 > `mdot_inj` vale **0,0027778 kg/s** no de 100 % e **0,001389 kg/s** no de 50 % —
 > exatamente metade. A carga de char acompanha a vazão de gás (razão poeira/gás
 > constante em 4,4 %), então ela **tem de ser parâmetro**. Como parâmetro não se
@@ -127,6 +128,76 @@ malha entra na conta sem necessidade. Conferir antes de disparar.
 Consequência direta: **a vazão tem de ser parâmetro.** Se for trocada na mão entre os
 blocos de 100 % e 50 %, as rodadas 1 e 4 (mesmos ρ e µ) viram duplicata e uma é
 descartada. Mesmo para 2/5 e 3/6.
+
+---
+
+## 2b. ✅ Verificação de baseline — WS3, 04/09/2026
+
+Antes de montar o estudo, o `.sim` foi reconvergido do zero na WS3 para confirmar que
+sobreviveu à mudança de máquina. **Três falhas silenciosas apareceram, nenhuma com
+mensagem de erro:**
+
+| # | falha | como apareceu | conserto |
+|---|---|---|---|
+| 1 | **Temperatura do gás em 300 K** (era 673,15) | ΔP = 889 Pa em vez de ~1 956. Como `ΔP ∝ T` a fixo ρ·M, o desvio dava T = 306 K direto | `Inlet > Total Temperature = 673.15` |
+| 2 | `initializeSolution()` gravado no macro | linha capturada por um clique em *Initialize* durante a gravação | apagada (verificada inócua, mas risco latente) |
+| 3 | **`Turbulent Dispersion` desligado** | η = 19,48 % em vez de 22,31 % — perto dos 19,9 % que o `08_CURVA` §2b mediu **sem** dispersão | modelo religado |
+
+### Resultado final da verificação
+
+| leitura | campanha anterior | **medido na WS3** | desvio |
+|---|---|---|---|
+| ΔP | 1 955,6 Pa | **1 936,42 Pa** | −0,98 % |
+| η (2 µm · 100 %) | 22,31 % | **21,68 %** | −0,63 pt = **1,09 σ** |
+| `Densidade` (vol. avg.) | — | 3,9625 kg/m³ | +0,44 % sobre ρ na entrada |
+
+`SE = √[η(1−η)/N] = √(0,2168·0,7832/5082) = 0,58 ponto`. O desvio de η é ruído
+estatístico, não erro. **`.sim` íntegro.**
+
+### Consequência: ξ revisado
+
+ξ = 5,364 × (1936,42/1955,6) = **5,311**, e as previsões de ΔP descem 1 %:
+A **2 729** · B **4 245** ❌ · C **6 947** ❌ Pa. O critério passa de ρ ≥ 1,93 para
+**ρ ≥ 1,91 kg/m³**. **A conclusão não muda** — o cenário B segue 6 % acima dos 40 mbar.
+
+### Tempo por design
+
+**71 min para 7 416 iterações** (~104 it/min). Mas a curva de ΔP achata em ~3 000 —
+com critério de parada assintótico, ~35 min. 14 designs: **8–16 h em série**, 4 h com
+4 jobs simultâneos.
+
+### O macro final, validado
+
+```java
+Simulation simulation_0 = getActiveSimulation();
+
+LagrangianMultiphaseSolver lagrangianMultiphaseSolver_0 =
+  ((LagrangianMultiphaseSolver) simulation_0.getSolverManager()
+      .getSolver(LagrangianMultiphaseSolver.class));
+
+lagrangianMultiphaseSolver_0.setFrozen(false);
+simulation_0.getSimulationIterator().step(1);
+```
+
+⚠️ `step(1)` está **correto** e não deve virar `run()` — o estágio 2 é genuinamente uma
+iteração. A orientação genérica da doc (§27) não se aplica aqui.
+
+⚠️ A guarda em Java foi **descartada**: o `balanco_010` com `Valid Min/Max` 0,99–1,01 já
+marca `Error` se o solver ficar congelado (todos os reports voltam zero). Mesma proteção,
+sem código.
+
+### Checagem de ξ sem report novo
+
+`DeltaP` e `Densidade` já existem ⇒ **User Response `DeltaP * Densidade`**:
+**≈ 7 674** nos designs de 100 % · **≈ 1 836** nos de 50 %. Pode derivar 1–2 % legitimamente
+(`Densidade` é média volumétrica e o campo de pressão escala); desvio relevante é ≥ 5 %.
+
+### Aprovação do cliente
+
+E-mail de Thays Almeida Farzat (Valgroup, 04/09/2026) lista **exatamente as 7 condições**,
+com a mesma justificativa: pares coerentes porque µ e ρ andam em sentidos opostos, ρ = 1,1
+como pior perda de carga, e o caso 7 como cenário artificial de pior eficiência. Daniel
+Vozza de acordo. **Escopo formalmente fechado em 7 condições** (14 rodadas internas).
 
 ---
 
