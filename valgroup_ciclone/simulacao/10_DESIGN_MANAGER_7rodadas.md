@@ -52,7 +52,7 @@ tipo (a doc cita explicitamente *"Boundary physics values—such as inlet veloci
 | `T_gas` | `Inlet > Physics Values > Total Temperature` | fixa 673,15 K; abre o eixo 350–400 °C | ✅ |
 | `mdot_gas` | `Inlet > Physics Values > Mass Flow Rate` | 100 % vs 50 % | ✅ |
 | **`mdot_inj`** | `Injectors > inj_XXXum > Values > Mass Flow Rate` | carga de char | ✅ já vinculado |
-| **`d_particula`** | `Injectors > inj_XXXum > Values > Particle Diameter` | classe granulométrica | ⬜ |
+| **`d_particulas`** | `Injectors > inj_XXXum > Values > Particle Diameter` | classe granulométrica | ✅ |
 
 > ⚠️ **São seis, não três.** Conferindo os dois `.sim` da WS3 descobriu-se que
 > `mdot_inj` vale **0,0027778 kg/s** no de 100 % e **0,001389 kg/s** no de 50 % —
@@ -60,12 +60,12 @@ tipo (a doc cita explicitamente *"Boundary physics values—such as inlet veloci
 > constante em 4,4 %), então ela **tem de ser parâmetro**. Como parâmetro não se
 > adiciona depois (§21), essa conferência evitou refazer o estudo inteiro.
 >
-> E o **`d_particula`** entra porque há **um único injetor**: cada rodada resolve **uma
+> E o **`d_particulas`** *(com S — o nome tem de bater com o cabeçalho do CSV)* entra porque há **um único injetor**: cada rodada resolve **uma
 > classe monodispersa**. Ver §3b.
 
-**Trabalho de preparação:** criar os três Global Parameters e **apontar os valores da
-física e do contorno para eles** — hoje estão digitados direto. Sem isso o Design
-Manager não tem o que modificar.
+✅ **Os seis estão criados e vinculados** no `.sim` de referência
+`ciclone_307_100_Copy_lagrangeana_ESTUDO.sim`
+(`C:\Users\WS_NXL3\Desktop\Valgroup - análises - Gabriel\`).
 
 ### ⭐ Como criar — use o atalho do botão `x`, não crie do zero
 
