@@ -153,6 +153,13 @@ td.term{font-family:'IBM Plex Mono',monospace; font-size:.87em; color:var(--melt
   letter-spacing:.02em; color:var(--melt-text); font-weight:600}
 .res p{margin:0; font-size:.92rem; color:var(--ink-2); line-height:1.55; max-width:none}
 
+h4.phase{font-family:Archivo,sans-serif; font-weight:700; font-size:1rem; letter-spacing:-.01em;
+  margin:30px 0 0; display:flex; flex-wrap:wrap; align-items:baseline; gap:10px}
+h4.phase span{font-family:'IBM Plex Mono',monospace; font-size:.7rem; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--ink-3); font-weight:500}
+.tagx{font-family:'IBM Plex Mono',monospace; font-size:.66rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--ink-3); border:1px solid var(--line); border-radius:3px;
+  padding:2px 7px; margin-left:9px; vertical-align:middle; font-weight:500}
 ul.bul{padding-left:20px; max-width:68ch}
 ul.bul li{margin:7px 0}
 
@@ -191,7 +198,7 @@ footer a{color:var(--chill-text)}
     <a href="#resultados">Lendo os resultados</a>
     <a href="#armadilhas">Armadilhas de iniciante</a>
     <a href="#glossario">Glossário PT ⇄ EN</a>
-    <a href="#estudo">Plano de estudo</a>
+    <a href="#estudo">Roteiro do curso</a>
   </nav>
 
   <main>
@@ -450,17 +457,76 @@ footer a{color:var(--chill-text)}
     <div class="eyebrow">Interpretação</div>
     <h2>Lendo os resultados</h2>
     <div class="rule"></div>
-    <p class="lead">O software entrega os resultados abaixo. Rodar é fácil — o valor que você entrega como engenheiro está em interpretar.</p>
+    <p class="lead">O Inspire Cast entrega dezenas de tipos de resultado, separados por fase da análise. Rodar é fácil — o valor que você entrega como engenheiro está em saber qual olhar e o que ele significa.</p>
 
+    <h3>Os que você vai usar desde o primeiro dia</h3>
     <div class="res">
       <div><h4>Temperature</h4><p>Acompanhe a frente de metal durante o enchimento. Frente esfriando demais antes de completar a cavidade = risco de junta fria e falha de enchimento.</p></div>
       <div><h4>Velocity</h4><p>Velocidade alta no ataque significa turbulência, arraste de ar e erosão. Em alumínio por gravidade, a referência clássica da literatura (critério de Campbell) é manter a entrada em torno de <strong>0,5 m/s</strong>.</p></div>
       <div><h4>Last Air</h4><p>Onde o ar fica preso — tipicamente a última região a encher. É ali que você posiciona respiro ou overflow.</p></div>
       <div><h4>Cold Shuts</h4><p>Junta fria: duas frentes de metal que se encontram já frias demais para soldar. Ataque mal posicionado ou vazamento frio.</p></div>
-      <div><h4>Mold Erosion</h4><p>Erosão do molde, crítico em areia. Jato de metal batendo direto em parede de macho arranca areia e gera inclusão.</p></div>
-      <div><h4>Porosity / Shrinkage</h4><p>Porosidade e rechupe por contração. Olhe onde está: em canal, tudo bem; dentro da peça e em região usinada ou pressurizada, é reprovação.</p></div>
-      <div><h4>Niyama</h4><p>Critério clássico para microporosidade por contração. Valores baixos indicam risco — bom para comparar variantes do mesmo modelo.</p></div>
-      <div><h4>Solidificação / pontos quentes</h4><p>A última região a solidificar. Se um ponto quente está dentro da peça e isolado do massalote, ele vai virar rechupe. Você quer <strong>solidificação direcional</strong>, da peça para o massalote.</p></div>
+      <div><h4>Solidification Time</h4><p>O mapa mais importante da solidificação. A última região a solidificar é o <strong>ponto quente</strong> — se estiver dentro da peça e isolada do massalote, vira rechupe.</p></div>
+      <div><h4>Pipe Shrinkage</h4><p>Rechupe macroscópico, o “funil” que se abre por contração. Você <strong>quer</strong> ver isso no topo do massalote — significa que ele fez o trabalho dele. Dentro da peça, é reprovação.</p></div>
+      <div><h4>Micro Porosity</h4><p>Porosidade dispersa, em escala interdendrítica. Costuma aparecer em seções mal alimentadas mesmo sem rechupe visível.</p></div>
+      <div><h4>Niyama</h4><p>Critério clássico para risco de microporosidade por contração. Valores baixos indicam risco — excelente para comparar variantes do mesmo modelo.</p></div>
+    </div>
+
+    <h3>A tabela completa, decodificada</h3>
+    <p>É esta lista que o curso mostra e não explica. Guarde como referência — você vai voltar aqui.</p>
+
+    <h4 class="phase">Enchimento <span>Filling</span></h4>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Resultado</th><th>O que ele te responde</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Temperature</td><td>Onde o metal já está frio demais antes de completar a cavidade</td></tr>
+          <tr><td class="term">Flow Front</td><td>A ordem em que a cavidade enche e onde duas frentes se encontram</td></tr>
+          <tr><td class="term">Filling Time</td><td>Quando cada região encheu — revela zonas mortas e a última região a preencher</td></tr>
+          <tr><td class="term">Velocity</td><td>Turbulência e erosão. Vigie principalmente o ataque</td></tr>
+          <tr><td class="term">Pressure</td><td>Pressão do metal; central em baixa e alta pressão</td></tr>
+          <tr><td class="term">Solid Fraction</td><td>Quanto já solidificou <em>durante</em> o enchimento. Subiu cedo? O metal está congelando no caminho</td></tr>
+          <tr><td class="term">Last Air</td><td>Onde o ar fica preso — endereço do respiro ou do overflow</td></tr>
+          <tr><td class="term">Air Flow</td><td>Por onde o ar escapa; valida se o venting realmente funciona</td></tr>
+          <tr><td class="term">Cold Shuts</td><td>Junta fria entre frentes que se encontraram frias demais</td></tr>
+          <tr><td class="term">Mold Erosion</td><td>Onde o jato de metal arranca areia do molde ou do macho</td></tr>
+          <tr><td class="term">Tracer ID</td><td>Rastreia de onde veio o metal de cada região. É como você <strong>prova</strong> que a primeira frente fria foi parar no overflow, e não na peça</td></tr>
+          <tr><td class="term">Gate Contribution</td><td>Qual ataque alimentou qual região — a ferramenta para balancear sistemas de múltiplos ataques</td></tr>
+          <tr><td class="term">Mold Temperature</td><td>Aquecimento do molde durante o enchimento</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4 class="phase">Solidificação e termomecânica <span>Solidification / Thermomechanical</span></h4>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Resultado</th><th>O que ele te responde</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Solidification Time</td><td>A última região a solidificar — o ponto quente. O mapa mais importante desta fase</td></tr>
+          <tr><td class="term">Solid Fraction</td><td>Avanço da frente de solidificação ao longo do tempo</td></tr>
+          <tr><td class="term">Geo Modulus</td><td>Módulo puramente geométrico: volume ÷ área de troca. Calculado <strong>sem simular nada</strong></td></tr>
+          <tr><td class="term">Solidification Modulus</td><td>Módulo obtido do resultado térmico real, já com molde, liga e resfriadores</td></tr>
+          <tr><td class="term">Micro Porosity</td><td>Microporosidade dispersa, interdendrítica</td></tr>
+          <tr><td class="term">Pipe Shrinkage</td><td>Rechupe macroscópico aberto. Bom no massalote, reprovação na peça</td></tr>
+          <tr><td class="term">Niyama</td><td>Critério de risco de microporosidade por contração</td></tr>
+          <tr><td class="term">Total Shrinkage Model</td><td>Contração total prevista no conjunto</td></tr>
+          <tr><td class="term">Mold Temperature</td><td>Temperatura do molde ao longo da solidificação</td></tr>
+          <tr><td class="term">Displacement / Stresses / Von Mises</td><td>Empenamento e tensão residual — a parte termomecânica</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note src"><p><span class="lab">O conceito de ouro</span>Repare que existem <strong>dois módulos</strong>. O <span class="path">Geo Modulus</span> é só geometria — volume dividido por área — e sai antes de qualquer simulação. É ele que conversa com a <strong>regra de Chvorinov</strong>: o tempo de solidificação cresce com o quadrado do módulo. Daí vem a regra prática de dimensionamento de massalote: <strong>o massalote precisa ter módulo maior que a seção que ele alimenta</strong> (a referência usual é pelo menos 1,2×), senão ele solidifica primeiro e vira enfeite. Já o <span class="path">Solidification Modulus</span> é o módulo <em>real</em>, que considera molde, liga e resfriadores. Comparar os dois te mostra o quanto o processo desviou da geometria pura.</p></div>
+
+    <h4 class="phase">Fases finais <span>Demolding · Cycling · Trimming</span></h4>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Fase</th><th>Resultados</th><th>Por que existe</th></tr></thead>
+        <tbody>
+          <tr><td class="term">Demolding</td><td>Temperature, Solid Fraction, Solidification Time, Microporosity, Niyama, Solidification e Geo Modulus, Pipe Shrinkage, Porosity, Total Shrinkage Volume</td><td>Repete os mapas no instante da desmoldagem. Tirar a peça cedo muda o resfriamento — e muda o defeito</td></tr>
+          <tr><td class="term">Cycling</td><td>Temperature, Solid Fraction, Mold Temperature</td><td>Simula vários ciclos consecutivos até a coquilha entrar em <strong>regime térmico</strong>. A peça nº 1 não sai igual à nº 100 — esta fase mostra isso</td></tr>
+          <tr><td class="term">Trimming</td><td>Stress, Displacement, Von Mises</td><td>Tensão e distorção geradas ao cortar canais e massalotes</td></tr>
+        </tbody>
+      </table>
     </div>
 
     <h3>Como olhar, na ordem certa</h3>
@@ -532,55 +598,77 @@ footer a{color:var(--chill-text)}
 
   <!-- ============ ESTUDO ============ -->
   <section id="estudo">
-    <div class="eyebrow">Próximos passos</div>
-    <h2>Plano das duas primeiras semanas</h2>
+    <div class="eyebrow">Curso oficial</div>
+    <h2>Roteiro: Inspire for Gravity Casting</h2>
     <div class="rule"></div>
+    <p class="lead">O e-learning oficial da Altair em <span class="path">learn.altair.com</span>. Abaixo, o que observar em cada módulo — e onde estão as três aulas que realmente valem ouro.</p>
+
+    <div class="note"><p><span class="lab">Duas versões dos 5 passos</span>O curso apresenta o fluxo como <em>importar geometria → definir gates → componentes → setup do processo → rodar e analisar</em>. A documentação apresenta como <em>designar a peça → designar o sistema de enchimento → gravidade → gates e componentes → rodar</em>. É o mesmo caminho, contado com granularidades diferentes. Não se confunda.</p></div>
 
     <ol class="steps">
       <li class="step">
         <div class="num">1</div>
         <div class="step-body">
-          <h3>Dia 1 — Licença e reconhecimento</h3>
-          <p>Toda a Parte 1 deste guia. Depois abra o software e passe uma hora só girando modelo, testando as abas da faixa de ferramentas e achando onde ficam os cinco passos. Não tente simular nada.</p>
+          <h3>Inspire Cast Introduction</h3>
+          <p>Aula de orientação. O que de fato importa aqui é a <strong>tabela de Result Types</strong> — ela é o vocabulário do curso inteiro. A seção anterior deste guia decodifica cada linha.</p>
+          <p>Anote também as três capacidades que a Altair destaca, porque você vai usá-las no módulo 3: geração de <strong>machos e moldes em um clique</strong>, <strong>criação automática de massalotes</strong> com ajuste de tamanho na tela, e os <strong>templates guiados</strong> por processo.</p>
         </div>
       </li>
+
       <li class="step">
         <div class="num">2</div>
         <div class="step-body">
-          <h3>Dias 2 e 3 — Tutoriais nativos</h3>
-          <p>O Inspire Cast traz tutoriais interativos, com os modelos prontos. Comece pelo de <strong>gravity casting</strong>, que é o mais didático, e depois faça o de <strong>tilt pouring</strong> (marcado como nível iniciante na documentação). Faça cada um duas vezes: a primeira seguindo, a segunda sem olhar.</p>
+          <h3>Submit a Casting Analysis <span class="tagx">4 aulas</span></h3>
+          <p>Seu primeiro ciclo completo, num modelo simples. Ordem: modelo de demonstração → designar peça, gravidade e gate → parâmetros, rodar e analisar → <strong>refazer com gravidade e gate diferentes e comparar</strong>.</p>
+          <p><strong>O que observar:</strong> como o gate é criado — designando uma face importada ou criando um gate virtual. E anote os números que eles usam de temperatura de vazamento e de molde; são sua primeira referência.</p>
+          <div class="note warn"><p><span class="lab">Aula-chave</span>A quarta, <em>Redefine Gravity Direction and Gate, Rerun and Compare</em>. É a aula mais valiosa do módulo: mesma peça, mesma liga, só mudando <strong>orientação e ponto de ataque</strong> — e o resultado vira outro. Preste atenção especial em <em>como</em> eles comparam as duas rodadas. Comparar é metade do ofício.</p></div>
         </div>
       </li>
+
       <li class="step">
         <div class="num">3</div>
         <div class="step-body">
-          <h3>Dias 4 e 5 — Uma peça de verdade</h3>
-          <p>Peça a um colega mais experiente da CAEXPERTS um modelo já rodado, de projeto encerrado. Refaça o setup do zero e compare seu resultado com o dele. É o exercício que mais acelera — você descobre suas premissas erradas contra uma referência confiável.</p>
+          <h3>Optimizing Gravity Casting Processes <span class="tagx">7 aulas</span></h3>
+          <p>O módulo pesado, agora em <strong>areia</strong>, com sistema de enchimento completo, macho e molde. É aqui que você aprende de verdade.</p>
+          <p><strong>Aulas 3.2 e 3.3</strong> trazem a diferença que faltava: designar o <em>filling system</em> separado da peça, criar <strong>gate e massalotes</strong>, designar o <strong>macho</strong> e gerar o <strong>molde</strong>. Quando ele criar o massalote automaticamente, pare e pergunte a si mesmo: <em>esse massalote tem módulo maior que a seção que ele alimenta?</em></p>
+          <div class="note warn"><p><span class="lab">Aulas-chave</span><strong>3.5 — Emergency Engineering Change:</strong> o cliente muda a peça em cima da hora. É o cenário mais realista do curso e mostra por que simular é barato perto de refazer ferramental. <strong>3.6 — Sleeve, Filter and Chiller:</strong> luva, filtro e resfriador, suas três alavancas para controlar a solidificação. Luva segura calor no massalote, resfriador tira calor da peça, filtro acalma o fluxo — as duas primeiras servem ao mesmo objetivo: forçar <strong>solidificação direcional</strong>.</p></div>
         </div>
       </li>
+
       <li class="step">
         <div class="num">4</div>
         <div class="step-body">
-          <h3>Semana 2 — Estudo comparativo</h3>
-          <p>Pegue um modelo seu e gere variantes mudando <strong>um parâmetro por vez</strong>: posição do ataque, tamanho do massalote, temperatura de vazamento, tempo de enchimento. Monte uma tabelinha com o efeito de cada mudança nos defeitos previstos. Esse caderninho vira seu repertório.</p>
+          <h3>Hands-On Exercise: Gravity Casting</h3>
+          <p>Faça <strong>sem abrir as aulas anteriores</strong>. Travou? Anote exatamente onde travou antes de ir consultar — esse ponto é o seu buraco real de aprendizado, e vale mais que qualquer anotação do curso.</p>
         </div>
       </li>
+
       <li class="step">
         <div class="num">5</div>
         <div class="step-body">
-          <h3>Em paralelo — a teoria</h3>
-          <p>Simulação sem fundamento vira gerador de imagem colorida. Estude junto: regra de Chvorinov e módulo de solidificação, dimensionamento de massalote, solidificação direcional, critério de Campbell para velocidade de ataque, e os mecanismos de formação dos defeitos que o software prevê.</p>
+          <h3>Key Takeaways</h3>
+          <p>Fechamento. Depois dele, o exercício que consolida tudo: pegue o modelo do curso e gere variantes mudando <strong>um parâmetro por vez</strong> — posição do ataque, tamanho do massalote, temperatura de vazamento, tempo de enchimento. Monte uma tabelinha com o efeito de cada mudança nos defeitos previstos. Esse caderninho vira seu repertório de engenheiro.</p>
         </div>
       </li>
     </ol>
 
+    <h3>A teoria que o curso assume que você sabe</h3>
+    <p>Esse é o ponto cego de todo curso de software: ele ensina os botões, não a física. Estude em paralelo:</p>
+    <ul class="bul">
+      <li><strong>Regra de Chvorinov e módulo de solidificação</strong> — conecta direto com o <span class="path">Geo Modulus</span> do software</li>
+      <li><strong>Solidificação direcional e dimensionamento de massalote</strong> — o porquê de tudo no módulo 3</li>
+      <li><strong>Critério de Campbell</strong> para velocidade de ataque — a leitura do <span class="path">Velocity</span></li>
+      <li><strong>Areia vs. coquilha</strong> — condutividade do molde muda a velocidade de solidificação, e portanto muda todo o projeto de alimentação</li>
+      <li><strong>Macro vs. microporosidade</strong> — a diferença entre <span class="path">Pipe Shrinkage</span> e <span class="path">Micro Porosity</span></li>
+    </ul>
+
     <h3>Onde buscar material</h3>
     <ul class="bul">
-      <li><strong>help.altair.com/cast</strong> — manual do usuário, tutoriais e release notes da versão 2026. É a fonte oficial e a mais atualizada.</li>
-      <li><strong>Tutoriais dentro do próprio app</strong> — interativos, com geometria pronta. Melhor ponto de partida.</li>
-      <li><strong>community.altair.com</strong> — fórum, webinars e discussões de usuários; bom para dúvida específica de setup.</li>
-      <li><strong>Altair One → Resources</strong> — biblioteca de recursos, documentação e centro de treinamento, conforme descrito no PDF que você recebeu.</li>
-      <li><strong>Curso “Getting Started with Inspire Cast”</strong> — tour de interface e vídeos de fluxo de trabalho, publicado pela própria Altair.</li>
+      <li><strong>learn.altair.com</strong> — o e-learning que você está fazendo. Terminando gravidade, existem trilhas para alta pressão e demais processos</li>
+      <li><strong>help.altair.com/cast</strong> — manual, tutoriais e release notes da versão 2026; a referência definitiva sobre cada botão</li>
+      <li><strong>Tutoriais dentro do próprio app</strong> — interativos, com geometria pronta</li>
+      <li><strong>community.altair.com</strong> — fórum e webinars; bom para dúvida específica de setup</li>
+      <li><strong>Altair One → Resources</strong> — biblioteca de recursos e centro de treinamento, conforme o PDF que você recebeu</li>
     </ul>
 
     <div class="note"><p><span class="lab">Dica de casa</span>Descubra quem é o usuário-chave de fundição na CAEXPERTS e combine 30 minutos por semana para mostrar o que você fez. Revisão de premissa por quem já rodou dezenas de peças vale mais do que qualquer tutorial.</p></div>
