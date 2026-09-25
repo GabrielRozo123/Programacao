@@ -47,10 +47,23 @@ L_DUST = 0.5 * DC
 
 H_CONE = HT - H_
 
-# Offset radial da casca cônica. Numa chapa calandrada a espessura é medida NORMAL à
-# superfície, então o acréscimo no raio é t/cos(alpha), não t.
-ALPHA   = math.atan((DC/2 - BD/2) / H_CONE)     # semiângulo do cone
-T_CONE  = T / math.cos(ALPHA)
+# Offset radial da casca cônica.
+#
+# Rigorosamente, numa chapa calandrada a espessura é medida NORMAL à superfície, e o
+# acréscimo no raio seria t/cos(alpha) = 4,787 mm (alpha = 7,13°).
+#
+# MAS isso deixa um degrau de 0,037 mm nas junções cilindro/cone (z=-h) e cone/tubo de pó
+# (z=-HT), porque ali o offset volta a ser t. Esse degrau vira duas faces-lâmina de 37 e
+# 14 mm² — veneno para o remesher numa malha de 3-4 mm.
+#
+# Como este sólido existe para CONDUZIR CALOR (o aço responde por 0,3% da resistência
+# térmica total), 0,7% de espessura não muda nada no resultado, e geometria limpa vale
+# muito mais. Offset uniforme = T em todo o casco.
+#
+# Para o modelo ESTRUTURAL a escolha seria a oposta — mas esse é o modelo do FEA, não este.
+ALPHA        = math.atan((DC/2 - BD/2) / H_CONE)   # semiângulo do cone (só informativo)
+OFFSET_NORMAL = False                               # True -> t/cos(alpha), gera as lâminas
+T_CONE = (T / math.cos(ALPHA)) if OFFSET_NORMAL else T
 
 # ── FLUIDO ────────────────────────────────────────────────────────────────
 def build_fluido():
