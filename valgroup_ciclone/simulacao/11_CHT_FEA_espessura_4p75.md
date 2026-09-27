@@ -33,45 +33,50 @@
 
 ---
 
-## 2. ⭐ O ΔP de 3 400 Pa não contradiz o estudo anterior — ele o confirma
+## 2. ⭐ O ΔP de 3 400 Pa não é erro — mas o recado é mais sério do que parecia
 
-O primeiro instinto foi tratar 3 400 Pa como erro, porque o estudo anterior daria ~2 860 Pa
-nesta densidade. **Estava errado.** O `RELATORIO_FINAL_ciclone.md` §5.1 já dizia:
-
-> O k-ω amortece a precessão do núcleo do vórtice e, por isso, **subestima** a queda de pressão.
-
-Colocando tudo em número de Euler, que é invariante à densidade:
-
-| | ξ | ΔP equivalente a ρ = 2,80 |
-|---|---|---|
-| k-ω (estudo anterior, medido) | 5,37 | 2 759 Pa |
-| RST (×1,18) | 6,34 | 3 257 Pa |
-| **este estudo** | **6,62** | **3 400 Pa** |
-| RST, assíntota pessimista (×1,39) | 7,46 | 3 832 Pa |
-
-**Cai dentro do envelope de incerteza que o próprio estudo anterior levantou**, e praticamente
-sobre o valor de literatura para Stairmand HE.
-
-### E não é só o envelope — é toda a família de rodadas do projeto
-Do `00_ESTADO_DO_PROJETO.md` §1.2, as cinco rodadas do **Dc = 290**:
+O primeiro instinto foi tratar 3 400 Pa como erro, porque o relatório final do Dc 307 daria
+~2 860 Pa nesta densidade. **Estava errado**, mas a explicação certa não é a primeira que
+aparece. Em número de Euler (ξ = 2ΔP/ρv_i², invariante à densidade), a família inteira do
+projeto — **toda ela em k-ω**:
 
 | rodada | ξ |
 |---|---|
-| R1 · 100 % · ρ const | 6,17 |
-| R2 · 50 % · ρ const | 5,61 |
-| R3 · 100 % · + energia | 6,32 |
-| R4 · 50 % · + energia | 5,70 |
-| R5 · 100 % · BC verificada | 6,09 |
-| **este estudo · Dc 307 · CHT** | **6,62** |
+| Dc 290 · R1 · 100 % · ρ const | 6,17 |
+| Dc 290 · R2 · 50 % · ρ const | 5,61 |
+| Dc 290 · R3 · 100 % · + energia | 6,32 |
+| Dc 290 · R4 · 50 % · + energia | 5,70 |
+| Dc 290 · R5 · 100 % · BC verificada | 6,09 |
+| Dc 307 · relatório final | 5,37 |
+| **Dc 307 · este estudo · CHT** | **6,62** |
 
-O ξ do projeto sempre viveu entre **5,6 e 6,3**. O 5,37 do relatório final do Dc 307 é que é o
-ponto **baixo** da família, não o padrão. **6,62 não é um outlier — é o topo de uma faixa que
-já existia.**
+O ξ do projeto sempre viveu entre **5,4 e 6,3**. O 6,62 está logo acima do topo, e a causa é
+**malha** — este arquivo tem malha própria, construída para o CHT. **Não é modelo de
+turbulência: este estudo também roda k-ω** (confirmado em 27/09).
 
-> ⚠️ **Consequência a levar ao Marcus:** o envelope de ΔP apresentado (29–74 mbar) foi todo
-> levantado em k-ω. Com o fator de ~1,23 desta rodada, o topo iria para **~90 mbar**.
-> Antes de abrir esse assunto, confirmar qual modelo de turbulência este arquivo usa —
-> se for RST, fecha; se for k-ω com malha mais fina, a leitura é outra.
+### ⚠️ E é aí que está o problema
+
+O `RELATORIO_FINAL_ciclone.md` §5.1 diz:
+
+> O k-ω amortece a precessão do núcleo do vórtice e, por isso, **subestima** a queda de pressão.
+> RST estacionário: **×1,18** · assíntota pessimista: **×1,39**
+
+Como este resultado também é k-ω, **esse fator se aplica por cima dele, não em vez dele**:
+
+```
+ΔP estimado real = 3 400 × (1,18 a 1,39) = 4 010 a 4 730 Pa = 40,1 a 47,3 mbar
+```
+
+**Contra o limite de 40 mbar do cliente.** Neste cenário de gás (ρ = 2,80 kg/m³) a margem
+fecha ou é ultrapassada.
+
+> **Levar ao Marcus:** o envelope de 29–74 mbar apresentado foi levantado **todo em k-ω**.
+> Corrigido pelo fator RST, ele vai para **34–103 mbar**, e boa parte dele passa dos 40 mbar.
+> Isso **não** é achado novo — o §5.1 do relatório final já antecipava — mas agora há uma
+> medida independente sustentando, e a pergunta "qual cenário de gás é a carga de projeto"
+> deixa de ser acadêmica: ela decide se o ciclone atende ou não a especificação.
+>
+> Para o FEA isso é indiferente: 3 400 Pa contra 40 000 Pa de pressão de projeto do casco.
 
 ---
 
@@ -168,6 +173,25 @@ Os 3,75 % que escapam são a cauda fina em torno de 40–61 µm.
 > Este número **substitui** a extrapolação classe a classe da curva de grade: é a
 > granulometria medida, injetada inteira, sobre o campo CHT convergido.
 
+### ⚠️ Cuidado: truncar a residência INFLA a eficiência
+
+A rodada de verificação com `Maximum Residence Time = 2 s` deu **η = 99,75 %**. Esse número
+é **viesado e não deve ser usado**:
+
+```
+  2 s  →  escapou 0,25 %
+ 60 s  →  escapou 3,75 %
+```
+
+Em t = 1,0 s ainda há **1 159 de 1 194 parcelas ativas** — só 3 % saíram no primeiro segundo.
+Os 3,5 % extras que escapam entre 2 e 60 s são finos circulando no vórtice interno antes de
+achar o vortex finder, e isso é físico. **Truncar em 2 s não aumenta a eficiência: apaga a
+fuga.** A rodada de 2 s serve só para a verificação do mapa de erosão (§6.2).
+
+**η = 96,25 % pode ainda ser limite superior.** Aos 60 s as parcelas restantes foram
+encerradas por tempo, não por terem parado de escapar. Para saber se a fuga saturou, basta
+uma rodada a 120–150 s e ver se os 3,75 % crescem. É barato (campo congelado, uma iteração).
+
 ### Execução
 | | |
 |---|---|
@@ -192,10 +216,16 @@ As 1 050 parcelas presas geram impactos rasantes repetidos. Para material **dúc
 304L, o desgaste por corte tem máximo em ângulos de 20–30° — ou seja, **impactos rasantes não
 são desprezíveis** e podem inflar o mapa.
 
-**Verificação:** rodar de novo com `Maximum Residence Time = 2 s` (barato — campo congelado,
-uma iteração) e comparar os dois mapas.
+**Verificação:** a rodada com `Maximum Residence Time = 2 s` já foi executada (22 040 sub-steps).
+Falta **comparar as duas cenas de erosão**:
 - padrão igual, magnitude diferente → hot spots reais, usar o de 2 s como conservador
 - padrão diferente → o de 60 s está contaminado, vale o de 2 s
+
+> ⚠️ A rodada de 2 s vale **só** para isso. A eficiência dela (99,75 %) é viesada — ver §5.
+
+### 6.3 Modelo de turbulência
+Confirmado **k-ω** (27/09). Isso significa que o fator de correção RST **ainda não foi
+aplicado** a nenhum resultado deste projeto, e é o que abre a questão do ΔP em §2.
 
 ---
 
