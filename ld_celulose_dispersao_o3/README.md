@@ -5,7 +5,8 @@ para **delimitação de área de isolamento** e **posicionamento de sensores**.
 Cliente **LD Celulose** (via CAEXPERTS).
 
 > **Status (2026-09-28):** reunião de abertura realizada. Cronograma de 45 dias acordado.
-> Nenhum dado de fonte recebido ainda. Ver `03_pendencias_e_perguntas.md`.
+> **Lote 1 recebido (29/09):** manuais dos 4 ventiladores do prédio de O₃ + NR-15 Anexo 11.
+> Ver `04_dados_recebidos.md`. Vazão de fonte do off-gás e das PSVs ainda em aberto.
 
 ## Índice
 | Doc | Conteúdo |
@@ -13,6 +14,7 @@ Cliente **LD Celulose** (via CAEXPERTS).
 | [`01_escopo_e_criterios.md`](01_escopo_e_criterios.md) | O problema, os limiares de concentração e o cronograma |
 | [`02_metodo_e_analise_previa.md`](02_metodo_e_analise_previa.md) | Escolhas de modelagem + **a régua analítica feita antes de simular** |
 | [`03_pendencias_e_perguntas.md`](03_pendencias_e_perguntas.md) | O que falta do cliente + log datado de respostas |
+| [`04_dados_recebidos.md`](04_dados_recebidos.md) | **Dados recebidos**, o que foi extraído deles e o que ainda falta |
 
 ## Resumo em uma frase
 Mapear até onde e em que concentração o O₃ liberado pelo prédio de geração se dispersa pela
