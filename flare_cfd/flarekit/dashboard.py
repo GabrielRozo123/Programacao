@@ -52,7 +52,7 @@ class LiveDashboard:
         self.fig = Figure(figsize=(16, 9), dpi=dpi, facecolor=BG)
         FigureCanvasAgg(self.fig)
         gs = GridSpec(3, 5, figure=self.fig, left=0.045, right=0.985, top=0.865, bottom=0.07,
-                      hspace=0.45, wspace=0.42)
+                      hspace=0.45, wspace=0.5)
         self.ax_s = self.fig.add_subplot(gs[0:2, 0:3])
         self.ax_m = self.fig.add_subplot(gs[0:2, 3:5])
         self.ax_l = self.fig.add_subplot(gs[2, 0:2])
@@ -65,19 +65,23 @@ class LiveDashboard:
         ch = sc.cham if les.wind else sc.cham0
         self.ch = ch
 
-        # ---- corte vertical y = 0: temperatura + chama + frustum de Chamberlain
+        # ---- vista lateral: emissão luminosa integrada na linha de visada ("câmera sintética")
         ax = self.ax_s
-        _style(ax, "Temperatura no plano y = 0  ·  contorno Z̃ = Z_st (chama)")
-        T0 = les.slice_y0(les.fields()[0])
-        self.mesh = ax.pcolormesh(les.xf, les.zf, T0.T, cmap="inferno", vmin=290, vmax=1800, shading="flat",
+        _style(ax, "Vista lateral: emissão luminosa integrada na linha de visada  ·  envelope Z̃ = Z_st")
+        img0 = self._side_view(les.fields()[1])
+        self.lum_norm = mcolors.PowerNorm(0.45, vmin=0.0, vmax=1.0)
+        self.mesh = ax.pcolormesh(les.xf, les.zf, img0.T, cmap="inferno", norm=self.lum_norm, shading="flat",
                                   rasterized=True)
         cb = self.fig.colorbar(self.mesh, ax=ax, pad=0.01, fraction=0.035)
-        cb.set_label("T [K]", color=MUTED); cb.ax.tick_params(colors=MUTED, labelsize=8)
+        cb.set_label("luminosidade relativa", color=MUTED); cb.ax.tick_params(colors=MUTED, labelsize=8)
         cb.outline.set_edgecolor(GRID)
+        self.lum_cb = cb
         ax.add_patch(Rectangle((-0.6, 0), 1.2, les.tip[2], color="#5c6773", zorder=3))
         fr = frustum_outline_xz(ch, les.tip)
         ax.plot(fr[:, 0], fr[:, 1], ls="--", color=CHAM_C, lw=1.6, zorder=4, label="Chamberlain (1987)")
+        ax.plot([], [], color="#4dd0e1", lw=1.4, label="LES: envelope da chama")
         self.flame_c = None
+        self.vmax_hist = []
         ax.set_xlim(*view_x); ax.set_ylim(*view_z); ax.set_aspect("equal")
         ax.set_xlabel("x [m] (vento →)"); ax.set_ylabel("z [m]")
         ax.legend(loc="upper right", fontsize=9, facecolor=PANEL, edgecolor=GRID, labelcolor=FG)
@@ -152,6 +156,15 @@ class LiveDashboard:
         self.writer = None
         self.handle = None
 
+    def _side_view(self, e):
+        """Emissão luminosa integrada em y (vista lateral, sem reabsorção), em unidades de X_rad·Q por
+        área projetada; o painel mostra o valor relativo ao percentil 99,7 recente."""
+        les = self.les
+        tot = (e * les.vol).sum().clamp(min=1e-30)
+        scale = les.cfg.X_rad * les.Q / tot
+        col = (e * les.Dc[1]).sum(1) * scale / 1e3
+        return col.float().cpu().numpy()
+
     # ------------------------------------------------------------------ vídeo
     def start_video(self, path: str, fps: int = 24):
         self.writer = FFMpegWriter(fps=fps, bitrate=9000, codec="libx264",
@@ -167,14 +180,17 @@ class LiveDashboard:
             self.writer = None
 
     # --------------------------------------------------------------- quadro
-    def update(self, T, mask, q, averaging: bool, sub: str = ""):
+    def update(self, T, e, mask, q, averaging: bool, sub: str = ""):
         les, ch = self.les, self.ch
-        self.mesh.set_array(les.slice_y0(T).T.ravel())
+        img = self._side_view(e)
+        self.vmax_hist.append(float(np.percentile(img, 99.7)))
+        vmax = max(np.median(self.vmax_hist[-30:]), 1e-6)
+        self.mesh.set_array(np.clip(img / vmax, 0.0, 1.0).T.ravel())
         if self.flame_c is not None:
             self.flame_c.remove()
-        Zs = les.slice_y0(les.Z)
-        self.flame_c = self.ax_s.contour(les.xc, les.zc, Zs.T, levels=[les.Z_st], colors=["#4dd0e1"],
-                                         linewidths=1.6)
+        Zp = les.Z.max(1).values.float().cpu().numpy()
+        self.flame_c = self.ax_s.contour(les.xc, les.zc, Zp.T, levels=[les.Z_st], colors=["#4dd0e1"],
+                                         linewidths=1.4)
         qg = les.q_grid(q) / 1e3
         qm = les.q_grid(les.avg_q / les.avg_n) / 1e3 if les.avg_n > 0 else None
         show = qm if (averaging and qm is not None) else qg
@@ -260,7 +276,7 @@ def run_live(les, sc, title: str, t_end: float, t_avg: float, frame_dt: float = 
             if les.time >= next_frame:
                 averaging = les.time >= t_avg
                 T, e, mask, q = les.diagnostics(averaging)
-                dash.update(T, mask, q, averaging, sub)
+                dash.update(T, e, mask, q, averaging, sub)
                 next_frame += frame_dt
                 if log_every and len(les.history["t"]) % log_every == 0:
                     print(f"t = {les.time:6.2f} s · L = {les.history['L'][-1]:5.1f} m · "

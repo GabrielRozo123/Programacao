@@ -57,17 +57,17 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
 
     # temperatura média + chama média (intermitência 0,5) + Chamberlain
     ax = fig.add_subplot(gs[:, 0])
-    _style(ax, "Temperatura média e chama média (I = 0,5)")
-    Tm = les.slice_y0(les.avg_T / les.avg_n)
-    Im = les.slice_y0(les.avg_I / les.avg_n)
+    _style(ax, "Temperatura média (máx. em y) e chama média (I = 0,5)")
+    Tm = (les.avg_T / les.avg_n).max(1).values.float().cpu().numpy()
+    Im = (les.avg_I / les.avg_n).max(1).values.float().cpu().numpy()
     m = ax.pcolormesh(les.xf, les.zf, Tm.T, cmap="inferno", vmin=290, vmax=1500, shading="flat", rasterized=True)
     ax.contour(les.xc, les.zc, Im.T, levels=[0.5], colors=["#4dd0e1"], linewidths=2)
     fr = frustum_outline_xz(ch, les.tip)
     ax.plot(fr[:, 0], fr[:, 1], "--", color=CHAM_C, lw=1.8, label="Chamberlain (1987)")
-    ax.plot([], [], color="#4dd0e1", lw=2, label="LES (I = 0,5)")
+    ax.plot([], [], color="#4dd0e1", lw=2, label="LES: chama média (I = 0,5)")
     from matplotlib.patches import Rectangle
     ax.add_patch(Rectangle((-0.6, 0), 1.2, les.tip[2], color="#5c6773"))
-    ax.set_xlim(-20, 70); ax.set_ylim(0, 85); ax.set_aspect("equal")
+    ax.set_xlim(-15, 75); ax.set_ylim(0, 75); ax.set_aspect("equal")
     ax.set_xlabel("x [m]"); ax.set_ylabel("z [m]")
     ax.legend(fontsize=9, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper right")
     cb = fig.colorbar(m, ax=ax, fraction=0.04, pad=0.01)
