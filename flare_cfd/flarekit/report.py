@@ -150,6 +150,6 @@ def compose_video(main_mp4: str, summary_png: str, out_mp4: str, seconds: float 
            "-filter_complex",
            "[0:v]scale=1920:1080,setsar=1,fps=%d[a];[1:v]scale=1920:1080,setsar=1,fps=%d,format=yuv420p[b];"
            "[a][b]concat=n=2:v=1:a=0[v]" % (fps, fps),
-           "-map", "[v]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", out_mp4]
+           "-map", "[v]", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "17", "-preset", "slow", out_mp4]
     subprocess.run(cmd, check=True, capture_output=True)
     return out_mp4
