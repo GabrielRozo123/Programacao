@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flare CFD e Radiação</title>
+<style>
+/* Layout: relatório técnico em coluna única (~74ch) + sumário fixo à esquerda em telas largas. */
+:root{
+  --bg:#f2f4f6; --surface:#ffffff; --fg:#1a2129; --muted:#56616d; --rule:#d3d9df;
+  --accent:#0d5b75; --accent-soft:#e3eef2; --flame:#a8510c; --flame-soft:#f7ebe0;
+  --z1:#2f7d4f; --z2:#9a6a12; --z3:#b5521a; --z4:#b42318;
+  --code-bg:#eef1f4;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10151a; --surface:#172029; --fg:#e2e7ec; --muted:#9aa6b2; --rule:#2a3641;
+  --accent:#62b4cf; --accent-soft:#16303a; --flame:#f0a35e; --flame-soft:#33251a;
+  --z1:#6cc08f; --z2:#e0b24a; --z3:#f08a4b; --z4:#f2766b; --code-bg:#1d2832; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10151a; --surface:#172029; --fg:#e2e7ec; --muted:#9aa6b2; --rule:#2a3641;
+  --accent:#62b4cf; --accent-soft:#16303a; --flame:#f0a35e; --flame-soft:#33251a;
+  --z1:#6cc08f; --z2:#e0b24a; --z3:#f08a4b; --z4:#f2766b; --code-bg:#1d2832; color-scheme:dark}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr;gap:40px}
+@media (min-width:1100px){.wrap{grid-template-columns:250px minmax(0,1fr)}}
+nav.toc{display:none}
+@media (min-width:1100px){nav.toc{display:block;position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;padding-block:32px 0;font-family:var(--f-display);font-size:15px}}
+nav.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+nav.toc a{color:var(--muted);text-decoration:none}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--accent)}
+nav.toc .lbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--flame);margin-bottom:10px;display:block}
+main{min-width:0;max-width:78ch}
+header.hero{padding-block:40px 8px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+.eyebrow{font-family:var(--f-display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--flame);font-weight:600}
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;line-height:1.15;color:var(--fg)}
+h1{font-size:clamp(34px,5vw,50px);font-weight:600;margin:8px 0 12px}
+h2{font-size:30px;font-weight:600;margin:56px 0 10px;padding-top:10px;border-top:2px solid var(--fg)}
+h2 .n{color:var(--flame);margin-right:10px}
+h3{font-size:22px;font-weight:600;margin:34px 0 6px;color:var(--accent)}
+h4{font-size:17px;font-weight:600;margin:22px 0 4px;letter-spacing:.02em}
+p{margin:10px 0}
+.lede{font-size:19px;color:var(--muted);max-width:66ch}
+.meta{font-family:var(--f-display);font-size:14px;color:var(--muted);margin-top:14px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--flame);outline-offset:2px}
+code,kbd{font-family:var(--f-mono);font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:3px}
+pre.code{font-family:var(--f-mono);font-size:13.5px;line-height:1.5;background:var(--code-bg);padding:14px 16px;border-radius:4px;overflow-x:auto;white-space:pre}
+ul,ol{padding-left:1.3em}
+li{margin:4px 0}
+.box{background:var(--surface);border:1px solid var(--rule);border-left:4px solid var(--accent);padding:14px 18px;margin:18px 0;border-radius:2px}
+.box.flame{border-left-color:var(--flame);background:var(--flame-soft)}
+.box h4{margin-top:0}
+.tbl{overflow-x:auto;margin:16px 0;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+th{font-family:var(--f-display);font-weight:600;font-size:14px;letter-spacing:.03em;background:var(--accent-soft);color:var(--fg)}
+td.num,th.num{text-align:right;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.chip{display:inline-block;font-family:var(--f-display);font-weight:600;font-size:13px;padding:1px 8px;border-radius:10px;border:1.5px solid currentColor;white-space:nowrap}
+.c1{color:var(--z1)}.c2{color:var(--z2)}.c3{color:var(--z3)}.c4{color:var(--z4)}
+.math{overflow-x:auto;overflow-y:hidden;margin:8px 0;padding:2px 0}
+mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+.cite{font-family:var(--f-display);font-size:.82em;color:var(--muted);white-space:nowrap}
+.refs{font-size:15px;line-height:1.5}
+.refs li{margin:6px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:16px 0}
+.grid2>div{min-width:0;background:var(--surface);border:1px solid var(--rule);padding:12px 16px}
+.grid2 h4{margin-top:4px}
+pre.mermaid{background:var(--surface);border:1px solid var(--rule);padding:12px;overflow-x:auto}
+.small{font-size:14px;color:var(--muted)}
+ol.eqlist{padding-left:1.6em}
+ol.eqlist li{margin:10px 0}
+ol.eqlist .math{margin:2px 0}
+.ok{color:var(--z1);font-weight:600}.warn{color:var(--z3);font-weight:600}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<script>
+window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']],tags:'none'},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js" defer></script>
+
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="Sumário">
+  <span class="lbl">Sumário</span>
+  <ol>
+    <li><a href="#opiniao">0 · Minha opinião</a></li>
+    <li><a href="#perguntas">1 · Perguntas de segurança</a></li>
+    <li><a href="#industria">2 · Como a indústria faz</a></li>
+    <li><a href="#semi">3 · Álgebra: modelos semi-empíricos</a></li>
+    <li><a href="#cfd">4 · Álgebra: CFD reativo</a></li>
+    <li><a href="#efeitos">5 · Efeitos e critérios</a></li>
+    <li><a href="#exemplo">6 · Exemplo numérico</a></li>
+    <li><a href="#praticas">7 · Boas práticas de CFD</a></li>
+    <li><a href="#pinneapple">8 · PINNeAPPle</a></li>
+    <li><a href="#arquitetura">9 · Arquitetura do código</a></li>
+    <li><a href="#decisoes">10 · Decisões em aberto</a></li>
+    <li><a href="#refs">11 · Referências</a></li>
+  </ol>
+</nav>
+<main>
+<header class="hero">
+  <div class="eyebrow">Flare elevado · radiação térmica · CFD · Colab</div>
+  <h1>Flare CFD e Radiação</h1>
+  <p class="lede">Revisão das práticas da indústria, a álgebra completa dos modelos (do API 521 ao CFD com flamelet, DOM e fuligem), um exemplo numérico verificado e a proposta de código para o Google Colab, incluindo onde o PINNeAPPle entra e onde não entra.</p>
+  <p class="meta">Out/2026 · Equações com ponto decimal (como no código); texto e tabelas com vírgula · Exemplo numérico recalculado em Python a partir das próprias equações deste documento</p>
+</header>
+
+<section id="opiniao">
+<h2><span class="n">0</span>Minha opinião, em resumo</h2>
+<ul>
+  <li><strong>Dá para fazer, e vale a pena fazer em camadas.</strong> Para radiação, a indústria quase nunca começa pelo CFD. Ela começa pelo API 521 (fonte pontual) e pelo modelo de chama sólida de Chamberlain (Shell), que roda em milissegundos e foi validado em escala real. O CFD entra para layout complexo, flares de solo ou multi-tip, flares assistidos (vapor/ar), interação com estruturas, pluma quente e eficiência de combustão sob vento.</li>
+  <li><strong>O código que proponho tem 4 níveis que se verificam entre si:</strong> (A) API 521 + Chamberlain + multi-ponto; (B) modelo integral de jato/chama em vento cruzado; (C) CFD RANS axissimétrico próprio com <em>k</em>–ε corrigido, fração de mistura com β-PDF/flamelet, radiação (P1 ou ordenadas discretas) e fuligem, validado na Sandia Flame D; (D) 3D com vento via LES (FDS ou OpenFOAM rodando no Colab). Tudo isso alimenta um pós-processamento único de segurança: zonas do API 521, dose térmica, probits e temperatura de equipamentos.</li>
+  <li><strong>Sobre o PINNeAPPle:</strong> o pacote (v0.6.2) é bom para PINNs, operadores neurais, incerteza (UQ), problemas inversos e gêmeos digitais. Ele já tem resíduos de <em>k</em>–ω SST, Spalart–Allmaras e WALE, além de leitores de CGNS/CSV do STAR-CCM+. <strong>Não tem</strong> combustão (fração de mistura, flamelet), equação de transferência radiativa (RTE) nem fuligem. Usar PINN como solver direto de um flare turbulento reativo em 3D seria pesquisa de fronteira, com custo e risco maiores que os do volume finito. O uso que realmente agrega é este: (1) PINN da RTE sobre o campo de chama já calculado; (2) surrogate paramétrico (vazão, vento, gás) → mapa de radiação em tempo real, com UQ; (3) calibração inversa com radiômetros.</li>
+  <li><strong>Como você usa STAR-CCM+ no trabalho:</strong> o caminho profissional é fazer o CFD de alta fidelidade no STAR-CCM+ (receita na seção 7) e usar o Colab para triagem, verificação cruzada e surrogate. O <code>starccm_reader</code> do PINNeAPPle lê os seus exports.</li>
+  <li><strong>Verificação já feita aqui:</strong> num flare de propano de 584 MW, três correlações independentes de comprimento de chama deram 50,1 / 51,0 / 54,4 m. A fonte pontual (F = 0,3) e o Chamberlain diferem cerca de 20% no fluxo no solo. A altura exigida para 6,31 kW/m² no solo ficou entre 26 m (Chamberlain) e 30 m (fonte pontual). Também achei dois erros de digitação numa implementação aberta do Chamberlain, que a checagem de continuidade pega (seção 3.7).</li>
+</ul>
+</section>
+
+<section id="perguntas">
+<h2><span class="n">1</span>Que perguntas de segurança a simulação responde</h2>
+<p>Antes de escolher o modelo, vale fixar a pergunta. Radiação é a principal, mas não é a única. A tabela liga cada perigo à métrica, ao critério usual e ao modelo mínimo que responde a ela.</p>
+<div class="tbl"><table>
+<thead><tr><th>Perigo</th><th>Métrica</th><th>Critério típico</th><th>Modelo mínimo</th></tr></thead>
+<tbody>
+<tr><td>Radiação em pessoas (solo, plataformas, escadas)</td><td>Fluxo incidente \(q''\) [kW/m²]; dose [TDU]</td><td>API 521: <span class="chip c1">1,58</span> <span class="chip c2">4,73</span> <span class="chip c3">6,31</span> <span class="chip c4">9,46</span> kW/m²; probits</td><td>Fonte pontual → Chamberlain → CFD</td></tr>
+<tr><td>Radiação em equipamentos, cabos, instrumentos</td><td>Fluxo absorvido; temperatura de superfície</td><td>Limites de material (tinta, cabos, vedações); 9,46 kW/m² em áreas com acesso</td><td>Chamberlain/CFD + balanço de energia na superfície</td></tr>
+<tr><td>Chama tocando estruturas (<em>impingement</em>)</td><td>Posição e forma da chama sob vento</td><td>Sem contato com torre, boom ou derrick</td><td>Integral / CFD</td></tr>
+<tr><td>Pluma quente (helideck, torres vizinhas)</td><td>Elevação de temperatura sobre o ambiente</td><td>Offshore, CAP 437: +2 °C no helideck</td><td>CFD</td></tr>
+<tr><td>Apagamento da chama (<em>flame-out</em>), gás não queimado</td><td>Concentração vs. LFL, H<sub>2</sub>S, SO<sub>2</sub></td><td>½ LFL; limites toxicológicos (IDLH/AEGL/ERPG)</td><td>Dispersão gaussiana / CFD sem combustão</td></tr>
+<tr><td>Eficiência de combustão (CE/DRE), fumaça</td><td>CE, DRE, fuligem</td><td>EPA 40 CFR 63.670: NHV<sub>cz</sub> ≥ 270 Btu/scf; limites de velocidade no tip</td><td>Correlações; CFD com química finita (EDC/FPV) ou LES</td></tr>
+<tr><td>Chuva de líquido em chamas</td><td>Arraste de líquido (<em>carryover</em>)</td><td>Vaso separador (KO drum) bem dimensionado</td><td>Lagrangiano</td></tr>
+</tbody></table></div>
+<p class="small">O ruído também é critério de projeto, mas fica fora deste escopo.</p>
+</section>
+
+<section id="industria">
+<h2><span class="n">2</span>Como a indústria simula flares</h2>
+<p>A prática segue uma hierarquia de modelos. Cada degrau custa ordens de grandeza a mais e só se justifica quando o anterior não responde à pergunta.</p>
+<div class="tbl"><table>
+<thead><tr><th>Nível</th><th>Método</th><th>Custo</th><th>Uso típico</th><th>Limitação principal</th></tr></thead>
+<tbody>
+<tr><td>N0</td><td>API 521 simples: fonte pontual (Hajek &amp; Ludwig 1960), fração radiada F tabelada, distorção da chama por gráfico</td><td>segundos</td><td>Dimensionar altura e distâncias na fase conceitual</td><td>Ignora a forma da chama; conservador perto do flare</td></tr>
+<tr><td>N1</td><td>Chama sólida: Chamberlain (1987) para flares verticais; Johnson et al. (1994) para jatos horizontais; multi-ponto (McMurray 1982; Hankinson &amp; Lowesmith 2012); Brzustowski &amp; Sommer (1973)</td><td>segundos</td><td>Projeto detalhado, QRA (Phast, Flaresim e similares implementam variantes)</td><td>Correlacionado sobretudo com gás natural; extrapolar para gases pesados ou ricos em H<sub>2</sub> exige cuidado (Miller 2017)</td></tr>
+<tr><td>N2</td><td>Modelos integrais de jato/chama com empuxo e vento (Houf &amp; Schefer 2008; Ekoto et al. 2014, código aberto HyRAM+)</td><td>&lt; 1 s</td><td>Trajetória física em vento; multi-fonte ao longo do eixo</td><td>Unidimensional; sem obstáculos</td></tr>
+<tr><td>N3</td><td>CFD RANS: <em>k</em>–ε/SST + flamelet/FGM ou EDC + DOM/WSGG + fuligem</td><td>horas a dias</td><td>Layout, obstruções, flares de solo e multi-tip, flares assistidos, pluma quente</td><td>Calibração de fuligem e X<sub>rad</sub>; regime instável sob vento</td></tr>
+<tr><td>N4</td><td>LES/DES com química tabelada ou EDC</td><td>dias a semanas em HPC</td><td>Eficiência de combustão em vento, instabilidade, VVUQ (Jatale et al. 2016)</td><td>Custo</td></tr>
+</tbody></table></div>
+<div class="box">
+<h4>O que a literatura de CFD de flares mostra</h4>
+<ul>
+<li><strong>Fabricantes (John Zink, Zeeco) calibram o CFD contra testes em escala real.</strong> Smith &amp; Suo-Anttila (2007, Zeeco/ISIS-3D) concluíram que a radiação foi a grandeza mais sensível a erros do modelo e a melhor validação global.</li>
+<li><strong>Escola de Lamar University (Lou, Chen, Li e colaboradores):</strong> Fluent com EDC e mecanismos reduzidos (C1–C4, etileno), validado contra o TCEQ 2010 Flare Study. O erro médio absoluto ficou em torno de 3% em CE e 4,5% em DRE quando NHV &gt; ~300 Btu/scf (Singh et al. 2014; Damodara et al. 2017). O mesmo grupo modela fuligem (Wang et al. 2016).</li>
+<li><strong>Castiñeira &amp; Edgar (2006, 2008):</strong> primeiros estudos sistemáticos de flares assistidos a vapor e a ar, e do efeito do vento cruzado na eficiência.</li>
+<li><strong>University of Utah (Jatale et al. 2016):</strong> LES (código Arches) com VVUQ formal. A LES resolve a mistura combustível–ar arrastado que governa a eficiência, com incerteza inferior a 1% de CE.</li>
+<li><strong>Estado atual (Wang et al. 2024, <em>Atmosphere</em>):</strong> flares upstream em escala real com <em>k</em>–ω SST + FGM no Fluent, comparados a medições de CE.</li>
+<li><strong>Física do vento:</strong> Johnson &amp; Kostiuk (2000, 2002) mostraram que a ineficiência de flares de baixo momento cresce exponencialmente com \(U_\infty/(gV_j)^{1/3}\). Em campo, flares ineficientes ou apagados emitem muito metano (Plant et al. 2022, <em>Science</em>).</li>
+</ul>
+</div>
+<p><strong>Normas:</strong> API Std 521 (7ª ed., 2020; equivalente à ISO 23251) é a referência de projeto e radiação. Para efeitos em pessoas e QRA: TNO Yellow Book (CPR 14E) e Green Book (CPR 16E), CCPS QRA Guidelines e relatórios do HSE (Reino Unido). Para eficiência e emissões: EPA 40 CFR 63.670 (refinarias) e 40 CFR 60.18.</p>
+</section>
+
+<section id="semi">
+<h2><span class="n">3</span>Álgebra: modelos semi-empíricos (níveis N0–N2)</h2>
+
+<h3>3.1 Condições na saída do tip</h3>
+<p>Todo modelo começa no tip. Para gás ideal a jusante da saída, na pressão ambiente \(P_a\):</p>
+<div class="math">\[
+\rho_j=\frac{P_a M}{R_u T_j},\qquad c_j=\sqrt{\frac{\gamma R_u T_j}{M}},\qquad u_j=\mathrm{Ma}\,c_j,\qquad d_j=\sqrt{\frac{4\dot m}{\pi\rho_j u_j}},\qquad Q=\dot m\,\mathrm{PCI}
+\]</div>
+<p>Em flares de tubo (<em>pipe flares</em>), o API 521 trabalha tipicamente com Ma ≈ 0,5 para picos de curta duração e Ma ≈ 0,2 para vazões frequentes. Flares sônicos operam com escoamento bloqueado. Nesse caso, o critério e as condições na garganta são:</p>
+<div class="math">\[
+\frac{P_0}{P_a}\gt\left(\frac{\gamma+1}{2}\right)^{\frac{\gamma}{\gamma-1}},\qquad
+T_t=\frac{2T_0}{\gamma+1},\qquad P_t=P_0\left(\frac{2}{\gamma+1}\right)^{\frac{\gamma}{\gamma-1}},\qquad
+\dot m=C_dA_tP_0\sqrt{\frac{\gamma M}{R_uT_0}}\left(\frac{2}{\gamma+1}\right)^{\frac{\gamma+1}{2(\gamma-1)}}
+\]</div>
+<h4>Bocal fictício (<em>notional nozzle</em>): dedução</h4>
+<p>O jato sub-expandido tem uma estrutura de choques que não queremos resolver no modelo de chama nem no CFD low-Mach. Tome um volume de controle entre a garganta (pressão \(P_t\gt P_a\)) e o plano onde a pressão já relaxou para \(P_a\), desprezando arrastamento e cisalhamento nas fronteiras laterais:</p>
+<div class="math">\[
+\begin{aligned}
+\text{massa:}\quad &amp; \dot m=\rho_tu_tA_t=\rho_eu_eA_e\\
+\text{quantidade de movimento:}\quad &amp; \dot m\,u_e-\dot m\,u_t=(P_t-P_a)A_t\;\;\Rightarrow\;\; u_e=u_t+\frac{P_t-P_a}{\rho_tu_t}\\
+\text{energia:}\quad &amp; c_pT_0=c_pT_e+\tfrac12u_e^2\;\;\Rightarrow\;\; T_e=T_0-\frac{u_e^2}{2c_p}\\
+\text{estado:}\quad &amp; \rho_e=\frac{P_aM}{R_uT_e},\qquad A_e=\frac{\dot m}{\rho_eu_e}
+\end{aligned}
+\]</div>
+<p>A equação de energia supõe expansão adiabática. É a família de modelos de Birch et al. (1984, 1987) e Yüceil &amp; Ötügen (2002), a mesma usada no HyRAM+. A partir daqui, \(u_j\) e \(d_j\) significam o estado expandido \((u_e,d_e)\). O diâmetro efetivo de Thring–Newby, que aparece em todas as correlações, é:</p>
+<div class="math">\[
+d^*=d_j\left(\frac{\rho_j}{\rho_\infty}\right)^{1/2}=\sqrt{\frac{4\dot m}{\pi\rho_\infty u_j}}\qquad(\text{Chamberlain chama de }D_s)
+\]</div>
+
+<h3>3.2 Estequiometria e fração de mistura</h3>
+<p>Para \(\mathrm{C}_x\mathrm{H}_y\mathrm{O}_z\) queimando em ar (21% O<sub>2</sub> e 79% N<sub>2</sub> em volume, ou seja, 3,76 mol de N<sub>2</sub> por mol de O<sub>2</sub>):</p>
+<div class="math">\[
+\mathrm{C}_x\mathrm{H}_y\mathrm{O}_z+a\,(\mathrm{O_2}+3.76\,\mathrm{N_2})\rightarrow x\,\mathrm{CO_2}+\tfrac{y}{2}\,\mathrm{H_2O}+3.76\,a\,\mathrm{N_2},\qquad a=x+\frac{y}{4}-\frac{z}{2}
+\]</div>
+<p>A razão mássica ar/combustível estequiométrica e a fração de mistura estequiométrica (correntes de combustível puro e de ar) ficam:</p>
+<div class="math">\[
+s=\frac{a\,(M_{O_2}+3.76M_{N_2})}{M_F}=\frac{137.3\,a}{M_F\,[\mathrm{g/mol}]},\qquad Z_{st}=\frac{1}{1+s}
+\]</div>
+<p>Para mistura de gases \(i\) com frações molares \(x_i\) (inertes contam só no denominador): \(s=137.3\,\sum_i x_i a_i\big/\sum_i x_iM_i\). Exemplos: metano \(Z_{st}=0.055\); propano \(s=15.57\), \(Z_{st}=0.0603\).</p>
+<p>A fração de mistura de Bilger (1988), conservada (sem termo fonte) e baseada em elementos, é:</p>
+<div class="math">\[
+Z=\frac{\beta-\beta_{ox}}{\beta_{F}-\beta_{ox}},\qquad \beta=2\frac{Y_C}{M_C}+\frac{Y_H}{2M_H}-2\frac{Y_O}{M_O}
+\]</div>
+<h4>Limite de química infinitamente rápida (Burke–Schumann)</h4>
+<p>Com Lewis unitário e calor específico constante, as variáveis de estado viram funções lineares por partes de \(Z\). Com \(Y_{F,1}\) a fração de combustível na corrente 1 e \(Y_{O_2,2}=0.233\) no ar:</p>
+<div class="math">\[
+Y_F=\begin{cases}0 &amp; Z\le Z_{st}\\[2pt] Y_{F,1}\dfrac{Z-Z_{st}}{1-Z_{st}} &amp; Z\gt Z_{st}\end{cases}\qquad
+Y_{O_2}=\begin{cases}Y_{O_2,2}\left(1-\dfrac{Z}{Z_{st}}\right) &amp; Z\le Z_{st}\\[2pt] 0 &amp; Z\gt Z_{st}\end{cases}
+\]</div>
+<div class="math">\[
+T(Z)=T_2+Z\,(T_1-T_2)+\frac{\mathrm{PCI}\,Y_{F,1}}{c_p}\begin{cases}Z &amp; Z\le Z_{st}\\[2pt] Z_{st}\dfrac{1-Z}{1-Z_{st}} &amp; Z\gt Z_{st}\end{cases}
+\]</div>
+<p>No código, \(T(Z)\), \(\rho(Z)\) e as frações das espécies saem de equilíbrio químico (Cantera) ou de tabelas de flamelet (seção 4.3). Para propano/ar, \(T_{ad}\approx2267\) K.</p>
+
+<h3>3.3 Comprimento de chama e regime (momento vs. empuxo)</h3>
+<h4>Correlação de Delichatsios (1993) / Schefer et al. (2006)</h4>
+<p>O número de Froude da chama compara a quantidade de movimento do jato com o empuxo na escala da chama:</p>
+<div class="math">\[
+Fr_f=\frac{u_j\,Z_{st}^{3/2}}{\left(\rho_j/\rho_\infty\right)^{1/4}\left[\dfrac{T_{ad}-T_\infty}{T_\infty}\,g\,d_j\right]^{1/2}},\qquad
+L^*\equiv\frac{L\,Z_{st}}{d^*}=\begin{cases}\dfrac{13.5\,Fr_f^{2/5}}{\left(1+0.07\,Fr_f^{2}\right)^{1/5}} &amp; Fr_f\lt5\quad(\text{empuxo})\\[6pt] 23 &amp; Fr_f\ge5\quad(\text{momento})\end{cases}
+\]</div>
+<p>No regime de momento, \(L/d^*\approx23/Z_{st}\approx380\) para propano, independente da vazão. No regime de empuxo, \(L\) cresce com \(\dot m^{2/5}\).</p>
+<h4>Curva do API 521 (ajuste de Beychok)</h4>
+<p>O API 521 apresenta \(L\) vs. \(Q\) em gráfico. O ajuste de Beychok, \(L[\mathrm{ft}]=0.0059\,Q[\mathrm{Btu/h}]^{0.478}\), convertido para SI fica:</p>
+<div class="math">\[
+L[\mathrm{m}]=0.0059\times0.3048\times\left(3.4121\,Q[\mathrm{W}]\right)^{0.478}=0.00323\;Q[\mathrm{W}]^{0.478}
+\]</div>
+<h4>Kalghatgi (1983–84), usada por Chamberlain</h4>
+<p>Em ar parado, com \(Y=L_{b0}/D_s\) e \(W\) = fração mássica de combustível na mistura estequiométrica:</p>
+<div class="math">\[
+C_a\,Y^{5/3}+C_b\,Y^{2/3}-C_c=0,\qquad C_a=0.024\left(\frac{gD_s}{u_j^2}\right)^{1/3},\quad C_b=0.2,\quad C_c=\left(\frac{2.85}{W}\right)^{2/3},\qquad W\approx\frac{M}{15.816M+0.0395}\;(M\text{ em kg/mol})
+\]</div>
+<div class="box flame"><h4>Checagem cruzada (propano, 584 MW, seção 6)</h4>
+<p>Três correlações independentes: API/Beychok <strong>50,1 m</strong>, Delichatsios/Schefer <strong>51,0 m</strong> (\(Fr_f\approx0.4\), \(L^*\approx9.5\)), Kalghatgi/Chamberlain <strong>54,4 m</strong>. Note que \(Fr_f\approx0.4\): <strong>a chama de um flare grande é dominada por empuxo em quase todo o comprimento</strong>, mesmo com 129 m/s no tip. Por isso o vento a inclina tanto.</p></div>
+
+<h3>3.4 Fração da energia irradiada (F, X<sub>rad</sub>)</h3>
+<div class="math">\[
+X_{rad}\equiv F=\frac{\dot Q_{rad}}{\dot m\,\mathrm{PCI}}
+\]</div>
+<ul>
+<li><strong>API 521</strong> tabela F por gás e diâmetro de queimador. As faixas típicas são H<sub>2</sub> ≈ 0,10–0,16, metano/gás natural ≈ 0,10–0,23 e C<sub>3</sub>/C<sub>4</sub> ≈ 0,21–0,30. Para projeto usa-se frequentemente 0,2–0,3, e mais para gases pesados ou fuliginosos.</li>
+<li><strong>Chamberlain (1987)</strong>, ajustado a dados de campo de gás natural: \(F_s=0.21\,e^{-0.00323\,u_j}+0.11\), com \(u_j\) em m/s. Jatos rápidos irradiam menos porque o tempo de residência é menor e a mistura é mais rápida, o que reduz a fuligem.</li>
+<li><strong>Turns &amp; Myhr (1991) e Molina, Schefer &amp; Houf (2007):</strong> correlação física pelo tempo de residência global, como no HyRAM+.</li>
+</ul>
+<p><strong>Dedução de \(\tau_G\).</strong> Aproxime a chama por um cone de comprimento \(L\) e largura \(W_f\approx0.17L\). Seu volume é \(V_f=\frac{\pi}{12}W_f^2L\). A vazão que atravessa a chama é combustível mais ar estequiométrico, \(\dot m/Z_{st}\). Então:</p>
+<div class="math">\[
+\tau_G=\frac{\rho_fV_f}{\dot m/Z_{st}}=\frac{\pi}{12}\frac{\rho_fW_f^2L\,Z_{st}}{\dot m}
+\;\overset{\dot m=\rho_ju_j\pi d_j^2/4}{=}\;\frac{\rho_fW_f^2L\,Z_{st}}{3\rho_jd_j^2u_j},\qquad
+X_{rad}=9.45\times10^{-9}\left(\tau_G\,a_p\,T_{ad}^4\right)^{0.47}
+\]</div>
+<p>Aqui \(\tau_G\) está em ms, \(a_p\) é o coeficiente médio de Planck dos produtos estequiométricos [m<sup>−1</sup>] e \(T_{ad}\) está em K. O produto \(\tau_Ga_pT^4\) mede a energia emitida por radiação de gás opticamente fino durante a residência. Para gases fuliginosos (C<sub>2+</sub>, olefinas), a fuligem soma-se a \(a_p\) e eleva \(X_{rad}\).</p>
+
+<h3>3.5 Fonte pontual (Hajek &amp; Ludwig; API 521) e altura do flare</h3>
+<p>Suponha que a fração \(F\) de \(Q\) seja emitida isotropicamente a partir do centro da chama. Pela conservação de energia numa esfera de raio \(D\), atenuada pela transmissividade atmosférica \(\tau\):</p>
+<div class="math">\[
+q''(D)=\frac{\tau\,F\,Q}{4\pi D^2}
+\]</div>
+<p>Vale para um receptor normal à linha de visada. Para uma normal arbitrária, multiplique por \(\cos\beta\).</p>
+<p><strong>Ponto mais exposto no solo.</strong> Com o centro da chama em \((x_c,z_c)\), o fluxo no solo é \(q''(x)=\tau FQ/[4\pi((x-x_c)^2+z_c^2)]\), máximo em \(x=x_c\). Impondo \(q''_{max}=q''_{adm}\):</p>
+<div class="math">\[
+z_c=\sqrt{\frac{\tau FQ}{4\pi q''_{adm}}},\qquad H=z_c-\Delta z_c
+\]</div>
+<p>onde \(\Delta z_c\) é a altura do centro da chama acima do tip. Para um receptor a uma distância \(R\) do pé da chaminé, com deslocamento horizontal \(\Delta x_c\) do centro devido ao vento:</p>
+<div class="math">\[
+D^2=(R-\Delta x_c)^2+(H+\Delta z_c)^2\;\Rightarrow\;H=\sqrt{\frac{\tau FQ}{4\pi q''_{adm}}-(R-\Delta x_c)^2}-\Delta z_c
+\]</div>
+<p>No API 521 clássico, \(\Delta x_c=\tfrac12\Sigma\Delta x\) e \(\Delta z_c=\tfrac12\Sigma\Delta y\) vêm de um gráfico de distorção da chama em função de \(U_\infty/u_j\). No código proponho tirar o centro da geometria de Chamberlain ou da trajetória do modelo integral, e manter o gráfico digitalizado como opção se você tiver acesso à norma.</p>
+
+<h3>3.6 Fontes múltiplas ao longo do eixo</h3>
+<p>Distribuindo a potência irradiada em \(N\) pontos ao longo do eixo da chama (McMurray 1982):</p>
+<div class="math">\[
+q''(\mathbf x_r)=\sum_{i=1}^{N}w_i\,\frac{\tau_i\,X_{rad}\,Q\,\cos\beta_i}{4\pi\,\lVert\mathbf x_i-\mathbf x_r\rVert^2},\qquad\sum_iw_i=1
+\]</div>
+<p>McMurray usa \(w_i=1/N\). Hankinson &amp; Lowesmith (2012), também no HyRAM+, usam pesos lineares que crescem até \(n=0.75N\) e decaem até a ponta: \(w_j\propto j\) para \(j\le n\) e \(w_j\propto n-\frac{n-1}{N-n-1}(j-n-1)\) para \(j\gt n\). Isso reproduz melhor o fluxo perto da chama.</p>
+
+<h3>3.7 Modelo de chama sólida de Chamberlain (Shell, 1987)</h3>
+<p>A chama é um tronco de cone (<em>frustum</em>) que emite uniformemente com potência emissiva superficial SEP. Com \(u_w\) o vento na altura do tip, \(\theta_{jv}\) o ângulo do tip com a horizontal no sentido do vento (90° = vertical), \(R=u_w/u_j\) e ângulos em graus:</p>
+<ol class="eqlist">
+<li><strong>Diâmetro efetivo e Richardson:</strong> <div class="math">\[D_s=\sqrt{\frac{4\dot m}{\pi\rho_\infty u_j}},\qquad Ri(\ell)=\left(\frac{g}{D_s^2u_j^2}\right)^{1/3}\ell\]</div></li>
+<li><strong>Comprimento em ar parado:</strong> \(L_{b0}=Y D_s\), com \(Y\) da equação de Kalghatgi (seção 3.3).</li>
+<li><strong>Comprimento com vento:</strong> <div class="math">\[L_b=L_{b0}\left(0.51\,e^{-0.4u_w}+0.49\right)\left[1-6.07\times10^{-3}(\theta_{jv}-90)\right]\]</div></li>
+<li><strong>Inclinação:</strong> <div class="math">\[\alpha=(\theta_{jv}-90)\left(1-e^{-25.6R}\right)+\begin{cases}\dfrac{8000\,R}{Ri(L_{b0})} &amp; R\le0.05\\[8pt]\dfrac{134+1726\sqrt{R-0.026}}{Ri(L_{b0})} &amp; R\gt0.05\end{cases}\]</div></li>
+<li><strong>Descolamento (<em>lift-off</em>):</strong> <div class="math">\[b=L_b\frac{\sin(K\alpha)}{\sin\alpha},\qquad K=0.185\,e^{-20R}+0.015\]</div></li>
+<li><strong>Comprimento do frustum:</strong> <div class="math">\[R_l=\sqrt{L_b^2-b^2\sin^2\alpha}-b\cos\alpha\]</div></li>
+<li><strong>Largura da base:</strong> <div class="math">\[W_1=D_s\left(13.5\,e^{-6R}+1.5\right)\left[1-\left(1-\tfrac{1}{15}\sqrt{\rho_\infty/\rho_j}\right)e^{-70\,Ri(D_s)\,C'R}\right],\qquad C'=1000\,e^{-100R}+0.8\]</div></li>
+<li><strong>Largura do topo:</strong> <div class="math">\[W_2=L_b\left(0.18\,e^{-1.5R}+0.31\right)\left(1-0.47\,e^{-25R}\right)\]</div></li>
+<li><strong>Área (laterais + discos):</strong> <div class="math">\[A=\frac{\pi}{4}\left(W_1^2+W_2^2\right)+\frac{\pi}{2}(W_1+W_2)\sqrt{R_l^2+\left(\frac{W_2-W_1}{2}\right)^2}\]</div></li>
+<li><strong>Emissão e fluxo recebido:</strong> <div class="math">\[F_s=0.21\,e^{-0.00323u_j}+0.11,\qquad \mathrm{SEP}=\frac{F_s\,Q}{A},\qquad q''=\mathrm{SEP}\cdot F_{view}\cdot\tau\]</div></li>
+</ol>
+<p>A equação (6) sai da lei dos cossenos no triângulo formado pelo tip, pelo centro da base do frustum (a uma distância \(b\) ao longo do eixo do tip) e pela ponta da chama (a uma distância \(L_b\)): \(L_b^2=b^2+R_l^2+2bR_l\cos\alpha\). Resolver para \(R_l&gt;0\) dá (6).</p>
+<div class="box flame"><h4>Duas checagens algébricas que pegam erros de digitação</h4>
+<ul>
+<li><strong>Continuidade em \(R=0.05\):</strong> \(8000\times0.05=400\) e \(134+1726\sqrt{0.024}=401.4\). Os ramos se encontram, logo os coeficientes corretos são 134 e 1726. Uma implementação aberta em MATLAB (fireSIM) usa 1,334 e 1,726, o que gera um salto de 100× na inclinação.</li>
+<li><strong>Sem vento:</strong> \(K(0)=0.185+0.015=0.2\), coerente com o \(b=0.2L_b\) usado no limite \(\alpha\to0\). A mesma implementação usa 0,187, o que quebra essa identidade.</li>
+</ul>
+<p>Por isso o código terá testes unitários para essas identidades.</p></div>
+
+<h3>3.8 Fator de vista: forma vetorial (útil no código)</h3>
+<p>Para um elemento receptor \(dA_r\) com normal \(\hat n_r\) e uma superfície emissora difusa \(A_f\):</p>
+<div class="math">\[
+F_{dA_r\to A_f}=\int_{A_f}\frac{\cos\beta_r\cos\beta_f}{\pi r^2}\,dA_f,\qquad \hat e=\frac{\mathbf x_f-\mathbf x_r}{r},\quad \cos\beta_r=\hat n_r\cdot\hat e,\quad\cos\beta_f=-\hat n_f\cdot\hat e
+\]</div>
+<p>Como \(\hat n_r\) é constante na integral, ele sai para fora dela:</p>
+<div class="math">\[
+F=\hat n_r\cdot\mathbf V,\qquad \mathbf V\equiv\int_{A_f,\;\cos\beta_f\gt0}\frac{\cos\beta_f}{\pi r^2}\,\hat e\,dA_f,\qquad F_{max}=\lVert\mathbf V\rVert\;\text{ com }\;\hat n_r^{*}=\frac{\mathbf V}{\lVert\mathbf V\rVert}
+\]</div>
+<p>Discretizando o frustum em painéis, um único vetor \(\mathbf V\) por receptor dá o fluxo para qualquer orientação: horizontal, vertical ou a pior orientação, que é a que o API usa. A expressão vale enquanto todo o lado visível da chama estiver acima do plano do receptor (\(\cos\beta_r\gt0\)).</p>
+
+<h3>3.9 Transmissividade atmosférica</h3>
+<p>O vapor d'água e o CO<sub>2</sub> do ar absorvem parte da radiação no caminho \(X\) [m]. Duas formulações:</p>
+<div class="math">\[
+\text{Bagster \&amp; Pittblado (1989):}\quad \tau=2.02\,(p_wX)^{-0.09},\qquad p_w=\mathrm{UR}\;p_{sat}(T),\qquad p_{sat}=\exp\!\left(23.18986-\frac{3816.42}{T-46.13}\right)\;[\mathrm{Pa}]
+\]</div>
+<div class="math">\[
+\text{Wayne (1991):}\quad \tau=1.006-0.01171\log X_{H_2O}-0.02368\log^2X_{H_2O}-0.03188\log X_{CO_2}+0.001164\log^2X_{CO_2}
+\]</div>
+<p>com \(\log=\log_{10}\), \(X_{H_2O}=\mathrm{UR}\cdot X\cdot p_{sat}[\mathrm{mmHg}]\cdot288.651/T\) e \(X_{CO_2}=X\cdot273/T\) (para 335 ppm). A 50 m, com 25 °C e 50% de UR, as duas dão 0,733 e 0,743. O API 521 permite \(\tau=1\), o que é conservador.</p>
+
+<h3>3.10 Modelo integral de jato/chama em vento cruzado</h3>
+<p>Ao longo da coordenada curvilínea \(s\) do eixo, com ângulo \(\theta\) em relação à horizontal, raio \(b\), velocidade \(u\) e perfis tipo cartola (<em>top-hat</em>) para clareza:</p>
+<div class="math">\[
+\begin{aligned}
+\frac{d}{ds}\left(\rho ub^2\right)&amp;=2b\rho_\infty E &amp;&amp;\text{(massa, com arrastamento } E)\\
+\frac{d}{ds}\left(\rho u^2b^2\cos\theta\right)&amp;=2b\rho_\infty E\,U_\infty &amp;&amp;\text{(momento horizontal ganho do vento)}\\
+\frac{d}{ds}\left(\rho u^2b^2\sin\theta\right)&amp;=(\rho_\infty-\rho)\,g\,b^2 &amp;&amp;\text{(empuxo)}\\
+\frac{d}{ds}\left(\rho ub^2Z\right)&amp;=0 &amp;&amp;(Z\text{ conservado})\\
+\frac{dx}{ds}=\cos\theta,\quad\frac{dz}{ds}&amp;=\sin\theta,\qquad E=\alpha_1\lvert u-U_\infty\cos\theta\rvert+\alpha_2U_\infty\lvert\sin\theta\rvert
+\end{aligned}
+\]</div>
+<p>O sistema fecha com \(\rho=\rho(Z)\) e \(T=T(Z)\) da seção 3.2, ou de uma tabela de flamelet. Os coeficientes típicos são \(\alpha_1\approx0.06\)–\(0.08\) (jato) e \(\alpha_2\approx0.5\)–\(0.6\) (escoamento cruzado) (Hoult, Fay &amp; Forney 1969; Morton, Taylor &amp; Turner 1956). A ponta visível é o ponto onde \(Z\) no eixo cai para \(Z_{st}\). A versão com perfis gaussianos e arrastamento por momento mais empuxo, calibrada para chamas (Houf &amp; Schefer 2008; Ekoto et al. 2014), está no HyRAM+ e será a base do módulo integral. Com 4 EDOs, o caso roda em milissegundos e dá a trajetória física onde colocar as fontes da seção 3.6.</p>
+</section>
+
+<section id="cfd">
+<h2><span class="n">4</span>Álgebra: CFD reativo (níveis N3–N4)</h2>
+
+<h3>4.1 Escalas: por que não é DNS, e a formulação low-Mach</h3>
+<p>No exemplo da seção 6, \(Re_{tip}=\rho_ju_jd_j/\mu\approx7.5\times10^6\). A escala de Kolmogorov perto do tip é \(\eta\sim d_j\,Re^{-3/4}\approx2\,\mu\mathrm m\), e uma DNS exigiria \(N\sim Re^{9/4}\approx3\times10^{15}\) pontos. Por isso a turbulência é sempre modelada: média de Reynolds/Favre (RANS) ou filtragem (LES).</p>
+<p><strong>Formulação low-Mach.</strong> Expanda a pressão em \(p=p_0(t)+p_1(\mathbf x,t)\), com \(p_1/p_0=O(\mathrm{Ma}^2)\). A pressão termodinâmica \(p_0\) entra na equação de estado, \(\rho=p_0\bar M/(R_uT)\), e a pressão hidrodinâmica \(p_1\) entra só no momento. Isso remove as ondas acústicas e é válido na pluma (Ma ≪ 1). Os poucos diâmetros perto de um tip com Ma 0,5 ou sônico são tratados com o bocal fictício da seção 3.1. É assim que o FDS e a maioria dos solvers de fogo funcionam. No STAR-CCM+, use gás ideal com o solver segregado.</p>
+
+<h3>4.2 Equações médias de Favre</h3>
+<p>Com \(\tilde\phi=\overline{\rho\phi}/\bar\rho\) e \(\phi=\tilde\phi+\phi''\):</p>
+<div class="math">\[
+\begin{aligned}
+&amp;\frac{\partial\bar\rho}{\partial t}+\frac{\partial(\bar\rho\tilde u_j)}{\partial x_j}=0\\
+&amp;\frac{\partial(\bar\rho\tilde u_i)}{\partial t}+\frac{\partial(\bar\rho\tilde u_i\tilde u_j)}{\partial x_j}=-\frac{\partial\bar p_1}{\partial x_i}+\frac{\partial}{\partial x_j}\left[\bar\tau_{ij}-\bar\rho\widetilde{u_i''u_j''}\right]+(\bar\rho-\rho_\infty)g_i\\
+&amp;\frac{\partial(\bar\rho\tilde Z)}{\partial t}+\frac{\partial(\bar\rho\tilde u_j\tilde Z)}{\partial x_j}=\frac{\partial}{\partial x_j}\left[\left(\frac{\mu}{Sc}+\frac{\mu_t}{Sc_t}\right)\frac{\partial\tilde Z}{\partial x_j}\right]\\
+&amp;\frac{\partial(\bar\rho\tilde h)}{\partial t}+\frac{\partial(\bar\rho\tilde u_j\tilde h)}{\partial x_j}=\frac{\partial}{\partial x_j}\left[\left(\frac{\mu}{Pr}+\frac{\mu_t}{Pr_t}\right)\frac{\partial\tilde h}{\partial x_j}\right]-\overline{\nabla\!\cdot\mathbf q_r}
+\end{aligned}
+\]</div>
+<p>Pela hipótese de Boussinesq:</p>
+<div class="math">\[
+-\bar\rho\widetilde{u_i''u_j''}=\mu_t\left(\frac{\partial\tilde u_i}{\partial x_j}+\frac{\partial\tilde u_j}{\partial x_i}-\frac23\delta_{ij}\frac{\partial\tilde u_k}{\partial x_k}\right)-\frac23\bar\rho k\,\delta_{ij}
+\]</div>
+<h4>Variância da fração de mistura: dedução da produção</h4>
+<p>Subtraia a equação média da instantânea, multiplique por \(2Z''\) e tire a média. Com o fechamento por gradiente \(\widetilde{u_j''Z''}=-(\nu_t/Sc_t)\,\partial\tilde Z/\partial x_j\), a produção \(-2\bar\rho\,\widetilde{u_j''Z''}\,\partial\tilde Z/\partial x_j\) vira \(2(\mu_t/Sc_t)\lvert\nabla\tilde Z\rvert^2\):</p>
+<div class="math">\[
+\frac{\partial(\bar\rho\widetilde{Z''^2})}{\partial t}+\frac{\partial(\bar\rho\tilde u_j\widetilde{Z''^2})}{\partial x_j}=\frac{\partial}{\partial x_j}\left[\frac{\mu_t}{Sc_t}\frac{\partial\widetilde{Z''^2}}{\partial x_j}\right]+2\frac{\mu_t}{Sc_t}\left(\frac{\partial\tilde Z}{\partial x_j}\right)^2-\bar\rho\tilde\chi,\qquad\tilde\chi=C_\chi\frac{\varepsilon}{k}\widetilde{Z''^2},\;C_\chi=2
+\]</div>
+
+<h3>4.3 Turbulência</h3>
+<h4><em>k</em>–ε padrão com empuxo (Launder &amp; Spalding 1974)</h4>
+<div class="math">\[
+\begin{aligned}
+&amp;\frac{\partial(\bar\rho k)}{\partial t}+\frac{\partial(\bar\rho\tilde u_jk)}{\partial x_j}=\frac{\partial}{\partial x_j}\left[\left(\mu+\frac{\mu_t}{\sigma_k}\right)\frac{\partial k}{\partial x_j}\right]+P_k+G_b-\bar\rho\varepsilon\\
+&amp;\frac{\partial(\bar\rho\varepsilon)}{\partial t}+\frac{\partial(\bar\rho\tilde u_j\varepsilon)}{\partial x_j}=\frac{\partial}{\partial x_j}\left[\left(\mu+\frac{\mu_t}{\sigma_\varepsilon}\right)\frac{\partial\varepsilon}{\partial x_j}\right]+C_{\varepsilon1}\frac{\varepsilon}{k}\left(P_k+C_{\varepsilon3}G_b\right)-C_{\varepsilon2}\bar\rho\frac{\varepsilon^2}{k}\\
+&amp;\mu_t=\bar\rho C_\mu\frac{k^2}{\varepsilon},\qquad P_k=-\bar\rho\widetilde{u_i''u_j''}\frac{\partial\tilde u_i}{\partial x_j},\qquad G_b=-\frac{\mu_t}{\bar\rho\,Pr_t}\,g_i\frac{\partial\bar\rho}{\partial x_i},\qquad C_{\varepsilon3}=\tanh\left\lvert\frac{v_\parallel}{u_\perp}\right\rvert
+\end{aligned}
+\]</div>
+<p>As constantes são \(C_\mu=0.09\), \(C_{\varepsilon1}=1.44\), \(C_{\varepsilon2}=1.92\), \(\sigma_k=1.0\), \(\sigma_\varepsilon=1.3\), \(Sc_t\approx Pr_t\approx0.7\)–\(0.85\). Em \(C_{\varepsilon3}\), \(v_\parallel\) é a componente da velocidade paralela à gravidade e \(u_\perp\) a perpendicular.</p>
+<div class="box"><h4>A anomalia do jato redondo</h4>
+<p>O <em>k</em>–ε padrão acerta o espalhamento do jato plano, mas superestima o do jato redondo em cerca de 30–40% (Pope 1978). Num flare, o jato vertical é redondo, então isso encurta a chama prevista. Há duas correções usuais:</p>
+<ol>
+<li>\(C_{\varepsilon1}=1.60\), a prática da TNF Workshop para a Sandia Flame D.</li>
+<li>Termo de estiramento de vórtices de Pope: somar \(C_{\varepsilon3}'\bar\rho\frac{\varepsilon^2}{k}\chi_p\) à equação de ε, com \(\chi_p=\omega_{ij}\omega_{jk}S_{ki}\left(k/\varepsilon\right)^3\) e \(C_{\varepsilon3}'=0.79\).</li>
+</ol>
+<p>O <em>k</em>–ε <em>realizable</em> (Shih et al. 1995) atenua o problema com \(C_\mu\) variável e um termo de destruição em ε que não fica singular. Escolha o modelo e calibre na Flame D antes de confiar no flare.</p></div>
+<h4><em>k</em>–ε <em>realizable</em> e SST</h4>
+<div class="math">\[
+\text{Realizable:}\quad \frac{D(\bar\rho\varepsilon)}{Dt}=\nabla\!\cdot\!\left[\left(\mu+\frac{\mu_t}{\sigma_\varepsilon}\right)\nabla\varepsilon\right]+\bar\rho C_1S\varepsilon-\bar\rho C_2\frac{\varepsilon^2}{k+\sqrt{\nu\varepsilon}}+C_{1\varepsilon}C_{\varepsilon3}\frac{\varepsilon}{k}G_b,\quad C_1=\max\!\left(0.43,\frac{\eta}{\eta+5}\right),\;\eta=\frac{Sk}{\varepsilon},\;C_2=1.9,\;C_{1\varepsilon}=1.44
+\]</div>
+<div class="math">\[
+\text{SST (Menter 1994):}\quad \mu_t=\frac{\bar\rho\,a_1k}{\max(a_1\omega,\;SF_2)},\qquad a_1=0.31,\qquad\text{com mistura }k\text{-}\omega\;(\text{parede})\leftrightarrow k\text{-}\varepsilon\;(\text{escoamento livre})\text{ via }F_1
+\]</div>
+<h4>Camada limite atmosférica na entrada (Richards &amp; Hoxey 1993)</h4>
+<div class="math">\[
+U(z)=\frac{u_*}{\kappa}\ln\frac{z+z_0}{z_0},\qquad k=\frac{u_*^2}{\sqrt{C_\mu}},\qquad \varepsilon(z)=\frac{u_*^3}{\kappa(z+z_0)}
+\]</div>
+<p>Esses perfis são solução exata do <em>k</em>–ε num domínio vazio, desde que a rugosidade do solo seja coerente com \(z_0\) (Blocken et al. 2007). Sem isso, o perfil de vento "decai" antes de chegar ao flare e a inclinação da chama sai errada. Calibre \(u_*\) para obter o vento de projeto na altura do tip. O exemplo clássico do API usa 8,9 m/s.</p>
+<h4>LES</h4>
+<p>As equações são as mesmas, com filtragem espacial \(\bar\phi\) e Favre-filtragem \(\tilde\phi\). Para a viscosidade de submalha:</p>
+<div class="math">\[
+\text{Smagorinsky:}\;\nu_t=(C_s\Delta)^2\lvert\tilde S\rvert;\qquad
+\text{WALE:}\;\nu_t=(C_w\Delta)^2\frac{\left(S^d_{ij}S^d_{ij}\right)^{3/2}}{\left(\tilde S_{ij}\tilde S_{ij}\right)^{5/2}+\left(S^d_{ij}S^d_{ij}\right)^{5/4}},\quad S^d_{ij}=\tfrac12\left(\tilde g_{ik}\tilde g_{kj}+\tilde g_{jk}\tilde g_{ki}\right)-\tfrac13\delta_{ij}\tilde g_{kl}\tilde g_{lk}
+\]</div>
+<p>Aqui \(\tilde g_{ij}=\partial\tilde u_i/\partial x_j\), \(C_w\approx0.325\)–\(0.5\) (Nicoud &amp; Ducros 1999). O WALE anula \(\nu_t\) em cisalhamento puro e perto de paredes, e é o modelo LES padrão do STAR-CCM+. A variância de submalha da fração de mistura é \(\widetilde{Z''^2}\approx C_Z\Delta^2\lvert\nabla\tilde Z\rvert^2\), com \(C_Z\approx0.1\)–\(0.2\) (Pierce &amp; Moin 1998). Para critério de resolução, use \(k_{sgs}/(k_{res}+k_{sgs})\le0.2\) (Pope 2000). Para fogos com empuxo, o FDS recomenda \(D^*/\delta x\) entre 4 e 16, com \(D^*=\left(Q/(\rho_\infty c_pT_\infty\sqrt g)\right)^{2/5}\) (no exemplo, \(D^*=12.3\) m, ou seja, \(\delta x\approx0.8\)–\(3\) m).</p>
+
+<h3>4.4 Combustão não pré-misturada e interação turbulência–química (TCI)</h3>
+<h4>PDF presumida</h4>
+<p>Qualquer variável termoquímica \(\phi(Z)\) tem média \(\tilde\phi=\int_0^1\phi(Z)\,\tilde P(Z)\,dZ\). Na β-PDF, os parâmetros vêm dos dois primeiros momentos:</p>
+<div class="math">\[
+\tilde P(Z)=\frac{Z^{a-1}(1-Z)^{b-1}}{B(a,b)},\qquad \gamma=\frac{\tilde Z(1-\tilde Z)}{\widetilde{Z''^2}}-1,\qquad a=\tilde Z\gamma,\qquad b=(1-\tilde Z)\gamma
+\]</div>
+<p>Verificação: a média da β é \(a/(a+b)=\tilde Z\), e a variância é</p>
+<div class="math">\[\frac{ab}{(a+b)^2(a+b+1)}=\frac{\tilde Z(1-\tilde Z)}{1+\gamma}=\widetilde{Z''^2}\]</div>
+<h4>Flamelet laminar estacionário (Peters 1984)</h4>
+<p>Na coordenada \(Z\) ligada à superfície estequiométrica, com Lewis unitário:</p>
+<div class="math">\[
+\rho\frac{\partial Y_k}{\partial t}=\rho\frac{\chi}{2}\frac{\partial^2Y_k}{\partial Z^2}+\dot\omega_k,\qquad
+\rho c_p\frac{\partial T}{\partial t}=\rho c_p\frac{\chi}{2}\frac{\partial^2T}{\partial Z^2}-\sum_kh_k\dot\omega_k+\rho\frac{\chi}{2}\frac{\partial c_p}{\partial Z}\frac{\partial T}{\partial Z}+\dot q_{rad}
+\]</div>
+<div class="math">\[
+\chi=2D\lvert\nabla Z\rvert^2,\qquad \chi(Z)=\chi_{st}\,\frac{\exp\left(-2\left[\mathrm{erfc}^{-1}(2Z)\right]^2\right)}{\exp\left(-2\left[\mathrm{erfc}^{-1}(2Z_{st})\right]^2\right)}\quad(\text{contracorrente})
+\]</div>
+<p>A tabela \(\phi(Z,\chi_{st})\) integrada na β-PDF dá \(\tilde\phi(\tilde Z,\widetilde{Z''^2},\tilde\chi_{st})\). Acima de \(\chi_q\), a taxa de extinção, a chama apaga. Isso indica descolamento e extinção local, que na prática são os mecanismos de perda de eficiência sob vento. Como a radiação tira calor da chama, use tabelas não adiabáticas com defeito de entalpia \(\tilde h-\tilde h_{ad}(\tilde Z)\). Uma tabela adiabática mais um sumidouro radiativo na energia é inconsistente.</p>
+<h4>FPV e FGM</h4>
+<p>Pierce &amp; Moin (2004) trocam \(\chi_{st}\) por uma variável de progresso \(\lambda\) que percorre a curva S inteira, incluindo o ramo instável. Isso captura extinção e reignição. No FGM (van Oijen &amp; de Goey 2000), a variedade é parametrizada por \((Z,c)\), com \(c=Y_{CO_2}+Y_{CO}+Y_{H_2O}+\dots\), e transporta-se \(\tilde c\) com fonte \(\tilde{\dot\omega}_c=\iint\dot\omega_c\,\tilde P(Z)\tilde P(c)\,dZ\,dc\). O FGM é a escolha de vários trabalhos recentes de flares (Wang et al. 2024).</p>
+<h4>EDC (Magnussen 2005) e EBU</h4>
+<div class="math">\[
+\xi^*=C_\xi\left(\frac{\nu\varepsilon}{k^2}\right)^{1/4},\quad C_\xi=2.1377;\qquad \tau^*=C_\tau\left(\frac{\nu}{\varepsilon}\right)^{1/2},\quad C_\tau=0.4083;\qquad
+\bar R_k=\frac{\bar\rho\,(\xi^*)^2}{\tau^*\left[1-(\xi^*)^3\right]}\left(Y_k^*-\tilde Y_k\right)
+\]</div>
+<p>Aqui \(Y_k^*\) é o estado das estruturas finas após reagir por \(\tau^*\) num reator perfeitamente misturado com química detalhada ou reduzida. O EDC é a escolha do grupo de Lamar para prever CE, DRE e CO com mecanismos reduzidos de C1–C4. O EBU/EDM de Magnussen &amp; Hjertager (1977), \(\dot\omega_F=-A\bar\rho\frac{\varepsilon}{k}\min\left(\tilde Y_F,\tilde Y_O/s,B\tilde Y_P/(1+s)\right)\) com \(A=4\) e \(B=0.5\), só serve para triagem.</p>
+<p><strong>Qual usar.</strong> Para radiação (forma da chama, T, H<sub>2</sub>O/CO<sub>2</sub>, fuligem), um flamelet ou FGM não adiabático basta e é barato. Para eficiência de combustão e flares de baixo poder calorífico ou super-assistidos, use EDC com química finita ou FPV/LES, porque o fenômeno é extinção local.</p>
+
+<h3>4.5 Radiação</h3>
+<h4>Equação de transferência radiativa (RTE)</h4>
+<div class="math">\[
+\hat s\cdot\nabla I_\eta=\kappa_\eta I_{b\eta}-(\kappa_\eta+\sigma_{s\eta})I_\eta+\frac{\sigma_{s\eta}}{4\pi}\int_{4\pi}I_\eta(\hat s')\Phi(\hat s',\hat s)\,d\Omega'
+\;\;\xrightarrow{\text{chamas: }\sigma_s\approx0}\;\;\hat s\cdot\nabla I=\kappa\left(I_b-I\right)
+\]</div>
+<div class="math">\[
+\nabla\!\cdot\mathbf q_r=\int_0^\infty\kappa_\eta\left(4\pi I_{b\eta}-G_\eta\right)d\eta\;\overset{\text{cinza}}{=}\;\kappa\left(4\sigma T^4-G\right),\qquad G=\int_{4\pi}I\,d\Omega
+\]</div>
+<h4>Solução formal ao longo de um raio (base para o fluxo nos receptores)</h4>
+<div class="math">\[
+I(s)=I(0)\,e^{-\tau_o(0,s)}+\int_0^s\kappa(s')\,I_b(s')\,e^{-\tau_o(s',s)}\,ds',\qquad \tau_o(a,b)=\int_a^b\kappa\,ds,\qquad
+q''_{rec}=\int_{2\pi}I(\hat s)\,(\hat n\cdot\hat s)\,d\Omega\approx\sum_mI_m\,(\hat n\cdot\hat s_m)\,w_m
+\]</div>
+<p>Esse é o método de transferência discreta (Lockwood &amp; Shah 1981). Para receptores longe da chama (o solo, a 30–100 m), lançar raios do receptor através do campo de chama calculado evita os "efeitos de raio" que o DOM tem quando o alvo está longe e a chama ocupa um ângulo sólido pequeno.</p>
+<h4>Métodos para o termo fonte no CFD</h4>
+<div class="math">\[
+\textbf{Opticamente fino:}\quad\nabla\!\cdot\mathbf q_r=4\sigma\kappa_P\left(T^4-T_\infty^4\right)
+\]</div>
+<div class="math">\[
+\textbf{P1:}\quad\mathbf q_r=-\Gamma\nabla G,\quad\Gamma=\frac{1}{3(\kappa+\sigma_s)-C\sigma_s},\quad\nabla\!\cdot(\Gamma\nabla G)=\kappa\left(G-4\sigma T^4\right),\quad\text{Marshak: }-\Gamma\frac{\partial G}{\partial n}=\frac{\varepsilon_w}{2(2-\varepsilon_w)}\left(4\sigma T_w^4-G\right)
+\]</div>
+<div class="math">\[
+\textbf{DOM/FVM:}\quad\hat s_m\cdot\nabla I_m=\kappa\left(I_b-I_m\right),\quad m=1..M;\qquad G=\sum_mw_mI_m,\quad\mathbf q_r=\sum_mw_mI_m\hat s_m;\qquad S_N:\;M=N(N+2)
+\]</div>
+<p>Use DOM ou FVM (Fiveland 1984; Raithby &amp; Chui 1990) com \(S_4\)–\(S_8\), ou ≥ 4×4 ângulos por octante. O P1 é barato, mas difusivo demais para chamas abertas. A aproximação opticamente fina ignora reabsorção. No exemplo, \(\kappa_PW_f\approx0.58\times8.7\approx5\) sem contar a fuligem. <strong>Uma chama de flare grande não é opticamente fina</strong>, e o modelo fino superestima a emissão.</p>
+<h4>Propriedades do gás</h4>
+<p>Coeficiente médio de Planck, \(\kappa_P=p\sum_kx_k\,a_{P,k}(T)\), com os ajustes RADCAL da TNF Workshop (\(\theta=1000/T\), \(a_P\) em atm<sup>−1</sup>m<sup>−1</sup>):</p>
+<div class="math">\[
+\begin{aligned}
+a_{P,H_2O}&amp;=-0.23093-1.12390\theta+9.41530\theta^2-2.99880\theta^3+0.51382\theta^4-1.86840\times10^{-5}\theta^5\\
+a_{P,CO_2}&amp;=18.741-121.310\theta+273.500\theta^2-194.050\theta^3+56.310\theta^4-5.8169\theta^5
+\end{aligned}
+\]</div>
+<p>Para soma ponderada de gases cinzas (WSGG), que é a recomendação para CFD de engenharia:</p>
+<div class="math">\[
+\varepsilon(T,L)=\sum_{i=0}^{N_g}a_i(T)\left[1-e^{-k_ip_aL}\right],\quad a_i(T)=\sum_jb_{ij}T^{j-1},\quad a_0=1-\sum_{i\ge1}a_i;\qquad \hat s\cdot\nabla I_i=k_ip_a\left(a_iI_b-I_i\right),\quad I=\sum_iI_i
+\]</div>
+<p>Os coeficientes são de Smith, Shen &amp; Friedman (1982), Bordbar et al. (2014) e Cassol et al. (2014, UFRGS, que incluem fuligem).</p>
+<h4>Interação turbulência–radiação (TRI)</h4>
+<p>Em geral \(\overline{\kappa I_b}\ne\bar\kappa\,I_b(\bar T)\). Expandindo \(T^4\) com \(T=\bar T+T'\):</p>
+<div class="math">\[
+\overline{T^4}=\bar T^4+6\bar T^2\overline{T'^2}+4\bar T\,\overline{T'^3}+\overline{T'^4}\;\overset{T'\text{ gaussiano}}{=}\;\bar T^4\left(1+6I_T^2+3I_T^4\right),\qquad I_T=\frac{T'_{rms}}{\bar T}
+\]</div>
+<p>Com \(I_T=0.1/0.2/0.3\), a emissão aumenta 6% / 25% / 56%. Com flamelet e PDF presumida, a TRI de emissão sai quase de graça: \(\overline{\kappa I_b}\approx\int\kappa(Z)I_b(T(Z))\tilde P(Z)\,dZ\), a aproximação de flutuação opticamente fina (Coelho 2007).</p>
+
+<h3>4.6 Fuligem</h3>
+<p>No modelo de duas equações de Moss–Brookes (Brookes &amp; Moss 1999), transporta-se a densidade numérica normalizada \(b^*_{nuc}=N/(\rho N_{norm})\), com \(N_{norm}=10^{15}\), e a fração mássica \(Y_{s}\), com \(M=\rho Y_s\):</p>
+<div class="math">\[
+\begin{aligned}
+\frac{dN}{dt}&amp;=C_\alpha N_A\left(\frac{X_{prec}P}{RT}\right)^{l}e^{-T_\alpha/T}-C_\beta\left(\frac{24RT}{\rho_{s}N_A}\right)^{1/2}d_p^{1/2}N^{11/6}\\
+\frac{dM}{dt}&amp;=M_PC_\alpha\left(\frac{X_{prec}P}{RT}\right)^{l}e^{-T_\alpha/T}+C_\gamma\left(\frac{X_{sgs}P}{RT}\right)^{m}e^{-T_\gamma/T}\left[(\pi N)^{1/3}\left(\frac{6M}{\rho_s}\right)^{2/3}\right]^{n}-C_{ox}C_\omega\eta_{coll}\frac{X_{OH}P}{RT}\sqrt T\,(\pi N)^{1/3}\left(\frac{6M}{\rho_s}\right)^{2/3}
+\end{aligned}
+\]</div>
+<p>Os termos são nucleação (precursor C<sub>2</sub>H<sub>2</sub>), coagulação, crescimento superficial e oxidação por OH (Fenimore–Jones). Para metano: \(C_\alpha=54\) s<sup>−1</sup>, \(T_\alpha=21\,100\) K, \(T_\gamma=12\,100\) K, \(\eta_{coll}=0.04\), \(C_{ox}=0.015\). Para C<sub>2+</sub> e olefinas, recalibre ou use precursores PAH (Hall, Smooke &amp; Colket 1997). Para engenharia rápida, como no FDS, prescreve-se um rendimento de fuligem \(y_s\): segundo Tewarson (SFPE Handbook), cerca de 0,024 para propano e 0,043 para etileno.</p>
+<h4>Absorção da fuligem: dedução do coeficiente de Planck</h4>
+<p>No limite de Rayleigh, \(\kappa_\lambda=C_0f_v/\lambda\), com \(C_0=\dfrac{36\pi nk}{(n^2-k^2+2)^2+4n^2k^2}\). A média de Planck é:</p>
+<div class="math">\[
+\kappa_P=\frac{\int_0^\infty\kappa_\lambda I_{b\lambda}\,d\lambda}{\sigma T^4/\pi}
+=\frac{C_0f_v\,2hc^2\int_0^\infty\lambda^{-6}\left(e^{C_2/\lambda T}-1\right)^{-1}d\lambda}{\sigma T^4/\pi}
+\;\overset{x=C_2/\lambda T}{=}\;\frac{C_0f_v\,\frac{2hc^2T^5}{C_2^5}\overbrace{\int_0^\infty\frac{x^4}{e^x-1}dx}^{\Gamma(5)\zeta(5)=24.886}}{\frac{2hc^2T^4}{C_2^4}\cdot\frac{\pi^4}{15}}
+=3.83\,\frac{C_0}{C_2}\,f_vT
+\]</div>
+<p>Com as constantes ópticas de Dalzell &amp; Sarofim (n = 1,57, k = 0,56), \(C_0=4.89\) e \(\kappa_{P,s}\approx1300\,f_vT\) [m<sup>−1</sup>], na linha de Hubbard &amp; Tien (1978). Na literatura aparecem valores de 1200 a 1900 \(f_vT\), conforme as constantes ópticas. Com \(f_v\sim10^{-6}\) e T = 1500 K, \(\kappa_s\approx2\) m<sup>−1</sup>, maior que o do gás. Para propano ou etileno, a fuligem domina a radiação.</p>
+
+<h3>4.7 Eficiência de combustão</h3>
+<div class="math">\[
+\mathrm{CE}=\frac{[\mathrm{CO_2}]}{[\mathrm{CO_2}]+[\mathrm{CO}]+[\mathrm{THC}]+[\mathrm C_{fuligem}]}\;(\text{base carbono, descontado o fundo}),\qquad \mathrm{DRE}=1-\frac{\dot m_{HC,out}}{\dot m_{HC,in}}
+\]</div>
+<p>Johnson &amp; Kostiuk (2002) mostraram que, para flares de baixo momento em vento, a ineficiência escala como \((1-\eta)\propto\exp\!\left[B\,U_\infty/(gV_j)^{1/3}\right]/\mathrm{PCI}^3\). O vento e o baixo poder calorífico aumentam a perda de forma exponencial. A EPA (40 CFR 63.670) regula por NHV<sub>cz</sub> ≥ 270 Btu/scf (≈ 10,1 MJ/Nm³), NHV<sub>dil</sub> ≥ 22 Btu/ft² para ar perimetral, e \(V_{tip}\lt60\) ft/s, ou \(V_{tip}\lt400\) ft/s e \(V_{tip}\lt V_{max}\), com \(\log_{10}V_{max}=(\mathrm{NHV}_{vg}+1212)/850\) (ft/s, Btu/scf). Esses limites existem justamente porque vapor ou ar demais apaga a chama localmente.</p>
+</section>
+
+<section id="efeitos">
+<h2><span class="n">5</span>Efeitos e critérios de segurança</h2>
+<h3>5.1 Níveis de radiação de projeto (API 521)</h3>
+<div class="tbl"><table>
+<thead><tr><th class="num">kW/m²</th><th class="num">Btu/(h·ft²)</th><th>Condição</th></tr></thead>
+<tbody>
+<tr><td class="num"><span class="chip c4">9,46</span></td><td class="num">3000</td><td>Máximo onde há acesso de pessoal (solo sob o flare, plataforma de torre próxima). Exposição de poucos segundos, só o suficiente para fuga.</td></tr>
+<tr><td class="num"><span class="chip c3">6,31</span></td><td class="num">2000</td><td>Ações de emergência de até ~30 s por pessoal sem abrigo, com roupa adequada.</td></tr>
+<tr><td class="num"><span class="chip c2">4,73</span></td><td class="num">1500</td><td>Ações de emergência de vários minutos (2–3 min) sem abrigo, com roupa adequada.</td></tr>
+<tr><td class="num"><span class="chip c1">1,58</span></td><td class="num">500</td><td>Exposição contínua de pessoal com roupa adequada.</td></tr>
+</tbody></table></div>
+<p class="small">A radiação solar (≈ 0,79–1,04 kW/m²) pode ou não estar somada a esses níveis, conforme a interpretação e a especificação do cliente, e isso muda a altura do flare. Confirme na edição vigente do API 521 e na especificação do projeto.</p>
+<div class="tbl"><table>
+<thead><tr><th class="num">kW/m²</th><th class="num">1,74</th><th class="num">2,33</th><th class="num">2,90</th><th class="num">4,73</th><th class="num">6,94</th><th class="num">9,46</th><th class="num">11,67</th><th class="num">19,87</th></tr></thead>
+<tbody><tr><td>Tempo até o limiar de dor [s] (API 521)</td><td class="num">60</td><td class="num">40</td><td class="num">30</td><td class="num">16</td><td class="num">9</td><td class="num">6</td><td class="num">4</td><td class="num">2</td></tr></tbody>
+</table></div>
+
+<h3>5.2 Dose térmica e probits</h3>
+<p>Para fluxo variável no tempo, a dose é \(D=\int q''(t)^{4/3}\,dt\). Com \(q''\) em kW/m², a unidade é o TDU [(kW/m²)<sup>4/3</sup>·s]. Como \(1000^{4/3}=10^4\), vale 1 TDU = 10<sup>4</sup> (W/m²)<sup>4/3</sup>·s, e é por isso que Eisenberg divide por 10<sup>4</sup>. As probits, com \(q''\) em W/m² e \(t\) em s:</p>
+<div class="tbl"><table>
+<thead><tr><th>Efeito</th><th>Probit \(Y\)</th><th>Fonte</th></tr></thead>
+<tbody>
+<tr><td>Queimadura de 1º grau</td><td>\(-39.83+3.0186\ln\left(t\,q''^{4/3}\right)\)</td><td>Tsao &amp; Perry (1979)</td></tr>
+<tr><td>Queimadura de 2º grau</td><td>\(-43.14+3.0186\ln\left(t\,q''^{4/3}\right)\)</td><td>Tsao &amp; Perry (1979)</td></tr>
+<tr><td>Fatalidade</td><td>\(-14.9+2.56\ln\left(t\,q''^{4/3}/10^4\right)=-38.48+2.56\ln\left(t\,q''^{4/3}\right)\)</td><td>Eisenberg et al. (1975)</td></tr>
+<tr><td>Fatalidade</td><td>\(-36.38+2.56\ln\left(t\,q''^{4/3}\right)\)</td><td>TNO Green Book</td></tr>
+</tbody></table></div>
+<div class="math">\[P=\tfrac12\left[1+\mathrm{erf}\left(\frac{Y-5}{\sqrt2}\right)\right]\]</div>
+<p>Referências de dose usadas pelo HSE (Reino Unido): "Dangerous Dose" ≈ 1000 TDU (≈ 1% de fatalidade numa população típica) e SLOD ≈ 1800 TDU. Os limiares de dor e de queimadura de 1º grau ficam por volta de 80–130 TDU (O'Sullivan &amp; Jagger 2004).</p>
+<h4>Tempo efetivo com fuga: dedução</h4>
+<p>Suponha uma pessoa inicialmente a \(r_0\) do centro da chama, recebendo \(q_0''\). Ela reage em \(t_r\) e depois foge radialmente a uma velocidade \(u\), com \(q''=q_0''(r_0/r)^2\) e \(r=r_0+ut\):</p>
+<div class="math">\[
+D=q_0''^{4/3}t_r+\int_0^{t_s}q_0''^{4/3}\left(\frac{r_0}{r_0+ut}\right)^{8/3}dt
+=q_0''^{4/3}\left\{t_r+\frac35\frac{r_0}{u}\left[1-\left(\frac{q_s''}{q_0''}\right)^{5/6}\right]\right\}
+\]</div>
+<p>Aqui \(q''_s\) é o fluxo "seguro" onde a fuga termina, com \(r_s=r_0\sqrt{q_0''/q_s''}\) e \((r_0/r_s)^{5/3}=(q_s''/q_0'')^{5/6}\). No limite \(q_s''\to0\), \(t_{ef}=t_r+\frac35r_0/u\), a expressão do TNO Green Book.</p>
+
+<h3>5.3 Temperatura de superfícies expostas</h3>
+<p>Para uma placa fina isolada na face de trás, em regime permanente:</p>
+<div class="math">\[
+\alpha_s\,q''_{inc}=h\left(T_s-T_\infty\right)+\varepsilon\sigma\left(T_s^4-T_\infty^4\right);\qquad\text{transiente: }\rho c\,\delta\,\frac{dT_s}{dt}=\alpha_sq''_{inc}-h(T_s-T_\infty)-\varepsilon\sigma(T_s^4-T_\infty^4)
+\]</div>
+<p>Com \(\alpha_s=\varepsilon=0.9\) e \(h=15\) W/(m²K): 4,73 kW/m² → 185 °C; 9,46 kW/m² → 286 °C; 20 kW/m² → 428 °C. Compare com os limites de cabos, instrumentos, vedações e revestimentos.</p>
+<h3>5.4 Outros efeitos que o CFD resolve bem</h3>
+<ul>
+<li><strong>Pluma quente:</strong> a elevação de temperatura em helideck, torres ou tomadas de ar, com o critério CAP 437 de +2 °C no offshore.</li>
+<li><strong>Apagamento da chama:</strong> dispersão de hidrocarbonetos e H<sub>2</sub>S até o solo ou plataformas (contornos de ½ LFL e de toxicidade), com CFD sem reação a partir da mesma malha.</li>
+<li><strong>Chama tocando estruturas</strong> em vento forte (booms e torres de flares offshore).</li>
+</ul>
+</section>
+
+<section id="exemplo">
+<h2><span class="n">6</span>Exemplo numérico verificado</h2>
+<p>Este é um flare elevado de propano, de porte parecido com o exemplo clássico do API (100 000 lb/h). Todas as equações acima foram recalculadas em Python, com o script versionado junto com este documento.</p>
+<div class="grid2">
+<div><h4>Entradas</h4>
+<p class="small">ṁ = 12,6 kg/s de propano; T<sub>j</sub> = 311 K; Ma = 0,5 no tip; vento 8,9 m/s; 25 °C; UR 50%.</p>
+<p>ρ<sub>j</sub> = 1,73 kg/m³ · c = 257 m/s · <strong>u<sub>j</sub> = 128,7 m/s</strong> · <strong>d<sub>tip</sub> = 0,269 m</strong> · <strong>Q = 584 MW</strong> · Re ≈ 7,5×10⁶</p></div>
+<div><h4>Fração radiante</h4>
+<p>API típico (C<sub>3</sub>): 0,30 · Chamberlain F<sub>s</sub>: 0,249 · Molina et al.: 0,33 (τ<sub>G</sub> = 732 ms, a<sub>p</sub> = 0,58 m⁻¹)</p>
+<p class="small">Transmissividade a 50 m: 0,733 (Bagster–Pittblado) / 0,743 (Wayne).</p></div>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Grandeza</th><th class="num">Valor</th><th>Observação</th></tr></thead>
+<tbody>
+<tr><td>L, API/Beychok</td><td class="num">50,1 m</td><td>\(0.00323\,Q^{0.478}\)</td></tr>
+<tr><td>L, Delichatsios/Schefer</td><td class="num">51,0 m</td><td>Fr<sub>f</sub> = 0,4 (empuxo), L* = 9,5, d* = 0,324 m</td></tr>
+<tr><td>L<sub>b0</sub>, Kalghatgi/Chamberlain (ar parado)</td><td class="num">54,4 m</td><td>Y = 167,7; W = 0,0598 (Z<sub>st</sub> exato: 0,0603)</td></tr>
+<tr><td>L<sub>b</sub> com vento de 8,9 m/s</td><td class="num">27,4 m</td><td>Fator de vento (0,51e<sup>−0,4u</sup>+0,49) ≈ 0,50</td></tr>
+<tr><td>Inclinação α · lift-off b · R<sub>l</sub></td><td class="num">50,9° · 1,9 m · 26,2 m</td><td>R = 0,069, Ri(L<sub>b0</sub>) = 9,7</td></tr>
+<tr><td>W<sub>1</sub> · W<sub>2</sub> · A · SEP</td><td class="num">1,44 m · 11,9 m · 671 m² · 216 kW/m²</td><td>SEP dentro da faixa típica de jet fires</td></tr>
+</tbody></table></div>
+<h4>Fluxo no solo com H = 50 m (receptor na pior orientação; x positivo a jusante)</h4>
+<div class="tbl"><table>
+<thead><tr><th class="num">x [m]</th><th class="num">−60</th><th class="num">−30</th><th class="num">0</th><th class="num">15</th><th class="num">30</th><th class="num">45</th><th class="num">60</th><th class="num">90</th><th class="num">120</th></tr></thead>
+<tbody>
+<tr><td>Fonte pontual, F = 0,3</td><td class="num">1,13</td><td class="num">1,89</td><td class="num">2,69</td><td class="num">2,76</td><td class="num">2,49</td><td class="num">2,05</td><td class="num">1,61</td><td class="num">0,96</td><td class="num">0,60</td></tr>
+<tr><td>Fonte pontual, F = F<sub>s</sub></td><td class="num">0,94</td><td class="num">1,56</td><td class="num">2,23</td><td class="num">2,28</td><td class="num">2,06</td><td class="num">1,70</td><td class="num">1,33</td><td class="num">0,80</td><td class="num">0,50</td></tr>
+<tr><td>Chamberlain (frustum + fator de vista)</td><td class="num">0,48</td><td class="num">0,88</td><td class="num">1,90</td><td class="num">2,25</td><td class="num">2,21</td><td class="num">1,87</td><td class="num">1,44</td><td class="num">0,85</td><td class="num">0,54</td></tr>
+</tbody></table></div>
+<p class="small">Valores em kW/m². A montante (x &lt; 0), a fonte pontual superestima 2 a 2,4 vezes, porque ignora que a chama inclinada "olha" para jusante.</p>
+<h4>Altura mínima para o pior ponto no solo</h4>
+<div class="tbl"><table>
+<thead><tr><th>Limite no solo</th><th class="num">Fonte pontual (F = 0,3)</th><th class="num">Chamberlain</th></tr></thead>
+<tbody>
+<tr><td><span class="chip c4">9,46 kW/m²</span></td><td class="num">23,3 m</td><td class="num">19,0 m</td></tr>
+<tr><td><span class="chip c3">6,31 kW/m²</span></td><td class="num">30,4 m</td><td class="num">25,9 m</td></tr>
+<tr><td><span class="chip c2">4,73 kW/m²</span></td><td class="num">36,4 m</td><td class="num">31,6 m</td></tr>
+</tbody></table></div>
+<p>Com H = 25,9 m (Chamberlain, 6,31 kW/m²), o máximo fica em x = 17 m. Os contornos no solo vão de x = 1 a 36 m para 4,73 kW/m², de −9 a 51 m para 3,0 kW/m² e de −21 a 76 m para 1,58 kW/m². É preciso repetir com vento zero e vento máximo, porque o vento encurta a chama mas a aproxima do solo a jusante.</p>
+<h4>Dose para uma pessoa no ponto de 6,31 kW/m² (r<sub>0</sub> = 37 m do centro da chama)</h4>
+<div class="tbl"><table>
+<thead><tr><th>Cenário</th><th class="num">t<sub>ef</sub></th><th class="num">Dose</th><th class="num">1º grau</th><th class="num">2º grau</th><th class="num">Fatal (TNO)</th></tr></thead>
+<tbody>
+<tr><td>Reage em 5 s, foge a 2,5 m/s</td><td class="num">14 s</td><td class="num">161 TDU</td><td class="num">4,6%</td><td class="num">≈ 0</td><td class="num">≈ 0</td></tr>
+<tr><td>Reage em 5 s, foge a 1,0 m/s</td><td class="num">27 s</td><td class="num">315 TDU</td><td class="num">63%</td><td class="num">0,15%</td><td class="num">0,11%</td></tr>
+<tr><td>Reage em 30 s (ex.: fechando válvula), foge a 2,5 m/s</td><td class="num">39 s</td><td class="num">453 TDU</td><td class="num">92%</td><td class="num">3,0%</td><td class="num">1,6%</td></tr>
+</tbody></table></div>
+<p class="small">Isso mostra por que o API associa 6,31 kW/m² a ações de até ~30 s: acima disso, a dose passa rapidamente para a faixa de queimaduras de 2º grau.</p>
+</section>
+
+<section id="praticas">
+<h2><span class="n">7</span>Boas práticas de CFD de flares</h2>
+<h3>7.1 Checklist</h3>
+<ol>
+<li><strong>Matriz de cenários antes da malha.</strong> Vazões (emergência máxima, contínua, purga), composições (inclusive casos ricos em H<sub>2</sub> e com H<sub>2</sub>S), vento (0, de projeto, máximo; direções relevantes para o layout), temperatura e umidade. O pior caso de radiação no solo raramente é o de vento zero.</li>
+<li><strong>Domínio:</strong> pelo menos 2–3 L a montante, 5–10 L a jusante, 2–3 L lateral e 2 L acima da ponta da chama (L = comprimento da chama). Inclua o solo e as estruturas que façam sombra ou recebam fluxo.</li>
+<li><strong>Entrada de vento:</strong> perfis de camada limite atmosférica (Richards &amp; Hoxey) coerentes com a rugosidade do solo. Saída a pressão e topo com simetria ou cisalhamento prescrito.</li>
+<li><strong>Tip:</strong> resolva a geometria quando ela importa (anéis de vapor, plenum de ar, quebra-vento, pilotos). Em pipe flares, use ≥ 15–20 células no diâmetro (RANS). Em tips sônicos, use bocal fictício.</li>
+<li><strong>Malha:</strong> refinamento adaptativo no envelope da chama (gradientes de Z ou de T); poliédrica ou trimmed no STAR-CCM+. Faça independência de malha pelo GCI (Celik et al. 2008), aplicado ao fluxo nos receptores e ao comprimento da chama, não só a resíduos.</li>
+<li><strong>Turbulência:</strong> <em>realizable k</em>–ε ou SST com termos de empuxo ligados na triagem (cuidado com a anomalia do jato redondo, seção 4.3). URANS ou IDDES/LES quando há vento cruzado, pois o RANS estacionário costuma oscilar e a chama "bate" de forma intermitente.</li>
+<li><strong>Combustão:</strong> FGM/FPV/SLF não adiabático com β-PDF para radiação; EDC com mecanismo reduzido para CE, DRE e CO.</li>
+<li><strong>Radiação:</strong> DOM/FVM S<sub>4</sub>–S<sub>8</sub> com WSGG mais fuligem. Para receptores distantes, pós-processe com traçado de raios a partir do campo. Não use o modelo opticamente fino com Planck médio para chamas de dezenas de metros (seção 4.5).</li>
+<li><strong>Fuligem:</strong> duas equações (Moss–Brookes) para C<sub>2+</sub> e olefinas, calibrada pelo X<sub>rad</sub> medido ou pelo ponto de fumaça.</li>
+<li><strong>Transiente:</strong> médias sobre ≥ 10–20 tempos característicos da chama (L/u<sub>c</sub>). Reporte média e percentis (p95) do fluxo nos receptores.</li>
+<li><strong>Validação em escada:</strong> (i) Sandia Flame D (TNF), para turbulência e TCI; (ii) chamas de laboratório em vento cruzado (Kalghatgi 1983), para comprimento e inclinação; (iii) dados de campo ou de fabricante com radiômetros; (iv) TCEQ 2010, para CE.</li>
+<li><strong>Relatório:</strong> mapas de fluxo incidente a 1,5 m do solo e nas plataformas, comparados com API 521 e Chamberlain (seção 6); sensibilidade e UQ.</li>
+</ol>
+<h3>7.2 Receita no STAR-CCM+</h3>
+<p class="small">Os nomes dos modelos variam um pouco entre versões.</p>
+<pre class="code">Physics continuum
+  Space: Three Dimensional          Time: Implicit Unsteady (Steady para triagem)
+  Material: Gas / Multi-Component Gas   Equation of State: Ideal Gas
+  Flow: Segregated Flow             Energy: Segregated Fluid Enthalpy
+  Gravity: ON
+  Viscous: Turbulent → RANS: Realizable K-Epsilon Two-Layer (ou SST K-Omega)
+                     → ou LES: WALE Subgrid Scale / DES: SST K-Omega IDDES
+  Reacting: Flamelet → Flamelet Generated Manifold (FGM) [não adiabático]
+            (alternativa: Steady Laminar Flamelet; para CE: Complex Chemistry + EDC)
+            PPDF (β) em Z e na variável de progresso
+  Radiation: Participating Media → Discrete Ordinates
+             Spectrum: Weighted Sum of Gray Gases (ou Multiband)
+  Emissions: Soot Two-Equation (Moss-Brookes) [ou Soot Moments]
+Boundaries
+  Inlet do vento: perfil ABL em tabela (U, k, ε) + rugosidade coerente no solo
+  Tip: Mass Flow Inlet (composição do gás; T); anéis de vapor/ar como inlets dedicados
+Saídas
+  Point probes / Line probes de Radiation Heat Flux a 1,5 m; Surface Incident Radiation
+  Export → CGNS ou Table (CSV) → PINNeAPPle starccm_reader → surrogate / comparação</pre>
+</section>
+
+<section id="pinneapple">
+<h2><span class="n">8</span>PINNeAPPle: o que ele oferece para este problema</h2>
+<p>Inspecionei o repositório (v0.6.2, Apache-2.0, de Yan Barros e colaboradores). O que importa para o flare:</p>
+<div class="grid2">
+<div><h4 class="ok">O que existe</h4>
+<ul>
+<li>Resíduos PINN de turbulência: <code>KOmegaSSTResiduals</code>, <code>SpalartAllmarasResiduals</code> e <code>WALEResiduals</code> (2D e 3D).</li>
+<li>Compilador SymPy → autograd (<code>PINNFactory</code>, <code>PINNProblemSpec</code>) com sinais exógenos, útil para injetar κ(x) e I<sub>b</sub>(x) vindos do CFD.</li>
+<li>Arquiteturas: SIREN, ModifiedMLP, AFNO, HashGrid, MeshGraphNet; DDP; exportação ONNX.</li>
+<li>UQ (ensembles, MC-dropout, conformal), problemas inversos (EKI, SINDy), gêmeo digital.</li>
+<li>Leitores de CGNS e CSV do STAR-CCM+ (<code>starccm_reader</code>) e ponte para OpenFOAM.</li>
+</ul></div>
+<div><h4 class="warn">O que não existe</h4>
+<ul>
+<li>Combustão: fração de mistura, flamelet, química. O preset <code>furnace_combustion_zone</code> é só uma fonte volumétrica de calor.</li>
+<li>Solver ou PINN da RTE, propriedades radiativas, fuligem.</li>
+<li>Modelos de radiação de flares (API 521, Chamberlain) e efeitos (dose, probit).</li>
+</ul></div>
+</div>
+<h3>8.1 Onde PINN ajuda e onde atrapalha</h3>
+<p>Um PINN como solver direto de um flare turbulento reativo enfrenta tudo o que a literatura identifica como modo de falha. O viés espectral contra frentes finas: a zona de reação tem mm, enquanto a chama tem dezenas de metros. A rigidez química levou à criação do Stiff-PINN (Ji et al. 2021). O desbalanço de gradientes entre termos da perda é tratado por Wang, Teng &amp; Perdikaris (2021). E há falhas de convergência em problemas com advecção forte (Krishnapriyan et al. 2021). Os sucessos em combustão (FlamePINN-1D; revisões de 2025) são em chamas laminares 1D ou em assimilação de dados. Para o forward de um flare, um solver de volumes finitos é mais barato e mais confiável.</p>
+<p><strong>Onde o PINNeAPPle agrega de verdade:</strong></p>
+<ol>
+<li><strong>PINN da RTE sobre o campo de chama</strong> (Mishra &amp; Molinaro 2021). Com T, κ e I<sub>b</sub> dados pelo nível C, resolve-se \(\hat s\cdot\nabla I=\kappa(I_b-I)\) sem malha, com \((\mathbf x,\hat s)\) como entrada. A solução é suave e consultável em qualquer receptor. Ela é comparada com o traçado de raios, que serve de verdade, e isso valida o PINN.</li>
+<li><strong>Surrogate paramétrico com UQ.</strong> Treinado nos níveis A–D e nos seus casos de STAR-CCM+, ele mapeia \((\dot m,U_\infty,\theta_w,\mathbf x_{gas},H,\mathrm{UR})\) → mapa de q″ no solo (\(\mathbf x_{gas}\) = composição), com intervalos conformais. Uso: zonas de exclusão em tempo real a partir do vento medido, com o gêmeo digital do pacote.</li>
+<li><strong>Calibração inversa</strong> com radiômetros ou câmera IR: estimar X<sub>rad</sub>, o coeficiente de arrastamento e o rendimento de fuligem (EKI ou PINN inverso).</li>
+<li><strong>Didático:</strong> PINN com SST para o jato frio vs. FVM, para mostrar ao seu colega onde o PINN converge e onde não converge.</li>
+</ol>
+<h4>Esboço da RTE no PINNeAPPle (API real do pacote; detalhes a confirmar ao codificar)</h4>
+<pre class="code">from pinneapple_physics.pinn_solver.factory.pinn_factory import PINNFactory, PINNProblemSpec
+
+# Campo de chama do nível C (ou do STAR-CCM+) → funções interpoladas (torch)
+kappa_fn = make_interp(field["kappa"])   # κ(x, z) [1/m]   — gás (WSGG/Planck) + fuligem
+Ib_fn    = make_interp(field["Ib"])      # σT⁴/π [W/m²/sr]
+
+spec = PINNProblemSpec(
+    pde_residuals=["cos(phi)*Derivative(I(x,z,phi), x) + sin(phi)*Derivative(I(x,z,phi), z)"
+                   " + kappa(x,z,phi)*(I(x,z,phi) - Ib(x,z,phi))"],
+    independent_vars=["x", "z", "phi"], dependent_vars=["I"],
+    conditions=[{"name": "entrada_fria", "equation": "I(x,z,phi)", "weight": 10.0}],
+    exogenous={"kappa": kappa_fn, "Ib": Ib_fn},
+)
+loss_fn = PINNFactory(spec).generate_loss_function()
+# modelo SIREN (build_model("siren", in_dim=3, out_dim=1, ...)) + Trainer/TrainConfig
+# q''(receptor) = Σ_m I(x_r, φ_m) (n·s_m) w_m  → comparar com o traçado de raios</pre>
+</section>
+
+<section id="arquitetura">
+<h2><span class="n">9</span>Como eu estruturaria o código (Colab)</h2>
+<p>Um pacote Python, <code>flarekit</code>, com notebooks por etapa. Cada nível verifica o anterior, e todos alimentam o mesmo pós-processamento de segurança.</p>
+<pre class="mermaid">
+flowchart LR
+  P["props: Cantera, Z_st, flamelets"] --> S["source: tip e bocal ficticio"]
+  S --> A["A: API 521, multi-ponto, Chamberlain"]
+  S --> B["B: modelo integral em vento"]
+  P --> C["C: CFD axissimetrico RANS"]
+  S --> D["D: LES 3D (FDS/OpenFOAM)"]
+  B --> R["rays: tracado de raios"]
+  C --> R
+  D --> R
+  C --> N["pinn: PINNeAPPle"]
+  D --> N
+  A --> SF["safety: zonas API, dose, probit"]
+  R --> SF
+  N --> SF
+</pre>
+<div class="tbl"><table>
+<thead><tr><th>Módulo</th><th>Conteúdo</th><th>Verificação</th><th class="num">Custo no Colab</th></tr></thead>
+<tbody>
+<tr><td><code>props</code></td><td>Mistura, PCI, Z<sub>st</sub>, T<sub>ad</sub> e ρ(Z) por equilíbrio (Cantera); tabelas de flamelet em contracorrente, varrendo χ<sub>st</sub></td><td>T<sub>ad</sub> contra a literatura; Burke–Schumann</td><td class="num">s–min</td></tr>
+<tr><td><code>source</code></td><td>Condições no tip, bloqueio sônico, bocal fictício (seção 3.1)</td><td>Conservação de massa e momento</td><td class="num">ms</td></tr>
+<tr><td><code>semiempirical</code></td><td>API 521, McMurray, Hankinson–Lowesmith, Chamberlain com fator de vista vetorial, τ<sub>atm</sub>, altura do flare</td><td>Identidades da seção 3.7; exemplo da seção 6</td><td class="num">ms</td></tr>
+<tr><td><code>integral</code></td><td>EDOs da seção 3.10 (perfis gaussianos), comprimento em Z<sub>c</sub> = Z<sub>st</sub>, multi-fonte</td><td>Comparação com Delichatsios e Kalghatgi</td><td class="num">ms</td></tr>
+<tr><td><code>cfd_axi</code></td><td>Volumes finitos axissimétricos, low-Mach (SIMPLE/projeção), <em>k</em>–ε com C<sub>ε1</sub> = 1,6 ou correção de Pope, Z̃ e Z̃″², β-PDF sobre flamelets não adiabáticos, P1 ou DOM com WSGG, fuligem; NumPy + Numba</td><td>Sandia Flame D (perfis de Z, T, Y<sub>k</sub>); X<sub>rad</sub> vs. Molina</td><td class="num">minutos</td></tr>
+<tr><td><code>rays</code></td><td>Reconstrução 3D (revolução do campo axissimétrico ou varredura ao longo da trajetória do modelo integral) + transferência discreta até receptores; PyTorch na GPU</td><td>Caso analítico de esfera isotérmica</td><td class="num">s–min</td></tr>
+<tr><td><code>les3d</code></td><td>Gerador de casos do FDS (LES, vento, fuligem, radiômetros nos receptores) ou do OpenFOAM via ponte do PINNeAPPle; leitura dos resultados</td><td>Contra os níveis A–C</td><td class="num">0,5–algumas h</td></tr>
+<tr><td><code>pinn</code></td><td>RTE-PINN, surrogate com UQ, calibração inversa (PINNeAPPle)</td><td>Contra <code>rays</code> e dados retidos</td><td class="num">10–60 min (GPU T4)</td></tr>
+<tr><td><code>safety</code>, <code>viz</code></td><td>Zonas API, dose, probits com fuga, T de superfície; mapas e relatórios</td><td>Seção 5 e exemplo</td><td class="num">s</td></tr>
+</tbody></table></div>
+<h4>Ordem de entrega</h4>
+<ol>
+<li><strong>Notebook 01, triagem e segurança</strong> (níveis A e B, mais <code>safety</code>). Já é uma ferramenta útil de projeto e serve de "verdade" para os demais.</li>
+<li><strong>Notebook 02, CFD axissimétrico</strong>, validado primeiro na Sandia Flame D e depois aplicado ao flare sem vento. Mostra a turbulência da chama (k, ε, Z″², TCI, TRI) e a radiação resolvida.</li>
+<li><strong>Notebook 03, 3D com vento</strong> (FDS ou OpenFOAM no Colab), comparado com o Chamberlain e o integral.</li>
+<li><strong>Notebook 04, PINNeAPPle</strong>: RTE-PINN e surrogate com UQ, treinado nos notebooks anteriores e, se você quiser, nos seus casos de STAR-CCM+.</li>
+</ol>
+<p class="small">Sobre limitações: o 2D axissimétrico não representa vento cruzado. Para isso existem o nível B (integral) e o nível D (3D). O FDS usa formulação low-Mach e malha grosseira (δx ~ 1–3 m para este flare), então o tip entra como fonte de combustível com o momento correto e a fração radiante deve ser verificada contra os níveis A–C. Os tempos do Colab dependem da máquina alocada.</p>
+</section>
+
+<section id="decisoes">
+<h2><span class="n">10</span>Decisões que preciso de você antes de codificar</h2>
+<ol>
+<li><strong>Cenário de referência:</strong> gás natural offshore, refinaria (propano, etileno) ou gás rico em H<sub>2</sub>? Tipo de flare: tubo elevado, sônico, assistido a vapor ou ar, de solo, ou boom offshore inclinado?</li>
+<li><strong>3D no Colab:</strong> FDS (LES de incêndio, instala com um binário, tem radiômetros prontos) ou OpenFOAM (fireFoam/reactingFoam, conversa com a ponte do PINNeAPPle)? Minha sugestão é o FDS para o primeiro 3D.</li>
+<li><strong>Escopo do PINNeAPPle:</strong> RTE-PINN, surrogate com UQ, inverso com radiômetros, ou os três? Vale envolver seu colega no desenho do surrogate.</li>
+<li><strong>Integração com o trabalho:</strong> quer que o notebook leia exports do STAR-CCM+ (CGNS/CSV) desde o início?</li>
+</ol>
+</section>
+
+<section id="refs">
+<h2><span class="n">11</span>Referências</h2>
+<p class="small">Os links apontam para as fontes consultadas nesta revisão. Os demais itens são referências clássicas citadas no texto.</p>
+<h4>Normas, regulação e guias</h4>
+<ol class="refs">
+<li>API Standard 521, <em>Pressure-relieving and Depressuring Systems</em>, 7ª ed., 2020 (equiv. ISO 23251).</li>
+<li>US EPA, <a href="https://www.ecfr.gov/current/title-40/chapter-I/subchapter-C/part-63/subpart-CC/section-63.670">40 CFR 63.670 – Requirements for flare control devices</a>.</li>
+<li>TNO, <em>Methods for the calculation of physical effects</em> (Yellow Book, CPR 14E), 3ª ed., 2005; <em>Methods for the determination of possible damage</em> (Green Book, CPR 16E), 1992.</li>
+<li>CCPS, <em>Guidelines for Chemical Process Quantitative Risk Analysis</em>, 2ª ed., AIChE, 2000.</li>
+<li>UK CAA, CAP 437, <em>Standards for Offshore Helicopter Landing Areas</em>.</li>
+</ol>
+<h4>Modelos semi-empíricos de chama e radiação</h4>
+<ol class="refs" start="6">
+<li>Hajek, J.D.; Ludwig, E.E. (1960) How to design safe flare stacks. <em>Petro/Chem Engineer</em> 32.</li>
+<li>Kent, G.R. (1964) Practical design of flare stacks. <em>Hydrocarbon Processing</em> 43(8).</li>
+<li>Brzustowski, T.A.; Sommer, E.C. (1973) Predicting radiant heating from flares. <em>Proc. API Refining Dept.</em> 53.</li>
+<li>McMurray, R. (1982) Flare radiation estimated. <em>Hydrocarbon Processing</em> 61(11).</li>
+<li>Kalghatgi, G.T. (1983) The visible shape and size of a turbulent hydrocarbon jet diffusion flame in a cross-wind. <em>Combust. Flame</em> 52.</li>
+<li>Kalghatgi, G.T. (1984) Lift-off heights and visible lengths of vertical turbulent jet diffusion flames in still air. <em>Combust. Sci. Technol.</em> 41.</li>
+<li>Chamberlain, G.A. (1987) <a href="https://www.osti.gov/etdeweb/biblio/6154885">Developments in design methods for predicting thermal radiation from flares</a>. <em>Chem. Eng. Res. Des.</em> 65(4):299–309.</li>
+<li>Johnson, A.D.; Brightwell, H.M.; Carsley, A.J. (1994) A model for predicting the thermal radiation hazards from large-scale horizontally released natural gas jet fires. <em>Trans IChemE B</em> 72.</li>
+<li>Guigard, S.E.; Kindzierski, W.B.; Harper, N. (2000) <a href="https://open.alberta.ca/dataset/763e5265-8ce6-4c80-8a48-d8674c1d5616/resource/5ab8f298-ccc2-4e5a-a85a-831e14a831de/download/aenv-heat-radiation-from-flares-6694.pdf">Heat radiation from flares</a>. Alberta Environment.</li>
+<li>Bagster, D.F.; Pittblado, R.M. (1989) Thermal hazards in the process industry. <em>Chem. Eng. Prog.</em> 85(7).</li>
+<li>Wayne, F.D. (1991) An economical formula for calculating atmospheric infrared transmissivities. <em>J. Loss Prev. Process Ind.</em> 4.</li>
+<li>Delichatsios, M.A. (1993) Transition from momentum to buoyancy-controlled turbulent jet diffusion flames and flame height relationships. <em>Combust. Flame</em> 92.</li>
+<li>Turns, S.R.; Myhr, F.H. (1991) Oxides of nitrogen emissions from turbulent jet flames: Part I. <em>Combust. Flame</em> 87.</li>
+<li>Schefer, R.W.; Houf, W.G.; Bourne, B.; Colton, J. (2006) Spatial and radiative properties of an open-flame hydrogen plume. <em>Int. J. Hydrogen Energy</em> 31:1332–1340.</li>
+<li>Molina, A.; Schefer, R.W.; Houf, W.G. (2007) Radiative fraction and optical thickness in large-scale hydrogen-jet fires. <em>Proc. Combust. Inst.</em> 31:2565–2572.</li>
+<li>Houf, W.; Schefer, R. (2008) Analytical and experimental investigation of small-scale unintended releases of hydrogen. <em>Int. J. Hydrogen Energy</em> 33.</li>
+<li>Ekoto, I.W. et al. (2014) <a href="https://www.osti.gov/servlets/purl/1078851">Updated jet flame radiation modeling with buoyancy corrections</a>. <em>Int. J. Hydrogen Energy</em> 39.</li>
+<li>Hankinson, G.; Lowesmith, B.J. (2012) A consideration of methods of determining the radiative characteristics of jet fires. <em>Combust. Flame</em> 159:1165–1177.</li>
+<li>Birch, A.D. et al. (1984) The structure and concentration decay of high pressure jets of natural gas. <em>Combust. Sci. Technol.</em> 36.</li>
+<li>Yüceil, K.B.; Ötügen, M.V. (2002) Scaling parameters for underexpanded supersonic jets. <em>Phys. Fluids</em> 14.</li>
+<li>Miller, D. (2017) <a href="https://aiche.onlinelibrary.wiley.com/doi/abs/10.1002/prs.11867">New model for predicting thermal radiation from flares and high pressure jet fires for hydrogen and syngas</a>. <em>Process Saf. Prog.</em></li>
+<li>Morton, B.R.; Taylor, G.I.; Turner, J.S. (1956) Turbulent gravitational convection from maintained and instantaneous sources. <em>Proc. R. Soc. A</em> 234.</li>
+<li>Hoult, D.P.; Fay, J.A.; Forney, L.J. (1969) A theory of plume rise compared with field observations. <em>JAPCA</em> 19.</li>
+<li>Sandia National Laboratories, <a href="https://github.com/sandialabs/hyram">HyRAM+</a> (código aberto; usado para conferir as correlações de Schefer/Molina, Hankinson–Lowesmith e Wayne).</li>
+<li><a href="https://github.com/YakNazim/fireSIM-Matlab-toolbox">fireSIM MATLAB toolbox</a> (implementação aberta do Chamberlain; tem os desvios de coeficiente discutidos na seção 3.7).</li>
+</ol>
+<h4>CFD de flares e eficiência de combustão</h4>
+<ol class="refs" start="31">
+<li>Castiñeira, D.; Edgar, T.F. (2006) <a href="https://pubs.acs.org/doi/10.1021/ef050332v">CFD for simulation of steam-assisted and air-assisted flare combustion systems</a>. <em>Energy Fuels</em> 20.</li>
+<li>Castiñeira, D.; Edgar, T.F. (2008) <a href="https://pubs.acs.org/doi/10.1021/ef700545j">CFD for simulation of wind-tunnel experiments on flare combustion systems</a>. <em>Energy Fuels</em> 22.</li>
+<li>Castiñeira, D.; Edgar, T.F. (2008) <a href="https://dx.doi.org/10.1061/(ASCE)0733-9372(2008)134:7(561)">CFD for simulation of crosswind on the efficiency of high momentum jet turbulent combustion flames</a>. <em>J. Environ. Eng.</em> 134(7).</li>
+<li>Smith, J.D.; Suo-Anttila, A. et al. (2007) <a href="https://www.zeeco.com/resources/technical-papers/low-profile-flare-tip-evaluations">Evaluation of the air-demand, flame height, and radiation from low-profile flare tips using ISIS-3D</a>. AFRC–JFRC Symposium.</li>
+<li>Singh, K.D.; Gangadharan, P.; Chen, D.H.; Lou, H.H.; Li, X.; Richmond, P. (2014) <a href="https://pubmed.ncbi.nlm.nih.gov/25509554/">Computational fluid dynamics modeling of laboratory flames and an industrial flare</a>. <em>J. Air Waste Manag. Assoc.</em> 64(11):1328–1340.</li>
+<li>Wang, A. et al. (2016) <a href="https://journal.hep.com.cn/fcse/EN/10.1007/s11705-016-1594-y">Combustion mechanism development and CFD simulation for the prediction of soot emission during flaring</a>. <em>Front. Chem. Sci. Eng.</em> 10.</li>
+<li>Damodara, V. et al. (2017) Reduced combustion mechanism for C1–C4 hydrocarbons and its application in CFD flare modeling. <em>J. Air Waste Manag. Assoc.</em> 67.</li>
+<li>Jatale, A.; Smith, P.J.; Thornock, J.N.; Smith, S.T.; Hradisky, M. (2016) <a href="https://www.researchgate.net/publication/283006249_A_Validation_of_Flare_Combustion_Efficiency_Predictions_From_Large_Eddy_Simulations">A validation of flare combustion efficiency predictions from large eddy simulations</a>. <em>J. Verif. Valid. Uncertain. Quantif.</em> 1(2).</li>
+<li>Wang, A. et al. (2024) <a href="https://www.mdpi.com/2073-4433/15/7/800">Computational fluid dynamics simulation of combustion efficiency for full-size upstream flare experiments</a>. <em>Atmosphere</em> 15(7):800.</li>
+<li>Torres, V.M.; Herndon, S.; Kodesh, Z.; Allen, D.T. (2012) <a href="https://pubs.acs.org/doi/10.1021/ie202674t">Industrial flare performance at low flow conditions. 1. Study overview</a>. <em>Ind. Eng. Chem. Res.</em> 51.</li>
+<li>Johnson, M.R.; Kostiuk, L.W. (2000) Efficiencies of low-momentum jet diffusion flames in crosswinds. <em>Combust. Flame</em> 123.</li>
+<li>Johnson, M.R.; Kostiuk, L.W. (2002) A parametric model for the efficiency of a flare in crosswind. <em>Proc. Combust. Inst.</em> 29:1943–1950.</li>
+<li>Plant, G. et al. (2022) <a href="https://www.science.org/doi/10.1126/science.abq0385">Inefficient and unlit natural gas flares both emit large quantities of methane</a>. <em>Science</em> 377.</li>
+</ol>
+<h4>Turbulência, combustão e radiação (fundamentos)</h4>
+<ol class="refs" start="44">
+<li>Launder, B.E.; Spalding, D.B. (1974) The numerical computation of turbulent flows. <em>Comput. Methods Appl. Mech. Eng.</em> 3.</li>
+<li>Pope, S.B. (1978) An explanation of the turbulent round-jet/plane-jet anomaly. <em>AIAA J.</em> 16.</li>
+<li>Shih, T.-H. et al. (1995) A new k-ε eddy viscosity model for high Reynolds number turbulent flows. <em>Comput. Fluids</em> 24.</li>
+<li>Menter, F.R. (1994) Two-equation eddy-viscosity turbulence models for engineering applications. <em>AIAA J.</em> 32.</li>
+<li>Nicoud, F.; Ducros, F. (1999) Subgrid-scale stress modelling based on the square of the velocity gradient tensor. <em>Flow Turbul. Combust.</em> 62.</li>
+<li>Richards, P.J.; Hoxey, R.P. (1993) Appropriate boundary conditions for computational wind engineering models using the k-ε turbulence model. <em>J. Wind Eng. Ind. Aerodyn.</em> 46–47.</li>
+<li>Blocken, B.; Stathopoulos, T.; Carmeliet, J. (2007) CFD simulation of the atmospheric boundary layer: wall function problems. <em>Atmos. Environ.</em> 41.</li>
+<li>Pope, S.B. (2000) <em>Turbulent Flows</em>. Cambridge University Press.</li>
+<li>Peters, N. (1984) Laminar diffusion flamelet models in non-premixed turbulent combustion. <em>Prog. Energy Combust. Sci.</em> 10; Peters, N. (2000) <em>Turbulent Combustion</em>. CUP.</li>
+<li>Pierce, C.D.; Moin, P. (1998) A dynamic model for subgrid-scale variance and dissipation rate of a conserved scalar. <em>Phys. Fluids</em> 10; (2004) Progress-variable approach for LES of non-premixed turbulent combustion. <em>J. Fluid Mech.</em> 504.</li>
+<li>van Oijen, J.A.; de Goey, L.P.H. (2000) Modelling of premixed laminar flames using flamelet-generated manifolds. <em>Combust. Sci. Technol.</em> 161.</li>
+<li>Magnussen, B.F.; Hjertager, B.H. (1977) On mathematical modeling of turbulent combustion with special emphasis on soot formation and combustion. <em>Proc. Combust. Inst.</em> 16; Magnussen, B.F. (2005) The Eddy Dissipation Concept. ECCOMAS Thematic Conf. Comput. Combust.</li>
+<li>Bilger, R.W. (1988) The structure of turbulent nonpremixed flames. <em>Proc. Combust. Inst.</em> 22.</li>
+<li>Barlow, R.S.; Frank, J.H. (1998) Effects of turbulence on species mass fractions in methane/air jet flames. <em>Proc. Combust. Inst.</em> 27 (Sandia Flame D); <a href="https://tnfworkshop.org">TNF Workshop</a>.</li>
+<li>Modest, M.F.; Mazumder, S. (2021) <em>Radiative Heat Transfer</em>, 4ª ed. Academic Press.</li>
+<li>Coelho, P.J. (2007) Numerical simulation of the interaction between turbulence and radiation in reactive flows. <em>Prog. Energy Combust. Sci.</em> 33.</li>
+<li>Fiveland, W.A. (1984) Discrete-ordinates solutions of the radiative transport equation for rectangular enclosures. <em>J. Heat Transfer</em> 106; Raithby, G.D.; Chui, E.H. (1990) A finite-volume method for predicting radiant heat transfer in enclosures with participating media. <em>J. Heat Transfer</em> 112.</li>
+<li>Lockwood, F.C.; Shah, N.G. (1981) A new radiation solution method for incorporation in general combustion prediction procedures. <em>Proc. Combust. Inst.</em> 18.</li>
+<li>Smith, T.F.; Shen, Z.F.; Friedman, J.N. (1982) Evaluation of coefficients for the weighted sum of gray gases model. <em>J. Heat Transfer</em> 104.</li>
+<li>Bordbar, M.H.; Węcel, G.; Hyppänen, T. (2014) A line by line based weighted sum of gray gases model for inhomogeneous CO2–H2O mixture in oxy-fired combustion. <em>Combust. Flame</em> 161.</li>
+<li>Cassol, F.; Brittes, R.; França, F.H.R.; Ezekoye, O.A. (2014) Application of the weighted-sum-of-gray-gases model for media composed of arbitrary concentrations of H2O, CO2 and soot. <em>Int. J. Heat Mass Transfer</em> 79.</li>
+<li>Brookes, S.J.; Moss, J.B. (1999) Predictions of soot and thermal radiation properties in confined turbulent jet diffusion flames. <em>Combust. Flame</em> 116.</li>
+<li>Hall, R.J.; Smooke, M.D.; Colket, M.B. (1997) Predictions of soot dynamics in opposed jet diffusion flames. In <em>Physical and Chemical Aspects of Combustion</em>, Gordon &amp; Breach.</li>
+<li>Hubbard, G.L.; Tien, C.L. (1978) Infrared mean absorption coefficients of luminous flames and smoke. <em>J. Heat Transfer</em> 100; Dalzell, W.H.; Sarofim, A.F. (1969) Optical constants of soot. <em>J. Heat Transfer</em> 91.</li>
+<li>Celik, I.B. et al. (2008) Procedure for estimation and reporting of uncertainty due to discretization in CFD applications. <em>J. Fluids Eng.</em> 130.</li>
+<li>McGrattan, K. et al. <em>Fire Dynamics Simulator – User's Guide / Technical Reference</em>. NIST SP 1019/1018.</li>
+</ol>
+<h4>Efeitos em pessoas</h4>
+<ol class="refs" start="70">
+<li>Eisenberg, N.A.; Lynch, C.J.; Breeding, R.J. (1975) <em>Vulnerability model: a simulation system for assessing damage resulting from marine spills</em>. US Coast Guard, CG-D-136-75.</li>
+<li>Tsao, C.K.; Perry, W.W. (1979) <em>Modifications to the vulnerability model</em>. US Coast Guard.</li>
+<li>O'Sullivan, S.; Jagger, S. (2004) <em>Human vulnerability to thermal radiation offshore</em>. HSL/2004/04.</li>
+<li><a href="https://conference.ing.unipi.it/ichs2009/images/stories/papers/165.pdf">Development of uniform harm criteria for use in quantitative risk analysis of the hydrogen infrastructure</a> (ICHS 2009): comparação de probits.</li>
+</ol>
+<h4>PINN e aprendizado de máquina</h4>
+<ol class="refs" start="74">
+<li>PINNeAPPle: <a href="https://github.com/PINNeAPPle-Labs/PINNeAPPle">GitHub</a> · <a href="https://pypi.org/project/pinneapple/">PyPI</a> (v0.6.2).</li>
+<li>Raissi, M.; Perdikaris, P.; Karniadakis, G.E. (2019) Physics-informed neural networks. <em>J. Comput. Phys.</em> 378.</li>
+<li>Mishra, S.; Molinaro, R. (2021) <a href="https://arxiv.org/pdf/2009.13291">Physics informed neural networks for simulating radiative transfer</a>. <em>JQSRT</em> 270.</li>
+<li>Eivazi, H.; Tahani, M.; Schlatter, P.; Vinuesa, R. (2022) <a href="https://pubs.aip.org/aip/pof/article/34/7/075117/2847279/Physics-informed-neural-networks-for-solving">Physics-informed neural networks for solving Reynolds-averaged Navier–Stokes equations</a>. <em>Phys. Fluids</em> 34.</li>
+<li>Ji, W. et al. (2021) <a href="https://pubs.acs.org/doi/abs/10.1021/acs.jpca.1c05102">Stiff-PINN: physics-informed neural network for stiff chemical kinetics</a>. <em>J. Phys. Chem. A</em> 125.</li>
+<li>Wu, J. et al. (2025) <a href="https://arxiv.org/pdf/2406.09071">FlamePINN-1D</a>. <em>Combust. Flame</em>.</li>
+<li>Krishnapriyan, A. et al. (2021) Characterizing possible failure modes in physics-informed neural networks. <em>NeurIPS</em> 34.</li>
+<li>Wang, S.; Teng, Y.; Perdikaris, P. (2021) Understanding and mitigating gradient flow pathologies in physics-informed neural networks. <em>SIAM J. Sci. Comput.</em> 43.</li>
+<li><a href="https://arxiv.org/pdf/2509.03347">Physics-informed machine learning for combustion: a review</a> (2025), arXiv:2509.03347.</li>
+</ol>
+</section>
+</main>
+</div>
+
+</body>
+</html>
