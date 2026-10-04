@@ -22,6 +22,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from .dashboard import br
+
 RES = {"1080p": (1920, 1080), "1440p": (2560, 1440), "4k": (3840, 2160)}
 
 
@@ -334,21 +336,84 @@ class HDFlameRenderer:
 
 
 # -------------------------------------------------------------- sobreposições
+def _wrap(draw, text, font, width):
+    words, lines, cur = text.split(), [], ""
+    for w in words:
+        nxt = (cur + " " + w).strip()
+        if draw.textlength(nxt, font=font) <= width:
+            cur = nxt
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    return lines + ([cur] if cur else [])
+
+
+def _caption_alpha(captions, t, fade=0.45):
+    """Legenda ativa no instante t (s) e sua opacidade (entrada e saída suaves)."""
+    for t0, t1, text in captions:
+        if t0 <= t < t1:
+            return text, float(np.clip(min(t - t0, t1 - t) / fade, 0, 1))
+    return None, 0.0
+
+
+def even_captions(texts, duration, lead=0.3):
+    """Distribui as legendas igualmente na duração do segmento: [(t0, t1, texto)]."""
+    texts = [t for t in texts if t]
+    if not texts:
+        return []
+    d = (duration - lead) / len(texts)
+    return [(lead + k * d, lead + (k + 1) * d, t) for k, t in enumerate(texts)]
+
+
+def draw_lower_third(im, text, alpha, s, accent=(255, 176, 64), y_bottom=None, max_w=None):
+    """Legenda em caixa escura translúcida no terço inferior (PIL RGBA)."""
+    from PIL import Image, ImageDraw
+    if not text or alpha <= 0:
+        return im
+    W, H = im.size
+    font = _font(int(34 * s))
+    layer = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    max_w = max_w or int(W * 0.62)
+    lines = _wrap(d, br(text), font, max_w)
+    lh = int(font.size * 1.28)
+    pad = int(22 * s)
+    box_h = lh * len(lines) + 2 * pad
+    box_w = max(d.textlength(ln, font=font) for ln in lines) + 2 * pad + int(10 * s)
+    y1 = y_bottom if y_bottom is not None else H - int(150 * s)
+    y0 = y1 - box_h
+    x0 = int(60 * s)
+    d.rounded_rectangle([x0, y0, x0 + box_w, y1], radius=int(10 * s), fill=(6, 9, 15, int(185 * alpha)))
+    d.rectangle([x0, y0, x0 + int(6 * s), y1], fill=accent + (int(255 * alpha),))
+    for k, ln in enumerate(lines):
+        d.text((x0 + pad + int(10 * s), y0 + pad + k * lh), ln, font=font, fill=(240, 244, 250, int(255 * alpha)))
+    im.alpha_composite(layer)
+    return im
+
+
 class Overlay:
     """Textos e elementos gráficos desenhados com PIL sobre o quadro HD."""
 
-    def __init__(self, size, view, title: str, subtitle: str, caption: str, wind: bool = True):
+    def __init__(self, size, view, title: str, subtitle: str, caption: str, wind: bool = True,
+                 kicker: str = "", captions=None, accent=(255, 176, 64)):
         from PIL import Image, ImageDraw
         self.W, self.H = size
         self.s = self.H / 1080.0
         self.view = view
+        self.captions = captions or []
+        self.accent = accent
         self.static = Image.new("RGBA", size, (0, 0, 0, 0))
         d = ImageDraw.Draw(self.static)
         s = self.s
-        d.text((int(58 * s), int(36 * s)), title, font=_font(int(44 * s), True), fill=(236, 240, 246, 255))
-        d.text((int(60 * s), int(98 * s)), subtitle, font=_font(int(24 * s)), fill=(150, 160, 175, 255))
+        y = int(36 * s)
+        if kicker:
+            d.text((int(60 * s), y), br(kicker).upper(), font=_font(int(24 * s), True), fill=accent + (255,))
+            y += int(38 * s)
+        d.text((int(58 * s), y), br(title), font=_font(int(44 * s), True), fill=(236, 240, 246, 255))
+        d.text((int(60 * s), y + int(62 * s)), br(subtitle), font=_font(int(24 * s)), fill=(150, 160, 175, 255))
         if wind:
-            y = int(200 * s)
+            y = int(240 * s) if kicker else int(200 * s)
             d.line([(int(60 * s), y), (int(185 * s), y)], fill=(120, 200, 255, 255), width=max(2, int(3 * s)))
             d.polygon([(int(200 * s), y), (int(182 * s), y - int(9 * s)), (int(182 * s), y + int(9 * s))],
                       fill=(120, 200, 255, 255))
@@ -362,43 +427,55 @@ class Overlay:
         d.line([(int(xr - L), yb), (xr, yb)], fill=(235, 238, 242, 255), width=max(2, int(4 * s)))
         d.text((int(xr - L / 2), yb - int(36 * s)), "10 m", font=_font(int(22 * s)), fill=(235, 238, 242, 255),
                anchor="mm")
-        d.text((self.W - int(60 * s), self.H - int(48 * s)), caption, font=_font(int(18 * s)),
+        d.text((self.W - int(60 * s), self.H - int(48 * s)), br(caption), font=_font(int(18 * s)),
                fill=(140, 148, 160, 255), anchor="rm")
-        self.f_clock = _mono(int(46 * s), True)
-        self.f_read = _mono(int(26 * s))
+        self.f_clock = _mono(int(40 * s), True)
+        self.f_read = _font(int(24 * s))
 
-    def compose(self, rgb: np.ndarray, t: float, L: float) -> np.ndarray:
+    def compose(self, rgb: np.ndarray, t: float, L: float, tv: float | None = None) -> np.ndarray:
+        """t: tempo simulado [s]; L: comprimento instantâneo da chama [m]; tv: tempo no vídeo [s] (legendas)."""
         from PIL import Image, ImageDraw
         im = Image.fromarray(rgb).convert("RGBA")
         im.alpha_composite(self.static)
         d = ImageDraw.Draw(im)
         s = self.s
-        d.text((self.W - int(60 * s), int(36 * s)), f"t = {t:5.1f} s", font=self.f_clock,
-               fill=(255, 176, 64, 255), anchor="ra")
-        d.text((self.W - int(60 * s), int(104 * s)), f"L = {L:4.1f} m", font=self.f_read,
+        d.text((self.W - int(60 * s), int(36 * s)), br(f"t = {t:4.1f} s"), font=self.f_clock,
+               fill=self.accent + (255,), anchor="ra")
+        d.text((self.W - int(60 * s), int(92 * s)), "tempo simulado", font=self.f_read,
+               fill=(150, 160, 175, 255), anchor="ra")
+        d.text((self.W - int(60 * s), int(130 * s)), br(f"comprimento da chama: {L:.1f} m"), font=self.f_read,
                fill=(236, 240, 246, 255), anchor="ra")
+        if tv is not None and self.captions:
+            text, a = _caption_alpha(self.captions, tv)
+            draw_lower_third(im, text, a, s, self.accent)
         return np.asarray(im.convert("RGB"))
 
 
 def render_flame_hd(rec, path: str, title: str, subtitle: str, resolution: str = "1080p", fps: int = 30,
                     every: int = 1, detail: float = 0.35, exposure: float = 1.0, bloom: float = 0.6,
                     caption: str | None = None, t_range: tuple | None = None, device: str = "auto",
-                    log_every: int = 100) -> str:
+                    log_every: int = 100, kicker: str = "", captions=None) -> str:
     """Segmento HD da chama: resolução '1080p', '1440p' ou '4k'; detail = realce visual abaixo da malha
-    (0 desliga); every = usa 1 a cada `every` quadros gravados (acelera o vídeo)."""
+    (0 desliga); every = usa 1 a cada `every` quadros gravados (acelera o vídeo); kicker = rótulo do
+    capítulo; captions = textos de legenda, distribuídos igualmente na duração (ou [(t0, t1, texto)])."""
     size = RES.get(resolution, resolution if isinstance(resolution, tuple) else RES["1080p"])
     r = HDFlameRenderer(rec, size=size, detail=detail, exposure=exposure, bloom=bloom, device=device)
     if caption is None:
         caption = ("LES 3D · emissão da fuligem integrada na linha de visada (câmera sintética)"
                    + (" · realce visual de detalhes abaixo da malha" if detail > 0 else ""))
-    ov = Overlay(size, r.view, title, subtitle, caption, wind=float(rec.static["u_ref"]) > 0)
     frames = rec.frames[::every]
     if t_range is not None:
         frames = [f for f in frames if t_range[0] <= f["t"] <= t_range[1]]
+    dur = len(frames) / fps
+    caps = captions or []
+    if caps and isinstance(caps[0], str):
+        caps = even_captions(caps, dur)
+    ov = Overlay(size, r.view, title, subtitle, caption, wind=float(rec.static["u_ref"]) > 0, kicker=kicker,
+                 captions=caps)
     pipe = FFmpegPipe(path, size, fps)
     with torch.no_grad():
         for n, f in enumerate(frames):
-            pipe.write(ov.compose(r.to_uint8(r.frame(f)), float(f["t"]), float(f["L"])))
+            pipe.write(ov.compose(r.to_uint8(r.frame(f)), float(f["t"]), float(f["L"]), tv=n / fps))
             if log_every and (n + 1) % log_every == 0:
                 print(f"  HD: {n + 1}/{len(frames)} quadros", flush=True)
     return pipe.close()
@@ -444,38 +521,48 @@ def _card_background(size, backdrop=None, place: float = 0.78, strength: float =
 
 
 def render_title_card(path: str, title: str, subtitle: str, credit: str = "", note: str = "",
-                      size=(1920, 1080), fps: int = 30, seconds: float = 3.5, backdrop=None,
+                      size=(1920, 1080), fps: int = 30, seconds: float = 4.5, backdrop=None,
                       accent=(255, 176, 64)) -> str:
-    """Abertura em HD (PIL): título, subtítulo, crédito e nota, com entrada suave."""
+    """Abertura em HD: título (até 2 linhas), subtítulo (até 2 linhas), autoria e aviso, com entrada suave."""
     from PIL import Image, ImageDraw
     W, H = size
     s = H / 1080.0
     base = Image.fromarray(_card_background(size, backdrop, place=0.5, strength=0.38,
                                             ramp_from=-1.0).astype(np.uint8)).convert("RGBA")
     probe = ImageDraw.Draw(base)
-
-    def fit(text, bold, size0, maxw):
-        sz = size0
-        while sz > 12 and probe.textlength(text, font=_font(int(sz * s), bold)) > maxw:
-            sz -= 2
-        return _font(int(sz * s), bold)
-    items = [(title, fit(title, True, 78, 0.9 * W), (240, 244, 250), 0.50, 0.0),
-             (subtitle, fit(subtitle, False, 36, 0.9 * W), accent, 0.60, 0.35)]
+    title, subtitle, credit, note = br(title), br(subtitle), br(credit), br(note)
+    f_t, f_s, f_c, f_n = _font(int(72 * s), True), _font(int(36 * s)), _font(int(28 * s)), _font(int(22 * s))
+    t_lines = _wrap(probe, title, f_t, int(0.86 * W))
+    s_lines = _wrap(probe, subtitle, f_s, int(0.80 * W))
+    blocks = []      # (linhas, fonte, cor, altura de linha, atraso)
+    blocks.append((t_lines, f_t, (240, 244, 250), int(f_t.size * 1.18), 0.0))
+    blocks.append(([""], f_c, (0, 0, 0), int(24 * s), 0.0))
+    blocks.append((s_lines, f_s, accent, int(f_s.size * 1.3), 0.4))
     if credit:
-        items.append((credit, fit(credit, False, 28, 0.9 * W), (170, 178, 190), 0.69, 0.7))
-    if note:
-        items.append((note, fit(note, False, 22, 0.9 * W), (130, 138, 150), 0.93, 1.0))
+        blocks.append(([""], f_c, (0, 0, 0), int(30 * s), 0.0))
+        blocks.append(([credit], f_c, (178, 186, 198), int(f_c.size * 1.3), 0.8))
+    total = sum(len(l) * lh for l, _, _, lh, _ in blocks)
+    y0 = (H - total) / 2 - 20 * s
     pipe = FFmpegPipe(path, size, fps, crf=16)
     n = int(seconds * fps)
     for i in range(n):
         t = i / fps
         im = base.copy()
         d = ImageDraw.Draw(im)
-        for text, font, col, yf, delay in items:
+        y = y0
+        for lines, font, col, lh, delay in blocks:
             a = float(np.clip((t - delay) / 0.6, 0, 1) * np.clip((seconds - t) / 0.4, 0, 1))
             ease = 1 - (1 - a) ** 3
-            d.text((W / 2, yf * H + (1 - ease) * 20 * s), text, font=font, fill=tuple(col) + (int(255 * a),),
-                   anchor="mm")
+            for ln in lines:
+                if ln:
+                    d.text((W / 2, y + lh / 2 + (1 - ease) * 18 * s), ln, font=font,
+                           fill=tuple(col) + (int(255 * a),), anchor="mm")
+                y += lh
+        if note:
+            a = float(np.clip((t - 1.1) / 0.6, 0, 1) * np.clip((seconds - t) / 0.4, 0, 1))
+            for k, ln in enumerate(_wrap(d, note, f_n, int(0.86 * W))[:2]):
+                d.text((W / 2, H - int((92 - 30 * k) * s)), ln, font=f_n, fill=(140, 148, 160, int(255 * a)),
+                       anchor="mm")
         pipe.write(np.asarray(im.convert("RGB")))
     return pipe.close()
 
@@ -528,12 +615,12 @@ def render_text_cards(path: str, cards: list[dict], size=(1920, 1080), fps: int 
             layers.append((y, im, delay))
             y += im.height
 
-        layer([card.get("kicker", "").upper()], f_k, accent + (255,), 18 * s, 0.0)
-        layer(wrap(probe, card["headline"], f_h, wmax), f_h, (238, 242, 248, 255), 46 * s, 0.25)
+        layer([br(card.get("kicker", "")).upper()], f_k, accent + (255,), 18 * s, 0.0)
+        layer(wrap(probe, br(card["headline"]), f_h, wmax), f_h, (238, 242, 248, 255), 46 * s, 0.25)
         for j, bl in enumerate(card.get("bullets", [])):
-            layer(wrap(probe, bl, f_b, wmax - int(48 * s)), f_b, (200, 208, 220, 255), 22 * s, 0.7 + 0.45 * j,
+            layer(wrap(probe, br(bl), f_b, wmax - int(48 * s)), f_b, (200, 208, 220, 255), 22 * s, 0.7 + 0.45 * j,
                   bullet=True)
-        foot = card.get("footnote")
+        foot = br(card.get("footnote") or "")
         y_top = int(230 * s)
         shift = int((H - (y - y_top)) / 2 - y_top - 20 * s)      # centraliza o bloco na vertical
         layers = [(yl + shift, L, dl) for (yl, L, dl) in layers]
@@ -563,4 +650,139 @@ def render_text_cards(path: str, cards: list[dict], size=(1920, 1080), fps: int 
                 a = float(np.clip((t - 1.2) / fade, 0, 1) * np.clip((sec - t) / fade, 0, 1))
                 dr.text((x0, H - int(90 * s)), foot, font=f_n, fill=(140, 148, 160, int(255 * a)))
             pipe.write(np.asarray(im.convert("RGB")))
+    return pipe.close()
+
+
+# ------------------------------------------------------------ figuras com legenda
+def _frames_of(src: str, seconds: float | None, fps: int):
+    """Quadros RGB de um vídeo (decodificado pelo ffmpeg) ou de uma imagem repetida por `seconds`."""
+    from PIL import Image
+    if src.lower().endswith((".png", ".jpg", ".jpeg")):
+        im = np.asarray(Image.open(src).convert("RGB"))
+        for _ in range(int(round((seconds or 5.0) * fps))):
+            yield im
+        return
+    ff = shutil.which("ffmpeg")
+    probe = subprocess.run([ff, "-i", src], capture_output=True, text=True).stderr
+    import re
+    m = re.search(r", (\d{2,5})x(\d{2,5})", probe)
+    w, h = int(m.group(1)), int(m.group(2))
+    p = subprocess.Popen([ff, "-loglevel", "error", "-i", src, "-vf", f"fps={fps}", "-f", "rawvideo",
+                          "-pix_fmt", "rgb24", "-"], stdout=subprocess.PIPE)
+    n = w * h * 3
+    while True:
+        buf = p.stdout.read(n)
+        if len(buf) < n:
+            break
+        yield np.frombuffer(buf, np.uint8).reshape(h, w, 3)
+    p.wait()
+
+
+def caption_segment(src: str, path: str, captions, chapter: str = "", size=(1920, 1080), fps: int = 30,
+                    seconds: float | None = None, band: float = 0.14, accent=(255, 176, 64)) -> str:
+    """Coloca um vídeo ou imagem (figura do estudo) acima de uma faixa de legenda: rótulo do capítulo e
+    textos que se alternam com transição suave. captions: lista de textos (distribuídos igualmente) ou
+    [(t0, t1, texto)]."""
+    from PIL import Image, ImageDraw
+    W, H = size
+    s = H / 1080.0
+    bh = int(band * H)
+    frames = list(_frames_of(src, seconds, fps))
+    dur = len(frames) / fps
+    caps = captions or []
+    if caps and isinstance(caps[0], str):
+        caps = even_captions(caps, dur)
+    f_k, f_c = _font(int(24 * s), True), _font(int(34 * s))
+    base = Image.new("RGBA", size, (13, 17, 23, 255))
+    d0 = ImageDraw.Draw(base)
+    d0.rectangle([0, H - bh, W, H], fill=(9, 12, 18, 255))
+    d0.rectangle([int(60 * s), H - bh + int(22 * s), int(66 * s), H - int(22 * s)], fill=accent + (255,))
+    if chapter:
+        d0.text((int(84 * s), H - bh + int(20 * s)), br(chapter).upper(), font=f_k, fill=accent + (255,))
+    pipe = FFmpegPipe(path, size, fps, crf=16)
+    area_h = H - bh
+    for i, fr in enumerate(frames):
+        im = base.copy()
+        src_im = Image.fromarray(fr)
+        sc = min(W / src_im.width, area_h / src_im.height)
+        fit = src_im.resize((int(src_im.width * sc), int(src_im.height * sc)), Image.LANCZOS)
+        im.paste(fit, ((W - fit.width) // 2, (area_h - fit.height) // 2))
+        text, a = _caption_alpha(caps, i / fps)
+        if text:
+            layer = Image.new("RGBA", size, (0, 0, 0, 0))
+            d = ImageDraw.Draw(layer)
+            lines = _wrap(d, br(text), f_c, int(W - 180 * s))[:2]
+            y = H - bh + int((56 if chapter else 30) * s)
+            for k, ln in enumerate(lines):
+                d.text((int(84 * s), y + k * int(f_c.size * 1.2)), ln, font=f_c, fill=(236, 240, 246, int(255 * a)))
+            im.alpha_composite(layer)
+        pipe.write(np.asarray(im.convert("RGB")))
+    return pipe.close()
+
+
+# --------------------------------------------------------------- números-chave
+def render_kpi_card(path: str, title: str, kpis: list[dict], size=(1920, 1080), fps: int = 30,
+                    seconds: float = 8.0, backdrop=None, note: str = "", kicker: str = "",
+                    accent=(255, 176, 64)) -> str:
+    """Cartão de números-chave com contagem animada.
+
+    kpis = [{"value": 0.5, "fmt": "{:.1f}", "unit": "kW/m²", "label": "pico de radiação no solo",
+             "color": (255, 176, 64)}, ...] — value pode ser texto (sem animação)."""
+    from PIL import Image, ImageDraw
+    W, H = size
+    s = H / 1080.0
+    base = Image.fromarray(_card_background(size, backdrop, strength=0.35).astype(np.uint8)).convert("RGBA")
+    d0 = ImageDraw.Draw(base)
+    y_t = int(170 * s)
+    if kicker:
+        d0.text((W // 2, y_t - int(48 * s)), br(kicker).upper(), font=_font(int(28 * s), True), fill=accent + (255,),
+                anchor="mm")
+    d0.text((W // 2, y_t + int(10 * s)), br(title), font=_font(int(56 * s), True), fill=(240, 244, 250, 255),
+            anchor="mm")
+    if note:
+        d0.text((W // 2, H - int(70 * s)), br(note), font=_font(int(22 * s)), fill=(140, 148, 160, 255),
+                anchor="mm")
+    n = len(kpis)
+    cols = 2 if n == 4 else n
+    rows = int(math.ceil(n / cols))
+    cw, ch = int(W * 0.40), int(250 * s)
+    gx = (W - cols * cw) // (cols + 1)
+    y0 = int(300 * s)
+    boxes = []
+    for k, kp in enumerate(kpis):
+        r, c = divmod(k, cols)
+        x = gx + c * (cw + gx)
+        y = y0 + r * (ch + int(40 * s))
+        d0.rounded_rectangle([x, y, x + cw, y + ch], radius=int(18 * s), fill=(18, 24, 33, 230),
+                             outline=(40, 52, 68, 255), width=max(1, int(2 * s)))
+        boxes.append((x, y))
+    f_v, f_u, f_l = _font(int(92 * s), True), _font(int(40 * s), True), _font(int(30 * s))
+    pipe = FFmpegPipe(path, size, fps, crf=16)
+    N = int(seconds * fps)
+    for i in range(N):
+        t = i / fps
+        im = base.copy()
+        d = ImageDraw.Draw(im)
+        for k, (kp, (x, y)) in enumerate(zip(kpis, boxes)):
+            a = float(np.clip((t - 0.3 - 0.35 * k) / 0.5, 0, 1) * np.clip((seconds - t) / 0.4, 0, 1))
+            if a <= 0:
+                continue
+            col = tuple(kp.get("color", accent))
+            v = kp["value"]
+            if isinstance(v, (int, float)):
+                prog = 1 - (1 - min(1.0, max(0.0, (t - 0.3 - 0.35 * k) / 1.4))) ** 3
+                vs = br(kp.get("fmt", "{:.1f}").format(v * prog))
+            else:
+                vs = br(str(v))
+            unit = kp.get("unit", "")
+            wv = d.textlength(vs, font=f_v)
+            wu = d.textlength(" " + unit, font=f_u) if unit else 0
+            xs = x + (cw - wv - wu) / 2
+            d.text((xs, y + int(40 * s)), vs, font=f_v, fill=col + (int(255 * a),))
+            if unit:
+                d.text((xs + wv, y + int(84 * s)), " " + unit, font=f_u, fill=col + (int(255 * a),))
+            for j, ln in enumerate(_wrap(d, br(kp.get("label", "")), f_l, cw - int(40 * s))[:2]):
+                d.text((x + cw / 2, y + int(170 * s) + j * int(36 * s)), ln, font=f_l,
+                       fill=(200, 208, 220, int(255 * a)), anchor="mm")
+        pipe.write(np.asarray(im.convert("RGB")))
     return pipe.close()

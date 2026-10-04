@@ -7,10 +7,13 @@ from __future__ import annotations
 
 import io
 import math
+import re
 import time
 
 import numpy as np
 from matplotlib import colors as mcolors
+from matplotlib import text as mtext
+from matplotlib import ticker
 from matplotlib.animation import FFMpegWriter
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
@@ -23,6 +26,38 @@ from . import semiempirical as se
 BG, PANEL, FG, MUTED, GRID = "#0d1117", "#131a22", "#e6edf3", "#8b98a5", "#263241"
 ACCENT, LES_C, CHAM_C, PT_C = "#f0a35e", "#ffb347", "#7fd1ff", "#b9c2cc"
 API_LEVELS = [(1.58, "#6cc08f"), (4.73, "#e0b24a"), (6.31, "#f08a4b"), (9.46, "#f2766b")]
+
+
+_DEC = re.compile(r"(?<=\d)\.(?=\d)")
+
+
+def br(text: str) -> str:
+    """Vírgula decimal (norma brasileira) em todo número de um texto: '6.8 m/s' → '6,8 m/s'."""
+    return _DEC.sub(",", text) if isinstance(text, str) else text
+
+
+class CommaFormatter(ticker.ScalarFormatter):
+    """Rótulos de eixo com vírgula decimal."""
+
+    def __call__(self, x, pos=None):
+        return br(super().__call__(x, pos))
+
+
+def br_figure(fig):
+    """Converte para vírgula decimal todos os textos e rótulos numéricos de eixos de uma figura."""
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            fm = axis.get_major_formatter()
+            if type(fm) is ticker.ScalarFormatter:
+                axis.set_major_formatter(CommaFormatter())
+        for tb in getattr(ax, "tables", []):
+            for cell in tb.get_celld().values():
+                cell.get_text().set_text(br(cell.get_text().get_text()))
+    for t in fig.findobj(mtext.Text):
+        s = t.get_text()
+        if s and "." in s:
+            t.set_text(br(s))
+    return fig
 
 
 def _style(ax, title=None):

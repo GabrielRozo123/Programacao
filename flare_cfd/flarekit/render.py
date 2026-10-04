@@ -30,7 +30,8 @@ from matplotlib.patches import Rectangle
 from scipy.ndimage import gaussian_filter, map_coordinates
 
 from . import semiempirical as se
-from .dashboard import API_LEVELS, BG, CHAM_C, FG, GRID, LES_C, MUTED, PANEL, PT_C, _style, frustum_outline_xz
+from .dashboard import (API_LEVELS, BG, CHAM_C, FG, GRID, LES_C, MUTED, PANEL, PT_C, _style, br, br_figure,
+                        frustum_outline_xz)
 
 FIRE = mcolors.LinearSegmentedColormap.from_list(
     "fogo", ["#000000", "#1a0303", "#5c0d05", "#a3240a", "#dd5410", "#f7941d", "#ffd15c", "#fff6d8"])
@@ -192,6 +193,12 @@ class LumNorm:
         return np.clip(img / v, 0.0, 1.0)
 
 
+def _grab(w, fig):
+    """Grava o quadro com a vírgula decimal em todos os textos e eixos."""
+    br_figure(fig)
+    w.grab_frame(facecolor=BG)
+
+
 def _writer(fig, path, fps):
     w = FFMpegWriter(fps=fps, codec="libx264", bitrate=12000,
                      extra_args=["-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "16"])
@@ -240,7 +247,7 @@ def render_title(path: str, title: str, subtitle: str, credit: str = "", seconds
         _fit_text(fig, fig.text(0.5, 0.08, note, ha="center", color=MUTED, fontsize=13, style="italic"), 0.94)
     w = _writer(fig, path, fps)
     for _ in range(int(seconds * fps)):
-        w.grab_frame(facecolor=BG)
+        _grab(w, fig)
     w.finish()
     return path
 
@@ -279,7 +286,7 @@ def render_hero(rec: Recorder, ch: se.Chamberlain, path: str, title: str, subtit
         im.set_data(norm(rs(f["lum"])).T)
         clock.set_text(f"t = {f['t']:5.1f} s")
         readout.set_text(f"L = {f['L']:4.1f} m")
-        w.grab_frame(facecolor=BG)
+        _grab(w, fig)
     w.finish()
     return path
 
@@ -288,7 +295,7 @@ class ZoomDashboard:
     """Painel com a chama ampliada (2/3 da tela) + mapa, fluxo no solo e comprimento da chama."""
 
     def __init__(self, rec: Recorder, sc: se.Scenario, ch: se.Chamberlain, title: str, subtitle: str, view=None,
-                 t_end: float | None = None):
+                 t_end: float | None = None, wind_label: str | None = None):
         s = rec.static
         self.rec, self.ch, self.t_end = rec, ch, t_end
         self.view = view or flame_view(rec, ch, aspect=1.2)
@@ -307,7 +314,7 @@ class ZoomDashboard:
                               fontweight="bold")
         # chama
         ax = self.ax
-        _style(ax, "LES: emissão luminosa (câmera sintética) · envelope Z̃ = Z_st · Chamberlain (1987)")
+        _style(ax, "Chama simulada (LES) e contorno previsto pelo modelo de referência (Chamberlain, 1987)")
         v = self.view
         self.im = ax.imshow(np.zeros((len(self.rs.zs), len(self.rs.xs))), origin="lower", extent=v, cmap=FIRE,
                             norm=mcolors.PowerNorm(0.5, 0, 1), interpolation="bilinear", aspect="equal")
@@ -315,12 +322,12 @@ class ZoomDashboard:
         ax.add_patch(Rectangle((-0.45, v[2] - 5), 0.9, tip[2] - v[2] + 5, color="#59616b", zorder=4))
         fr = frustum_outline_xz(ch, tip)
         ax.plot(fr[:, 0], fr[:, 1], "--", color=CHAM_C, lw=1.8, zorder=5, label="Chamberlain (1987)")
-        ax.plot([], [], color=ENVELOPE_C, lw=1.6, label="LES: envelope da chama")
+        ax.plot([], [], color=ENVELOPE_C, lw=1.6, label="LES: contorno da chama")
         ax.set_xlim(v[0], v[1]); ax.set_ylim(v[2], v[3])
         ax.set_xlabel("x [m] (a jusante)"); ax.set_ylabel("z [m]")
         ax.legend(loc="upper right", fontsize=10, facecolor=PANEL, edgecolor=GRID, labelcolor=FG)
         if s["u_ref"] > 0:
-            _wind_arrow(ax, s.get("wind_label") or f"{s['u_ref']:.1f} m/s")
+            _wind_arrow(ax, wind_label or s.get("wind_label") or f"{s['u_ref']:.1f} m/s")
         self.env = None
         self.box = ax.text(0.015, 0.03, "", transform=ax.transAxes, color=FG, fontsize=11, family="monospace",
                            va="bottom", bbox=dict(facecolor=PANEL, edgecolor=GRID, alpha=0.85, pad=6), zorder=7)
@@ -411,12 +418,13 @@ class ZoomDashboard:
         w = _writer(self.fig, path, fps)
         for i in range(0, len(self.rec.frames), every):
             self.draw(i)
-            w.grab_frame(facecolor=BG)
+            _grab(w, self.fig)
         w.finish()
         return path
 
     def png(self, i: int = -1) -> bytes:
         self.draw(i % len(self.rec.frames))
+        br_figure(self.fig)
         self.fig.canvas.draw()
         buf = io.BytesIO()
         from PIL import Image as PILImage
@@ -595,7 +603,7 @@ def sweep_level(maps) -> float | None:
 
 
 def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, level: float | None = None,
-                      seconds: float = 14.0, hold: float = 2.5, fps: int = 30):
+                      seconds: float = 14.0, hold: float = 2.5, fps: int = 30, subtitle: str | None = None):
     """Varredura das direções: rosa dos ventos, pegada da LES girando e P(q ≥ nível) acumulada
     (nível automático; se nenhum nível do API 521 é atingido, mostra o máximo acumulado de q)."""
     from .wind import SECTORS, rotate_to_site
@@ -607,16 +615,17 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
     gs = GridSpec(1, 3, figure=fig, left=0.03, right=0.975, top=0.83, bottom=0.08, wspace=0.28,
                   width_ratios=[0.9, 1, 1])
     fig.text(0.03, 0.94, title, color=FG, fontsize=18, fontweight="bold")
-    fig.text(0.03, 0.895, f"{cl.series.source} · {cl.series.period} · perfil log z0 = {cl.z0:.2f} m · "
+    fig.text(0.03, 0.895, subtitle if subtitle is not None else
+             f"{cl.series.source} · {cl.series.period} · perfil log z0 = {cl.z0:.2f} m · "
              f"vento na altura do tip ({cl.H:.0f} m)", color=MUTED, fontsize=11)
     ax_r = fig.add_subplot(gs[0, 0], projection="polar")
-    ax_r.set_title("Rosa dos ventos [% do tempo]", color=FG, fontsize=11, fontweight="bold", pad=18)
+    ax_r.set_title("Rosa dos ventos no topo da tocha [% do tempo]", color=FG, fontsize=11, fontweight="bold", pad=18)
     _, hl = _rose(ax_r, cl, 0)
     leg = ax_r.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), fontsize=8, ncol=4, facecolor=PANEL,
                       edgecolor=GRID, labelcolor=FG, title="velocidade no tip [m/s]", title_fontsize=8)
     leg.get_title().set_color(MUTED)
     ax_f = fig.add_subplot(gs[0, 1])
-    _site_map(ax_f, grid, f"Pegada da LES ({U_les:.1f} m/s) girando com o vento [kW/m²]")
+    _site_map(ax_f, grid, f"Radiação no solo pela LES ({U_les:.1f} m/s), girando com o vento [kW/m²]")
     q0 = rotate_to_site(xd, xd, qd, grid, 0.0)
     qn = qnorm(max(float(qd.max()), 0.3))
     m1 = ax_f.pcolormesh(grid.E, grid.N, q0.T, cmap="magma", norm=qn, shading="nearest", rasterized=True)
@@ -683,20 +692,23 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         dE, dN = -math.sin(th), -math.cos(th)
         arrow[0] = ax_f.annotate("", xy=(0.55 * R * dE, 0.55 * R * dN), xytext=(-0.85 * R * dE, -0.85 * R * dN),
                                  arrowprops=dict(arrowstyle="-|>", color=CHAM_C, lw=2.2, alpha=0.9))
-        lab.set_text(f"vento de {SECTORS[k]} ({theta:5.1f}°) · {100 * cl.sector_freq[k]:4.1f}% do tempo")
-        w.grab_frame(facecolor=BG)
+        lab.set_text(f"Vento de {SECTORS[k]} ({theta:.0f}°): {100 * cl.sector_freq[k]:.1f}% do tempo")
+        _grab(w, fig)
     w.finish()
     return path
 
 
-def risk_summary_figure(cl, maps, sc, path: str, title: str):
+def risk_summary_figure(cl, maps, sc, path: str, title: str, subtitle: str | None = None):
     """Resumo do clima de vento e das zonas probabilísticas (PNG 1920×1080)."""
     grid = maps["grid"]
     fig = _new_fig()
     fig.text(0.035, 0.955, title, color=FG, fontsize=18, fontweight="bold")
-    d = cl.describe().split("\n")
-    fig.text(0.035, 0.918, "  ·  ".join(d[:2]), color=MUTED, fontsize=10)
-    fig.text(0.035, 0.893, "  ·  ".join(d[2:]), color=MUTED, fontsize=10)
+    if subtitle is not None:
+        fig.text(0.035, 0.905, subtitle, color=MUTED, fontsize=12)
+    else:
+        d = cl.describe().split("\n")
+        fig.text(0.035, 0.918, "  ·  ".join(d[:2]), color=MUTED, fontsize=10)
+        fig.text(0.035, 0.893, "  ·  ".join(d[2:]), color=MUTED, fontsize=10)
     gl = GridSpec(2, 1, figure=fig, left=0.045, right=0.29, top=0.80, bottom=0.07, hspace=0.42,
                   height_ratios=[1.15, 1])
     ax = fig.add_subplot(gl[0], projection="polar")
@@ -783,5 +795,101 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str):
             "tempo de queima, ponderada pela rosa. Níveis do API 521\n"
             f"comparados {crit}.",
             transform=ax.transAxes, color=MUTED, fontsize=9.5, va="center")
-    fig.savefig(path, dpi=DPI, facecolor=BG)
+    br_figure(fig).savefig(path, dpi=DPI, facecolor=BG)
     return rows
+
+
+# ===================================================================== slides do estudo
+SPECIES_PT = {
+    "H2": "Hidrogênio (H₂)", "CH4": "Metano (CH₄)", "C2H6": "Etano (C₂H₆)", "C2H4": "Eteno (C₂H₄)",
+    "C3H8": "Propano (C₃H₈)", "C3H6": "Propeno (C₃H₆)", "nC4H10": "n-Butano (C₄H₁₀)",
+    "iC4H10": "Isobutano (C₄H₁₀)", "C4H8": "Buteno (C₄H₈)", "nC5H12": "Pentano (C₅H₁₂)",
+    "CO": "Monóxido de carbono (CO)", "CO2": "Dióxido de carbono (CO₂)", "N2": "Nitrogênio (N₂)",
+    "O2": "Oxigênio (O₂)", "H2O": "Vapor d'água (H₂O)", "H2S": "Sulfeto de hidrogênio (H₂S)",
+}
+
+
+def _facts(ax, items, title=None, fs_value=15):
+    """Painel de fatos: rótulo pequeno e valor em destaque, um abaixo do outro."""
+    ax.set_axis_off()
+    ax.add_patch(Rectangle((0, 0), 1, 1, transform=ax.transAxes, color=PANEL, zorder=0))
+    y = 0.93
+    if title:
+        ax.text(0.07, y, title, transform=ax.transAxes, color=FG, fontsize=13, fontweight="bold", va="top")
+        y -= 0.10
+    step = min(0.13, (y - 0.04) / max(len(items), 1))
+    for label, value in items:
+        ax.text(0.07, y, label, transform=ax.transAxes, color=MUTED, fontsize=11, va="top")
+        ax.text(0.07, y - 0.042, value, transform=ax.transAxes, color=FG, fontsize=fs_value, fontweight="bold",
+                va="top")
+        y -= step
+
+
+def site_wind_figure(cl, path: str, title: str, subtitle: str, facts: list):
+    """Slide 'local e vento': rosa dos ventos no topo da tocha, perfil de camada limite e fatos do clima."""
+    fig = _new_fig()
+    fig.text(0.035, 0.94, title, color=FG, fontsize=22, fontweight="bold")
+    fig.text(0.035, 0.895, subtitle, color=MUTED, fontsize=13)
+    gs = GridSpec(1, 3, figure=fig, left=0.04, right=0.975, top=0.80, bottom=0.10, wspace=0.28,
+                  width_ratios=[1.15, 0.85, 0.75])
+    ax = fig.add_subplot(gs[0, 0], projection="polar")
+    ax.set_title(f"Rosa dos ventos a {cl.H:.0f} m [% do tempo]", color=FG, fontsize=13, fontweight="bold", pad=24)
+    _rose(ax, cl, cl.dominant_sector)
+    leg = ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.07), fontsize=9, ncol=4, facecolor=PANEL,
+                    edgecolor=GRID, labelcolor=FG, title="velocidade no topo da tocha [m/s]", title_fontsize=9)
+    leg.get_title().set_color(MUTED)
+    ax = fig.add_subplot(gs[0, 1])
+    _style(ax, "Perfil do vento (camada limite)")
+    z = np.linspace(max(cl.z0 * 2, 1.0), max(120.0, 1.5 * cl.H), 200)
+    s = cl.series
+    ax.plot(cl.profile(z), z, color=LES_C, lw=2.6, label="perfil logarítmico médio")
+    ax.plot([s.U1.mean(), s.U2.mean()], [s.z1, s.z2], "o", color=CHAM_C, ms=9, label="médias dos dados")
+    ax.axhline(cl.H, color=PT_C, ls=":", lw=1.6, label=f"topo da tocha ({cl.H:.0f} m)")
+    ax.set_xlabel("velocidade média do vento [m/s]"); ax.set_ylabel("altura [m]"); ax.grid(color=GRID, lw=0.5)
+    ax.legend(fontsize=10, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper left")
+    _facts(fig.add_subplot(gs[0, 2]), facts, "Clima de vento do local")
+    br_figure(fig).savefig(path, dpi=DPI, facecolor=BG)
+    return path
+
+
+def scenario_figure(fuel, sc, path: str, title: str, subtitle: str, facts: list):
+    """Slide 'gás e cenário': composição do gás, esquema da tocha com a chama prevista e fatos do cenário."""
+    fig = _new_fig()
+    fig.text(0.035, 0.94, title, color=FG, fontsize=22, fontweight="bold")
+    fig.text(0.035, 0.895, subtitle, color=MUTED, fontsize=13)
+    gs = GridSpec(1, 3, figure=fig, left=0.17, right=0.975, top=0.80, bottom=0.10, wspace=0.25,
+                  width_ratios=[1.0, 0.9, 0.7])
+    ax = fig.add_subplot(gs[0, 0])
+    _style(ax, "Composição do gás [% em mol]")
+    comp = sorted(fuel.composition().items(), key=lambda kv: kv[1])
+    names = [SPECIES_PT.get(k, k) for k, _ in comp]
+    vals = [100 * v for _, v in comp]
+    ax.barh(range(len(vals)), vals, color=LES_C, height=0.65, zorder=3)
+    for i, v in enumerate(vals):
+        ax.text(v + max(vals) * 0.015, i, f"{v:.1f}", va="center", color=FG, fontsize=10)
+    ax.set_yticks(range(len(vals))); ax.set_yticklabels(names, color=FG, fontsize=10.5)
+    ax.set_xlim(0, max(vals) * 1.18); ax.grid(color=GRID, lw=0.5, axis="x")
+    ax.set_xlabel("% em mol")
+    # esquema lateral: tocha, chama prevista (Chamberlain) e vento
+    ax = fig.add_subplot(gs[0, 1])
+    _style(ax, "Tocha e chama prevista (modelo de referência)")
+    ch = sc.cham
+    fr = frustum_outline_xz(ch, sc.tip_xyz)
+    H = sc.H
+    ax.add_patch(Rectangle((-0.8, 0), 1.6, H, color="#5c6773"))
+    ax.fill(fr[:, 0], fr[:, 1], color=LES_C, alpha=0.55, lw=0)
+    ax.plot(fr[:, 0], fr[:, 1], color=LES_C, lw=1.6)
+    top = max(fr[:, 1].max(), H) + 0.16 * H
+    x0, x1 = -0.32 * H, max(0.55 * H, fr[:, 0].max() + 0.25 * H)
+    ax.annotate("", xy=(x0 + 0.24 * H, top - 0.05 * H), xytext=(x0 + 0.04 * H, top - 0.05 * H),
+                arrowprops=dict(arrowstyle="-|>", color=CHAM_C, lw=2.2))
+    ax.text(x0 + 0.04 * H, top - 0.025 * H, f"vento {sc.u_w:.1f} m/s", color=CHAM_C, fontsize=10.5)
+    ax.annotate("", xy=(0.12 * H, 0), xytext=(0.12 * H, H), arrowprops=dict(arrowstyle="<->", color=FG, lw=1.2))
+    ax.text(0.14 * H, H / 2, f"{H:.0f} m", color=FG, fontsize=13, va="center")
+    ax.text(fr[:, 0].max() + 0.03 * H, fr[:, 1].max(), f"chama ≈ {ch.L_b:.0f} m", color=LES_C, fontsize=12,
+            va="center")
+    ax.set_xlim(x0, x1); ax.set_ylim(0, top); ax.set_aspect("equal")
+    ax.set_xlabel("distância horizontal [m]"); ax.set_ylabel("altura [m]")
+    _facts(fig.add_subplot(gs[0, 2]), facts, "Cenário simulado")
+    br_figure(fig).savefig(path, dpi=DPI, facecolor=BG)
+    return path
