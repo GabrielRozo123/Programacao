@@ -125,6 +125,23 @@ class LESConfig:
     seed: int = 0
 
     @staticmethod
+    def for_flame(name: str, box: dict, **kw) -> "LESConfig":
+        """Preset com a caixa de malha fina e o domínio ajustados à chama prevista (semiempirical.flame_box)."""
+        x0, x1 = box["x"]
+        yh = box["y_half"]
+        z0, z1 = box["z"]
+        H = kw.get("H", 30.0)
+        dom = dict(fine_x=(x0, x1), fine_y=(-yh, yh), fine_z=(z0, z1),
+                   x_range=(min(-40.0, x0 - 30.0), max(130.0, x1 + 90.0)),
+                   y_range=(-max(40.0, yh + 30.0), max(40.0, yh + 30.0)),
+                   z_top=max(100.0, H + z1 + 40.0))
+        if name == "teste":
+            dom.update(x_range=(min(-24.0, x0 - 15.0), max(60.0, x1 + 30.0)), y_range=(-21.0, 21.0),
+                       z_top=max(75.0, H + z1 + 15.0))
+        dom.update(kw)
+        return LESConfig.preset(name, **dom)
+
+    @staticmethod
     def preset(name: str, **kw) -> "LESConfig":
         presets = {
             # GPU (Colab T4): Δ = 0,5 m perto da chama (~0,8 M células). Validado: L e inclinação
@@ -142,7 +159,7 @@ class LESConfig:
                           z_top=75.0, receiver_dx=6.0, emitter_bin=3.0),
         }
         cfg = presets[name].copy()
-        if kw.get("u_ref", 1.0) <= 0.0 and name != "teste":
+        if kw.get("u_ref", 1.0) <= 0.0 and name != "teste" and "fine_x" not in kw:
             # sem vento: chama vertical e mais longa → caixa fina centrada e mais alta
             cfg.update(x_range=(-50.0, 50.0), y_range=(-50.0, 50.0), z_top=110.0,
                        fine_x=(-7.0, 7.0), fine_y=(-7.0, 7.0), fine_z=(-2.0, 56.0))

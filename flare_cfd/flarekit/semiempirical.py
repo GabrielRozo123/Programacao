@@ -145,6 +145,20 @@ def frustum_panels(ch: Chamberlain, tip, n_ax: int = 48, n_th: int = 64, n_r: in
     return np.vstack(P), np.vstack(N), np.concatenate(A)
 
 
+def flame_box(ch: Chamberlain, H: float, grow: float = 1.2, pad: float = 3.0) -> dict:
+    """Caixa que envolve a chama de Chamberlain (com folga) para a malha fina da LES:
+    x a jusante, meia-largura em y e alturas relativas ao tip. A LES tende a inclinar e alongar
+    um pouco a chama em relação a Chamberlain, por isso o fator `grow`."""
+    tip = np.array([0.0, 0.0, H])
+    base, ax, e1, _ = frustum_axis(ch, tip)
+    top = base + ch.R_l * ax
+    pts = np.array([base - ch.W1 / 2 * e1, base + ch.W1 / 2 * e1, top - ch.W2 / 2 * e1, top + ch.W2 / 2 * e1])
+    rel = (pts - tip) * grow
+    return {"x": (min(-pad, rel[:, 0].min() - pad), rel[:, 0].max() + pad),
+            "y_half": max(6.0, 1.1 * ch.W2 / 2 + 2.0),
+            "z": (-2.0, rel[:, 2].max() + pad)}
+
+
 def flame_center_chamberlain(ch: Chamberlain, tip) -> np.ndarray:
     base, ax, *_ = frustum_axis(ch, tip)
     return base + 0.5 * ch.R_l * ax
