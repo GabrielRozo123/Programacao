@@ -98,6 +98,8 @@ def mixture(name: str, comp: dict) -> Fuel:
     bad = [k for k in comp if k not in SPECIES]
     if bad:
         raise ValueError(f"espécies desconhecidas: {bad}; use {sorted(SPECIES)}")
+    if any(v < 0 for v in comp.values()):
+        raise ValueError("frações negativas na composição")
     tot = float(sum(comp.values()))
     if tot <= 0:
         raise ValueError("composição vazia")
@@ -114,18 +116,24 @@ def mixture(name: str, comp: dict) -> Fuel:
         soot += xi * SPECIES[k].M / M * SPECIES[k].soot_yield
     if lhv <= 0:
         raise ValueError("a mistura não tem componentes combustíveis")
+    if at[0] + at[1] / 4 + at[4] - at[2] / 2 <= 0:
+        raise ValueError("a mistura já traz O2 suficiente para queimar sozinha: não é um gás de tocha")
     gamma = cp / (cp - R_U)
     return Fuel(name, float(at[0]), float(at[1]), M, lhv / M, gamma, soot, "",
                 nO=float(at[2]), nN=float(at[3]), nS=float(at[4]), X=tuple(sorted(x.items())))
 
 
 def parse_composition(text: str) -> dict:
-    """'H2: 20, CH4: 40, C2H6: 10' → {'H2': 20.0, 'CH4': 40.0, 'C2H6': 10.0}."""
+    """'H2: 20, CH4: 40, C2H6: 10' → {'H2': 20.0, 'CH4': 40.0, 'C2H6': 10.0}. Aceita vírgula ou ponto
+    decimal ('10,5'), '=' no lugar de ':', '%' opcional e separação por vírgula, ponto e vírgula ou espaço."""
+    import re
+    pat = re.compile(r"([A-Za-z][A-Za-z0-9]*)\s*[:=]\s*([0-9]+(?:[.,][0-9]+)?)\s*%?")
     out = {}
-    for part in text.replace(";", ",").split(","):
-        if part.strip():
-            k, v = part.split(":")
-            out[k.strip()] = float(v)
+    for k, v in pat.findall(text):
+        out[k] = out.get(k, 0.0) + float(v.replace(",", "."))
+    rest = pat.sub("", text).replace(";", "").replace(",", "").strip()
+    if not out or rest:
+        raise ValueError(f"composição inválida perto de '{rest[:30]}'; use 'espécie: valor', ex. 'H2: 20, CH4: 40,5'")
     return out
 
 
@@ -242,6 +250,15 @@ class StateRelation:
     source: str
 
 
+def _products_cp(fuel: Fuel) -> float:
+    """c_p médio (298–2000 K) dos produtos da combustão estequiométrica com ar [J/(kg K)]."""
+    cp = {"CO2": 1230.0, "H2O": 2430.0, "N2": 1220.0, "SO2": 820.0}
+    Mi = {"CO2": MW["CO2"], "H2O": MW["H2O"], "N2": MW["N2"], "SO2": MW["SO2"]}
+    pr = products_per_mol(fuel)
+    m = {k: pr[k] * Mi[k] for k in pr}
+    return sum(m[k] * cp[k] for k in m) / sum(m.values())
+
+
 # produtos e radicais do equilíbrio quando o combustível é uma mistura (base NASA do Cantera)
 _EQ_SPECIES = ["N2", "O2", "H2O", "CO2", "CO", "H2", "OH", "H", "O", "NO", "N", "CH4", "C2H2,acetylene"]
 _EQ_SULFUR = ["SO2", "SO", "S", "S2", "H2S", "COS"]
@@ -273,8 +290,9 @@ def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
     st = stoichiometry(fuel)
     # malha em Z refinada perto de Z_st (onde tudo acontece)
     Zs = st["Z_st"]
-    z1 = np.linspace(0.0, 3 * Zs, n // 2, endpoint=False)
-    z2 = np.linspace(3 * Zs, 1.0, n - n // 2)
+    zb = min(3 * Zs, 0.5 * (1 + Zs))          # gases pobres (Z_st > 1/3) não podem passar de Z = 1
+    z1 = np.linspace(0.0, zb, n // 2, endpoint=False)
+    z2 = np.linspace(zb, 1.0, n - n // 2)
     Z = np.concatenate([z1, z2])
     Y = burke_schumann(fuel, Z)
     T_mix = None
@@ -311,12 +329,15 @@ def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
                 T_eq[i] = gas.T; M_mix[i] = gas.mean_molecular_weight / 1000.0
                 xH2O[i] = gas.X[iH2O]; xCO2[i] = gas.X[iCO2]
             source = f"Cantera (equilíbrio HP, {mech})"
-        except Exception:  # noqa: BLE001 — sem Cantera, cai para Burke–Schumann
+        except Exception as e:  # noqa: BLE001 — sem Cantera (ou sem convergência), cai para Burke–Schumann
             T_eq = None
+            source = f"Burke-Schumann (Cantera indisponível: {type(e).__name__})"
     if T_eq is None:
         cp_mix = 1100.0
         T_mix = (Z * T_fuel * 1700.0 + (1 - Z) * T_inf * 1005.0) / (Z * 1700.0 + (1 - Z) * 1005.0)
-        cp_eff = 1420.0   # calibrado para reproduzir T_ad de alcanos leves (seção 3.2)
+        # 1420 J/(kg K) reproduz T_ad de alcanos leves (seção 3.2); para outras composições escala pela
+        # razão do c_p médio dos produtos estequiométricos em relação ao do propano
+        cp_eff = 1420.0 * _products_cp(fuel) / _products_cp(PROPANE)
         T_eq = T_mix + Y["burned"] * fuel.LHV / cp_eff
         del cp_mix
         moles = {k: Y[k] / (fuel.M if k == "F" else MW[k]) for k in ("F", "O2", "N2", "CO2", "H2O", "SO2")}

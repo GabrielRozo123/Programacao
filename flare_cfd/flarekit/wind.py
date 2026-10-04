@@ -465,13 +465,18 @@ def receiver_box(sc: se.Scenario, U: float, level: float = 1.58, margin: float =
     """(x0, x1, y_meia) que cobre a zona q ≥ level no referencial a jusante, com folga: união da zona
     de Chamberlain com a da fonte pontual do API 521 (mais conservadora a barlavento, onde a chama curta
     da LES irradia mais que o frustum). Use em LESConfig(receiver_box=...) para não cortar a zona."""
-    R = max(60.0, 3.5 * sc.H + sc.cham.L_b)
-    x, q, ch = downwind_footprint(sc, U, R, 2 * int(R / 3.0) + 1)
-    X, Y = np.meshgrid(x, x, indexing="ij")
-    c = se.flame_center_chamberlain(ch, sc.tip_xyz)
-    rec = np.stack([X.ravel(), Y.ravel(), np.full(X.size, 1.5)], 1)
-    qp = se.q_point_source(rec, c, ch.F_s, sc.Q, sc.T_inf, sc.RH).reshape(X.shape) / 1e3
-    m = (q >= level) | (qp >= level)
+    r_pt = math.sqrt(sc.cham.F_s * sc.Q / (4 * math.pi * level * 1e3))   # alcance da fonte pontual (τ = 1)
+    R = max(60.0, 3.5 * sc.H + sc.cham.L_b, sc.cham.L_b + 1.2 * r_pt)
+    for _ in range(4):
+        x, q, ch = downwind_footprint(sc, U, R, 2 * int(R / 3.0) + 1)
+        X, Y = np.meshgrid(x, x, indexing="ij")
+        c = se.flame_center_chamberlain(ch, sc.tip_xyz)
+        rec = np.stack([X.ravel(), Y.ravel(), np.full(X.size, 1.5)], 1)
+        qp = se.q_point_source(rec, c, ch.F_s, sc.Q, sc.T_inf, sc.RH).reshape(X.shape) / 1e3
+        m = (q >= level) | (qp >= level)
+        if not (m[0].any() or m[-1].any() or m[:, 0].any() or m[:, -1].any()):
+            break
+        R *= 1.5                                     # a zona encostou na borda: amplia e refaz
     if not m.any():
         return (-margin, margin, margin)
     return (float(X[m].min() - margin), float(X[m].max() + margin), float(np.abs(Y[m]).max() + margin))

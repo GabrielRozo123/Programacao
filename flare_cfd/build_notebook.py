@@ -158,10 +158,11 @@ print(f"Delichatsios: Fr_f = {refs['delichatsios']['Fr_f']:.2f}, L = {refs['deli
       f"Heskestad: L = {refs['L_heskestad']:.1f} m · Molina: X_rad = {refs['molina']['X_rad']:.3f}")
 fig, ax = plt.subplots(1, 2, figsize=(12, 3.6))
 ax[0].plot(sr.Z, sr.T, lw=2); ax[0].axvline(st["Z_st"], ls="--", c="k", lw=1)
-ax[0].set_xlim(0, 0.4); ax[0].set_xlabel("Z"); ax[0].set_ylabel("T [K]"); ax[0].set_title("Relação de estado")
+zlim = max(0.4, min(1.0, 2.5 * st["Z_st"]))
+ax[0].set_xlim(0, zlim); ax[0].set_xlabel("Z"); ax[0].set_ylabel("T [K]"); ax[0].set_title("Relação de estado")
 for j in (0, 4, 8, 16):
     ax[1].plot(tab.Zt, tab.T[:, j], label=f"s = {tab.s[j]:.2f}")
-ax[1].set_xlim(0, 0.4); ax[1].set_xlabel("Z̃"); ax[1].set_ylabel("T̃ [K]"); ax[1].legend()
+ax[1].set_xlim(0, zlim); ax[1].set_xlabel("Z̃"); ax[1].set_ylabel("T̃ [K]"); ax[1].legend()
 ax[1].set_title("Média na β-PDF (variância de submalha)")
 plt.tight_layout(); plt.show()
 """
@@ -210,6 +211,9 @@ SWEEP = r"""
 #@title 6 · Varredura das direções: probabilidade de excedência e envoltória
 from flarekit import render
 RAIO_MAPA = 150.0       #@param {type:"number"}
+# o mapa cresce sozinho se a zona de 1,58 kW/m² no vento máximo observado passar do raio escolhido
+_rb = wind.receiver_box(sc, float(clima.U_H.max()))
+RAIO_MAPA = max(RAIO_MAPA, 1.2 * max(abs(_rb[0]), _rb[1], _rb[2]))
 RADIACAO_SOLAR = 0.0    #@param {type:"number"}
 # RADIACAO_SOLAR [kW/m²]: some a solar (~0,8–1,0) se o critério adotado for de radiação TOTAL;
 # 0 compara os níveis do API 521 só com a radiação do flare (confira a edição/critério usado)
@@ -282,8 +286,8 @@ OUTRO = r"""
 - **Direções:** para um flare isolado em terreno aberto a física não depende da direção, então a pegada é girada para cada setor (exato nesse caso). Com estruturas no entorno, cada direção pediria uma LES própria. A probabilidade de excedência é condicional ao flare estar queimando na vazão simulada.
 - **Química rápida + equilíbrio** em fração de mistura; a perda radiativa entra como fração radiante constante (F_s de Chamberlain), como no FDS. Eficiência de combustão (CE/DRE) exigiria EDC/FPV.
 - **Radiação no solo:** emissão da zona luminosa (fuligem, relação de estado no lado rico), escalada para X_rad·Q, com transmissividade de Wayne em cada caminho; sem reabsorção dentro da chama.
-- **Tip:** o jato real (0,27 m, 129 m/s) é sub-malha; a fonte injeta a vazão e o fluxo de quantidade de movimento reais num bloco de 2×2 células finas.
-- **Numérica e malha:** com Superbee (o limitador do FDS), Smagorinsky C_s = 0,1 e Sc_t = 0,7, a chama converge para Chamberlain com o refino. Estudo com 8,9 m/s (Chamberlain: L = 27,4 m, α = 51°): Δ = 0,7 m → 21,9 m; Δ = 0,5 m → 27,9 m e α = 56°.
+- **Tip:** o jato real (diâmetro e velocidade impressos na etapa 2) é sub-malha; a fonte injeta a vazão e o fluxo de quantidade de movimento reais num bloco de 2×2 células finas.
+- **Numérica e malha:** com Superbee (o limitador do FDS), Smagorinsky C_s = 0,1 e Sc_t = 0,7, a chama converge para Chamberlain com o refino. Estudo de malha do caso de calibração (propano, 12,6 kg/s, tocha de 30 m, vento de 8,9 m/s; Chamberlain: L = 27,4 m, α = 51°): Δ = 0,7 m → 21,9 m; Δ = 0,5 m → 27,9 m e α = 56°. Para chamas maiores, a malha cresce com a caixa da chama (mesma resolução relativa).
 
 **Próximo passo (PINNeAPPle):** com LES em algumas classes de velocidade, treinar um surrogate (vento, vazão → mapa de radiação) com incerteza para zonas de exclusão em tempo real.
 """

@@ -67,7 +67,21 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     ax.plot([], [], color="#4dd0e1", lw=2, label="LES: chama média (I = 0,5)")
     from matplotlib.patches import Rectangle
     ax.add_patch(Rectangle((-0.6, 0), 1.2, les.tip[2], color="#5c6773"))
-    ax.set_xlim(-15, 75); ax.set_ylim(0, 75); ax.set_aspect("equal")
+    # janela em volta da chama (frustum + região quente da LES), com um pedaço da chaminé
+    hot = Tm > 0.5 * (Tm.max() + 300.0)
+    xs, zs = list(fr[:, 0]) + [0.0], list(fr[:, 1]) + [float(les.tip[2])]
+    if hot.any():
+        ii, kk = np.nonzero(hot)
+        xs += [les.xc[ii].min(), les.xc[ii].max()]
+        zs += [les.zc[kk].max()]
+    zt = float(les.tip[2])
+    ztop = max(zs) + 8.0
+    x0, x1 = min(-15.0, min(xs) - 8.0), max(xs) + 8.0
+    zbot = max(0.0, zt - 0.35 * (ztop - zt) - 8.0)
+    span = max(x1 - x0, 1.25 * (ztop - zbot))
+    x1 = x0 + span
+    zbot = max(0.0, min(zbot, ztop - span / 1.25))
+    ax.set_xlim(x0, x1); ax.set_ylim(zbot, ztop); ax.set_aspect("equal")
     ax.set_xlabel("x [m]"); ax.set_ylabel("z [m]")
     ax.legend(fontsize=8.5, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper left")
     cb = fig.colorbar(m, ax=ax, fraction=0.04, pad=0.01)
@@ -99,14 +113,21 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
              "Fluxo máximo no solo [kW/m²]": "q máx [kW/m²]", "L vs API 521 [m]": "L × API [m]",
              "L vs Delichatsios [m]": "L × Delichatsios", "L vs Heskestad [m]": "L × Heskestad"}
     names = [short.get(r["grandeza"], r["grandeza"]) for r in rows]
+    # razão LES/referência (grandezas de escalas muito diferentes no mesmo eixo)
     y = np.arange(len(rows))
-    ax.barh(y + 0.2, [r["LES"] for r in rows], 0.38, color=LES_C, label="LES")
-    ax.barh(y - 0.2, [r["referência"] for r in rows], 0.38, color=CHAM_C, label="Referência")
+    ratio = np.array([100.0 * r["LES"] / r["referência"] if r["referência"] else np.nan for r in rows])
+    ax.barh(y, ratio, 0.55, color=[LES_C if abs(v - 100) <= 25 else "#f2766b" for v in ratio], zorder=3)
+    ax.axvline(100, color=CHAM_C, lw=1.6, ls="--", label="referência = 100%")
+    ax.axvspan(75, 125, color=CHAM_C, alpha=0.08)
+    xmax = max(160.0, np.nanmax(ratio) * 1.45)
     for i, r in enumerate(rows):
-        ax.text(max(r["LES"], r["referência"]) * 1.02, i, f"{r['erro_%']:+.0f}%", va="center", color=FG, fontsize=9)
+        ax.text(min(ratio[i], xmax) + 0.02 * xmax, i, f"{r['LES']:.3g} vs {r['referência']:.3g} ({r['erro_%']:+.0f}%)",
+                va="center", color=FG, fontsize=8.5, zorder=4)
+    ax.set_xlim(0, xmax)
+    ax.set_xlabel("LES / referência [%]  (faixa sombreada: ±25%)")
     ax.set_yticks(y); ax.set_yticklabels(names, color=FG, fontsize=9)
-    ax.invert_yaxis()
-    ax.legend(fontsize=8, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="lower right")
+    ax.set_ylim(len(rows) - 0.4, -0.9)
+    ax.legend(fontsize=8, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper right")
     ax.grid(color=GRID, lw=0.5, axis="x")
 
     # segurança no ponto mais exposto

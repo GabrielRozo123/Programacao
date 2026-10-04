@@ -170,3 +170,17 @@ def test_radiant_fraction_factor_anchors():
     sc1 = se.Scenario(PROPANE)
     assert sc1.cham.F_s == pytest.approx(sc0.cham.F_s * f(PROPANE))
     assert sc1.cham.L_b == pytest.approx(sc0.cham.L_b)                        # só a radiação muda
+
+
+def test_lean_mixture_grid_and_input_validation():
+    from flarekit.props import mixture, parse_composition
+    f = mixture("gás pobre", {"CO": 50, "CO2": 10, "N2": 40})          # Z_st ≈ 0,46 > 1/3
+    sr = state_relation(f, 311.0, 298.15, 0.0, n=401, use_cantera=False)
+    assert np.all(np.diff(sr.Z) > 0) and sr.Z[-1] == pytest.approx(1.0)
+    assert parse_composition("H2: 33, C2H4: 10,5; N2=3.5%") == {"H2": 33.0, "C2H4": 10.5, "N2": 3.5}
+    with pytest.raises(ValueError):
+        parse_composition("H2 20")
+    with pytest.raises(ValueError):
+        mixture("ar contaminado", {"H2": 10, "O2": 10, "N2": 80})
+    with pytest.raises(ValueError):
+        mixture("negativo", {"CH4": 100, "N2": -5})

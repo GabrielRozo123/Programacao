@@ -587,8 +587,9 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         _site_map(ax_p, grid, "q máximo acumulado nas direções [kW/m²]")
         m2 = ax_p.pcolormesh(grid.E, grid.N, np.zeros((len(grid.N), len(grid.E))), cmap="magma", norm=qn,
                              shading="nearest", rasterized=True)
-        ax_p.text(0.03, 0.04, "nenhum nível do API 521 (≥ 1,58 kW/m²)\né atingido no solo",
-                  transform=ax_p.transAxes, color=FG, fontsize=9.5,
+        note = ("nenhum nível do API 521 (≥ 1,58 kW/m²)\né atingido no solo" if maps["envelope"].max() < 1.58
+                else "P = 0 nas classes de vento; só a envoltória\n(vento máximo observado) atinge 1,58 kW/m²")
+        ax_p.text(0.03, 0.04, note, transform=ax_p.transAxes, color=FG, fontsize=9.5,
                   bbox=dict(facecolor=PANEL, edgecolor=GRID, alpha=0.85, pad=4))
     q_acc = np.zeros((len(grid.E), len(grid.N)))
     cb = fig.colorbar(m2, ax=ax_p, fraction=0.045, pad=0.02)
@@ -710,11 +711,16 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str):
     def reach(mask):
         return float(Rr[mask].max()) if mask.any() else 0.0
 
-    rows = [(lev, reach(env >= lev), reach(maps["P"][lev] >= 0.01), reach(maps["P"][lev] >= 0.10))
-            for lev, _ in API_LEVELS]
+    def edge(mask):   # a zona encosta na borda do mapa: o alcance é só um limite inferior
+        return bool(mask[0].any() or mask[-1].any() or mask[:, 0].any() or mask[:, -1].any())
+
+    rows, cells = [], []
+    for lev, _ in API_LEVELS:
+        ms = (env >= lev, maps["P"][lev] >= 0.01, maps["P"][lev] >= 0.10)
+        rows.append((lev, *(reach(m) for m in ms)))
+        cells.append([f"{lev:.2f}"] + [("≥ " if edge(m) else "") + f"{reach(m):.0f}" for m in ms])
     ax = fig.add_subplot(gr[1, :])
     ax.set_axis_off()
-    cells = [[f"{lev:.2f}", f"{e:.0f}", f"{a:.0f}", f"{b:.0f}"] for lev, e, a, b in rows]
     tb = ax.table(cellText=cells, colLabels=["nível [kW/m²]", "envoltória [m]", "P ≥ 1% [m]", "P ≥ 10% [m]"],
                   loc="center", cellLoc="center", colLoc="center", bbox=[0.0, 0.0, 0.55, 1.0])
     tb.auto_set_font_size(False)
