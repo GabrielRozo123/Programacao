@@ -14,6 +14,7 @@ composto em PyTorch (GPU quando houver):
 from __future__ import annotations
 
 import math
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -336,8 +337,22 @@ class HDFlameRenderer:
 
 
 # -------------------------------------------------------------- sobreposições
+_GLUE = re.compile(r"^(\([A-Z]{2}\)|m|m/s|s|kg/s|MW|kW/m²|MJ/kg|g/mol|°C|K|%)[.,;:)]?$")
+
+
+def _words(text):
+    """Palavras para quebra de linha, sem separar '(SP)' do nome nem a unidade do número."""
+    out = []
+    for w in text.split():
+        if out and _GLUE.match(w):
+            out[-1] += "\u00a0" + w
+        else:
+            out.append(w)
+    return out
+
+
 def _wrap(draw, text, font, width):
-    words, lines, cur = text.split(), [], ""
+    words, lines, cur = _words(text), [], ""
     for w in words:
         nxt = (cur + " " + w).strip()
         if draw.textlength(nxt, font=font) <= width:
@@ -347,6 +362,21 @@ def _wrap(draw, text, font, width):
                 lines.append(cur)
             cur = w
     return lines + ([cur] if cur else [])
+
+
+def _wrap_balanced(draw, text, font, width):
+    """Como _wrap, mas com linhas de comprimento parecido (evita uma palavra sozinha na última linha)."""
+    lines = _wrap(draw, text, font, width)
+    if len(lines) < 2:
+        return lines
+    lo, hi = 0.3 * width, float(width)
+    for _ in range(18):                      # menor largura que mantém o mesmo número de linhas
+        mid = 0.5 * (lo + hi)
+        if len(_wrap(draw, text, font, mid)) <= len(lines):
+            hi = mid
+        else:
+            lo = mid
+    return _wrap(draw, text, font, hi)
 
 
 def _caption_alpha(captions, t, fade=0.45):
@@ -532,8 +562,8 @@ def render_title_card(path: str, title: str, subtitle: str, credit: str = "", no
     probe = ImageDraw.Draw(base)
     title, subtitle, credit, note = br(title), br(subtitle), br(credit), br(note)
     f_t, f_s, f_c, f_n = _font(int(72 * s), True), _font(int(36 * s)), _font(int(28 * s)), _font(int(22 * s))
-    t_lines = _wrap(probe, title, f_t, int(0.86 * W))
-    s_lines = _wrap(probe, subtitle, f_s, int(0.80 * W))
+    t_lines = _wrap_balanced(probe, title, f_t, int(0.86 * W))
+    s_lines = _wrap_balanced(probe, subtitle, f_s, int(0.80 * W))
     blocks = []      # (linhas, fonte, cor, altura de linha, atraso)
     blocks.append((t_lines, f_t, (240, 244, 250), int(f_t.size * 1.18), 0.0))
     blocks.append(([""], f_c, (0, 0, 0), int(24 * s), 0.0))

@@ -606,7 +606,7 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
                       seconds: float = 14.0, hold: float = 2.5, fps: int = 30, subtitle: str | None = None):
     """Varredura das direções: rosa dos ventos, pegada da LES girando e P(q ≥ nível) acumulada
     (nível automático; se nenhum nível do API 521 é atingido, mostra o máximo acumulado de q)."""
-    from .wind import SECTORS, rotate_to_site
+    from .wind import rotate_to_site, sector_label
     grid = maps["grid"]
     xd, qd = les_down
     level = level if level is not None else sweep_level(maps)
@@ -692,7 +692,7 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         dE, dN = -math.sin(th), -math.cos(th)
         arrow[0] = ax_f.annotate("", xy=(0.55 * R * dE, 0.55 * R * dN), xytext=(-0.85 * R * dE, -0.85 * R * dN),
                                  arrowprops=dict(arrowstyle="-|>", color=CHAM_C, lw=2.2, alpha=0.9))
-        lab.set_text(f"Vento de {SECTORS[k]} ({theta:.0f}°): {100 * cl.sector_freq[k]:.1f}% do tempo")
+        lab.set_text(f"Vento de {sector_label(k)}: {100 * cl.sector_freq[k]:.1f}% do tempo")
         _grab(w, fig)
     w.finish()
     return path
@@ -820,7 +820,8 @@ def _facts(ax, items, title=None, fs_value=15):
     step = min(0.13, (y - 0.04) / max(len(items), 1))
     for label, value in items:
         ax.text(0.07, y, label, transform=ax.transAxes, color=MUTED, fontsize=11, va="top")
-        ax.text(0.07, y - 0.042, value, transform=ax.transAxes, color=FG, fontsize=fs_value, fontweight="bold",
+        fs = fs_value * min(1.0, 24.0 / max(len(value), 1))     # valores longos encolhem para caber no painel
+        ax.text(0.07, y - 0.042, value, transform=ax.transAxes, color=FG, fontsize=fs, fontweight="bold",
                 va="top")
         y -= step
 

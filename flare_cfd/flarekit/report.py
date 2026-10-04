@@ -153,15 +153,15 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
         f"T aço exposto (regime): {safety.steel_temperature(q0 * 1e3):.0f} °C",
         "",
         "Dose com fuga a 2,5 m/s:",
-        f" reage em 5 s : {d1['dose_TDU']:5.0f} TDU",
+        f" reação em 5 s:  {d1['dose_TDU']:5.0f} TDU",
         f"   1º grau {100 * d1['queimadura 1º grau (Tsao & Perry)']:5.1f}%"
         f"  2º grau {100 * d1['queimadura 2º grau (Tsao & Perry)']:5.2f}%",
-        f" reage em 30 s: {d2['dose_TDU']:5.0f} TDU",
+        f" reação em 30 s: {d2['dose_TDU']:5.0f} TDU",
         f"   1º grau {100 * d2['queimadura 1º grau (Tsao & Perry)']:5.1f}%"
         f"  2º grau {100 * d2['queimadura 2º grau (Tsao & Perry)']:5.2f}%",
         f"   fatal (TNO) {100 * d2['fatalidade (TNO Green Book)']:5.2f}%",
     ])
-    zl = ["ZONAS API 521 (LES, média)", "", "nível       área [m²]  alcance [m]"]
+    zl = ["ZONAS DA API 521 (LES, média)", "", "nível       área [m²]  alcance [m]"]
     zl += [f"{z['nivel_kW_m2']:5.2f} kW/m² {'≥' if z.get('truncado') else ' '}{z['area_m2']:8.0f}"
            f"   {'≥' if z.get('truncado') else ' '}{z['raio_max_m']:6.0f}" for z in zones]
     if any(z.get("truncado") for z in zones):

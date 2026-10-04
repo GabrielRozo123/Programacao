@@ -1,7 +1,7 @@
 {
  "title_card": {
-  "title": "Até onde chega o calor de um flare?",
-  "subtitle": "Simulação 3D da chama com os ventos de {local} e os níveis de segurança da API 521",
+  "title": "Radiação térmica de um flare de refinaria",
+  "subtitle": "Simulação 3D da chama com o vento de {local} e os níveis de segurança da API 521",
   "credit": "Estudo pessoal de Gabriel Rozo, engenheiro químico (Unicamp)",
   "disclaimer": "Gás de refinaria e vazão ilustrativos, de fontes públicas, sem dados operacionais da Petrobras."
  },
@@ -16,7 +16,7 @@
   },
   {
    "kicker": "O que foi feito",
-   "headline": "Do vento local ao risco no solo, em código aberto",
+   "headline": "Simulação 3D da chama com o clima de vento do local",
    "bullets": [
     "Chama simulada em 3D (CFD) com Python e GPU na nuvem.",
     "Radiação no solo avaliada pelos níveis da API 521, em 16 direções."
@@ -80,7 +80,7 @@
   ]
  },
  "kpis": {
-  "title": "O estudo em quatro números",
+  "title": "Principais resultados",
   "labels": [
    "Radiação máxima no solo, na pior direção",
    "Limite de exposição contínua com roupa adequada (API 521)",
@@ -126,8 +126,8 @@
   ]
  },
  "end_card": {
-  "line": "Física, dados e automação a serviço de decisões mais seguras",
+  "line": "Obrigado por assistir",
   "author": "Gabriel Rozo, engenheiro químico (Unicamp)"
  },
- "caption": "Até onde chega o calor de um flare? E com que frequência, considerando o vento real do local?\n\nEssa pergunta virou um estudo pessoal: um fluxo em Python, de código aberto, no Google Colab (com GPU na nuvem), que vai do clima de vento do local até este vídeo.\n\nNo caminho: simulação 3D da chama (CFD, com LES), radiação térmica no solo, níveis de segurança da API 521 e probabilidade nas 16 direções do vento.\n\nFrente ao modelo de referência da indústria (Shell/Chamberlain, 1987): radiação máxima no solo {erro_q}; chama {erro_L}; inclinação {erro_incl}.\n\nNo cenário ilustrativo, a radiação máxima no solo é de {q_pico} kW/m², considerando todas as direções do vento. O menor nível da API 521, para exposição contínua com roupa adequada, é de 1,58 kW/m².\n\nPara a gestão, o valor está em:\n• triar cenários “e se?” (vazão, gás, vento, altura) antes dos estudos detalhados;\n• ver o risco com o vento real do local, não só o pior caso;\n• comunicar a segurança de forma visual a quem decide;\n• ter uma análise reprodutível e auditável, que não depende de uma só pessoa;\n• desenvolver a equipe em física, dados e automação.\n\nO fluxo complementa, e não substitui, os estudos detalhados em ferramentas validadas, como o Simcenter STAR-CCM+, e as normas aplicáveis.\n\nCenário ilustrativo: coordenadas da REPLAN, em Paulínia (SP), e ventos reais do local; composição do gás e vazão de fontes públicas, sem dados operacionais da Petrobras.\n\nNa sua equipe, como o risco de radiação chega hoje a quem decide?\n\n#CFD #SegurançaDeProcessos #GestãoDeEngenharia #EngenhariaQuímica #Simulação"
+ "caption": "Até onde chega o calor de um flare de refinaria e com que frequência, considerando o vento real do local?\n\nEssa pergunta virou um estudo pessoal: um fluxo em Python, de código aberto, no Google Colab (com GPU na nuvem), que vai do clima de vento do local até este vídeo.\n\nNo caminho: simulação 3D da chama (CFD, com LES), radiação térmica no solo, níveis de segurança da API 521 e probabilidade nas 16 direções do vento.\n\nFrente ao modelo de referência da indústria (Shell/Chamberlain, 1987): radiação máxima no solo {erro_q}; chama {erro_L}; inclinação {erro_incl}.\n\nNo cenário ilustrativo, a radiação máxima no solo é de {q_pico} kW/m², considerando todas as direções do vento. O menor nível da API 521, para exposição contínua com roupa adequada, é de 1,58 kW/m².\n\nPara a gestão, o valor está em:\n• triar cenários “e se?” (vazão, gás, vento, altura) antes dos estudos detalhados;\n• ver o risco com o vento real do local, não só o pior caso;\n• comunicar a segurança de forma visual a quem decide;\n• ter uma análise reprodutível e auditável, que não depende de uma só pessoa;\n• desenvolver a equipe em física, dados e automação.\n\nO fluxo complementa, e não substitui, os estudos detalhados em ferramentas validadas, como o Simcenter STAR-CCM+, e as normas aplicáveis.\n\nCenário ilustrativo: coordenadas da REPLAN, em Paulínia (SP), e ventos reais do local; composição do gás e vazão de fontes públicas, sem dados operacionais da Petrobras.\n\nNa sua equipe, como o risco de radiação chega hoje a quem decide?\n\n#CFD #SegurançaDeProcessos #GestãoDeEngenharia #EngenhariaQuímica #Simulação"
 }

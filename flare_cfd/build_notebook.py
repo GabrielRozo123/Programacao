@@ -328,8 +328,8 @@ seg.append(hd.render_text_cards("s02_contexto.mp4", cards, size=size, fps=FPS, s
 # 3 · o local e o vento
 sw = R["site_wind"]
 render.site_wind_figure(clima, "slide_vento.png", F(sw["title"]), F(sw.get("subtitle") or ""), [
-    ("Fonte", fonte), ("Registro", f"{V['horas_vento']} horas"), ("Vento predominante",
-     f"de {V['setor']} ({nf(100 * clima.sector_freq[clima.dominant_sector], 1)}% do tempo)"),
+    ("Fonte", fonte), ("Registro", f"{V['horas_vento']} horas"), (
+     f"Vento predominante ({nf(100 * clima.sector_freq[clima.dominant_sector], 1)}% do tempo)", f"de {V['setor']}"),
     ("Média no topo da tocha", f"{V['v_media']} m/s"),
     ("Vento forte (P90)", f"{nf(np.percentile(clima.U_H, 90), 1)} m/s"), ("Altitude do terreno", f"{ALTITUDE:.0f} m"),
     ("Coordenadas", f"{nf(abs(LAT), 4)}° {'S' if LAT < 0 else 'N'}, {nf(abs(LON), 4)}° {'O' if LON < 0 else 'L'}")])
