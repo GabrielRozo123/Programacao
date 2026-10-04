@@ -49,7 +49,7 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     ch = sc.cham if les.wind else sc.cham0
     fig = Figure(figsize=(16, 9), dpi=dpi, facecolor=BG)
     FigureCanvasAgg(fig)
-    gs = GridSpec(2, 3, figure=fig, left=0.06, right=0.985, top=0.86, bottom=0.06, hspace=0.34, wspace=0.30,
+    gs = GridSpec(2, 3, figure=fig, left=0.085, right=0.985, top=0.86, bottom=0.06, hspace=0.34, wspace=0.30,
                   height_ratios=[1.2, 1.0])
     fig.text(0.045, 0.952, title, color=FG, fontsize=17, fontweight="bold")
     fig.text(0.045, 0.918, f"Médias de {les.avg_n:.0f} quadros (t ≥ início da média) · {les.summary()}",
