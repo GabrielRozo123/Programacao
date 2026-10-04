@@ -324,7 +324,11 @@ chama = hd.render_flame_hd(rec, "s05_chama.mp4", F(fl["title"]), F(fl.get("subti
                            fps=FPS, detail=DETALHE_VISUAL, kicker=F(fl["chapter"]), captions=F(fl["captions"]),
                            caption=F(fl.get("note") or "") if DETALHE_VISUAL > 0 else "",
                            clean_path="fundo_chama.mp4" if FUNDO_ANIMADO else None)
-fundo = hd.Backdrop("fundo_chama.mp4" if FUNDO_ANIMADO else fundo, size)
+try:
+    fundo = hd.Backdrop("fundo_chama.mp4" if FUNDO_ANIMADO else fundo, size)
+except Exception as e:                      # sem o vídeo limpo, os cartões usam a chama parada
+    print(f"Fundo animado indisponível ({e}); usando a chama parada.")
+    fundo = hd.Backdrop(fundo, size)
 seg = []
 # 1 · abertura
 tc = R["title_card"]
@@ -454,12 +458,23 @@ OUTRO = r"""
 """
 
 
+IMPORT = r"""
+import sys
+# se o ambiente já tinha uma versão antiga do flarekit carregada (rodada anterior no mesmo Colab), descarta-a
+# para usar o código recém-gravado pelas células acima
+for _m in [k for k in list(sys.modules) if k == "flarekit" or k.startswith("flarekit.")]:
+    del sys.modules[_m]
+import flarekit
+print("flarekit pronto")
+"""
+
+
 def build(out: Path = HERE / "flare_les_colab.ipynb") -> Path:
     cells = [md(INTRO), code(SETUP, hidden=True)]
     for mod in MODULES:
         src = (HERE / "flarekit" / mod).read_text()
         cells.append(code(f"%%writefile flarekit/{mod}\n{src}", hidden=True))
-    cells += [code("import importlib, flarekit\nprint('flarekit pronto')"),
+    cells += [code(IMPORT),
               md("## 1 · Local e clima de vento"), code(WIND),
               md("## 2 · Cenário e referências"), code(SCENARIO),
               md("## 3 · Termoquímica"), code(THERMO),
