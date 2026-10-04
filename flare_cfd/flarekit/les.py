@@ -82,6 +82,26 @@ def stretched_faces(lo, hi, f_lo, f_hi, d_fine, ratio=1.1, d_max=2.5):
     return np.concatenate([np.array(down[::-1]), fine, np.array(up)])
 
 
+_PRESETS = {
+    # GPU (Colab T4): Δ = 0,5 m perto da chama (~0,8 M células). Validado: L e inclinação
+    # sob vento de 8,9 m/s a +2% e +10% de Chamberlain (1987)
+    "gpu": dict(d_fine=0.5, d_max=3.0),
+    # GPU, malha fina: Δ = 0,35 m (~1,8 M células)
+    "gpu_fino": dict(d_fine=0.35),
+    # GPU grande (A100/L4): Δ = 0,25 m (~4 M células)
+    "gpu_ultra": dict(d_fine=0.25, ratio=1.08),
+    # CPU: Δ = 0,7 m num domínio menor
+    "cpu": dict(d_fine=0.7, d_max=3.5, x_range=(-30.0, 100.0), y_range=(-32.0, 32.0), z_top=90.0,
+                receiver_dx=4.0, emitter_bin=2.0),
+    # teste rápido (malha grossa: só para verificar o fluxo do notebook)
+    "teste": dict(d_fine=1.5, d_max=3.0, x_range=(-24.0, 60.0), y_range=(-21.0, 21.0),
+                  z_top=75.0, receiver_dx=6.0, emitter_bin=3.0),
+}
+# volume de referência da caixa fina [m³]: chamas maiores engrossam a malha na mesma proporção
+# (mantém Δ relativo à chama e o número de células, ~1 M no preset "gpu")
+FLAME_BOX_REF = 25000.0
+
+
 @dataclass
 class LESConfig:
     # domínio e malha
@@ -142,26 +162,18 @@ class LESConfig:
         elif name == "cpu":   # domínio menor que o da GPU (mesma lógica, folgas reduzidas)
             dom.update(x_range=(min(-30.0, x0 - 15.0), max(100.0, x1 + 60.0)),
                        y_range=(-max(32.0, yh + 20.0), max(32.0, yh + 20.0)), z_top=max(90.0, H + z1 + 30.0))
+        # chamas grandes (vazões de emergência, tochas altas): Δ cresce com o tamanho da chama
+        scale = max(1.0, ((x1 - x0) * 2 * yh * (z1 - z0) / FLAME_BOX_REF) ** (1 / 3))
+        if scale > 1.0:
+            base = LESConfig(**{**_PRESETS[name]})
+            for k in ("d_fine", "d_max", "receiver_dx", "emitter_bin"):
+                dom[k] = getattr(base, k) * scale
         dom.update(kw)
         return LESConfig.preset(name, **dom)
 
     @staticmethod
     def preset(name: str, **kw) -> "LESConfig":
-        presets = {
-            # GPU (Colab T4): Δ = 0,5 m perto da chama (~0,8 M células). Validado: L e inclinação
-            # sob vento de 8,9 m/s a +2% e +10% de Chamberlain (1987)
-            "gpu": dict(d_fine=0.5, d_max=3.0),
-            # GPU, malha fina: Δ = 0,35 m (~1,8 M células)
-            "gpu_fino": dict(d_fine=0.35),
-            # GPU grande (A100/L4): Δ = 0,25 m (~4 M células)
-            "gpu_ultra": dict(d_fine=0.25, ratio=1.08),
-            # CPU: Δ = 0,7 m num domínio menor
-            "cpu": dict(d_fine=0.7, d_max=3.5, x_range=(-30.0, 100.0), y_range=(-32.0, 32.0), z_top=90.0,
-                        receiver_dx=4.0, emitter_bin=2.0),
-            # teste rápido (malha grossa: só para verificar o fluxo do notebook)
-            "teste": dict(d_fine=1.5, d_max=3.0, x_range=(-24.0, 60.0), y_range=(-21.0, 21.0),
-                          z_top=75.0, receiver_dx=6.0, emitter_bin=3.0),
-        }
+        presets = _PRESETS
         cfg = presets[name].copy()
         if kw.get("u_ref", 1.0) <= 0.0 and name != "teste" and "fine_x" not in kw:
             # sem vento: chama vertical e mais longa → caixa fina centrada e mais alta

@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .props import G, M_AIR, P_ATM, R_U, Fuel, radcal_ap, stoichiometry
+from .props import G, M_AIR, P_ATM, R_U, Fuel, products_per_mol, radcal_ap, stoichiometry
 
 
 # --------------------------------------------------------------------------- tip
@@ -47,8 +47,9 @@ def heskestad_length(Q: float, D: float) -> float:
 
 def molina_xrad(fuel: Fuel, mdot, L, Z_st, T_ad, rho_f) -> dict:
     """Seção 3.4: X_rad = 9.45e-9 (τ_G a_p T_ad⁴)^0.47, τ_G em ms."""
-    n_tot = fuel.nC + fuel.nH / 2 + 3.76 * (fuel.nC + fuel.nH / 4)
-    x_CO2, x_H2O = fuel.nC / n_tot, fuel.nH / 2 / n_tot
+    pr = products_per_mol(fuel)
+    n_tot = sum(pr.values())
+    x_CO2, x_H2O = pr["CO2"] / n_tot, pr["H2O"] / n_tot
     a_p = x_CO2 * radcal_ap("CO2", T_ad) + x_H2O * radcal_ap("H2O", T_ad)
     W_f = 0.17 * L
     tau = np.pi / 12 * rho_f * W_f**2 * L * Z_st / mdot * 1000.0
@@ -83,7 +84,9 @@ def chamberlain(fuel: Fuel, mdot: float, u_j: float, rho_j: float, rho_inf: floa
     from scipy.optimize import brentq
     D_s = np.sqrt(4 * mdot / (np.pi * rho_inf * u_j))
     M = fuel.M
-    W = M / (15.816 * M + 0.0395)
+    # W = fração mássica de combustível na mistura estequiométrica com ar (definição de Chamberlain);
+    # a correlação W(M) do artigo vale para alcanos; para misturas (H2, inertes...) usa-se Z_st exato
+    W = stoichiometry(fuel)["Z_st"] if fuel.is_mixture else M / (15.816 * M + 0.0395)
     Ca = 0.024 * (G * D_s / u_j**2) ** (1 / 3)
     Cb, Cc = 0.2, (2.85 / W) ** (2 / 3)
     Y = brentq(lambda y: Ca * y ** (5 / 3) + Cb * y ** (2 / 3) - Cc, 1e-6, 1e6)
@@ -231,10 +234,11 @@ class Scenario:
     u_w: float = 8.9
     T_inf: float = 298.15
     RH: float = 0.5
+    p_atm: float = P_ATM     # pressão local (use props.pressure_at_altitude para sítios elevados)
 
     def __post_init__(self):
-        self.tip = tip_conditions(self.fuel, self.mdot, self.T_j, self.mach)
-        self.rho_inf = air_density(self.T_inf)
+        self.tip = tip_conditions(self.fuel, self.mdot, self.T_j, self.mach, self.p_atm)
+        self.rho_inf = air_density(self.T_inf, self.p_atm)
         self.st = stoichiometry(self.fuel)
         self.Q = self.tip["Q"]
         self.L_api = api_flame_length(self.Q)
@@ -247,11 +251,10 @@ class Scenario:
     def references(self, T_ad: float, rho_f: float | None = None) -> dict:
         """Correlações de referência. ρ_f padrão: produtos estequiométricos a T_ad (gás ideal)."""
         if rho_f is None:
-            f = self.fuel
-            a = f.nC + f.nH / 4
-            n = f.nC + f.nH / 2 + 3.76 * a
-            M_p = (f.nC * 44.009e-3 + f.nH / 2 * 18.015e-3 + 3.76 * a * 28.014e-3) / n
-            rho_f = P_ATM * M_p / (R_U * T_ad)
+            pr = products_per_mol(self.fuel)
+            Mi = {"CO2": 44.009e-3, "H2O": 18.015e-3, "SO2": 64.058e-3, "N2": 28.014e-3}
+            M_p = sum(pr[k] * Mi[k] for k in pr) / sum(pr.values())
+            rho_f = self.p_atm * M_p / (R_U * T_ad)
         de = delichatsios_length(self.tip["u_j"], self.tip["d_j"], self.tip["rho_j"], self.rho_inf,
                                  self.st["Z_st"], T_ad, self.T_inf)
         mo = molina_xrad(self.fuel, self.mdot, de["L"], self.st["Z_st"], T_ad, rho_f)

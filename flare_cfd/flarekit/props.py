@@ -18,21 +18,115 @@ SIGMA = 5.670374419e-8   # W/(m2 K4)
 P_ATM = 101325.0         # Pa
 G = 9.80665              # m/s2
 
-MW = {"O2": 31.998e-3, "N2": 28.014e-3, "CO2": 44.009e-3, "H2O": 18.015e-3}
+MW = {"O2": 31.998e-3, "N2": 28.014e-3, "CO2": 44.009e-3, "H2O": 18.015e-3, "SO2": 64.058e-3}
 Y_O2_AIR = MW["O2"] / (MW["O2"] + 3.76 * MW["N2"])
 M_AIR = 0.028965
 
 
+def pressure_at_altitude(z: float) -> float:
+    """Pressão da atmosfera padrão (ISA) na altitude z [m] acima do nível do mar [Pa]."""
+    return P_ATM * (1.0 - 2.25577e-5 * z) ** 5.25588
+
+
 @dataclass(frozen=True)
 class Fuel:
+    """Combustível puro ou mistura. nC, nH, nO, nN, nS são átomos por mol de combustível
+    (fracionários numa mistura); X guarda a composição molar ((espécie, fração), ...)."""
     name: str
-    nC: int
-    nH: int
+    nC: float
+    nH: float
     M: float          # kg/mol
-    LHV: float        # J/kg
+    LHV: float        # J/kg (PCI)
     gamma: float      # cp/cv a ~300 K
-    soot_yield: float  # kg fuligem / kg combustível (Tewarson, SFPE Handbook)
-    cantera_name: str
+    soot_yield: float  # kg fuligem / kg combustível (informativo)
+    cantera_name: str  # espécie do gri30 (combustível puro); "" para misturas
+    nO: float = 0.0
+    nN: float = 0.0
+    nS: float = 0.0
+    X: tuple = ()
+
+    @property
+    def is_mixture(self) -> bool:
+        return len(self.X) > 0
+
+    def composition(self) -> dict:
+        """Frações molares {espécie: x} (nomes de SPECIES)."""
+        return dict(self.X) if self.X else {CANTERA_TO_KEY.get(self.cantera_name, self.cantera_name): 1.0}
+
+    def describe(self) -> str:
+        comp = " · ".join(f"{k} {100 * v:.1f}%" for k, v in sorted(self.composition().items(),
+                                                                   key=lambda kv: -kv[1]))
+        return (f"{self.name}: {comp} | M = {1e3 * self.M:.2f} g/mol · PCI = {self.LHV / 1e6:.2f} MJ/kg · "
+                f"γ = {self.gamma:.3f}")
+
+
+@dataclass(frozen=True)
+class SpeciesData:
+    atoms: tuple       # (C, H, O, N, S)
+    M: float           # kg/mol
+    LHV_mol: float     # J/mol (PCI a 25 °C, H2O vapor, S → SO2)
+    cp: float          # J/(mol K) a 298 K
+    nasa: str          # nome no nasa_gas.yaml do Cantera
+    soot_yield: float  # kg/kg (Tewarson, SFPE Handbook; aproximado, informativo)
+
+
+# Propriedades a 25 °C dos polinômios NASA (Glenn) do Cantera (nasa_gas.yaml); PCI conferido em
+# tests/test_flarekit.py contra o próprio Cantera.
+SPECIES = {
+    "H2":     SpeciesData((0, 2, 0, 0, 0), 2.016e-3, 241.8e3, 28.84, "H2", 0.0),
+    "CH4":    SpeciesData((1, 4, 0, 0, 0), 16.043e-3, 802.6e3, 35.69, "CH4", 0.001),
+    "C2H6":   SpeciesData((2, 6, 0, 0, 0), 30.070e-3, 1428.6e3, 52.50, "C2H6", 0.013),
+    "C2H4":   SpeciesData((2, 4, 0, 0, 0), 28.054e-3, 1323.2e3, 42.89, "C2H4", 0.043),
+    "C3H8":   SpeciesData((3, 8, 0, 0, 0), 44.097e-3, 2043.1e3, 73.59, "C3H8", 0.024),
+    "C3H6":   SpeciesData((3, 6, 0, 0, 0), 42.081e-3, 1925.7e3, 64.43, "C3H6,propylene", 0.095),
+    "nC4H10": SpeciesData((4, 10, 0, 0, 0), 58.124e-3, 2657.4e3, 98.66, "C4H10,n-butane", 0.029),
+    "iC4H10": SpeciesData((4, 10, 0, 0, 0), 58.124e-3, 2648.2e3, 96.64, "C4H10,isobutane", 0.029),
+    "C4H8":   SpeciesData((4, 8, 0, 0, 0), 56.108e-3, 2540.8e3, 85.56, "C4H8,1-butene", 0.095),
+    "nC5H12": SpeciesData((5, 12, 0, 0, 0), 72.151e-3, 3271.7e3, 119.95, "C5H12,n-pentane", 0.030),
+    "CO":     SpeciesData((1, 0, 1, 0, 0), 28.010e-3, 283.0e3, 29.14, "CO", 0.0),
+    "H2S":    SpeciesData((0, 2, 0, 0, 1), 34.076e-3, 518.2e3, 34.19, "H2S", 0.0),
+    "CO2":    SpeciesData((1, 0, 2, 0, 0), 44.009e-3, 0.0, 37.14, "CO2", 0.0),
+    "N2":     SpeciesData((0, 0, 0, 2, 0), 28.014e-3, 0.0, 29.12, "N2", 0.0),
+    "O2":     SpeciesData((0, 0, 2, 0, 0), 31.998e-3, 0.0, 29.38, "O2", 0.0),
+    "H2O":    SpeciesData((0, 2, 1, 0, 0), 18.015e-3, 0.0, 33.59, "H2O", 0.0),
+}
+CANTERA_TO_KEY = {"C3H8": "C3H8", "CH4": "CH4", "C2H6": "C2H6", "H2": "H2"}
+
+
+def mixture(name: str, comp: dict) -> Fuel:
+    """Combustível a partir da composição molar {espécie: fração ou %} (normalizada para 1)."""
+    bad = [k for k in comp if k not in SPECIES]
+    if bad:
+        raise ValueError(f"espécies desconhecidas: {bad}; use {sorted(SPECIES)}")
+    tot = float(sum(comp.values()))
+    if tot <= 0:
+        raise ValueError("composição vazia")
+    x = {k: float(v) / tot for k, v in comp.items() if v > 0}
+    at = np.zeros(5)
+    M = cp = lhv = soot = 0.0
+    for k, xi in x.items():
+        d = SPECIES[k]
+        at += xi * np.asarray(d.atoms, float)
+        M += xi * d.M
+        cp += xi * d.cp
+        lhv += xi * d.LHV_mol
+    for k, xi in x.items():
+        soot += xi * SPECIES[k].M / M * SPECIES[k].soot_yield
+    if lhv <= 0:
+        raise ValueError("a mistura não tem componentes combustíveis")
+    gamma = cp / (cp - R_U)
+    return Fuel(name, float(at[0]), float(at[1]), M, lhv / M, gamma, soot, "",
+                nO=float(at[2]), nN=float(at[3]), nS=float(at[4]), X=tuple(sorted(x.items())))
+
+
+def parse_composition(text: str) -> dict:
+    """'H2: 20, CH4: 40, C2H6: 10' → {'H2': 20.0, 'CH4': 40.0, 'C2H6': 10.0}."""
+    out = {}
+    for part in text.replace(";", ",").split(","):
+        if part.strip():
+            k, v = part.split(":")
+            out[k.strip()] = float(v)
+    return out
 
 
 PROPANE = Fuel("propano", 3, 8, 44.097e-3, 46.35e6, 1.13, 0.024, "C3H8")
@@ -41,9 +135,20 @@ ETHANE = Fuel("etano", 2, 6, 30.069e-3, 47.51e6, 1.19, 0.013, "C2H6")
 FUELS = {f.name: f for f in (PROPANE, METHANE, ETHANE)}
 
 
+def o2_demand(fuel: Fuel) -> float:
+    """mols de O2 por mol de combustível (C → CO2, H → H2O, S → SO2, descontando o O do combustível)."""
+    return fuel.nC + fuel.nH / 4.0 + fuel.nS - fuel.nO / 2.0
+
+
+def products_per_mol(fuel: Fuel) -> dict:
+    """Mols de produtos da combustão estequiométrica com ar, por mol de combustível."""
+    a = o2_demand(fuel)
+    return {"CO2": fuel.nC, "H2O": fuel.nH / 2.0, "SO2": fuel.nS, "N2": 3.76 * a + fuel.nN / 2.0}
+
+
 def stoichiometry(fuel: Fuel) -> dict:
     """a = mols de O2 por mol de combustível; s = razão mássica ar/combustível; Z_st."""
-    a = fuel.nC + fuel.nH / 4.0
+    a = o2_demand(fuel)
     s = a * (MW["O2"] + 3.76 * MW["N2"]) / fuel.M
     return {"a": a, "s": s, "Z_st": 1.0 / (1.0 + s)}
 
@@ -51,17 +156,20 @@ def stoichiometry(fuel: Fuel) -> dict:
 def burke_schumann(fuel: Fuel, Z: np.ndarray) -> dict:
     """Frações mássicas de combustão completa (química infinitamente rápida)."""
     Z = np.asarray(Z, dtype=float)
-    a = fuel.nC + fuel.nH / 4.0
-    r_O2 = a * MW["O2"] / fuel.M
-    r_CO2 = fuel.nC * MW["CO2"] / fuel.M
-    r_H2O = 0.5 * fuel.nH * MW["H2O"] / fuel.M
+    pr = products_per_mol(fuel)
+    r_O2 = o2_demand(fuel) * MW["O2"] / fuel.M
+    r_CO2 = pr["CO2"] * MW["CO2"] / fuel.M
+    r_H2O = pr["H2O"] * MW["H2O"] / fuel.M
+    r_SO2 = pr["SO2"] * MW["SO2"] / fuel.M
+    r_N2f = fuel.nN / 2.0 * MW["N2"] / fuel.M                 # N2 que já vem no combustível
     burned = np.minimum(Z, (1.0 - Z) * Y_O2_AIR / r_O2)   # kg combustível queimado / kg mistura
     Y = {
         "F": Z - burned,
         "O2": (1.0 - Z) * Y_O2_AIR - burned * r_O2,
-        "N2": (1.0 - Z) * (1.0 - Y_O2_AIR),
+        "N2": (1.0 - Z) * (1.0 - Y_O2_AIR) + burned * r_N2f,
         "CO2": burned * r_CO2,
         "H2O": burned * r_H2O,
+        "SO2": burned * r_SO2,
     }
     Y["O2"] = np.maximum(Y["O2"], 0.0)
     Y["burned"] = burned
@@ -103,6 +211,25 @@ class StateRelation:
     source: str
 
 
+# produtos e radicais do equilíbrio quando o combustível é uma mistura (base NASA do Cantera)
+_EQ_SPECIES = ["N2", "O2", "H2O", "CO2", "CO", "H2", "OH", "H", "O", "NO", "N", "CH4", "C2H2,acetylene"]
+_EQ_SULFUR = ["SO2", "SO", "S", "S2", "H2S", "COS"]
+
+
+def _cantera_gas(fuel: Fuel):
+    """Fase gasosa do Cantera para o equilíbrio: gri30 para combustível puro; para misturas, um
+    conjunto reduzido de espécies da base NASA (cobre C4/C5, olefinas e H2S, que o gri30 não tem)."""
+    import cantera as ct
+    if not fuel.is_mixture:
+        return ct.Solution("gri30.yaml"), {fuel.cantera_name: 1.0}, "gri30"
+    comp = fuel.composition()
+    names = list(_EQ_SPECIES) + (list(_EQ_SULFUR) if fuel.nS > 0 else [])
+    names += [SPECIES[k].nasa for k in comp if SPECIES[k].nasa not in names]
+    lib = {sp.name: sp for sp in ct.Species.list_from_file("nasa_gas.yaml")}
+    gas = ct.Solution(thermo="ideal-gas", species=[lib[n] for n in names])
+    return gas, {SPECIES[k].nasa: x for k, x in comp.items()}, "base NASA, mistura"
+
+
 def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
                    n: int = 2001, use_cantera: bool = True, p: float = P_ATM,
                    phi_rich: float = 2.5) -> StateRelation:
@@ -126,9 +253,8 @@ def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
     xH2O = xCO2 = None
     if use_cantera:
         try:
-            import cantera as ct
-            gas = ct.Solution("gri30.yaml")
-            gas.TPX = T_fuel, p, {fuel.cantera_name: 1.0}
+            gas, X_fuel, mech = _cantera_gas(fuel)
+            gas.TPX = T_fuel, p, X_fuel
             hF, YF = gas.enthalpy_mass, gas.Y.copy()
             gas.TPX = T_inf, p, {"O2": 1.0, "N2": 3.76}
             hA, YA = gas.enthalpy_mass, gas.Y.copy()
@@ -153,7 +279,7 @@ def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
                     gas.HPY = (1 - w) * h_r + w * hF, p, (1 - w) * Y_r + w * YF
                 T_eq[i] = gas.T; M_mix[i] = gas.mean_molecular_weight / 1000.0
                 xH2O[i] = gas.X[iH2O]; xCO2[i] = gas.X[iCO2]
-            source = "Cantera (equilíbrio HP, gri30)"
+            source = f"Cantera (equilíbrio HP, {mech})"
         except Exception:  # noqa: BLE001 — sem Cantera, cai para Burke–Schumann
             T_eq = None
     if T_eq is None:
@@ -162,7 +288,7 @@ def state_relation(fuel: Fuel, T_fuel: float, T_inf: float, chi_loss: float,
         cp_eff = 1420.0   # calibrado para reproduzir T_ad de alcanos leves (seção 3.2)
         T_eq = T_mix + Y["burned"] * fuel.LHV / cp_eff
         del cp_mix
-        moles = {k: Y[k] / (fuel.M if k == "F" else MW[k]) for k in ("F", "O2", "N2", "CO2", "H2O")}
+        moles = {k: Y[k] / (fuel.M if k == "F" else MW[k]) for k in ("F", "O2", "N2", "CO2", "H2O", "SO2")}
         ntot = sum(moles.values())
         M_mix = 1.0 / ntot
         xH2O, xCO2 = moles["H2O"] / ntot, moles["CO2"] / ntot

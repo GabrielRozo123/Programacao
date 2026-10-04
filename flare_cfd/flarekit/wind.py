@@ -217,16 +217,20 @@ def synthetic_series(lat: float, lon: float, n: int = 8760, seed: int = 1) -> Wi
 
 
 def get_wind_series(lat: float, lon: float, source: str = "auto", z0_site: float = 0.3,
-                    start: str = "20140101", end: str = "20231231", verbose: bool = True) -> WindSeries:
+                    start: str = "20140101", end: str = "20231231", verbose: bool = True,
+                    H: float | None = None) -> WindSeries:
     """source: 'gwa' (Global Wind Atlas), 'nasa' (NASA POWER), 'open-meteo' (ERA5), 'sintetico' ou
-    'auto' (GWA → NASA → Open-Meteo → sintético)."""
+    'auto' (GWA → NASA → Open-Meteo → sintético). H (altura do tip): no GWA a segunda altura amostrada
+    passa a ser H (até 200 m), de modo que o vento no tip vem do próprio atlas, sem extrapolar."""
     order = {"auto": ["gwa", "nasa", "open-meteo", "sintetico"], "gwa": ["gwa"], "nasa": ["nasa"],
              "open-meteo": ["open-meteo"], "sintetico": ["sintetico"]}[source]
     errors = []
     for s in order:
         try:
             if s == "gwa":
-                return gwa_series(fetch_gwa(lat, lon), lat, lon, z0_site)
+                gwc = fetch_gwa(lat, lon)
+                z2 = float(np.clip(H, 50.0, max(gwc["heights"]))) if H else 50.0
+                return gwa_series(gwc, lat, lon, z0_site, z2=z2)
             if s == "nasa":
                 return fetch_nasa_power(lat, lon, start, end)
             if s == "open-meteo":

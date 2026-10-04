@@ -100,3 +100,61 @@ def test_zone_extents_flags_truncation():
     q2 = 12.0 * np.exp(-(X ** 2 + Y ** 2) / 4000.0)     # zona maior que a grade
     z2 = {d["nivel_kW_m2"]: d for d in safety.zone_extents(q2, x, x)}
     assert z2[1.58]["truncado"]
+
+
+def test_mixture_properties_and_conservation():
+    from flarekit.props import (MW, SPECIES, Y_O2_AIR, burke_schumann, mixture, parse_composition,
+                                pressure_at_altitude)
+    # mistura de uma espécie reproduz o combustível puro
+    p = mixture("propano", {"C3H8": 1.0})
+    assert stoichiometry(p)["Z_st"] == pytest.approx(stoichiometry(PROPANE)["Z_st"], rel=1e-3)
+    assert p.LHV == pytest.approx(PROPANE.LHV, rel=2e-3)
+    # composição com inertes, CO e H2S: frações, átomos e conservação de massa em Burke–Schumann
+    comp = parse_composition("H2: 20, CH4: 40, C2H6: 10, C3H6: 5, nC4H10: 4, CO: 3, CO2: 2, N2: 14, H2S: 2")
+    f = mixture("gás de tocha", comp)
+    assert sum(v for _, v in f.X) == pytest.approx(1.0)
+    assert f.nS == pytest.approx(0.02) and f.nN == pytest.approx(0.28) and f.nO == pytest.approx(0.07)
+    M = sum(v / 100 * SPECIES[k].M for k, v in comp.items())
+    assert f.M == pytest.approx(M)
+    Z = np.linspace(0, 1, 501)
+    Y = burke_schumann(f, Z)
+    tot = sum(Y[k] for k in ("F", "O2", "N2", "CO2", "H2O", "SO2"))
+    assert np.allclose(tot, 1.0, atol=1e-9)
+    # o O2 do ar acaba exatamente em Z_st
+    Zs = stoichiometry(f)["Z_st"]
+    Yst = burke_schumann(f, np.array([Zs]))
+    assert Yst["O2"][0] == pytest.approx(0.0, abs=1e-9) and Yst["F"][0] == pytest.approx(0.0, abs=1e-9)
+    assert Y_O2_AIR > 0
+    assert pressure_at_altitude(600.0) == pytest.approx(94322.0, rel=2e-3)
+    del MW
+
+
+def test_species_lhv_against_cantera():
+    ct = pytest.importorskip("cantera")
+    from flarekit.props import SPECIES
+    lib = {sp.name: sp for sp in ct.Species.list_from_file("nasa_gas.yaml")}
+    names = sorted({d.nasa for d in SPECIES.values()} | {"SO2"})
+    gas = ct.Solution(thermo="ideal-gas", species=[lib[n] for n in names])
+
+    def h(n):
+        gas.TPX = 298.15, ct.one_atm, {n: 1.0}
+        return gas.enthalpy_mole / 1e3
+    for k, d in SPECIES.items():
+        C, H, O, N, S = d.atoms
+        lhv = h(d.nasa) + (C + H / 4 + S - O / 2) * h("O2") - C * h("CO2") - H / 2 * h("H2O") - S * h("SO2")
+        assert lhv == pytest.approx(d.LHV_mol, abs=1.5e3), k
+
+
+def test_mixture_equilibrium_and_scenario():
+    pytest.importorskip("cantera")
+    from flarekit.props import mixture, pressure_at_altitude
+    f = mixture("gás", {"H2": 25, "CH4": 45, "C2H6": 10, "C3H8": 10, "N2": 8, "H2S": 2})
+    sr = state_relation(f, 311.0, 298.15, 0.0, n=401)
+    assert "mistura" in sr.source and 2150 < sr.T_ad_st < 2350
+    # a mesma chama a 600 m de altitude: ar menos denso, mesmo T_ad (aprox.)
+    p = pressure_at_altitude(600.0)
+    sc0 = se.Scenario(f, H=115.0, u_w=7.0)
+    sc1 = se.Scenario(f, H=115.0, u_w=7.0, p_atm=p)
+    assert sc1.rho_inf == pytest.approx(sc0.rho_inf * p / 101325.0)
+    # Chamberlain usa W = Z_st exato para misturas
+    assert sc0.cham.W == pytest.approx(stoichiometry(f)["Z_st"])
