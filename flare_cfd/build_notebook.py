@@ -272,7 +272,8 @@ from flarekit import hd
 from flarekit.dashboard import br
 from flarekit.report import summary_figure
 
-AUTOR = "Gabriel Rozo"   #@param {type:"string"}
+LINKEDIN = "linkedin.com/in/gabrielhrozo"   #@param {type:"string"}
+FUNDO_ANIMADO = True     #@param {type:"boolean"}
 RESOLUCAO = "1080p"      #@param ["1080p", "1440p", "4k"]
 DETALHE_VISUAL = 0.35    #@param {type:"slider", min:0, max:0.8, step:0.05}
 FPS = 30                 #@param {type:"integer"}
@@ -317,6 +318,13 @@ def pick(d, k):                   # versão normal ou *_acima conforme o resulta
 size = hd.RES[RESOLUCAO]
 capa = hd.flame_hd_png(rec, "capa_chama.png", resolution=RESOLUCAO, detail=DETALHE_VISUAL)
 fundo = np.asarray(PILImage.open(capa).convert("RGB"))
+# a chama em HD é renderizada primeiro: a versão sem textos vira o fundo animado dos cartões
+fl = R["flame"]
+chama = hd.render_flame_hd(rec, "s05_chama.mp4", F(fl["title"]), F(fl.get("subtitle") or ""), resolution=RESOLUCAO,
+                           fps=FPS, detail=DETALHE_VISUAL, kicker=F(fl["chapter"]), captions=F(fl["captions"]),
+                           caption=F(fl.get("note") or "") if DETALHE_VISUAL > 0 else "",
+                           clean_path="fundo_chama.mp4" if FUNDO_ANIMADO else None)
+fundo = hd.Backdrop("fundo_chama.mp4" if FUNDO_ANIMADO else fundo, size)
 seg = []
 # 1 · abertura
 tc = R["title_card"]
@@ -334,7 +342,7 @@ render.site_wind_figure(clima, "slide_vento.png", F(sw["title"]), F(sw.get("subt
     ("Vento forte (P90)", f"{nf(np.percentile(clima.U_H, 90), 1)} m/s"), ("Altitude do terreno", f"{ALTITUDE:.0f} m"),
     ("Coordenadas", f"{nf(abs(LAT), 4)}° {'S' if LAT < 0 else 'N'}, {nf(abs(LON), 4)}° {'O' if LON < 0 else 'L'}")])
 seg.append(hd.caption_segment("slide_vento.png", "s03_vento.mp4", F(sw["captions"]), F(sw["chapter"]), size=size,
-                              fps=FPS, seconds=8.0))
+                              fps=FPS, seconds=8.0, handle=LINKEDIN))
 # 4 · o gás e o cenário
 gs_ = R["gas_scenario"]
 render.scenario_figure(fuel, sc, "slide_cenario.png", F(gs_["title"]), F(gs_.get("subtitle") or ""), [
@@ -342,12 +350,9 @@ render.scenario_figure(fuel, sc, "slide_cenario.png", F(gs_["title"]), F(gs_.get
     ("Massa molar", f"{V['M']} g/mol"), ("Poder calorífico inferior", f"{V['pci']} MJ/kg"),
     ("Velocidade de saída", f"{tip['u_j']:.0f} m/s")])
 seg.append(hd.caption_segment("slide_cenario.png", "s04_cenario.mp4", F(gs_["captions"]), F(gs_["chapter"]),
-                              size=size, fps=FPS, seconds=8.0))
-# 5 · a chama simulada (HD)
-fl = R["flame"]
-seg.append(hd.render_flame_hd(rec, "s05_chama.mp4", F(fl["title"]), F(fl.get("subtitle") or ""), resolution=RESOLUCAO,
-                              fps=FPS, detail=DETALHE_VISUAL, kicker=F(fl["chapter"]), captions=F(fl["captions"]),
-                              caption=F(fl.get("note") or "") if DETALHE_VISUAL > 0 else ""))
+                              size=size, fps=FPS, seconds=8.0, handle=LINKEDIN))
+# 5 · a chama simulada (HD, já renderizada acima)
+seg.append(chama)
 # 6 · validação
 va = R["validation"]
 sub_val = br(f"Simulação 3D com {V['celulas']} e vento de {setor_les} a {V['v_les']} m/s "
@@ -356,14 +361,14 @@ render.ZoomDashboard(rec, sc, ch, F(va["title"]), sub_val, t_end=T_END,
                      wind_label=br(f"vento de {setor_les} a {U_LES:.1f} m/s no topo da tocha")).render(
     "painel.mp4", fps=FPS, every=2)
 seg.append(hd.caption_segment("painel.mp4", "s06_validacao.mp4", F(va["captions"]), F(va["chapter"]), size=size,
-                              fps=FPS))
+                              fps=FPS, handle=LINKEDIN))
 # 7 · radiação em todas as direções do vento
 sv = R["sweep"]
 render.render_wind_sweep(clima, mapas, les_down, "varredura.mp4", U_LES, F(sv["title"]), fps=FPS,
                          subtitle=br(f"Clima de vento: {fonte}; a pegada de radiação gira pelas {V['direcoes']} "
                                      f"direções, com a frequência de cada uma"))
 seg.append(hd.caption_segment("varredura.mp4", "s07_varredura.mp4", F(sv["captions"]), F(sv["chapter"]), size=size,
-                              fps=FPS))
+                              fps=FPS, handle=LINKEDIN))
 # 8 · números-chave
 kp = R["kpis"]
 kv = [dict(value=q_solo, fmt="{:.2f}" if q_solo < 1 else "{:.1f}", unit="kW/m²",
@@ -379,11 +384,11 @@ sf, rf = R["summary_fig"], R["risk_fig"]
 summary_figure(les, sc, refs, "fig_resumo_video.png", F(sf["title"]),
                subtitle=br(f"Médias temporais da simulação; radiação no solo comparada aos níveis da API 521"))
 seg.append(hd.caption_segment("fig_resumo_video.png", "s09_resumo.mp4", F(pick(sf, "captions")), F(sf["chapter"]),
-                              size=size, fps=FPS, seconds=5.5))
+                              size=size, fps=FPS, seconds=5.5, handle=LINKEDIN))
 render.risk_summary_figure(clima, mapas, sc, "fig_risco_video.png", F(rf["title"]),
                            subtitle=br(f"Ponderado pela frequência real de cada direção e velocidade do vento ({fonte})"))
 seg.append(hd.caption_segment("fig_risco_video.png", "s10_risco.mp4", F(pick(rf, "captions")), F(rf["chapter"]),
-                              size=size, fps=FPS, seconds=6.5))
+                              size=size, fps=FPS, seconds=6.5, handle=LINKEDIN))
 # 10 · o que significa para a gestão, próximos passos e encerramento
 cl_ = dict(R["closing"]); cl_["headline"] = pick(R["closing"], "headline")
 cl_ = {k: F(v) for k, v in cl_.items() if v and not k.endswith("_acima")}
@@ -392,21 +397,27 @@ ns_ = {k: F(v) for k, v in R["next_steps"].items() if v and not k.endswith("_aci
 seg.append(hd.render_text_cards("s12_proximos.mp4", [ns_], size=size, fps=FPS, seconds=6.0, backdrop=fundo))
 ec = R["end_card"]
 seg.append(hd.render_title_card("s13_final.mp4", F(ec["line"]), "", F(ec["author"]), "", size=size, fps=FPS,
-                                seconds=3.5, backdrop=fundo))
+                                seconds=4.0, backdrop=fundo, contact=LINKEDIN))
 render.assemble(seg, "flare_linkedin.mp4", fps=FPS, size=size)
+hd.still_of("s01_abertura.mp4", "capa_linkedin.png", 3.5)   # capa (miniatura) para enviar junto com o vídeo
 print(br(f"Vídeo pronto: flare_linkedin.mp4 ({os.path.getsize('flare_linkedin.mp4') / 1e6:.0f} MB)"))
 if os.path.getsize("flare_linkedin.mp4") < 60e6:   # vídeos grandes (4K) não são embutidos no notebook
     display(Video("flare_linkedin.mp4", embed=True, width=960))
 else:
     display(Image(capa, width=960))
+print("\nCapa para o LinkedIn (miniatura do vídeo): capa_linkedin.png")
+display(Image("capa_linkedin.png", width=640))
 print("\nTexto sugerido para o post:\n")
 print(F(R.get("caption", "")))
+if R.get("first_comment"):
+    print("\nPrimeiro comentário (com o link):\n")
+    print(F(R["first_comment"]))
 try:
     from google.colab import files
-    for f_ in ("flare_linkedin.mp4", "capa_chama.png", "flare_quadros.npz"):
+    for f_ in ("flare_linkedin.mp4", "capa_linkedin.png", "capa_chama.png", "flare_quadros.npz"):
         files.download(f_)
 except Exception:
-    print("Arquivos salvos: flare_linkedin.mp4, capa_chama.png, flare_quadros.npz")
+    print("Arquivos salvos: flare_linkedin.mp4, capa_linkedin.png, capa_chama.png, flare_quadros.npz")
 """
 
 MESH = r"""

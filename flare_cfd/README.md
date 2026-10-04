@@ -50,8 +50,10 @@ validação → varredura das direções (Chamberlain por setor × classe de vel
 `flare_linkedin.mp4` de cerca de 2 min para gestores e tomadores de decisão: título e subtítulo, três
 cartões de contexto, capítulos numerados (local e vento, gás e cenário, chama em HD, comparação com a
 referência, todas as direções, resultados) com legendas temporizadas, quatro números-chave, o que o
-resultado significa, próximos passos e encerramento; além de `capa_chama.png` e do texto sugerido para o
-post. Todos os textos ficam na célula 7 (`ROTEIRO`, gerada de `video_roteiro.json`), com campos como
+resultado significa, próximos passos e encerramento. Os cartões têm a própria chama em movimento ao fundo
+(`FUNDO_ANIMADO`), o endereço do LinkedIn (`LINKEDIN`) aparece nas faixas de legenda e no encerramento, e a
+célula também gera `capa_linkedin.png` (miniatura do vídeo), `capa_chama.png`, o texto sugerido para o post e
+o primeiro comentário (com o link do notebook). Todos os textos ficam na célula 7 (`ROTEIRO`, gerada de `video_roteiro.json`), com campos como
 `{q_pico}` preenchidos pela rodada e números com vírgula decimal. Com `USAR_QUADROS_SALVOS` na célula 4,
 um `flare_quadros.npz` de uma rodada anterior refaz figuras e vídeo sem rodar a LES de novo.
 
