@@ -359,7 +359,7 @@ kp = R["kpis"]
 kv = [dict(value=q_solo, fmt="{:.2f}" if q_solo < 1 else "{:.1f}", unit="kW/m²",
            color=(255, 120, 90) if ACIMA else (255, 176, 64)),
       dict(value=1.58, fmt="{:.2f}", unit="kW/m²", color=(108, 192, 143)),
-      dict(value=16, fmt="{:.0f}", unit="direções", color=(127, 209, 255)),
+      dict(value=16, fmt="{:.0f}", unit="", color=(127, 209, 255)),
       dict(value=V["erro_q_curto"], unit="", color=(236, 240, 246))]
 for d_, lab in zip(kv, kp["labels"]):
     d_["label"] = F(lab)

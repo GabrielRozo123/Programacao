@@ -616,16 +616,16 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
                   width_ratios=[0.9, 1, 1])
     fig.text(0.03, 0.94, title, color=FG, fontsize=18, fontweight="bold")
     fig.text(0.03, 0.895, subtitle if subtitle is not None else
-             f"{cl.series.source} · {cl.series.period} · perfil log z0 = {cl.z0:.2f} m · "
-             f"vento na altura do tip ({cl.H:.0f} m)", color=MUTED, fontsize=11)
+             f"{cl.series.source} · {cl.series.period} · perfil logarítmico, z0 = {cl.z0:.2f} m · "
+             f"vento no topo da tocha ({cl.H:.0f} m)", color=MUTED, fontsize=11)
     ax_r = fig.add_subplot(gs[0, 0], projection="polar")
     ax_r.set_title("Rosa dos ventos no topo da tocha [% do tempo]", color=FG, fontsize=11, fontweight="bold", pad=18)
     _, hl = _rose(ax_r, cl, 0)
     leg = ax_r.legend(loc="upper center", bbox_to_anchor=(0.5, -0.09), fontsize=8, ncol=4, facecolor=PANEL,
-                      edgecolor=GRID, labelcolor=FG, title="velocidade no tip [m/s]", title_fontsize=8)
+                      edgecolor=GRID, labelcolor=FG, title="velocidade do vento [m/s]", title_fontsize=8)
     leg.get_title().set_color(MUTED)
     ax_f = fig.add_subplot(gs[0, 1])
-    _site_map(ax_f, grid, f"Radiação no solo pela LES ({U_les:.1f} m/s), girando com o vento [kW/m²]")
+    _site_map(ax_f, grid, f"Radiação no solo (LES, {U_les:.1f} m/s) [kW/m²]")
     q0 = rotate_to_site(xd, xd, qd, grid, 0.0)
     qn = qnorm(max(float(qd.max()), 0.3))
     m1 = ax_f.pcolormesh(grid.E, grid.N, q0.T, cmap="magma", norm=qn, shading="nearest", rasterized=True)
@@ -638,7 +638,7 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         m2 = ax_p.pcolormesh(grid.E, grid.N, np.ma.masked_all((len(grid.N), len(grid.E))), cmap="YlOrRd",
                              norm=mcolors.Normalize(0, Pmax), shading="nearest", rasterized=True)
     else:
-        _site_map(ax_p, grid, "q máximo acumulado nas direções [kW/m²]")
+        _site_map(ax_p, grid, "Máximo acumulado nas direções [kW/m²]")
         m2 = ax_p.pcolormesh(grid.E, grid.N, np.zeros((len(grid.N), len(grid.E))), cmap="magma", norm=qn,
                              shading="nearest", rasterized=True)
         note = ("nenhum nível do API 521 (≥ 1,58 kW/m²)\né atingido no solo" if maps["envelope"].max() < 1.58
@@ -712,17 +712,17 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str, subtitle: str | Non
     gl = GridSpec(2, 1, figure=fig, left=0.045, right=0.29, top=0.80, bottom=0.07, hspace=0.42,
                   height_ratios=[1.15, 1])
     ax = fig.add_subplot(gl[0], projection="polar")
-    ax.set_title("Rosa dos ventos na altura do tip [% do tempo]", color=FG, fontsize=11, fontweight="bold",
+    ax.set_title("Rosa dos ventos no topo da tocha [% do tempo]", color=FG, fontsize=11, fontweight="bold",
                  pad=22)
     _rose(ax, cl, cl.dominant_sector)
     ax = fig.add_subplot(gl[1])
-    _style(ax, "Perfil de camada limite (lei log)")
+    _style(ax, "Perfil do vento (camada limite)")
     z = np.linspace(max(cl.z0 * 2, 1.0), max(120.0, 1.5 * cl.H), 200)
     s = cl.series
-    ax.plot(cl.profile(z), z, color=LES_C, lw=2.2, label=f"lei log, z0 = {cl.z0:.2f} m")
+    ax.plot(cl.profile(z), z, color=LES_C, lw=2.2, label=f"perfil logarítmico (z0 = {cl.z0:.2f} m)")
     ax.plot([s.U1.mean(), s.U2.mean()], [s.z1, s.z2], "o", color=CHAM_C, ms=8, label="médias dos dados")
-    ax.axhline(cl.H, color=PT_C, ls=":", lw=1.4, label=f"tip ({cl.H:.0f} m)")
-    ax.set_xlabel("U médio [m/s]"); ax.set_ylabel("z [m]"); ax.grid(color=GRID, lw=0.5)
+    ax.axhline(cl.H, color=PT_C, ls=":", lw=1.4, label=f"topo da tocha ({cl.H:.0f} m)")
+    ax.set_xlabel("velocidade média [m/s]"); ax.set_ylabel("altura [m]"); ax.grid(color=GRID, lw=0.5)
     ax.legend(fontsize=8.5, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper left")
     gr = GridSpec(2, 2, figure=fig, left=0.35, right=0.975, top=0.845, bottom=0.035, hspace=0.16, wspace=0.22,
                   height_ratios=[3.6, 1])
@@ -750,8 +750,8 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str, subtitle: str | Non
             ax.plot([], [], color="white", lw=1.0, label="isolinhas de P [%]")
         else:
             field = env if kind == "env" else maps["q_mean"]
-            _site_map(ax, grid, "q máximo em qualquer direção [kW/m²]" if kind == "env"
-                      else "q médio ponderado pela rosa dos ventos [kW/m²]")
+            _site_map(ax, grid, "Radiação máxima em qualquer direção [kW/m²]" if kind == "env"
+                      else "Radiação média ponderada pelo vento [kW/m²]")
             m = ax.pcolormesh(grid.E, grid.N, field.T, cmap="magma", norm=qn, shading="nearest", rasterized=True)
             lv = [(l, c) for l, c in API_LEVELS if l < field.max()]
             if lv:
