@@ -41,7 +41,7 @@ Simulação de um **flare elevado** queimando **gás de refinaria (mistura de H�
 | 3 | Termoquímica: equilíbrio (Cantera) na fração de mistura Z e tabela **β-PDF** de submalha |
 | 4 | **LES 3D de baixo Mach em PyTorch (GPU)**, 60 s simulados, malha fina ajustada à chama, gravando um quadro a cada 0,1 s |
 | 5 | Validação (LES × Chamberlain/API) e segurança no vento de projeto |
-| 6 | **Varredura das direções do vento**: pegada de radiação girando pela rosa dos ventos → probabilidade de excedência dos níveis do API 521 e envoltória |
+| 6 | **Varredura das direções do vento**: pegada de radiação girando pela rosa dos ventos → probabilidade de excedência dos níveis da API 521 e envoltória |
 | 7 | Vídeo final em HD (1080p a 4K): abertura, contexto para gestão, chama em HD, painel com validação, varredura do vento, resumos e fechamento; texto sugerido para o post |
 
 **Antes de rodar:** *Ambiente de execução → Alterar o tipo de ambiente de execução → GPU T4*. Sem GPU o notebook usa o preset `cpu` (Δ = 0,7 m), que roda, mas encurta um pouco a chama.
@@ -70,7 +70,7 @@ from flarekit import wind
 
 from flarekit.props import pressure_at_altitude
 
-LOCAL = "REPLAN · Paulínia (SP)"   #@param {type:"string"}
+LOCAL = "Paulínia (SP)"            #@param {type:"string"}
 LAT = -22.7283                     #@param {type:"number"}
 LON = -47.1317                     #@param {type:"number"}
 ALTITUDE = 600.0                   #@param {type:"number"}
@@ -79,7 +79,8 @@ FONTE_VENTO = "auto"               #@param ["auto", "gwa", "nasa", "open-meteo",
 Z0_LOCAL = 0.5                     #@param {type:"number"}
 MODO_VENTO_LES = "dominante_p90"   #@param ["dominante_p90", "dominante_media", "projeto"]
 
-# REPLAN: centro da refinaria 22°43′42″ S, 47°07′54″ O; ALTITUDE do terreno [m] (média de Paulínia) e
+# Coordenadas da REPLAN (centro da refinaria, 22°43′42″ S, 47°07′54″ O); LOCAL é o nome que aparece no
+# vídeo; ALTITUDE do terreno [m] (média de Paulínia) e
 # ALTURA do tip [m] (maior tocha, ~115 m segundo fontes abertas): confira com os dados do projeto.
 # auto: Global Wind Atlas → NASA POWER → Open-Meteo (ERA5) → rosa sintética (só sem internet)
 # Z0_LOCAL escolhe a classe de rugosidade do GWA (NBR 6123: cat. II 0,07 m · III 0,3 m · IV 1,0 m;
@@ -94,7 +95,7 @@ if serie.synthetic:
 
 U_LES, TH_LES = clima.design_wind(MODO_VENTO_LES)
 SETOR = wind.sector_name(TH_LES)
-wind_label = f"vento de {SETOR} · {U_LES:.1f} m/s a {ALTURA:.0f} m"
+wind_label = f"vento de {SETOR} a {U_LES:.1f} m/s no topo da tocha ({ALTURA:.0f} m)"
 if serie.synthetic:
     wind_label += " (rosa sintética)"
 print(f"\nLES: {wind_label} (modo {MODO_VENTO_LES})")
@@ -189,7 +190,7 @@ ARQUIVO_QUADROS = "flare_quadros.npz"   #@param {type:"string"}
 
 # USAR_QUADROS_SALVOS: pula a LES e usa um flare_quadros.npz de uma rodada anterior (mesmo cenário) para
 # refazer as figuras e o vídeo — no Colab, o arquivo é pedido por upload se não estiver na pasta.
-title = f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW · LES 3D · {LOCAL}"
+title = f"Flare de {sc.Q/1e6:.0f} MW em {LOCAL}: chama simulada em 3D (LES)"
 if USAR_QUADROS_SALVOS:
     import os
     if not os.path.exists(ARQUIVO_QUADROS):
@@ -237,14 +238,14 @@ _rb = wind.receiver_box(sc, float(clima.U_H.max()))
 RAIO_MAPA = max(RAIO_MAPA, 1.2 * max(abs(_rb[0]), _rb[1], _rb[2]))
 RADIACAO_SOLAR = 0.0    #@param {type:"number"}
 # RADIACAO_SOLAR [kW/m²]: some a solar (~0,8–1,0) se o critério adotado for de radiação TOTAL;
-# 0 compara os níveis do API 521 só com a radiação do flare (confira a edição/critério usado)
+# 0 compara os níveis da API 521 só com a radiação do flare (confira a edição/critério usado)
 grid = wind.SiteGrid.square(RAIO_MAPA, 121)
 mapas = wind.exceedance_maps(sc, clima, grid, q_solar=RADIACAO_SOLAR)   # Chamberlain por classe × setor
 R_dw = RAIO_MAPA * 1.45
 les_down = wind.les_footprint_downwind(les.rec_x, les.rec_y, rec.final["q_mean"], sc, U_LES, R_dw,
                                        2 * int(R_dw / 2.0) + 1)
 linhas = render.risk_summary_figure(clima, mapas, sc, "flare_risco.png",
-                                    f"Zonas de radiação ponderadas pela rosa dos ventos · {LOCAL}")
+                                    f"Zonas de radiação ponderadas pela rosa dos ventos, em {LOCAL}")
 print("nível [kW/m²]  envoltória [m]  P ≥ 1% [m]  P ≥ 10% [m]")
 for lev, e, p1, p10 in linhas:
     print(f"   {lev:5.2f}        {e:6.0f}        {p1:6.0f}      {p10:6.0f}")
@@ -255,7 +256,10 @@ ROTEIRO_CELL = r"""
 #@title 7 · Roteiro do vídeo (títulos e legendas — edite à vontade)
 # Os campos entre chaves, como {q_pico}, são preenchidos com os números desta rodada na célula 8.
 # Onde a conclusão depende do resultado, há duas versões: a normal (radiação no solo abaixo de
-# 1,58 kW/m², o menor nível do API 521) e a *_acima (quando esse nível é atingido).
+# 1,58 kW/m², o menor nível da API 521) e a *_acima (quando esse nível é atingido).
+# Campos disponíveis: {local} {altura} {fonte_vento} {horas_vento} {setor} {v_media} {pci} {vazao} {potencia}
+# {celulas} {delta} {t_sim} {v_les} {erro_L} {erro_incl} {erro_q} {erro_q_curto} {q_pico} {alcance} {direcoes}
+# Ao trocar de combustível (propano, metano...), ajuste as legendas de "gas_scenario".
 ROTEIRO = __ROTEIRO__
 """
 
@@ -267,7 +271,6 @@ from PIL import Image as PILImage
 from flarekit import hd
 from flarekit.dashboard import br
 from flarekit.report import summary_figure
-from flarekit.wind import SECTORS
 
 AUTOR = "Gabriel Rozo"   #@param {type:"string"}
 RESOLUCAO = "1080p"      #@param ["1080p", "1440p", "4k"]
@@ -277,6 +280,10 @@ FPS = 30                 #@param {type:"integer"}
 # ---------- números desta rodada (com vírgula decimal) que preenchem o roteiro
 def nf(x, d=1):
     return br(f"{x:.{d}f}")
+
+def _celulas(x):                  # 1,2 → "1,2 milhão de células"; 0,35 → "350 mil células"
+    return (f"{round(1e3 * x)} mil células" if x < 1 else
+            f"{nf(x, 1)} {'milhão' if x < 2 else 'milhões'} de células")
 
 def _vs(e, mais, menos):          # +16 → "16% mais longa"; |e| < 3% → "praticamente igual"
     return "praticamente igual" if abs(e) < 3 else f"{abs(e):.0f}% {mais if e > 0 else menos}"
@@ -290,21 +297,23 @@ ACIMA = q_solo >= 1.58
 alc = {lev: e for lev, e, _, _ in linhas}
 m_cel = re.search(r"= ([0-9.]+) M células", les.summary())
 m_del = re.search(r"Δ ([0-9.]+)", les.summary())
+fonte = serie.source.split(",")[0].split(" (")[0] if not serie.synthetic else "rosa sintética de exemplo"
+setor_les = wind.sector_label(int(((TH_LES % 360) + 11.25) // 22.5))   # direção do vento da LES
 V = dict(
     local=LOCAL, altura=nf(ALTURA, 0), horas_vento=f"{len(clima.U_H):,}".replace(",", " "),
-    setor=SECTORS[clima.dominant_sector], v_media=nf(clima.U_H.mean(), 1), M=nf(1e3 * fuel.M, 1),
+    setor=wind.sector_label(clima.dominant_sector), v_media=nf(clima.U_H.mean(), 1), M=nf(1e3 * fuel.M, 1),
     pci=nf(fuel.LHV / 1e6, 1), vazao=nf(sc.mdot, 1), potencia=f"{sc.Q / 1e6:.0f}",
-    celulas=(lambda x: f"{nf(x, 1)} {'milhão' if x < 2 else 'milhões'}")(float(m_cel.group(1)) if m_cel else 1.0),
+    celulas=_celulas(float(m_cel.group(1)) if m_cel else 1.0),
     delta=nf(float(m_del.group(1)), 2) if m_del else "0,5",
     v_les=nf(U_LES, 1), erro_L=_vs(e_L, "mais longa", "mais curta"), erro_incl=_vs(e_a, "maior", "menor"),
     erro_q=_vs(e_q, "maior", "menor"), q_pico=nf(q_solo, 2 if q_solo < 1 else 1), alcance=f"{alc.get(1.58, 0):.0f}",
-    direcoes="16", erro_q_curto="≈ 0%" if abs(e_q) < 3 else f"{e_q:+.0f}%")
+    direcoes="16", erro_q_curto="≈ 0%" if abs(e_q) < 3 else f"{e_q:+.0f}%", t_sim=nf(T_END, 0),
+    fonte_vento=fonte if not serie.synthetic else "exemplo sintético")
 F = lambda t: br(t.format(**V)) if isinstance(t, str) else [F(x) for x in t]  # noqa: E731
 R = ROTEIRO
 def pick(d, k):                   # versão normal ou *_acima conforme o resultado
     return d.get(k + "_acima") if (ACIMA and d.get(k + "_acima")) else d.get(k)
 
-fonte = serie.source.split(",")[0].split(" (")[0] if not serie.synthetic else "rosa sintética de exemplo"
 size = hd.RES[RESOLUCAO]
 capa = hd.flame_hd_png(rec, "capa_chama.png", resolution=RESOLUCAO, detail=DETALHE_VISUAL)
 fundo = np.asarray(PILImage.open(capa).convert("RGB"))
@@ -315,14 +324,15 @@ seg.append(hd.render_title_card("s01_abertura.mp4", F(tc["title"]), F(tc["subtit
                                 F(tc["disclaimer"]), size=size, fps=FPS, seconds=4.5, backdrop=fundo))
 # 2 · contexto para a gestão
 cards = [{k: F(v) for k, v in c.items() if v} for c in R["context_cards"]]
-seg.append(hd.render_text_cards("s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.0, backdrop=fundo))
+seg.append(hd.render_text_cards("s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.5, backdrop=fundo))
 # 3 · o local e o vento
 sw = R["site_wind"]
 render.site_wind_figure(clima, "slide_vento.png", F(sw["title"]), F(sw.get("subtitle") or ""), [
     ("Fonte", fonte), ("Registro", f"{V['horas_vento']} horas"), ("Vento predominante",
      f"de {V['setor']} ({nf(100 * clima.sector_freq[clima.dominant_sector], 1)}% do tempo)"),
     ("Média no topo da tocha", f"{V['v_media']} m/s"),
-    ("Vento forte (P90)", f"{nf(np.percentile(clima.U_H, 90), 1)} m/s"), ("Altitude do terreno", f"{ALTITUDE:.0f} m")])
+    ("Vento forte (P90)", f"{nf(np.percentile(clima.U_H, 90), 1)} m/s"), ("Altitude do terreno", f"{ALTITUDE:.0f} m"),
+    ("Coordenadas", f"{nf(abs(LAT), 4)}° {'S' if LAT < 0 else 'N'}, {nf(abs(LON), 4)}° {'O' if LON < 0 else 'L'}")])
 seg.append(hd.caption_segment("slide_vento.png", "s03_vento.mp4", F(sw["captions"]), F(sw["chapter"]), size=size,
                               fps=FPS, seconds=8.0))
 # 4 · o gás e o cenário
@@ -340,10 +350,10 @@ seg.append(hd.render_flame_hd(rec, "s05_chama.mp4", F(fl["title"]), F(fl.get("su
                               caption=F(fl.get("note") or "") if DETALHE_VISUAL > 0 else ""))
 # 6 · validação
 va = R["validation"]
-sub_val = br(f"Simulação 3D com {V['celulas']} de células e vento de {V['setor']} a {V['v_les']} m/s "
+sub_val = br(f"Simulação 3D com {V['celulas']} e vento de {setor_les} a {V['v_les']} m/s "
              f"no topo da tocha; médias a partir de {T_AVG:.0f} s")
 render.ZoomDashboard(rec, sc, ch, F(va["title"]), sub_val, t_end=T_END,
-                     wind_label=br(f"vento de {SETOR} a {U_LES:.1f} m/s no topo da tocha")).render(
+                     wind_label=br(f"vento de {setor_les} a {U_LES:.1f} m/s no topo da tocha")).render(
     "painel.mp4", fps=FPS, every=2)
 seg.append(hd.caption_segment("painel.mp4", "s06_validacao.mp4", F(va["captions"]), F(va["chapter"]), size=size,
                               fps=FPS))
@@ -359,7 +369,7 @@ kp = R["kpis"]
 kv = [dict(value=q_solo, fmt="{:.2f}" if q_solo < 1 else "{:.1f}", unit="kW/m²",
            color=(255, 120, 90) if ACIMA else (255, 176, 64)),
       dict(value=1.58, fmt="{:.2f}", unit="kW/m²", color=(108, 192, 143)),
-      dict(value=16, fmt="{:.0f}", unit="", color=(127, 209, 255)),
+      dict(value=16, fmt="{:.0f}", unit="direções", color=(127, 209, 255)),
       dict(value=V["erro_q_curto"], unit="", color=(236, 240, 246))]
 for d_, lab in zip(kv, kp["labels"]):
     d_["label"] = F(lab)
@@ -367,7 +377,7 @@ seg.append(hd.render_kpi_card("s08_numeros.mp4", F(kp["title"]), kv, size=size, 
 # 9 · resultados (figuras com títulos para o público)
 sf, rf = R["summary_fig"], R["risk_fig"]
 summary_figure(les, sc, refs, "fig_resumo_video.png", F(sf["title"]),
-               subtitle=br(f"Médias temporais da simulação; radiação no solo comparada aos níveis do API 521"))
+               subtitle=br(f"Médias temporais da simulação; radiação no solo comparada aos níveis da API 521"))
 seg.append(hd.caption_segment("fig_resumo_video.png", "s09_resumo.mp4", F(pick(sf, "captions")), F(sf["chapter"]),
                               size=size, fps=FPS, seconds=5.5))
 render.risk_summary_figure(clima, mapas, sc, "fig_risco_video.png", F(rf["title"]),

@@ -1,135 +1,133 @@
 {
  "title_card": {
-  "title": "Radiação térmica de flares: do vento real à decisão de segurança",
-  "subtitle": "Simulação 3D da chama de um flare de refinaria com o clima de vento do local, nas coordenadas da REPLAN, em Paulínia (SP)",
-  "credit": "Gabriel Rozo, engenheiro químico — estudo pessoal",
-  "disclaimer": "Cenário ilustrativo: local e vento reais; composição do gás e vazão de fontes abertas, não dados operacionais da Petrobras."
+  "title": "Até onde chega o calor de um flare?",
+  "subtitle": "Simulação 3D da chama com os ventos de {local} e os níveis de segurança da API 521",
+  "credit": "Estudo pessoal de Gabriel Rozo, engenheiro químico (Unicamp)",
+  "disclaimer": "Gás de refinaria e vazão ilustrativos, de fontes públicas, sem dados operacionais da Petrobras."
  },
  "context_cards": [
   {
    "kicker": "Por que importa",
-   "headline": "Onde o calor do flare pode atingir pessoas e equipamentos?",
+   "headline": "O calor do flare define onde é seguro permanecer",
    "bullets": [
-    "Em emergências, o flare queima o gás liberado e irradia calor.",
-    "A resposta orienta zonas de segurança, acessos e o arranjo da planta.",
-    "Cada “e se?” (vazão, gás, vento) costuma pedir um novo estudo."
+    "O flare, ou tocha, queima gases de alívio e irradia calor.",
+    "O vento inclina a chama e muda a área atingida."
    ]
   },
   {
    "kicker": "O que foi feito",
-   "headline": "Um fluxo automatizado, do vento real ao mapa de risco",
+   "headline": "Do vento local ao risco no solo, em código aberto",
    "bullets": [
-    "Clima de vento do local e simulação 3D da chama (CFD).",
-    "Calor que chega ao solo, comparado aos níveis do API 521.",
-    "Probabilidade nas 16 direções de vento, além do pior caso."
+    "Chama simulada em 3D (CFD) com Python e GPU na nuvem.",
+    "Radiação no solo avaliada pelos níveis da API 521, em 16 direções."
    ]
   },
   {
-   "kicker": "Para o time e a liderança",
-   "headline": "Dados e visual claros para decidir, sem substituir o estudo detalhado",
+   "kicker": "Equipe e liderança",
+   "headline": "Triagem rápida, reprodutível e auditável, antes dos estudos detalhados",
    "bullets": [
-    "Vazão maior? Muda-se um parâmetro e o cenário roda de novo.",
-    "Reprodutível e auditável: outra pessoa do time refaz e confere.",
-    "Desenvolve o time em física, dados e automação."
+    "Testa cenários de vazão, gás, vento e altura do flare.",
+    "Comunica a segurança de forma visual a não especialistas.",
+    "Capacita a equipe em física, dados e automação."
    ]
   }
  ],
  "site_wind": {
-  "chapter": "O local e o vento",
-  "title": "O local e o vento",
-  "subtitle": "Clima de vento do Global Wind Atlas nas coordenadas da REPLAN, em Paulínia (SP)",
+  "chapter": "1. Local e vento",
+  "title": "Os ventos de {local} na altura do flare",
+  "subtitle": "Frequência de cada direção e aumento do vento com a altura",
   "captions": [
-   "O vento real do local vem de um atlas eólico: {horas_vento} horas equivalentes.",
-   "Predomina o vento de {setor}, com média de {v_media} m/s no topo da tocha."
+   "Dados do {fonte_vento}: {horas_vento} horas representativas, com vento predominante de {setor}.",
+   "Média de {v_media} m/s no topo do flare; perto do solo, o vento é mais fraco."
   ]
  },
  "gas_scenario": {
-  "chapter": "O gás e o cenário",
-  "title": "O gás e o cenário",
-  "subtitle": "Gás de refinaria ilustrativo, com composição de fonte aberta",
+  "chapter": "2. Gás e cenário",
+  "title": "Gás de refinaria e cenário de queima",
+  "subtitle": "Composição e vazão ilustrativas, de fontes públicas",
   "captions": [
-   "Mistura típica de gás de refinaria: hidrogênio, metano, etano e outros.",
-   "Vazão de {vazao} kg/s, o equivalente a {potencia} MW, numa tocha de {altura} m."
+   "Mistura de hidrogênio, metano e hidrocarbonetos mais pesados; cada quilograma fornece {pci} MJ ao queimar.",
+   "Queimando {vazao} kg/s, o flare de {altura} m libera {potencia} MW de calor."
   ]
  },
  "flame": {
-  "chapter": "A chama simulada",
-  "title": "A chama simulada em 3D",
-  "subtitle": "Simulação de grandes escalas (LES) com {celulas} de células",
+  "chapter": "3. Chama em 3D",
+  "title": "A chama do flare sob vento forte",
+  "subtitle": "Simulação de grandes escalas (LES): {celulas} e {t_sim} s simulados",
   "captions": [
-   "Sessenta segundos de chama resolvidos em 3D numa GPU na nuvem.",
-   "O vento de {v_les} m/s inclina a chama e espalha o calor.",
-   "A cor vem da temperatura calculada em cada ponto da chama.",
-   "As oscilações são a turbulência real resolvida pela simulação."
+   "O espaço ao redor da chama é dividido em células de {delta} m.",
+   "O vento de {v_les} m/s curva a chama e desloca o calor.",
+   "A cor vem da temperatura calculada: tons mais claros indicam regiões mais quentes.",
+   "A LES calcula os grandes turbilhões da turbulência: a chama oscila e pulsa."
   ],
-  "note": "Realce visual de detalhes abaixo da malha; não altera os resultados"
+  "note": "Leve realce visual de detalhes menores que a malha; resultados inalterados."
  },
  "validation": {
-  "chapter": "Validação",
+  "chapter": "4. Comparação com a referência",
   "title": "Simulação comparada ao modelo de referência da indústria",
   "captions": [
-   "Comparação com o modelo Shell/Chamberlain, referência da indústria desde 1987.",
-   "Chama {erro_L}; radiação máxima no solo {erro_q}."
+   "Referência: o modelo Shell/Chamberlain (1987), amplamente usado no projeto de flares.",
+   "Chama {erro_L} e inclinação {erro_incl}; o mais importante, a radiação máxima no solo, ficou {erro_q}."
   ]
  },
  "sweep": {
-  "chapter": "Todas as direções",
-  "title": "Radiação no solo em todas as direções do vento",
+  "chapter": "5. Todas as direções",
+  "title": "Radiação no solo nas 16 direções do vento",
   "captions": [
-   "A pegada de calor gira com o vento, direção por direção.",
-   "Cada direção pesa conforme a frequência real do vento no local.",
-   "O resultado é a probabilidade de exceder cada nível de segurança."
+   "À esquerda, a rosa dos ventos mostra por quanto tempo o vento sopra de cada direção.",
+   "No centro, a radiação no solo gira com o vento, direção por direção.",
+   "À direita, o efeito das 16 direções se acumula e é comparado à API 521."
   ]
  },
  "kpis": {
-  "title": "O resultado em quatro números",
+  "title": "O estudo em quatro números",
   "labels": [
-   "pico de radiação no solo, em qualquer vento",
-   "menor nível do API 521 (exposição contínua)",
-   "direções de vento avaliadas",
-   "radiação máxima frente ao modelo de referência"
+   "Radiação máxima no solo, na pior direção",
+   "Limite de exposição contínua com roupa adequada (API 521)",
+   "Toda a rosa dos ventos do local",
+   "Diferença da radiação máxima frente à referência"
   ]
  },
  "summary_fig": {
-  "chapter": "Resultados",
-  "title": "Resumo da simulação e da segurança",
+  "chapter": "6. Resultados do estudo",
+  "title": "Resumo técnico da simulação 3D",
   "captions": [
-   "Chama média, radiação no solo e conferência com o modelo de referência."
+   "Para o vento simulado: chama média no tempo, radiação no solo e comparação com a referência."
   ]
  },
  "risk_fig": {
-  "chapter": "Resultados",
-  "title": "Risco de radiação com o vento real do local",
+  "chapter": "6. Resultados do estudo",
+  "title": "Risco de radiação com os ventos do local",
   "captions": [
-   "Com qualquer vento, o solo fica abaixo de 1,58 kW/m²."
+   "Com o flare de {altura} m, o solo recebe menos de 1,58 kW/m² em qualquer direção."
   ],
   "captions_acima": [
-   "O nível de 1,58 kW/m² chega a {alcance} m da base, na pior direção."
+   "Na pior direção, o nível de 1,58 kW/m² chega a {alcance} m da base do flare."
   ]
  },
  "closing": {
-  "kicker": "O que isso significa",
-  "headline": "Neste cenário, a tocha de {altura} m cumpre o seu papel",
-  "headline_acima": "Neste cenário, há zona de atenção próxima à tocha",
+  "kicker": "Para quem decide",
+  "headline": "Neste cenário, a radiação no solo fica abaixo do limite de exposição contínua",
+  "headline_acima": "Neste cenário, o limite de exposição contínua é excedido até {alcance} m da base",
   "bullets": [
-   "Pico de {q_pico} kW/m² no solo, considerando todas as direções de vento.",
-   "Respostas rápidas e visuais para perguntas do tipo “e se?”.",
-   "Complementa estudos detalhados em ferramentas validadas, como o Simcenter STAR-CCM+."
+   "Mostra o risco com os ventos do local, não apenas o pior caso.",
+   "Ajuda a priorizar os cenários que pedem análise aprofundada.",
+   "Complementa, sem substituir, os estudos detalhados com ferramentas validadas."
   ],
-  "footnote": "Cenário ilustrativo: local e vento reais; composição do gás e vazão de fontes abertas, não dados operacionais da Petrobras. Estudo pessoal."
+  "footnote": "Resultado de triagem com dados ilustrativos. Decisões de projeto exigem análise formal de segurança."
  },
  "next_steps": {
   "kicker": "Próximos passos",
-  "headline": "Como levar o estudo adiante",
+  "headline": "Como este estudo pode evoluir",
   "bullets": [
-   "Simular cargas de alívio de emergência maiores.",
-   "Usar dados reais da unidade: composição, vazão e tocha.",
-   "Encaminhar os casos críticos para estudos detalhados."
+   "Simular cargas de alívio de emergência, com vazões de projeto.",
+   "Usar dados reais de uma unidade: gás, vazões e geometria.",
+   "Levar os casos críticos a estudos detalhados no Simcenter STAR-CCM+."
   ]
  },
  "end_card": {
-  "line": "Dados, simulação e visual a serviço da decisão",
-  "author": "Gabriel Rozo"
+  "line": "Física, dados e automação a serviço de decisões mais seguras",
+  "author": "Gabriel Rozo, engenheiro químico (Unicamp)"
  },
- "caption": "Onde o calor de um flare de refinaria pode atingir pessoas e equipamentos?\nE com que frequência, dado o vento real do local?\n\nEssa pergunta virou um estudo pessoal: um fluxo em Python, de código aberto, no Google Colab (GPU na nuvem), que vai do clima de vento do local até este vídeo.\n\nNo caminho: simulação 3D da chama (CFD), radiação no solo, níveis de segurança do API 521 e probabilidade nas 16 direções de vento.\n\nFrente ao modelo de referência da indústria (Shell/Chamberlain): radiação máxima {erro_q}, chama {erro_L}, inclinação {erro_incl}.\n\nNo caso ilustrativo, o pico de radiação no solo é de {q_pico} kW/m², considerando todas as direções de vento (o menor nível do API 521 é 1,58 kW/m²).\n\nPara a gestão, o valor está em:\n• triar cenários “e se?” antes dos estudos detalhados;\n• ver o risco com o vento real, não só o pior caso;\n• comunicar segurança de forma visual a quem decide;\n• ter uma análise reprodutível e auditável, que não depende de uma só pessoa;\n• desenvolver o time em física, dados e automação.\n\nO fluxo complementa, e não substitui, estudos detalhados em ferramentas validadas (como o Simcenter STAR-CCM+) e as normas.\n\nCenário ilustrativo: local (REPLAN, Paulínia-SP) e vento reais; composição do gás e vazão de fontes abertas, não dados operacionais da Petrobras.\n\nNa sua equipe, como o risco chega hoje a quem decide?\n\n#CFD #SegurançaDeProcessos #GestãoDeEngenharia #EngenhariaQuímica"
+ "caption": "Até onde chega o calor de um flare? E com que frequência, considerando o vento real do local?\n\nEssa pergunta virou um estudo pessoal: um fluxo em Python, de código aberto, no Google Colab (com GPU na nuvem), que vai do clima de vento do local até este vídeo.\n\nNo caminho: simulação 3D da chama (CFD, com LES), radiação térmica no solo, níveis de segurança da API 521 e probabilidade nas 16 direções do vento.\n\nFrente ao modelo de referência da indústria (Shell/Chamberlain, 1987): radiação máxima no solo {erro_q}; chama {erro_L}; inclinação {erro_incl}.\n\nNo cenário ilustrativo, a radiação máxima no solo é de {q_pico} kW/m², considerando todas as direções do vento. O menor nível da API 521, para exposição contínua com roupa adequada, é de 1,58 kW/m².\n\nPara a gestão, o valor está em:\n• triar cenários “e se?” (vazão, gás, vento, altura) antes dos estudos detalhados;\n• ver o risco com o vento real do local, não só o pior caso;\n• comunicar a segurança de forma visual a quem decide;\n• ter uma análise reprodutível e auditável, que não depende de uma só pessoa;\n• desenvolver a equipe em física, dados e automação.\n\nO fluxo complementa, e não substitui, os estudos detalhados em ferramentas validadas, como o Simcenter STAR-CCM+, e as normas aplicáveis.\n\nCenário ilustrativo: coordenadas da REPLAN, em Paulínia (SP), e ventos reais do local; composição do gás e vazão de fontes públicas, sem dados operacionais da Petrobras.\n\nNa sua equipe, como o risco de radiação chega hoje a quem decide?\n\n#CFD #SegurançaDeProcessos #GestãoDeEngenharia #EngenhariaQuímica #Simulação"
 }

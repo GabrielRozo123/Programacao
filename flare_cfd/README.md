@@ -18,7 +18,7 @@ solução, varredura das 16 direções do vento com mapas de probabilidade de ex
 | `flarekit/render.py` | Gravação dos quadros da LES e vídeo: chama em zoom (câmera sintética), painel ampliado, varredura das direções, figura de risco |
 | `flarekit/hd.py` | Pós-processamento HD (1080p/1440p/4K) da chama: cor de emissão da fuligem pela temperatura, tone mapping fílmico, bloom, realce visual opcional abaixo da malha; abertura e cartões de texto em HD; codificação direta no ffmpeg |
 | `flarekit/dashboard.py` | Painel ao vivo durante a solução |
-| `flarekit/safety.py` | Zonas do API 521, dose térmica, probits, fuga, temperatura de aço |
+| `flarekit/safety.py` | Zonas da API 521, dose térmica, probits, fuga, temperatura de aço |
 | `flarekit/report.py` | Tabela de validação, figura-resumo, composição do vídeo final |
 | `docs/revisao_flare_cfd.html` | Revisão da literatura e álgebra completa |
 | `scripts/exemplo_trabalhado.py` | Exemplo numérico da seção 6 da revisão |
@@ -40,15 +40,19 @@ Refinaria" da Refinaria de Mataripe (ex-RLAM, Acelen): H₂ 33 · CH₄ 29 · C�
 C₃H₆ 1 · n-C₄ 2,5 · n-C₅ 0,5 · N₂ 3,5 · CO₂ 1,5 · CO 1,5 · H₂S 0,5 % molar (M ≈ 17,9 g/mol,
 PCI ≈ 45 MJ/kg ≈ 35,9 MJ/Nm³). Também há a média de gás de tocha de Emam (2015), um caso hipotético rico em
 H₂ e composição personalizada. A fração radiante de Chamberlain (ajustada a gás natural) é corrigida pela
-composição com a tendência da tabela do API 521 (H₂ ≈ 0,7 ×, butano ≈ 1,25 × gás natural) — interpolação
-de engenharia, desligável. Com 12,6 kg/s (≈ 570 MW, chama de 30–50 m) e tocha de 115 m, nenhum nível do
+composição com a tendência da tabela da API 521 (H₂ ≈ 0,7 ×, butano ≈ 1,25 × gás natural) — interpolação
+de engenharia, desligável. Com 12,6 kg/s (≈ 570 MW, chama de 30–50 m) e tocha de 115 m, nenhum nível da
 API 521 é atingido no solo; para alívios de emergência aumente a `VAZAO` (a malha da LES acompanha o
 tamanho da chama).
 
 Fluxo do notebook: vento do local → cenário e modelos de referência → termoquímica → LES 3D ao vivo →
 validação → varredura das direções (Chamberlain por setor × classe de velocidade) → vídeo
-`flare_linkedin.mp4` (abertura, cartões de contexto para gestão, chama em HD, painel, varredura, resumos,
-fechamento), além de `capa_chama.png` e do texto sugerido para o post. Com `USAR_QUADROS_SALVOS` na célula 4,
+`flare_linkedin.mp4` de cerca de 2 min para gestores e tomadores de decisão: título e subtítulo, três
+cartões de contexto, capítulos numerados (local e vento, gás e cenário, chama em HD, comparação com a
+referência, todas as direções, resultados) com legendas temporizadas, quatro números-chave, o que o
+resultado significa, próximos passos e encerramento; além de `capa_chama.png` e do texto sugerido para o
+post. Todos os textos ficam na célula 7 (`ROTEIRO`, gerada de `video_roteiro.json`), com campos como
+`{q_pico}` preenchidos pela rodada e números com vírgula decimal. Com `USAR_QUADROS_SALVOS` na célula 4,
 um `flare_quadros.npz` de uma rodada anterior refaz figuras e vídeo sem rodar a LES de novo.
 
 Limitações a ter em mente: perfil log neutro (sem correção de estabilidade de Monin–Obukhov); a rotação

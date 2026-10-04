@@ -29,8 +29,19 @@ SPEED_EDGES = np.array([0.5, 2.0, 4.0, 6.0, 8.0, 10.0, 13.0, np.inf])   # m/s na
 API_LEVELS = (1.58, 4.73, 6.31, 9.46)
 
 
+# nomes por extenso (forma dicionarizada dos rumos intermediários: nor-nordeste, lés-sudeste...)
+SECTOR_NAMES = ["norte", "nor-nordeste", "nordeste", "lés-nordeste", "leste", "lés-sudeste", "sudeste",
+                "su-sudeste", "sul", "su-sudoeste", "sudoeste", "oés-sudoeste", "oeste", "oés-noroeste", "noroeste",
+                "nor-noroeste"]
+
+
 def sector_name(theta_deg: float) -> str:
     return SECTORS[int(((theta_deg % 360) + 11.25) // 22.5) % 16]
+
+
+def sector_label(k: int) -> str:
+    """Setor k por extenso, com a sigla: 'sudeste (SE)'."""
+    return f"{SECTOR_NAMES[k % 16]} ({SECTORS[k % 16]})"
 
 
 # ===================================================================== séries

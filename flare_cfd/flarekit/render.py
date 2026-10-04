@@ -641,7 +641,7 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         _site_map(ax_p, grid, "Máximo acumulado nas direções [kW/m²]")
         m2 = ax_p.pcolormesh(grid.E, grid.N, np.zeros((len(grid.N), len(grid.E))), cmap="magma", norm=qn,
                              shading="nearest", rasterized=True)
-        note = ("nenhum nível do API 521 (≥ 1,58 kW/m²)\né atingido no solo" if maps["envelope"].max() < 1.58
+        note = ("nenhum nível da API 521 (≥ 1,58 kW/m²)\né atingido no solo" if maps["envelope"].max() < 1.58
                 else "P = 0 nas classes de vento; só a envoltória\n(vento máximo observado) atinge 1,58 kW/m²")
         ax_p.text(0.03, 0.04, note, transform=ax_p.transAxes, color=FG, fontsize=9.5,
                   bbox=dict(facecolor=PANEL, edgecolor=GRID, alpha=0.85, pad=4))
@@ -792,7 +792,7 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str, subtitle: str | Non
     ax.text(0.58, 0.5, "Alcance máximo (a partir da base do flare) em que o nível\n"
             "é atingido: na pior direção (envoltória, até a maior velocidade\n"
             f"observada, {maps.get('U_max', 0.0):.1f} m/s) e com probabilidade ≥ 1% / ≥ 10% do\n"
-            "tempo de queima, ponderada pela rosa. Níveis do API 521\n"
+            "tempo de queima, ponderada pela rosa. Níveis da API 521\n"
             f"comparados {crit}.",
             transform=ax.transAxes, color=MUTED, fontsize=9.5, va="center")
     br_figure(fig).savefig(path, dpi=DPI, facecolor=BG)

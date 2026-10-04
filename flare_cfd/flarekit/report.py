@@ -91,7 +91,7 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
 
     # radiação média no solo e zonas do API 521
     ax = fig.add_subplot(gs[0, 1:])
-    _style(ax, "Radiação média no solo e zonas do API 521")
+    _style(ax, "Radiação média no solo e zonas da API 521")
     qm = les.q_grid(les.avg_q / les.avg_n) / 1e3
     from matplotlib import colors as mcolors
     from .render import qnorm
