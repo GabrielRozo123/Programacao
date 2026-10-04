@@ -9,7 +9,7 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 MODULES = ["__init__.py", "props.py", "semiempirical.py", "les.py", "dashboard.py", "safety.py", "report.py",
-           "wind.py", "render.py"]
+           "wind.py", "render.py", "hd.py"]
 
 
 def md(text: str) -> dict:
@@ -35,7 +35,7 @@ Simulação de um **flare elevado** queimando **gás de refinaria (mistura de H�
 | 4 | **LES 3D de baixo Mach em PyTorch (GPU)**, 60 s simulados, malha fina ajustada à chama, gravando um quadro a cada 0,1 s |
 | 5 | Validação (LES × Chamberlain/API) e segurança no vento de projeto |
 | 6 | **Varredura das direções do vento**: pegada de radiação girando pela rosa dos ventos → probabilidade de excedência dos níveis do API 521 e envoltória |
-| 7 | Vídeo final: abertura, chama em zoom, painel com validação, varredura do vento e resumos |
+| 7 | Vídeo final em HD (1080p a 4K): abertura, contexto para gestão, chama em HD, painel com validação, varredura do vento, resumos e fechamento; texto sugerido para o post |
 
 **Antes de rodar:** *Ambiente de execução → Alterar o tipo de ambiente de execução → GPU T4*. Sem GPU o notebook usa o preset `cpu` (Δ = 0,7 m), que roda, mas encurta um pouco a chama.
 
@@ -170,27 +170,41 @@ plt.tight_layout(); plt.show()
 RUN = r"""
 #@title 4 · LES 3D (60 s) com painel ao vivo, gravando os quadros do vídeo
 from flarekit.les import FlareLES, LESConfig
-from flarekit.render import run_and_record
+from flarekit.render import RecordedLES, Recorder, run_and_record
 
 PRESET = "gpu" if torch.cuda.is_available() else "cpu"   #@param ["gpu", "gpu_fino", "gpu_ultra", "cpu", "teste"] {allow-input: true}
 T_END = 60.0        #@param {type:"number"}
 T_AVG = 15.0        #@param {type:"number"}
 FRAME_DT = 0.1      #@param {type:"number"}
 LIVE_EVERY = 5      #@param {type:"integer"}
+USAR_QUADROS_SALVOS = False   #@param {type:"boolean"}
+ARQUIVO_QUADROS = "flare_quadros.npz"   #@param {type:"string"}
 
-box = flame_box(ch, sc.H)          # malha fina ajustada à chama prevista por Chamberlain
-cfg = LESConfig.for_flame(PRESET, box, H=sc.H, u_ref=U_LES, z0=clima.z0, mdot=sc.mdot, u_jet=tip["u_j"],
-                          X_rad=ch.F_s, T_inf=sc.T_inf, RH=sc.RH,
-                          receiver_box=wind.receiver_box(sc, U_LES))   # receptores cobrem a zona de 1,58 kW/m²
-les = FlareLES(cfg, tab, sc.Q)
-print(les.summary())
+# USAR_QUADROS_SALVOS: pula a LES e usa um flare_quadros.npz de uma rodada anterior (mesmo cenário) para
+# refazer as figuras e o vídeo — no Colab, o arquivo é pedido por upload se não estiver na pasta.
 title = f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW · LES 3D · {LOCAL}"
+if USAR_QUADROS_SALVOS:
+    import os
+    if not os.path.exists(ARQUIVO_QUADROS):
+        from google.colab import files
+        ARQUIVO_QUADROS = next(iter(files.upload()))
+    rec = Recorder.load(ARQUIVO_QUADROS)
+    les = RecordedLES(rec)
+    print(f"Quadros carregados: {len(rec.frames)} · {les.summary()}")
+else:
+    box = flame_box(ch, sc.H)          # malha fina ajustada à chama prevista por Chamberlain
+    cfg = LESConfig.for_flame(PRESET, box, H=sc.H, u_ref=U_LES, z0=clima.z0, mdot=sc.mdot, u_jet=tip["u_j"],
+                              X_rad=ch.F_s, T_inf=sc.T_inf, RH=sc.RH,
+                              receiver_box=wind.receiver_box(sc, U_LES))   # receptores cobrem a zona de 1,58 kW/m²
+    les = FlareLES(cfg, tab, sc.Q)
+    print(les.summary())
 dash_sub = (f"{les.summary()} · {wind_label} · perfil log z0 = {clima.z0:.2f} m · "
             f"Smagorinsky + Z̃/β-PDF (equilíbrio) + fuligem · média a partir de {T_AVG:.0f} s")
-rec = run_and_record(les, sc, title, T_END, T_AVG, FRAME_DT, LIVE_EVERY, dash_title=title, dash_sub=dash_sub,
-                     wind_label=wind_label)
-rec.save("flare_quadros.npz")     # permite refazer o vídeo sem rodar a LES de novo
-print(f"Concluído: {les.step_n} passos, {les.wall/60:.1f} min de solver, {les.wall/les.step_n*1e3:.0f} ms/passo")
+if not USAR_QUADROS_SALVOS:
+    rec = run_and_record(les, sc, title, T_END, T_AVG, FRAME_DT, LIVE_EVERY, dash_title=title, dash_sub=dash_sub,
+                         wind_label=wind_label)
+    rec.save("flare_quadros.npz")     # guarde este arquivo: refaz figuras e vídeo sem rodar a LES de novo
+    print(f"Concluído: {les.step_n} passos, {les.wall/60:.1f} min de solver, {les.wall/les.step_n*1e3:.0f} ms/passo")
 """
 
 VALID = r"""
@@ -231,32 +245,124 @@ display(Image("flare_risco.png"))
 """
 
 VIDEO = r"""
-#@title 7 · Vídeo final: abertura, chama em zoom, painel, varredura do vento e resumos
+#@title 7 · Vídeo final em HD: abertura, contexto para gestão, chama em HD, painel, varredura e resumos
 from IPython.display import Video
+from flarekit import hd
 AUTOR = ""            #@param {type:"string"}
 AVISO = "Cenário ilustrativo: local e clima de vento reais; composição e vazão de literatura aberta, não dados operacionais"  #@param {type:"string"}
+RESOLUCAO = "1080p"   #@param ["1080p", "1440p", "4k"]
+DETALHE_VISUAL = 0.35 #@param {type:"slider", min:0, max:0.8, step:0.05}
+SEGUNDOS_POR_CARTAO = 7.0  #@param {type:"number"}
 FPS = 30              #@param {type:"integer"}
 PAINEL_ACELERADO = 2  #@param {type:"integer"}
+
+# DETALHE_VISUAL: realce de detalhes abaixo da malha só na imagem da chama (0 = só a LES); não altera
+# nenhum número da simulação. Os textos de contexto estão logo abaixo — edite à vontade.
+q_solo = float(mapas["envelope"].max())
+erro = {r["grandeza"]: r["erro_%"] for r in rows}
+CARTOES = [
+    {"kicker": "Por que importa",
+     "headline": "Onde o calor do flare pode atingir pessoas e equipamentos?",
+     "bullets": ["Em emergências, o flare queima o gás liberado e irradia calor.",
+                 "A resposta orienta zonas de segurança, acessos e o arranjo da planta.",
+                 "Cada “e se?” (vazão, gás, vento) costuma pedir um novo estudo."]},
+    {"kicker": "O que foi feito",
+     "headline": "Fluxo automatizado em código aberto: do vento real ao mapa de risco",
+     "bullets": [f"Vento real do local ({LOCAL}) e simulação 3D da chama (CFD).",
+                 "Calor que chega ao solo e zonas de segurança pela API 521.",
+                 "Mapas de probabilidade nas 16 direções de vento, além do pior caso."]},
+    {"kicker": "Para time e liderança",
+     "headline": "Dados e um visual claro para decidir, sem substituir o estudo detalhado",
+     "bullets": ["Vazão maior? Muda-se um parâmetro e o cenário roda de novo.",
+                 "Reprodutível e auditável: outra pessoa do time refaz e confere.",
+                 "Desenvolve o time em física, dados e automação ao mesmo tempo."]},
+]
+RODAPE = "Cenário ilustrativo: local e vento reais; composição do gás e vazão de fontes abertas, não dados operacionais da Petrobras. Estudo pessoal."  #@param {type:"string"}
+
+
+def _vs(e, mais, menos):   # "+16%" → "16% mais longa"; |e| < 3% → "praticamente igual"
+    return "praticamente igual" if abs(e) < 3 else f"{abs(e):.0f}% {mais if e > 0 else menos}"
+
+
+e_L = erro.get("Comprimento da chama L [m]", 0.0)
+e_a = erro.get("Inclinação da chama [°]", 0.0)
+e_q = erro.get("Fluxo máximo no solo [kW/m²]", 0.0)
+abaixo = q_solo < 1.58
+alc = {lev: e for lev, e, _, _ in linhas}
+FECHAMENTO = {
+    "kicker": "Resultado do caso ilustrativo",
+    "headline": (f"Neste cenário, a altura de {ALTURA:.0f} m do flare cumpre seu papel" if abaixo else
+                 f"Neste cenário, o calor no solo passa de 1,58 kW/m² perto do flare"),
+    "bullets": [f"Pico de ~{q_solo:.1f} kW/m² no solo, considerando todas as direções de vento.".replace(
+                    f"{q_solo:.1f}", f"{q_solo:.1f}".replace(".", ",")),
+                ("Abaixo de 1,58 kW/m², o menor nível da API 521 (exposição contínua)." if abaixo else
+                 f"1,58 kW/m² (exposição contínua, API 521) até ~{alc.get(1.58, 0):.0f} m da base, na pior direção."),
+                f"Frente ao modelo Shell/Chamberlain: radiação máxima {_vs(e_q, 'maior', 'menor')}; "
+                f"chama {_vs(e_L, 'mais longa', 'mais curta')}."],
+    "footnote": RODAPE,
+}
+resultado = (f"No caso ilustrativo, o pico no solo (~{q_solo:.1f} kW/m²) fica abaixo do menor nível da API 521 "
+             f"(1,58 kW/m²) com qualquer vento." if abaixo else
+             f"No caso ilustrativo, o nível de 1,58 kW/m² da API 521 chega a ~{alc.get(1.58, 0):.0f} m da base "
+             f"na pior direção de vento.")
+LEGENDA = "\n".join([
+    "Onde o calor de um flare de refinaria pode atingir pessoas e equipamentos?",
+    "E com que frequência, dado o vento do local?", "",
+    "Essa pergunta virou um estudo pessoal: um fluxo em Python, de código aberto, no Google Colab (GPU na nuvem), "
+    "do vento real até este vídeo.", "",
+    "No caminho: simulação 3D da chama (CFD), radiação no solo, zonas de segurança (API 521) e probabilidade em "
+    "16 direções de vento.", "",
+    f"Frente ao modelo Shell/Chamberlain: radiação máxima {_vs(e_q, 'maior', 'menor')}, chama "
+    f"{_vs(e_L, 'mais longa', 'mais curta')}, inclinação {_vs(e_a, 'maior', 'menor')}.", "",
+    resultado.replace(f"{q_solo:.1f}", f"{q_solo:.1f}".replace(".", ",")), "",
+    "Para a gestão, o valor está em:",
+    "• triar cenários “e se” antes dos estudos detalhados;",
+    "• ver o risco com o vento real, não só o pior caso;",
+    "• comunicar segurança visualmente a quem decide;",
+    "• ter análise reprodutível e auditável, não presa a uma pessoa;",
+    "• desenvolver o time em física, dados e automação.", "",
+    "Complementa, não substitui, estudos detalhados em ferramentas validadas (como o Simcenter STAR-CCM+) e as normas.",
+    "", RODAPE.replace("Estudo pessoal.", "").strip(), "",
+    "Na sua equipe, como o risco chega hoje a quem decide?", "",
+    "#CFD #SegurançaDeProcessos #GestãoDeEngenharia #EngenhariaQuímica"])
+size = hd.RES[RESOLUCAO]
 sub_hero = f"LES 3D em {'GPU' if les.dev.type == 'cuda' else 'CPU'} · {wind_label} · {LOCAL}"
 fonte = serie.source.split(",")[0].split(" (")[0] if not serie.synthetic else "rosa sintética de exemplo"
+capa = hd.flame_hd_png(rec, "capa_chama.png", resolution=RESOLUCAO, detail=DETALHE_VISUAL)   # também serve de capa do post
+from PIL import Image as PILImage
+from IPython.display import Image
+fundo = np.asarray(PILImage.open(capa).convert("RGB"))
 segs = [
-    render.render_title("v0_titulo.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW",
-                        f"LES 3D · vento: {fonte} · {LOCAL}", AUTOR, fps=FPS, note=AVISO),
-    render.render_hero(rec, ch, "v1_chama.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW", sub_hero, fps=FPS),
+    hd.render_title_card("v0_titulo.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW",
+                         f"LES 3D · vento: {fonte} · {LOCAL}", AUTOR, AVISO, size=size, fps=FPS, backdrop=fundo),
+    hd.render_text_cards("v0_contexto.mp4", CARTOES, size=size, fps=FPS, seconds=SEGUNDOS_POR_CARTAO,
+                         backdrop=fundo),
+    hd.render_flame_hd(rec, "v1_chama.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW", sub_hero,
+                       resolution=RESOLUCAO, fps=FPS, detail=DETALHE_VISUAL),
     render.ZoomDashboard(rec, sc, ch, title, dash_sub, t_end=T_END).render("v2_painel.mp4", fps=FPS,
                                                                           every=PAINEL_ACELERADO),
     render.render_wind_sweep(clima, mapas, les_down, "v3_vento.mp4", U_LES,
                              f"Varredura das direções do vento · {LOCAL}", fps=FPS),
     render.render_still("flare_resumo.png", "v4_resumo.mp4", 5, FPS),
     render.render_still("flare_risco.png", "v5_risco.mp4", 6, FPS),
+    hd.render_text_cards("v6_fechamento.mp4", [FECHAMENTO], size=size, fps=FPS,
+                         seconds=SEGUNDOS_POR_CARTAO + 1, backdrop=fundo),
 ]
-render.assemble(segs, "flare_linkedin.mp4", fps=FPS)
-display(Video("flare_linkedin.mp4", embed=True, width=960))
+render.assemble(segs, "flare_linkedin.mp4", fps=FPS, size=size)
+import os
+if os.path.getsize("flare_linkedin.mp4") < 60e6:   # vídeos grandes (4K) não são embutidos no notebook
+    display(Video("flare_linkedin.mp4", embed=True, width=960))
+else:
+    display(Image(capa, width=960))
+print("Texto sugerido para o post:\n")
+print(LEGENDA)
 try:
     from google.colab import files
     files.download("flare_linkedin.mp4")
+    files.download("capa_chama.png")
+    files.download("flare_quadros.npz")
 except Exception:
-    print("Arquivo salvo em flare_linkedin.mp4")
+    print("Arquivos salvos: flare_linkedin.mp4, capa_chama.png, flare_quadros.npz")
 """
 
 MESH = r"""

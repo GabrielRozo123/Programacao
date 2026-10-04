@@ -59,10 +59,13 @@ class Recorder:
         self._nq = 0
         self.final: dict = {}
 
-    def snap(self, les, e, q, averaging: bool):
+    def snap(self, les, e, q, averaging: bool, T=None):
         tot = float((e * les.vol).sum())
         scale = les.cfg.X_rad * les.Q / max(tot, 1e-30)
-        lum = ((e * les.Dc[1]).sum(1) * scale / 1e3).float().cpu().numpy()      # kW/m² projetado
+        ey = e * les.Dc[1]
+        lum = (ey.sum(1) * scale / 1e3).float().cpu().numpy()      # kW/m² projetado
+        # temperatura média na linha de visada, ponderada pela emissão (cor da chama no render HD)
+        tl = None if T is None else ((ey * T).sum(1) / ey.sum(1).clamp(min=1e-30)).float().cpu().numpy()
         zp = les.Z.max(1).values.float().cpu().numpy()
         qg = les.q_grid(q) / 1e3
         if averaging:
@@ -72,7 +75,7 @@ class Recorder:
         h = les.history
         self.frames.append(dict(
             t=les.time, step=les.step_n, dt=les.dt, cfl=les._last_cfl, wall=les.wall,
-            lum=_f16(lum), zp=_f16(zp), q=_f16(qg),
+            lum=_f16(lum), zp=_f16(zp), q=_f16(qg), tl=None if tl is None else _f16(tl),
             qmean=None if qmean is None else _f16(qmean), averaging=averaging,
             L=h["L"][-1], tilt=h["tilt"][-1], Lmean=les.mean_flame_length(), tiltmean=les.mean_tilt()))
 
@@ -93,6 +96,8 @@ class Recorder:
             out[f"f_{k}"] = np.array([f[k] for f in self.frames], dtype=float)
         for k in ("lum", "zp", "q"):
             out[f"f_{k}"] = np.stack([f[k] for f in self.frames])
+        if all(f.get("tl") is not None for f in self.frames):
+            out["f_tl"] = np.stack([f["tl"] for f in self.frames])
         qm = [f["qmean"] if f["qmean"] is not None else np.full_like(f["q"], np.nan) for f in self.frames]
         out["f_qmean"] = np.stack(qm)
         for k, v in self.final.items():
@@ -105,12 +110,13 @@ class Recorder:
         rec = cls.__new__(cls)
         rec.static = {k[2:]: (d[k].item() if d[k].ndim == 0 else d[k]) for k in d.files if k.startswith("s_")}
         A = {k: d[f"f_{k}"] for k in ("t", "step", "dt", "cfl", "wall", "L", "tilt", "Lmean", "tiltmean",
-                                       "averaging", "lum", "zp", "q", "qmean")}   # descomprime uma vez só
+                                       "averaging", "lum", "zp", "q", "qmean", "tl") if f"f_{k}" in d.files}
         rec.frames = []
         for i in range(len(A["t"])):
             f = {k: float(A[k][i]) for k in ("t", "step", "dt", "cfl", "wall", "L", "tilt", "Lmean", "tiltmean")}
             f["averaging"] = bool(A["averaging"][i])
             f["lum"], f["zp"], f["q"] = A["lum"][i], A["zp"][i], A["q"][i]
+            f["tl"] = A["tl"][i] if "tl" in A else None
             qm = A["qmean"][i]
             f["qmean"] = None if np.isnan(qm.astype(float)).all() else qm
             rec.frames.append(f)
@@ -427,8 +433,9 @@ def render_still(src_png: str, path: str, seconds: float = 5.0, fps: int = 30):
     return path
 
 
-def assemble(segments: list[str], out: str, fps: int = 30) -> str:
-    """Concatena os segmentos (mesma resolução) em um MP4 final."""
+def assemble(segments: list[str], out: str, fps: int = 30, size: tuple = (1920, 1080), crf: int = 16) -> str:
+    """Concatena os segmentos em um MP4 final na resolução `size` (os de outra resolução são reescalados
+    com Lanczos, preservando o aspecto)."""
     ff = shutil.which("ffmpeg")
     if ff is None:
         raise RuntimeError("ffmpeg não encontrado")
@@ -436,12 +443,50 @@ def assemble(segments: list[str], out: str, fps: int = 30) -> str:
     cmd = [ff, "-y"]
     for p in segs:
         cmd += ["-i", p]
-    chains = "".join(f"[{i}:v]scale=1920:1080,setsar=1,fps={fps},format=yuv420p[v{i}];" for i in range(len(segs)))
+    W, H = size
+    chains = "".join(f"[{i}:v]scale={W}:{H}:flags=lanczos:force_original_aspect_ratio=decrease,"
+                     f"pad={W}:{H}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps},format=yuv420p[v{i}];"
+                     for i in range(len(segs)))
     cmd += ["-filter_complex", chains + "".join(f"[v{i}]" for i in range(len(segs)))
-            + f"concat=n={len(segs)}:v=1:a=0[v]", "-map", "[v]", "-c:v", "libx264", "-crf", "17",
-            "-preset", "slow", "-movflags", "+faststart", out]
+            + f"concat=n={len(segs)}:v=1:a=0[v]", "-map", "[v]", "-c:v", "libx264", "-crf", str(crf),
+            "-preset", "slow", "-tune", "film", "-movflags", "+faststart", out]
     subprocess.run(cmd, check=True, capture_output=True)
     return out
+
+
+class RecordedLES:
+    """Substitui o objeto FlareLES a partir de um flare_quadros.npz (refazer figuras e vídeo sem rodar a LES):
+    expõe só o que validation_rows, summary_figure e as células do notebook usam."""
+
+    def __init__(self, rec: Recorder):
+        import torch
+        from types import SimpleNamespace
+        s, f = rec.static, rec.final
+        n = float(f.get("n_avg", 1.0)) or 1.0
+        self.rec = rec
+        self.wind = float(s["u_ref"]) > 0
+        self.tip, self.rec_x, self.rec_y = np.asarray(s["tip"]), np.asarray(s["rec_x"]), np.asarray(s["rec_y"])
+        self.xf, self.zf, self.xc, self.zc = (np.asarray(s[k]) for k in ("xf", "zf", "xc", "zc"))
+        self.avg_n = n
+        self.avg_q = torch.from_numpy(np.asarray(f["q_mean"], float) * 1e3 * n).reshape(-1)
+        self.avg_T = torch.from_numpy(np.asarray(f["T_proj"], float)[:, None, :] * n)
+        self.avg_I = torch.from_numpy(np.asarray(f["I_proj"], float)[:, None, :] * n)
+        self.cfg = SimpleNamespace(receiver_z=float(s["receiver_z"]), X_rad=float(s["X_rad"]))
+        self.dev = SimpleNamespace(type="cuda" if "CUDA" in str(s["summary"]) else "cpu")
+        self.step_n = int(f.get("steps", 0))
+        self.wall = float(f.get("wall", 0.0))
+
+    def mean_flame_length(self):
+        return float(self.rec.final["L_mean"])
+
+    def mean_tilt(self):
+        return float(self.rec.final["tilt_mean"])
+
+    def q_grid(self, q):
+        return q.reshape(len(self.rec_x), len(self.rec_y)).cpu().numpy()
+
+    def summary(self):
+        return str(self.rec.static["summary"])
 
 
 def run_and_record(les, sc: se.Scenario, title: str, t_end: float, t_avg: float, frame_dt: float = 0.1,
@@ -463,7 +508,7 @@ def run_and_record(les, sc: se.Scenario, title: str, t_end: float, t_avg: float,
             if les.time >= next_frame:
                 averaging = les.time >= t_avg
                 T, e, mask, q = les.diagnostics(averaging)
-                rec.snap(les, e, q, averaging)
+                rec.snap(les, e, q, averaging, T)
                 next_frame += frame_dt
                 n = len(rec.frames)
                 if live_every and n % live_every == 0 and display is not None:

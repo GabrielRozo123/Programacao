@@ -16,6 +16,7 @@ solução, varredura das 16 direções do vento com mapas de probabilidade de ex
 | `flarekit/les.py` | LES 3D de baixo Mach em PyTorch: malha esticada, Poisson direto, Smagorinsky, Z̃ TVD, vento log, radiação no solo |
 | `flarekit/wind.py` | Clima de vento: Global Wind Atlas (clima generalizado WAsP `.lib`) → NASA POWER (MERRA-2, 10/50 m) → Open-Meteo (ERA5, 10/100 m) → rosa sintética; ajuste da lei log (z0), Weibull, rosa de 16 setores, rotação das pegadas e mapas P(q ≥ nível) |
 | `flarekit/render.py` | Gravação dos quadros da LES e vídeo: chama em zoom (câmera sintética), painel ampliado, varredura das direções, figura de risco |
+| `flarekit/hd.py` | Pós-processamento HD (1080p/1440p/4K) da chama: cor de emissão da fuligem pela temperatura, tone mapping fílmico, bloom, realce visual opcional abaixo da malha; abertura e cartões de texto em HD; codificação direta no ffmpeg |
 | `flarekit/dashboard.py` | Painel ao vivo durante a solução |
 | `flarekit/safety.py` | Zonas do API 521, dose térmica, probits, fuga, temperatura de aço |
 | `flarekit/report.py` | Tabela de validação, figura-resumo, composição do vídeo final |
@@ -46,7 +47,9 @@ tamanho da chama).
 
 Fluxo do notebook: vento do local → cenário e modelos de referência → termoquímica → LES 3D ao vivo →
 validação → varredura das direções (Chamberlain por setor × classe de velocidade) → vídeo
-`flare_linkedin.mp4` (abertura, chama em zoom, painel, varredura, resumos).
+`flare_linkedin.mp4` (abertura, cartões de contexto para gestão, chama em HD, painel, varredura, resumos,
+fechamento), além de `capa_chama.png` e do texto sugerido para o post. Com `USAR_QUADROS_SALVOS` na célula 4,
+um `flare_quadros.npz` de uma rodada anterior refaz figuras e vídeo sem rodar a LES de novo.
 
 Limitações a ter em mente: perfil log neutro (sem correção de estabilidade de Monin–Obukhov); a rotação
 da pegada é exata só para flare isolado em terreno aberto; o endpoint do Global Wind Atlas não é
