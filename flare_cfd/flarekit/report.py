@@ -78,7 +78,8 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     _style(ax, "Radiação média no solo e zonas do API 521")
     qm = les.q_grid(les.avg_q / les.avg_n) / 1e3
     from matplotlib import colors as mcolors
-    mm = ax.pcolormesh(les.rec_x, les.rec_y, qm.T, cmap="magma", norm=mcolors.PowerNorm(0.6, 0, 10),
+    from .render import qnorm
+    mm = ax.pcolormesh(les.rec_x, les.rec_y, qm.T, cmap="magma", norm=qnorm(max(float(qm.max()), 0.5)),
                        shading="nearest", rasterized=True)
     levels = [lev for lev, _ in API_LEVELS if lev < qm.max()]
     cols = [c for lev, c in API_LEVELS if lev < qm.max()]

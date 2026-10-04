@@ -193,6 +193,14 @@ def _writer(fig, path, fps):
     return w
 
 
+def qnorm(qmax: float) -> mcolors.PowerNorm:
+    """Escala de cor para fluxo no solo [kW/m²] ajustada ao máximo (tochas altas ficam bem abaixo de 10)."""
+    for v in (1, 2, 3, 5, 8, 10, 15, 20, 30, 50, 100):
+        if v >= 1.1 * qmax:
+            break
+    return mcolors.PowerNorm(0.6, 0, v)
+
+
 def _fit_text(fig, txt, max_frac: float, min_size: float = 7.0):
     """Reduz a fonte de um texto até caber em max_frac da largura da figura."""
     r = fig.canvas.get_renderer()
@@ -215,12 +223,15 @@ def _wind_arrow(ax, label, x=0.03, y=0.93, length=0.10, fontsize=12):
 
 
 # ===================================================================== segmentos
-def render_title(path: str, title: str, subtitle: str, credit: str = "", seconds: float = 3.0, fps: int = 30):
+def render_title(path: str, title: str, subtitle: str, credit: str = "", seconds: float = 3.0, fps: int = 30,
+                 note: str = ""):
     fig = _new_fig()
-    fig.text(0.5, 0.58, title, ha="center", color=FG, fontsize=40, fontweight="bold")
-    fig.text(0.5, 0.48, subtitle, ha="center", color=LES_C, fontsize=20)
+    _fit_text(fig, fig.text(0.5, 0.58, title, ha="center", color=FG, fontsize=40, fontweight="bold"), 0.94)
+    _fit_text(fig, fig.text(0.5, 0.48, subtitle, ha="center", color=LES_C, fontsize=20), 0.94)
     if credit:
         fig.text(0.5, 0.38, credit, ha="center", color=MUTED, fontsize=14)
+    if note:
+        _fit_text(fig, fig.text(0.5, 0.08, note, ha="center", color=MUTED, fontsize=13, style="italic"), 0.94)
     w = _writer(fig, path, fps)
     for _ in range(int(seconds * fps)):
         w.grab_frame(facecolor=BG)
@@ -307,12 +318,19 @@ class ZoomDashboard:
         self.env = None
         self.box = ax.text(0.015, 0.03, "", transform=ax.transAxes, color=FG, fontsize=11, family="monospace",
                            va="bottom", bbox=dict(facecolor=PANEL, edgecolor=GRID, alpha=0.85, pad=6), zorder=7)
-        # mapa no solo
+        # mapa no solo (escala de cor pelo maior fluxo previsto: LES média, Chamberlain ou fonte pontual)
+        xr = s["rec_x"]
+        recp = np.stack([xr, np.zeros_like(xr), np.full_like(xr, float(s["receiver_z"]))], 1)
+        self.q_ch = se.q_chamberlain(recp, ch, tip, sc.T_inf, sc.RH) / 1e3
+        self.q_pt = se.q_point_source(recp, se.flame_center_chamberlain(ch, tip), float(s["X_rad"]), sc.Q,
+                                      sc.T_inf, sc.RH) / 1e3
+        q_ref = max(self.q_ch.max(), self.q_pt.max(),
+                    float(np.nanmax(rec.final["q_mean"])) if rec.final.get("q_mean") is not None else 0.0)
         ax = self.ax_m
         _style(ax, "Radiação no solo [kW/m²]")
         q0 = rec.frames[0]["q"].astype(float)
         self.qmesh = ax.pcolormesh(s["rec_x"], s["rec_y"], q0.T, cmap="magma",
-                                   norm=mcolors.PowerNorm(0.6, 0, 10), shading="nearest", rasterized=True)
+                                   norm=qnorm(1.3 * q_ref), shading="nearest", rasterized=True)
         cb = fig.colorbar(self.qmesh, ax=ax, pad=0.01, fraction=0.04)
         cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
         for lev, c in API_LEVELS:                       # níveis do API 521 marcados na barra de cores
@@ -324,18 +342,13 @@ class ZoomDashboard:
         # fluxo ao longo do vento
         ax = self.ax_l
         _style(ax, "Fluxo no solo, y = 0 [kW/m²]")
-        xr = s["rec_x"]
-        recp = np.stack([xr, np.zeros_like(xr), np.full_like(xr, float(s["receiver_z"]))], 1)
-        self.q_ch = se.q_chamberlain(recp, ch, tip, sc.T_inf, sc.RH) / 1e3
-        self.q_pt = se.q_point_source(recp, se.flame_center_chamberlain(ch, tip), float(s["X_rad"]), sc.Q,
-                                      sc.T_inf, sc.RH) / 1e3
         ax.plot(xr, self.q_ch, "--", color=CHAM_C, lw=1.6, label="Chamberlain")
         ax.plot(xr, self.q_pt, ":", color=PT_C, lw=1.6, label="API 521 (pontual)")
         self.l_i, = ax.plot(xr, np.zeros_like(xr), color=LES_C, lw=0.9, alpha=0.45)
         self.l_m, = ax.plot(xr, np.zeros_like(xr), color=LES_C, lw=2.4, label="LES média")
         for lev, c in API_LEVELS:
             ax.axhline(lev, color=c, lw=0.7, alpha=0.6)
-        ax.set_xlim(xr[0], xr[-1]); ax.set_ylim(0, 1.6 * max(self.q_ch.max(), self.q_pt.max()))
+        ax.set_xlim(xr[0], xr[-1]); ax.set_ylim(0, 1.6 * q_ref)
         ax.grid(color=GRID, lw=0.5)
         ax.legend(fontsize=7.5, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, ncol=3, loc="upper right")
         self.jl = int(np.argmin(np.abs(s["rec_y"])))
@@ -517,21 +530,34 @@ def _site_map(ax, grid, title):
 
 
 def _zoom_radius(maps, level: float = 1.58) -> float:
-    """Raio do mapa a mostrar: 1,3 × alcance da envoltória no menor nível API (mín. 40 m)."""
+    """Raio do mapa a mostrar: 1,3 × alcance da envoltória no menor nível API (mín. 40 m); se nenhum
+    nível é atingido (tocha alta), usa o alcance de metade do fluxo máximo."""
     grid = maps["grid"]
     EE, NN = np.meshgrid(grid.E, grid.N, indexing="ij")
-    m = maps["envelope"] >= level
+    env = maps["envelope"]
+    m = env >= (level if env.max() >= level else 0.5 * env.max())
     r = float(np.hypot(EE, NN)[m].max()) if m.any() else 0.0
     return float(min(grid.E.max(), max(40.0, 10.0 * math.ceil(1.3 * r / 10.0))))
 
 
-def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, level: float = 4.73,
+def sweep_level(maps) -> float | None:
+    """Maior nível do API 521 (entre 4,73 e 1,58 kW/m²) com probabilidade > 0 em algum ponto; None se
+    nenhum é atingido no solo."""
+    for L in (4.73, 1.58):
+        if L in maps["P"] and maps["P"][L].max() > 0:
+            return L
+    return None
+
+
+def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, level: float | None = None,
                       seconds: float = 14.0, hold: float = 2.5, fps: int = 30):
-    """Varredura das direções: rosa dos ventos, pegada da LES girando e P(q ≥ nível) acumulada."""
+    """Varredura das direções: rosa dos ventos, pegada da LES girando e P(q ≥ nível) acumulada
+    (nível automático; se nenhum nível do API 521 é atingido, mostra o máximo acumulado de q)."""
     from .wind import SECTORS, rotate_to_site
     grid = maps["grid"]
     xd, qd = les_down
-    Psec = maps["P_sector"][level]
+    level = level if level is not None else sweep_level(maps)
+    Psec = maps["P_sector"][level] if level is not None else None
     fig = _new_fig()
     gs = GridSpec(1, 3, figure=fig, left=0.03, right=0.975, top=0.83, bottom=0.08, wspace=0.28,
                   width_ratios=[0.9, 1, 1])
@@ -547,15 +573,24 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
     ax_f = fig.add_subplot(gs[0, 1])
     _site_map(ax_f, grid, f"Pegada da LES ({U_les:.1f} m/s) girando com o vento [kW/m²]")
     q0 = rotate_to_site(xd, xd, qd, grid, 0.0)
-    m1 = ax_f.pcolormesh(grid.E, grid.N, q0.T, cmap="magma", norm=mcolors.PowerNorm(0.6, 0, 10),
-                         shading="nearest", rasterized=True)
+    qn = qnorm(max(float(qd.max()), 0.3))
+    m1 = ax_f.pcolormesh(grid.E, grid.N, q0.T, cmap="magma", norm=qn, shading="nearest", rasterized=True)
     cb = fig.colorbar(m1, ax=ax_f, fraction=0.045, pad=0.02)
     cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
     ax_p = fig.add_subplot(gs[0, 2])
-    _site_map(ax_p, grid, f"P(q ≥ {level:.2f} kW/m²) acumulada [%]")
-    Pmax = max(1e-6, 100 * float(maps["P"][level].max()))
-    m2 = ax_p.pcolormesh(grid.E, grid.N, np.ma.masked_all((len(grid.N), len(grid.E))), cmap="YlOrRd",
-                         norm=mcolors.Normalize(0, Pmax), shading="nearest", rasterized=True)
+    if level is not None:
+        _site_map(ax_p, grid, f"P(q ≥ {level:.2f} kW/m²) acumulada [%]")
+        Pmax = max(1e-6, 100 * float(maps["P"][level].max()))
+        m2 = ax_p.pcolormesh(grid.E, grid.N, np.ma.masked_all((len(grid.N), len(grid.E))), cmap="YlOrRd",
+                             norm=mcolors.Normalize(0, Pmax), shading="nearest", rasterized=True)
+    else:
+        _site_map(ax_p, grid, "q máximo acumulado nas direções [kW/m²]")
+        m2 = ax_p.pcolormesh(grid.E, grid.N, np.zeros((len(grid.N), len(grid.E))), cmap="magma", norm=qn,
+                             shading="nearest", rasterized=True)
+        ax_p.text(0.03, 0.04, "nenhum nível do API 521 (≥ 1,58 kW/m²)\né atingido no solo",
+                  transform=ax_p.transAxes, color=FG, fontsize=9.5,
+                  bbox=dict(facecolor=PANEL, edgecolor=GRID, alpha=0.85, pad=4))
+    q_acc = np.zeros((len(grid.E), len(grid.N)))
     cb = fig.colorbar(m2, ax=ax_p, fraction=0.045, pad=0.02)
     cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
     Rz = _zoom_radius(maps)
@@ -579,12 +614,17 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
         cont[0] = ax_f.contour(grid.E, grid.N, q.T, levels=[L for L, _ in lv], colors=[c for _, c in lv],
                                linewidths=1.5) if lv else None
         done = 16 if i >= n else min(16, kr + 1)
-        Pacc = 100 * Psec[:done].sum(0)
-        m2.set_array(np.ma.masked_less(Pacc, 0.05).T.ravel())
         if cont[1] is not None:
             cont[1].remove()
-        lv = [p for p in (1, 5, 10, 20) if p < Pacc.max()]
-        cont[1] = ax_p.contour(grid.E, grid.N, Pacc.T, levels=lv, colors="white", linewidths=0.9) if lv else None
+        if Psec is not None:
+            Pacc = 100 * Psec[:done].sum(0)
+            m2.set_array(np.ma.masked_less(Pacc, 0.05).T.ravel())
+            lv = [p for p in (1, 5, 10, 20) if p < Pacc.max()]
+            cont[1] = ax_p.contour(grid.E, grid.N, Pacc.T, levels=lv, colors="white", linewidths=0.9) if lv else None
+        else:
+            q_acc = np.maximum(q_acc, q)
+            m2.set_array(q_acc.T.ravel())
+            cont[1] = None
         if hl is not None:
             hl.remove()
         tops = 100 * cl.freq.sum(1)
@@ -619,7 +659,7 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str):
     _rose(ax, cl, cl.dominant_sector)
     ax = fig.add_subplot(gl[1])
     _style(ax, "Perfil de camada limite (lei log)")
-    z = np.linspace(max(cl.z0 * 2, 1.0), 120, 200)
+    z = np.linspace(max(cl.z0 * 2, 1.0), max(120.0, 1.5 * cl.H), 200)
     s = cl.series
     ax.plot(cl.profile(z), z, color=LES_C, lw=2.2, label=f"lei log, z0 = {cl.z0:.2f} m")
     ax.plot([s.U1.mean(), s.U2.mean()], [s.z1, s.z2], "o", color=CHAM_C, ms=8, label="médias dos dados")
@@ -630,23 +670,39 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str):
                   height_ratios=[3.6, 1])
     env = maps["envelope"]
     Rz = _zoom_radius(maps)
-    for j, L in enumerate((4.73, 1.58)):
+    reached = [L for L in (4.73, 1.58) if maps["P"][L].max() > 0]
+    # tochas altas podem não atingir nenhum nível no solo: aí mostram-se os próprios fluxos
+    panels = (["P4.73", "P1.58"] if len(reached) == 2 else ["P1.58", "env"] if reached else ["env", "mean"])
+    qn = qnorm(max(float(env.max()), 0.5))
+    for j, kind in enumerate(panels):
         ax = fig.add_subplot(gr[0, j])
-        _site_map(ax, grid, f"P(q ≥ {L:.2f} kW/m²) com o flare queimando [%]")
+        if kind.startswith("P"):
+            L = float(kind[1:])
+            _site_map(ax, grid, f"P(q ≥ {L:.2f} kW/m²) com o flare queimando [%]")
+            P = 100 * maps["P"][L]
+            m = ax.pcolormesh(grid.E, grid.N, np.ma.masked_less(P, 0.05).T, cmap="YlOrRd", shading="nearest",
+                              rasterized=True, vmin=0, vmax=max(1.0, float(P.max())))
+            lv = [p for p in (1, 5, 10, 20, 50) if p < P.max()]
+            if lv:
+                cs = ax.contour(grid.E, grid.N, P.T, levels=lv, colors="white", linewidths=1.0)
+                ax.clabel(cs, fmt="%d%%", fontsize=8, colors="white")
+            if env.max() > L:
+                ax.contour(grid.E, grid.N, env.T, levels=[L], colors=[CHAM_C], linewidths=1.8, linestyles="--")
+            ax.plot([], [], "--", color=CHAM_C, label="envoltória (pior direção)")
+            ax.plot([], [], color="white", lw=1.0, label="isolinhas de P [%]")
+        else:
+            field = env if kind == "env" else maps["q_mean"]
+            _site_map(ax, grid, "q máximo em qualquer direção [kW/m²]" if kind == "env"
+                      else "q médio ponderado pela rosa dos ventos [kW/m²]")
+            m = ax.pcolormesh(grid.E, grid.N, field.T, cmap="magma", norm=qn, shading="nearest", rasterized=True)
+            lv = [(l, c) for l, c in API_LEVELS if l < field.max()]
+            if lv:
+                ax.contour(grid.E, grid.N, field.T, levels=[l for l, _ in lv], colors=[c for _, c in lv],
+                           linewidths=1.6)
+            ax.plot([], [], color="none", label=f"máximo: {field.max():.2f} kW/m²")
         ax.set_xlim(-Rz, Rz); ax.set_ylim(-Rz, Rz)
-        P = 100 * maps["P"][L]
-        m = ax.pcolormesh(grid.E, grid.N, np.ma.masked_less(P, 0.05).T, cmap="YlOrRd", shading="nearest",
-                          rasterized=True, vmin=0, vmax=max(1.0, float(P.max())))
         cb = fig.colorbar(m, ax=ax, fraction=0.045, pad=0.02)
         cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
-        lv = [p for p in (1, 5, 10, 20, 50) if p < P.max()]
-        if lv:
-            cs = ax.contour(grid.E, grid.N, P.T, levels=lv, colors="white", linewidths=1.0)
-            ax.clabel(cs, fmt="%d%%", fontsize=8, colors="white")
-        if env.max() > L:
-            ax.contour(grid.E, grid.N, env.T, levels=[L], colors=[CHAM_C], linewidths=1.8, linestyles="--")
-        ax.plot([], [], "--", color=CHAM_C, label="envoltória (pior direção)")
-        ax.plot([], [], color="white", lw=1.0, label="isolinhas de P [%]")
         ax.legend(loc="lower left", fontsize=8.5, facecolor=PANEL, edgecolor=GRID, labelcolor=FG)
     EE, NN = np.meshgrid(grid.E, grid.N, indexing="ij")
     Rr = np.hypot(EE, NN)

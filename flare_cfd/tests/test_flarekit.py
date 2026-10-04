@@ -8,7 +8,7 @@ import torch
 from flarekit import safety
 from flarekit import semiempirical as se
 from flarekit.les import FlareLES, LESConfig, stretched_faces
-from flarekit.props import PROPANE, beta_pdf_table, state_relation, stoichiometry
+from flarekit.props import METHANE, PROPANE, beta_pdf_table, state_relation, stoichiometry
 
 
 @pytest.fixture(scope="module")
@@ -35,7 +35,7 @@ def test_chamberlain_tilt_continuity_and_K():
 
 
 def test_worked_example_values():
-    sc = se.Scenario(PROPANE, H=50.0)
+    sc = se.Scenario(PROPANE, H=50.0, xrad_comp=False)   # exemplo do documento: Chamberlain original
     c = sc.cham
     assert sc.L_api == pytest.approx(50.1, abs=0.2)
     assert c.L_b0 == pytest.approx(54.4, abs=0.2)
@@ -158,3 +158,15 @@ def test_mixture_equilibrium_and_scenario():
     assert sc1.rho_inf == pytest.approx(sc0.rho_inf * p / 101325.0)
     # Chamberlain usa W = Z_st exato para misturas
     assert sc0.cham.W == pytest.approx(stoichiometry(f)["Z_st"])
+
+
+def test_radiant_fraction_factor_anchors():
+    from flarekit.props import mixture
+    f = se.radiant_fraction_factor
+    assert f(METHANE) == pytest.approx(1.0, abs=1e-3)
+    assert f(mixture("h2", {"H2": 1})) == pytest.approx(0.70, abs=0.02)       # API 521: H2 ≈ 0,7 × GN
+    assert f(mixture("c4", {"nC4H10": 1})) == pytest.approx(1.25, abs=0.02)   # API 521: butano ≈ 1,25 × GN
+    sc0 = se.Scenario(PROPANE, xrad_comp=False)
+    sc1 = se.Scenario(PROPANE)
+    assert sc1.cham.F_s == pytest.approx(sc0.cham.F_s * f(PROPANE))
+    assert sc1.cham.L_b == pytest.approx(sc0.cham.L_b)                        # só a radiação muda

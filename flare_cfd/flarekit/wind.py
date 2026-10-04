@@ -375,7 +375,8 @@ class SiteGrid:
 
 def downwind_footprint(sc: se.Scenario, U: float, R: float, n: int, z_rec: float = 1.5):
     """q [kW/m²] de Chamberlain no referencial a jusante (x, y) numa grade quadrada de meia-largura R."""
-    ch = se.chamberlain(sc.fuel, sc.mdot, sc.tip["u_j"], sc.tip["rho_j"], sc.rho_inf, U)
+    ch = se.chamberlain(sc.fuel, sc.mdot, sc.tip["u_j"], sc.tip["rho_j"], sc.rho_inf, U,
+                        fs_factor=getattr(sc, "fs_factor", 1.0))
     x = np.linspace(-R, R, n)
     X, Y = np.meshgrid(x, x, indexing="ij")
     rec = np.stack([X.ravel(), Y.ravel(), np.full(X.size, z_rec)], 1)
@@ -412,6 +413,7 @@ def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API
     P = {L: np.zeros((len(grid.E), len(grid.N))) for L in levels}
     Psec = {L: np.zeros((16, len(grid.E), len(grid.N))) for L in levels}
     env = np.zeros((len(grid.E), len(grid.N)))
+    q_mean = np.zeros((len(grid.E), len(grid.N)))   # fluxo esperado (média ponderada pela rosa)
     foot = {}
 
     def subdirs(k):
@@ -434,6 +436,7 @@ def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API
                     P[L] += hit
                     Psec[L][k] += hit
                 env = np.maximum(env, q)
+                q_mean += (f / sub) * q
     # pior caso: maior velocidade observada, nas direções em que a classe mais alta ocorre
     top = [b for b in range(cl.freq.shape[1]) if cl.freq[:, b].sum() > 0]
     U_max = float(np.max(cl.U_H)) if len(cl.U_H) else 0.0
@@ -452,9 +455,10 @@ def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API
         for L in levels:
             P[L] += cl.calm * (q >= L)
         env = np.maximum(env, q)
+        q_mean += cl.calm * q
         foot["calm"] = (xd, qd)
-    return {"P": P, "P_sector": Psec, "envelope": env, "footprints": foot, "grid": grid, "q_solar": q_solar,
-            "U_max": U_max}
+    return {"P": P, "P_sector": Psec, "envelope": env, "q_mean": q_mean, "footprints": foot, "grid": grid,
+            "q_solar": q_solar, "U_max": U_max}
 
 
 def receiver_box(sc: se.Scenario, U: float, level: float = 1.58, margin: float = 15.0) -> tuple:

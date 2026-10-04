@@ -78,9 +78,22 @@ class Chamberlain:
     Q: float
 
 
+def radiant_fraction_factor(fuel: Fuel) -> float:
+    """Correção aproximada de F_s pela composição (F_s de Chamberlain foi ajustado a gás natural).
+
+    Usa a razão r = PCI molar (≈ PCI volumétrico) do combustível / PCI molar do CH4 e a tendência
+    da tabela de fração radiante do API 521 (chamas de laboratório, maiores queimadores):
+    H2 ≈ 0,70 × gás natural e butano ≈ 1,25 × gás natural → f = r^0,30 (r < 1) e r^0,19 (r ≥ 1).
+    É uma interpolação de engenharia, não uma correlação publicada; f fica em [0,6; 1,35]."""
+    r = fuel.LHV * fuel.M / 802.6e3
+    f = r ** 0.30 if r < 1.0 else r ** 0.19
+    return float(np.clip(f, 0.6, 1.35))
+
+
 def chamberlain(fuel: Fuel, mdot: float, u_j: float, rho_j: float, rho_inf: float,
-                u_w: float, theta_jv: float = 90.0) -> Chamberlain:
-    """Seção 3.7 (Chamberlain 1987). Ângulos em graus; u_w é o vento na altura do tip."""
+                u_w: float, theta_jv: float = 90.0, fs_factor: float = 1.0) -> Chamberlain:
+    """Seção 3.7 (Chamberlain 1987). Ângulos em graus; u_w é o vento na altura do tip.
+    fs_factor multiplica a fração radiante de superfície (1 = correlação original, gás natural)."""
     from scipy.optimize import brentq
     D_s = np.sqrt(4 * mdot / (np.pi * rho_inf * u_j))
     M = fuel.M
@@ -108,7 +121,7 @@ def chamberlain(fuel: Fuel, mdot: float, u_j: float, rho_j: float, rho_inf: floa
         1 - (1 - np.sqrt(rho_inf / rho_j) / 15) * np.exp(-70 * Ri(D_s) * Cp * R))
     W2 = L_b * (0.18 * np.exp(-1.5 * R) + 0.31) * (1 - 0.47 * np.exp(-25 * R))
     A = np.pi / 4 * (W1**2 + W2**2) + np.pi / 2 * (W1 + W2) * np.sqrt(R_l**2 + ((W2 - W1) / 2) ** 2)
-    F_s = 0.21 * np.exp(-0.00323 * u_j) + 0.11
+    F_s = (0.21 * np.exp(-0.00323 * u_j) + 0.11) * fs_factor
     Q = mdot * fuel.LHV
     return Chamberlain(D_s, W, Y, L_b0, L_b, R, Ri(L_b0), alpha, K, b, R_l, W1, W2, A, F_s, F_s * Q / A, Q)
 
@@ -235,17 +248,19 @@ class Scenario:
     T_inf: float = 298.15
     RH: float = 0.5
     p_atm: float = P_ATM     # pressão local (use props.pressure_at_altitude para sítios elevados)
+    xrad_comp: bool = True   # corrige F_s de Chamberlain pela composição (radiant_fraction_factor)
 
     def __post_init__(self):
         self.tip = tip_conditions(self.fuel, self.mdot, self.T_j, self.mach, self.p_atm)
         self.rho_inf = air_density(self.T_inf, self.p_atm)
+        self.fs_factor = radiant_fraction_factor(self.fuel) if self.xrad_comp else 1.0
         self.st = stoichiometry(self.fuel)
         self.Q = self.tip["Q"]
         self.L_api = api_flame_length(self.Q)
         self.cham = chamberlain(self.fuel, self.mdot, self.tip["u_j"], self.tip["rho_j"],
-                                self.rho_inf, self.u_w)
+                                self.rho_inf, self.u_w, fs_factor=self.fs_factor)
         self.cham0 = chamberlain(self.fuel, self.mdot, self.tip["u_j"], self.tip["rho_j"],
-                                 self.rho_inf, 0.0)
+                                 self.rho_inf, 0.0, fs_factor=self.fs_factor)
         self.tip_xyz = np.array([0.0, 0.0, self.H])
 
     def references(self, T_ad: float, rho_f: float | None = None) -> dict:

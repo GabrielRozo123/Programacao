@@ -135,6 +135,37 @@ ETHANE = Fuel("etano", 2, 6, 30.069e-3, 47.51e6, 1.19, 0.013, "C2H6")
 FUELS = {f.name: f for f in (PROPANE, METHANE, ETHANE)}
 
 
+# Composições de gás de tocha/refinaria (% molar). Não há composição medida pública da REPLAN;
+# estas são referências abertas, para estudo ilustrativo (confira com dados da unidade).
+FLARE_GAS_PRESETS = {
+    # pontos médios das faixas da FISPQ "Gás Residual de Refinaria" (Acelen, ex-RLAM/Petrobras;
+    # H2 12,5–52,5 · CH4 12,5–42,5 · C2 10–40 · C3 1,5–3,5 · C4 1,5–3,5 · C5 0–1 · N2+CO2 2–8 ·
+    # CO 0,5–2,5 · H2S 0–1,2), com as frações agrupadas (C2, C3, inertes) divididas por estimativa
+    "gás de refinaria típico (FISPQ ex-RLAM)": {
+        "H2": 33.0, "CH4": 29.0, "C2H6": 15.0, "C2H4": 10.5, "C3H8": 1.5, "C3H6": 1.0,
+        "nC4H10": 2.5, "nC5H12": 0.5, "N2": 3.5, "CO2": 1.5, "CO": 1.5, "H2S": 0.5},
+    # média de gás de tocha "de uma planta típica" em Emam (2015), Petroleum & Coal — mais
+    # pesada, rica em GLP (i-C5 somado ao n-C5)
+    "gás de tocha médio de refinaria (Emam 2015)": {
+        "CH4": 43.6, "C2H6": 3.66, "C3H8": 20.3, "nC4H10": 2.78, "iC4H10": 14.3, "nC5H12": 0.796,
+        "C2H4": 1.05, "C3H6": 2.73, "C4H8": 0.696, "H2": 5.54, "CO": 0.186, "CO2": 0.713,
+        "H2S": 0.256, "O2": 0.357, "N2": 1.30, "H2O": 1.14},
+    # caso hipotético de despressurização de unidades de hidrogênio/hidrotratamento
+    "rico em H2 (despressurização, hipotético)": {
+        "H2": 75.0, "CH4": 15.0, "C2H6": 5.0, "C3H8": 3.0, "N2": 2.0},
+}
+
+
+def flare_gas(name: str) -> Fuel:
+    """Combustível a partir de FLARE_GAS_PRESETS."""
+    return mixture(name, FLARE_GAS_PRESETS[name])
+
+
+def lhv_volumetric(fuel: Fuel, T: float = 273.15, p: float = P_ATM) -> float:
+    """PCI por volume de gás nas condições (T, p) [J/m³]; padrão: Nm³ (0 °C, 1 atm)."""
+    return fuel.LHV * fuel.M * p / (R_U * T)
+
+
 def o2_demand(fuel: Fuel) -> float:
     """mols de O2 por mol de combustível (C → CO2, H → H2O, S → SO2, descontando o O do combustível)."""
     return fuel.nC + fuel.nH / 4.0 + fuel.nS - fuel.nO / 2.0

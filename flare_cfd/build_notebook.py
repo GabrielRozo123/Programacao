@@ -25,12 +25,12 @@ def code(text: str, hidden: bool = False) -> dict:
 INTRO = r"""
 # 🔥 Flare industrial: LES 3D, vento de atlas eólico e radiação térmica (Colab)
 
-Simulação de um **flare elevado de propano (584 MW)** com o vento típico do local tirado de um **atlas eólico**, gráficos atualizados **em tempo real** enquanto o CFD resolve e um **vídeo MP4** no final, com a chama em zoom.
+Simulação de um **flare elevado** queimando **gás de refinaria (mistura de H₂, C1–C5, olefinas, inertes e H₂S)** ou um combustível puro, com o vento típico do local tirado de um **atlas eólico**, gráficos atualizados **em tempo real** enquanto o CFD resolve e um **vídeo MP4** no final, com a chama em zoom. O caso padrão usa a localização e o clima de vento da **REPLAN (Paulínia, SP)**, com composição e vazão **ilustrativas** de literatura aberta (não são dados operacionais da Petrobras).
 
 | Etapa | O que faz |
 |---|---|
 | 1 | **Clima de vento do local**: Global Wind Atlas (clima generalizado, Weibull por setor), NASA POWER (MERRA-2) ou Open-Meteo (ERA5) → perfil de camada limite (lei log) e rosa dos ventos na altura do tip |
-| 2 | Referências: **API 521** (fonte pontual), **Chamberlain/Shell (1987)**, correlações de comprimento de chama e fração radiante |
+| 2 | Combustível (mistura ou puro) e referências: **API 521** (fonte pontual), **Chamberlain/Shell (1987)** com fração radiante corrigida pela composição, correlações de comprimento de chama |
 | 3 | Termoquímica: equilíbrio (Cantera) na fração de mistura Z e tabela **β-PDF** de submalha |
 | 4 | **LES 3D de baixo Mach em PyTorch (GPU)**, 60 s simulados, malha fina ajustada à chama, gravando um quadro a cada 0,1 s |
 | 5 | Validação (LES × Chamberlain/API) e segurança no vento de projeto |
@@ -61,18 +61,26 @@ import numpy as np
 import matplotlib.pyplot as plt
 from flarekit import wind
 
-LOCAL = "Paulínia (SP)"     #@param {type:"string"}
-LAT = -22.75                #@param {type:"number"}
-LON = -47.15                #@param {type:"number"}
-ALTURA = 30.0               #@param {type:"number"}
-FONTE_VENTO = "auto"        #@param ["auto", "gwa", "nasa", "open-meteo", "sintetico"]
-Z0_LOCAL = 0.3              #@param {type:"number"}
-MODO_VENTO_LES = "dominante_p90"  #@param ["dominante_p90", "dominante_media", "projeto"]
+from flarekit.props import pressure_at_altitude
 
+LOCAL = "REPLAN · Paulínia (SP)"   #@param {type:"string"}
+LAT = -22.7283                     #@param {type:"number"}
+LON = -47.1317                     #@param {type:"number"}
+ALTITUDE = 600.0                   #@param {type:"number"}
+ALTURA = 115.0                     #@param {type:"number"}
+FONTE_VENTO = "auto"               #@param ["auto", "gwa", "nasa", "open-meteo", "sintetico"]
+Z0_LOCAL = 0.5                     #@param {type:"number"}
+MODO_VENTO_LES = "dominante_p90"   #@param ["dominante_p90", "dominante_media", "projeto"]
+
+# REPLAN: centro da refinaria 22°43′42″ S, 47°07′54″ O; ALTITUDE do terreno [m] (média de Paulínia) e
+# ALTURA do tip [m] (maior tocha, ~115 m segundo fontes abertas): confira com os dados do projeto.
 # auto: Global Wind Atlas → NASA POWER → Open-Meteo (ERA5) → rosa sintética (só sem internet)
-# Z0_LOCAL escolhe a classe de rugosidade do GWA (NBR 6123: cat. II 0,07 m · III 0,3 m · IV 1,0 m)
-serie = wind.get_wind_series(LAT, LON, FONTE_VENTO, z0_site=Z0_LOCAL)
+# Z0_LOCAL escolhe a classe de rugosidade do GWA (NBR 6123: cat. II 0,07 m · III 0,3 m · IV 1,0 m;
+# 0,5 m ≈ entorno industrial/suburbano)
+P_LOCAL = pressure_at_altitude(ALTITUDE)
+serie = wind.get_wind_series(LAT, LON, FONTE_VENTO, z0_site=Z0_LOCAL, H=ALTURA)
 clima = wind.WindClimate.from_series(serie, ALTURA)
+print(f"Altitude {ALTITUDE:.0f} m → pressão {P_LOCAL/1e3:.1f} kPa")
 print(clima.describe())
 if serie.synthetic:
     print("\nATENÇÃO: sem acesso às fontes de vento; usando uma rosa SINTÉTICA de exemplo.")
@@ -94,7 +102,7 @@ for b in range(clima.freq.shape[1]):
 ax.set_xticks(np.radians(np.arange(16) * 22.5)); ax.set_xticklabels(wind.SECTORS, fontsize=8)
 ax.set_title(f"Rosa dos ventos a {ALTURA:.0f} m [% do tempo]")
 ax2 = fig.add_subplot(1, 2, 2)
-z = np.linspace(1, 120, 100)
+z = np.linspace(1, max(120.0, 1.6 * ALTURA), 100)
 ax2.plot(clima.profile(z), z, label=f"lei log, z0 = {clima.z0:.2f} m")
 ax2.plot(clima.profile(z, U_LES), z, "--", label=f"perfil da LES ({U_LES:.1f} m/s no tip)")
 ax2.plot([serie.U1.mean(), serie.U2.mean()], [serie.z1, serie.z2], "o", label="médias dos dados")
@@ -104,14 +112,35 @@ plt.tight_layout(); plt.show()
 """
 
 SCENARIO = r"""
-#@title 2 · Cenário e modelos de referência (API 521, Chamberlain, correlações)
-from flarekit.props import PROPANE, stoichiometry, state_relation, beta_pdf_table
+#@title 2 · Combustível, cenário e modelos de referência (API 521, Chamberlain, correlações)
+from flarekit.props import (FLARE_GAS_PRESETS, FUELS, flare_gas, lhv_volumetric, mixture, parse_composition,
+                            stoichiometry, state_relation, beta_pdf_table)
 from flarekit.semiempirical import Scenario, flame_box
 
-VAZAO = 12.6   #@param {type:"number"}
-sc = Scenario(PROPANE, mdot=VAZAO, T_j=311.0, mach=0.5, H=ALTURA, u_w=U_LES, T_inf=298.15, RH=0.5)
+COMBUSTIVEL = "gás de refinaria típico (FISPQ ex-RLAM)"   #@param ["gás de refinaria típico (FISPQ ex-RLAM)", "gás de tocha médio de refinaria (Emam 2015)", "rico em H2 (despressurização, hipotético)", "propano", "metano", "personalizado"]
+COMPOSICAO = "H2: 33, CH4: 29, C2H6: 15, C2H4: 10.5, C3H8: 1.5, C3H6: 1, nC4H10: 2.5, nC5H12: 0.5, N2: 3.5, CO2: 1.5, CO: 1.5, H2S: 0.5"  #@param {type:"string"}
+VAZAO = 12.6           #@param {type:"number"}
+CORRIGIR_XRAD = True   #@param {type:"boolean"}
+
+# COMPOSICAO (% molar) só vale com "personalizado". Espécies: H2, CH4, C2H6, C2H4, C3H8, C3H6, nC4H10,
+# iC4H10, C4H8, nC5H12, CO, CO2, N2, O2, H2O, H2S. Não há composição medida pública da REPLAN: o
+# padrão usa os pontos médios da FISPQ do "Gás Residual de Refinaria" da ex-RLAM (Acelen).
+# VAZAO [kg/s]: 12,6 kg/s desse gás ≈ 570 MW, chama de 30–50 m (API 521); alívios de emergência
+# podem ser bem maiores (ex.: 100 kg/s = 360 t/h).
+if COMBUSTIVEL in FLARE_GAS_PRESETS:
+    fuel = flare_gas(COMBUSTIVEL)
+elif COMBUSTIVEL == "personalizado":
+    fuel = mixture("gás personalizado", parse_composition(COMPOSICAO))
+else:
+    fuel = FUELS[COMBUSTIVEL]
+NOME_COMB = {"propano": "propano", "metano": "metano"}.get(COMBUSTIVEL, "gás de refinaria")
+sc = Scenario(fuel, mdot=VAZAO, T_j=311.0, mach=0.5, H=ALTURA, u_w=U_LES, T_inf=298.15, RH=0.5,
+              p_atm=P_LOCAL, xrad_comp=CORRIGIR_XRAD)
 tip, ch, ch0 = sc.tip, sc.cham, sc.cham0
-print(f"Tip: u_j = {tip['u_j']:.1f} m/s · d = {tip['d_j']:.3f} m · Q = {sc.Q/1e6:.0f} MW")
+print(fuel.describe())
+print(f"PCI = {lhv_volumetric(fuel)/1e6:.1f} MJ/Nm³ · Z_st = {sc.st['Z_st']:.4f} · "
+      f"correção de F_s pela composição = {sc.fs_factor:.3f}")
+print(f"Tip: u_j = {tip['u_j']:.1f} m/s (Mach 0,5) · d = {tip['d_j']:.3f} m · Q = {sc.Q/1e6:.0f} MW")
 print(f"API 521 (Beychok):      L = {sc.L_api:5.1f} m")
 print(f"Chamberlain, sem vento: L = {ch0.L_b:5.1f} m")
 print(f"Chamberlain, {sc.u_w:.1f} m/s: L = {ch.L_b:5.1f} m · α = {ch.alpha:4.1f}° · b = {ch.b:.1f} m · "
@@ -121,7 +150,7 @@ print(f"Chamberlain, {sc.u_w:.1f} m/s: L = {ch.L_b:5.1f} m · α = {ch.alpha:4.1
 THERMO = r"""
 #@title 3 · Termoquímica: equilíbrio em Z e tabela β-PDF
 st = sc.st
-sr = state_relation(PROPANE, sc.T_j, sc.T_inf, chi_loss=ch.F_s)   # perda radiativa = fração radiante
+sr = state_relation(fuel, sc.T_j, sc.T_inf, chi_loss=ch.F_s, p=sc.p_atm)   # perda radiativa = fração radiante
 tab = beta_pdf_table(sr, st["Z_st"])
 refs = sc.references(sr.T_ad_st)
 print(f"{sr.source} · Z_st = {st['Z_st']:.4f} · T_ad = {sr.T_ad_st:.0f} K")
@@ -154,7 +183,7 @@ cfg = LESConfig.for_flame(PRESET, box, H=sc.H, u_ref=U_LES, z0=clima.z0, mdot=sc
                           receiver_box=wind.receiver_box(sc, U_LES))   # receptores cobrem a zona de 1,58 kW/m²
 les = FlareLES(cfg, tab, sc.Q)
 print(les.summary())
-title = f"Flare de propano · {sc.Q/1e6:.0f} MW · LES 3D · {LOCAL}"
+title = f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW · LES 3D · {LOCAL}"
 dash_sub = (f"{les.summary()} · {wind_label} · perfil log z0 = {clima.z0:.2f} m · "
             f"Smagorinsky + Z̃/β-PDF (equilíbrio) + fuligem · média a partir de {T_AVG:.0f} s")
 rec = run_and_record(les, sc, title, T_END, T_AVG, FRAME_DT, LIVE_EVERY, dash_title=title, dash_sub=dash_sub,
@@ -201,14 +230,15 @@ VIDEO = r"""
 #@title 7 · Vídeo final: abertura, chama em zoom, painel, varredura do vento e resumos
 from IPython.display import Video
 AUTOR = ""            #@param {type:"string"}
+AVISO = "Cenário ilustrativo: local e clima de vento reais; composição e vazão de literatura aberta, não dados operacionais"  #@param {type:"string"}
 FPS = 30              #@param {type:"integer"}
 PAINEL_ACELERADO = 2  #@param {type:"integer"}
 sub_hero = f"LES 3D em {'GPU' if les.dev.type == 'cuda' else 'CPU'} · {wind_label} · {LOCAL}"
 fonte = serie.source.split(",")[0].split(" (")[0] if not serie.synthetic else "rosa sintética de exemplo"
 segs = [
-    render.render_title("v0_titulo.mp4", f"Flare de propano · {sc.Q/1e6:.0f} MW",
-                        f"LES 3D · vento: {fonte} · {LOCAL}", AUTOR, fps=FPS),
-    render.render_hero(rec, ch, "v1_chama.mp4", f"Flare de propano · {sc.Q/1e6:.0f} MW", sub_hero, fps=FPS),
+    render.render_title("v0_titulo.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW",
+                        f"LES 3D · vento: {fonte} · {LOCAL}", AUTOR, fps=FPS, note=AVISO),
+    render.render_hero(rec, ch, "v1_chama.mp4", f"Flare · {NOME_COMB} · {sc.Q/1e6:.0f} MW", sub_hero, fps=FPS),
     render.ZoomDashboard(rec, sc, ch, title, dash_sub, t_end=T_END).render("v2_painel.mp4", fps=FPS,
                                                                           every=PAINEL_ACELERADO),
     render.render_wind_sweep(clima, mapas, les_down, "v3_vento.mp4", U_LES,

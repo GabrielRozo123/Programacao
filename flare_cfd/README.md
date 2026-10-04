@@ -11,7 +11,7 @@ solução, varredura das 16 direções do vento com mapas de probabilidade de ex
 | Caminho | O que é |
 |---|---|
 | `flare_les_colab.ipynb` | Notebook do Colab, autocontido (o pacote é gravado por células `%%writefile`) |
-| `flarekit/props.py` | Estequiometria, equilíbrio em Z (Cantera), relação de estado da fuligem, tabela β-PDF |
+| `flarekit/props.py` | Combustível puro ou **mistura** (gás de refinaria: H₂, C1–C5, olefinas, CO, CO₂, N₂, H₂S), estequiometria, equilíbrio em Z (Cantera), relação de estado da fuligem, tabela β-PDF, pressão pela altitude |
 | `flarekit/semiempirical.py` | API 521 (fonte pontual), Chamberlain/Shell (1987) com fator de vista vetorial, Delichatsios, Heskestad, Molina, transmissividade (Wayne; Bagster–Pittblado) |
 | `flarekit/les.py` | LES 3D de baixo Mach em PyTorch: malha esticada, Poisson direto, Smagorinsky, Z̃ TVD, vento log, radiação no solo |
 | `flarekit/wind.py` | Clima de vento: Global Wind Atlas (clima generalizado WAsP `.lib`) → NASA POWER (MERRA-2, 10/50 m) → Open-Meteo (ERA5, 10/100 m) → rosa sintética; ajuste da lei log (z0), Weibull, rosa de 16 setores, rotação das pegadas e mapas P(q ≥ nível) |
@@ -31,6 +31,18 @@ local, latitude/longitude, altura do flare e rugosidade do terreno (z0). A célu
 (o log mostra o tempo de parede e os ms/passo; o preset `gpu` ainda não foi cronometrado numa T4) e grava
 os quadros em `flare_quadros.npz`. Na mesma sessão, a célula 7 pode ser refeita (outro FPS, outro corte)
 sem rodar a LES de novo; o `.npz` guarda os quadros para uso posterior com `render.Recorder.load`.
+
+**Caso padrão (REPLAN, ilustrativo).** Local: centro da REPLAN (22°43′42″ S, 47°07′54″ O), terreno a
+~600 m, tocha de 115 m e z0 = 0,5 m (valores de fontes abertas; confira com o projeto). Combustível: não
+há composição medida pública da REPLAN; o padrão usa os pontos médios das faixas da FISPQ "Gás Residual de
+Refinaria" da Refinaria de Mataripe (ex-RLAM, Acelen): H₂ 33 · CH₄ 29 · C₂H₆ 15 · C₂H₄ 10,5 · C₃H₈ 1,5 ·
+C₃H₆ 1 · n-C₄ 2,5 · n-C₅ 0,5 · N₂ 3,5 · CO₂ 1,5 · CO 1,5 · H₂S 0,5 % molar (M ≈ 17,9 g/mol,
+PCI ≈ 45 MJ/kg ≈ 35,9 MJ/Nm³). Também há a média de gás de tocha de Emam (2015), um caso hipotético rico em
+H₂ e composição personalizada. A fração radiante de Chamberlain (ajustada a gás natural) é corrigida pela
+composição com a tendência da tabela do API 521 (H₂ ≈ 0,7 ×, butano ≈ 1,25 × gás natural) — interpolação
+de engenharia, desligável. Com 12,6 kg/s (≈ 570 MW, chama de 30–50 m) e tocha de 115 m, nenhum nível do
+API 521 é atingido no solo; para alívios de emergência aumente a `VAZAO` (a malha da LES acompanha o
+tamanho da chama).
 
 Fluxo do notebook: vento do local → cenário e modelos de referência → termoquímica → LES 3D ao vivo →
 validação → varredura das direções (Chamberlain por setor × classe de velocidade) → vídeo
