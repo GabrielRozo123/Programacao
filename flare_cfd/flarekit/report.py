@@ -49,14 +49,14 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     ch = sc.cham if les.wind else sc.cham0
     fig = Figure(figsize=(16, 9), dpi=dpi, facecolor=BG)
     FigureCanvasAgg(fig)
-    gs = GridSpec(2, 3, figure=fig, left=0.045, right=0.985, top=0.86, bottom=0.07, hspace=0.32, wspace=0.32,
-                  width_ratios=[1.0, 1.15, 1.0])
+    gs = GridSpec(2, 3, figure=fig, left=0.06, right=0.985, top=0.86, bottom=0.06, hspace=0.34, wspace=0.30,
+                  height_ratios=[1.2, 1.0])
     fig.text(0.045, 0.952, title, color=FG, fontsize=17, fontweight="bold")
     fig.text(0.045, 0.918, f"Médias de {les.avg_n:.0f} quadros (t ≥ início da média) · {les.summary()}",
              color=MUTED, fontsize=10.5)
 
     # temperatura média + chama média (intermitência 0,5) + Chamberlain
-    ax = fig.add_subplot(gs[:, 0])
+    ax = fig.add_subplot(gs[0, 0])
     _style(ax, "Temperatura média (máx. em y) e chama média (I = 0,5)")
     Tm = (les.avg_T / les.avg_n).max(1).values.float().cpu().numpy()
     Im = (les.avg_I / les.avg_n).max(1).values.float().cpu().numpy()
@@ -69,7 +69,7 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     ax.add_patch(Rectangle((-0.6, 0), 1.2, les.tip[2], color="#5c6773"))
     ax.set_xlim(-15, 75); ax.set_ylim(0, 75); ax.set_aspect("equal")
     ax.set_xlabel("x [m]"); ax.set_ylabel("z [m]")
-    ax.legend(fontsize=9, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper right")
+    ax.legend(fontsize=8.5, facecolor=PANEL, edgecolor=GRID, labelcolor=FG, loc="upper left")
     cb = fig.colorbar(m, ax=ax, fraction=0.04, pad=0.01)
     cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
 
@@ -91,7 +91,7 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     zones = safety.zone_extents(qm, les.rec_x, les.rec_y)
 
     # validação
-    ax = fig.add_subplot(gs[1, 1])
+    ax = fig.add_subplot(gs[1, 0])
     _style(ax, "Validação (LES vs. modelos de referência)")
     rows = validation_rows(les, sc, refs)
     short = {"Comprimento da chama L [m]": "L chama [m]", "Inclinação da chama [°]": "Inclinação [°]",
@@ -109,17 +109,21 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
     ax.grid(color=GRID, lw=0.5, axis="x")
 
     # segurança no ponto mais exposto
-    ax = fig.add_subplot(gs[1, 2])
-    ax.set_facecolor(PANEL); ax.set_xticks([]); ax.set_yticks([])
-    for s in ax.spines.values():
-        s.set_color(GRID)
+    def text_box(cell, lines):
+        ax = fig.add_subplot(cell)
+        ax.set_facecolor(PANEL); ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_color(GRID)
+        ax.text(0.05, 0.95, "\n".join(lines), transform=ax.transAxes, va="top", color=FG, fontsize=9.5,
+                family="monospace", linespacing=1.5)
+
     i, j = np.unravel_index(np.argmax(qm), qm.shape)
     xq, yq, q0 = les.rec_x[i], les.rec_y[j], qm[i, j]
     center = se.flame_center_chamberlain(ch, les.tip)
     r0 = float(np.linalg.norm(center - np.array([xq, yq, les.cfg.receiver_z])))
     d1 = safety.dose_escape(q0 * 1e3, r0, 5.0, 2.5)
     d2 = safety.dose_escape(q0 * 1e3, r0, 30.0, 2.5)
-    lines = [
+    text_box(gs[1, 1], [
         "PONTO MAIS EXPOSTO NO SOLO",
         f"x = {xq:.0f} m, y = {yq:.0f} m: q = {q0:.2f} kW/m²",
         f"T aço exposto (regime): {safety.steel_temperature(q0 * 1e3):.0f} °C",
@@ -132,14 +136,13 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
         f"   1º grau {100 * d2['queimadura 1º grau (Tsao & Perry)']:5.1f}%"
         f"  2º grau {100 * d2['queimadura 2º grau (Tsao & Perry)']:5.2f}%",
         f"   fatal (TNO) {100 * d2['fatalidade (TNO Green Book)']:5.2f}%",
-        "",
-        "ZONAS API 521     área [m²]  alcance [m]",
-    ] + [f"{z['nivel_kW_m2']:5.2f} kW/m²  {'≥' if z.get('truncado') else ' '}{z['area_m2']:8.0f}  "
-         f"{'≥' if z.get('truncado') else ' '}{z['raio_max_m']:8.0f}" for z in zones]
+    ])
+    zl = ["ZONAS API 521 (LES, média)", "", "nível       área [m²]  alcance [m]"]
+    zl += [f"{z['nivel_kW_m2']:5.2f} kW/m² {'≥' if z.get('truncado') else ' '}{z['area_m2']:8.0f}"
+           f"   {'≥' if z.get('truncado') else ' '}{z['raio_max_m']:6.0f}" for z in zones]
     if any(z.get("truncado") for z in zones):
-        lines.append("≥: zona passa da grade de receptores")
-    ax.text(0.04, 0.96, "\n".join(lines), transform=ax.transAxes, va="top", color=FG, fontsize=9,
-            family="monospace", linespacing=1.5)
+        zl += ["", "≥: a zona passa da grade de", "   receptores (limite inferior)"]
+    text_box(gs[1, 2], zl)
     fig.savefig(path, dpi=dpi, facecolor=BG)
     return fig, rows, zones
 

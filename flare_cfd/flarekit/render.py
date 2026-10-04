@@ -27,7 +27,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
-from scipy.ndimage import map_coordinates
+from scipy.ndimage import gaussian_filter, map_coordinates
 
 from . import semiempirical as se
 from .dashboard import API_LEVELS, BG, CHAM_C, FG, GRID, LES_C, MUTED, PANEL, PT_C, _style, frustum_outline_xz
@@ -39,6 +39,12 @@ W, H_PX, DPI = 16, 9, 120
 
 
 # ===================================================================== gravação
+def _f16(a):
+    """float16 sem estouro (máx. 65504): nos primeiros instantes a emissão normalizada por X_rad·Q fica
+    concentrada em poucas células e a luminosidade projetada pode passar desse limite."""
+    return np.clip(np.asarray(a, np.float32), -6.5e4, 6.5e4).astype(np.float16)
+
+
 class Recorder:
     """Guarda os quadros da LES (float16) e os resultados médios finais."""
 
@@ -66,8 +72,8 @@ class Recorder:
         h = les.history
         self.frames.append(dict(
             t=les.time, step=les.step_n, dt=les.dt, cfl=les._last_cfl, wall=les.wall,
-            lum=lum.astype(np.float16), zp=zp.astype(np.float16), q=qg.astype(np.float16),
-            qmean=None if qmean is None else qmean.astype(np.float16), averaging=averaging,
+            lum=_f16(lum), zp=_f16(zp), q=_f16(qg),
+            qmean=None if qmean is None else _f16(qmean), averaging=averaging,
             L=h["L"][-1], tilt=h["tilt"][-1], Lmean=les.mean_flame_length(), tiltmean=les.mean_tilt()))
 
     def finalize(self, les):
@@ -114,8 +120,10 @@ class Recorder:
 
 
 # ===================================================================== utilidades
-def flame_view(rec: Recorder, ch: se.Chamberlain, pad: float = 6.0, aspect: float = 16 / 9):
-    """Janela de zoom em volta da chama: une o frustum de Chamberlain e o envelope médio da LES."""
+def flame_view(rec: Recorder, ch: se.Chamberlain, pad: float = 6.0, aspect: float = 16 / 9,
+               with_model: bool = True):
+    """Janela de zoom em volta da chama: envelope médio da LES (I ≥ 0,2), unido ao frustum de Chamberlain
+    quando with_model (painéis que desenham o frustum)."""
     s = rec.static
     fr = frustum_outline_xz(ch, s["tip"])
     xs, zs = list(fr[:, 0]), list(fr[:, 1])
@@ -123,11 +131,14 @@ def flame_view(rec: Recorder, ch: se.Chamberlain, pad: float = 6.0, aspect: floa
     if Ip is not None:
         m = Ip >= 0.2
         if m.any():
+            if not with_model:
+                xs, zs = [0.0], [float(s["tip"][2])]
             ii, kk = np.nonzero(m)
             xs += [s["xc"][ii].min(), s["xc"][ii].max()]
             zs += [s["zc"][kk].min(), s["zc"][kk].max()]
     x0, x1 = min(xs) - pad, max(xs) + pad
     z0, z1 = min(zs) - pad, max(zs) + pad
+    z1 += 0.15 * (z1 - z0)                          # folga no topo para título e relógio
     z0 = max(z0, s["tip"][2] - 0.45 * (z1 - z0))   # mostra um pedaço da chaminé
     cx, cz, w, h = 0.5 * (x0 + x1), 0.5 * (z0 + z1), x1 - x0, z1 - z0
     if w / h < aspect:
@@ -140,8 +151,9 @@ def flame_view(rec: Recorder, ch: se.Chamberlain, pad: float = 6.0, aspect: floa
 class Resampler:
     """Reamostra campos (nx, nz) da malha esticada para uma grade uniforme (zoom suave)."""
 
-    def __init__(self, xc, zc, view, nx_out=960, nz_out=540):
-        x0, x1, z0, z1 = view
+    def __init__(self, xc, zc, view, nx_out=960, nz_out=540, smooth=0.7):
+        self.smooth = smooth   # filtro gaussiano (em células) antes da interpolação bilinear: suaviza os
+        x0, x1, z0, z1 = view  # degraus de célula no zoom sem o "ringing" de uma spline cúbica
         self.xs = np.linspace(x0, x1, nx_out)
         self.zs = np.linspace(z0, z1, nz_out)
         ix = np.interp(self.xs, xc, np.arange(len(xc)))
@@ -152,7 +164,10 @@ class Resampler:
         self.inside_z = (self.zs >= zc[0]) & (self.zs <= zc[-1])
 
     def __call__(self, f):
-        out = map_coordinates(np.asarray(f, dtype=np.float32), self.coords, order=1, mode="nearest")
+        f = np.asarray(f, dtype=np.float32)
+        if self.smooth:
+            f = gaussian_filter(f, self.smooth, mode="nearest")
+        out = map_coordinates(f, self.coords, order=1, mode="nearest")
         out[~self.inside_x, :] = 0.0
         out[:, ~self.inside_z] = 0.0
         return out
@@ -165,6 +180,7 @@ class LumNorm:
         self.hist, self.window = [], window
 
     def __call__(self, img):
+        img = np.nan_to_num(np.asarray(img, np.float32), nan=0.0, posinf=0.0, neginf=0.0)
         self.hist.append(float(np.percentile(img, 99.7)))
         v = max(np.median(self.hist[-self.window:]), 1e-9)
         return np.clip(img / v, 0.0, 1.0)
@@ -175,6 +191,14 @@ def _writer(fig, path, fps):
                      extra_args=["-pix_fmt", "yuv420p", "-preset", "medium", "-crf", "16"])
     w.setup(fig, path, dpi=DPI)
     return w
+
+
+def _fit_text(fig, txt, max_frac: float, min_size: float = 7.0):
+    """Reduz a fonte de um texto até caber em max_frac da largura da figura."""
+    r = fig.canvas.get_renderer()
+    while txt.get_fontsize() > min_size and txt.get_window_extent(r).width > max_frac * fig.bbox.width:
+        txt.set_fontsize(txt.get_fontsize() - 0.5)
+    return txt
 
 
 def _new_fig():
@@ -208,7 +232,7 @@ def render_hero(rec: Recorder, ch: se.Chamberlain, path: str, title: str, subtit
                 every: int = 1, view=None):
     """Chama em tela cheia, ampliada: vista lateral da emissão luminosa da LES."""
     s = rec.static
-    view = view or flame_view(rec, ch)
+    view = view or flame_view(rec, ch, pad=4.0, with_model=False)   # zoom só na chama da LES
     rs = Resampler(s["xc"], s["zc"], view)
     norm = LumNorm()
     fig = _new_fig()
@@ -229,8 +253,8 @@ def render_hero(rec: Recorder, ch: se.Chamberlain, path: str, title: str, subtit
     fig.text(0.97, 0.03, "LES 3D · emissão luminosa integrada na linha de visada (câmera sintética)",
              color=MUTED, fontsize=12, ha="right")
     # barra de escala de 10 m
-    sb_x = view[0] + 0.04 * (view[1] - view[0])
-    sb_z = view[2] + 0.05 * (view[3] - view[2])
+    sb_x = view[1] - 0.03 * (view[1] - view[0]) - 10.0     # canto inferior direito, longe da chaminé
+    sb_z = view[2] + 0.09 * (view[3] - view[2])
     ax.plot([sb_x, sb_x + 10], [sb_z, sb_z], color=FG, lw=3, zorder=6)
     ax.text(sb_x + 5, sb_z + 0.02 * (view[3] - view[2]), "10 m", color=FG, fontsize=13, ha="center", zorder=6)
     w = _writer(fig, path, fps)
@@ -261,7 +285,7 @@ class ZoomDashboard:
         self.ax_l = fig.add_subplot(gs[1, 2])
         self.ax_t = fig.add_subplot(gs[2, 2])
         fig.text(0.035, 0.955, title, color=FG, fontsize=18, fontweight="bold")
-        fig.text(0.035, 0.918, subtitle, color=MUTED, fontsize=11)
+        _fit_text(fig, fig.text(0.035, 0.918, subtitle, color=MUTED, fontsize=11), 0.95)
         self.clock = fig.text(0.985, 0.95, "", color=LES_C, fontsize=22, ha="right", family="monospace",
                               fontweight="bold")
         # chama

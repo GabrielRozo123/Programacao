@@ -454,14 +454,18 @@ def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API
 
 
 def receiver_box(sc: se.Scenario, U: float, level: float = 1.58, margin: float = 15.0) -> tuple:
-    """(x0, x1, y_meia) que cobre a zona q ≥ level de Chamberlain no referencial a jusante, com folga:
-    use em LESConfig(receiver_box=...) para a grade de receptores da LES não cortar a zona."""
+    """(x0, x1, y_meia) que cobre a zona q ≥ level no referencial a jusante, com folga: união da zona
+    de Chamberlain com a da fonte pontual do API 521 (mais conservadora a barlavento, onde a chama curta
+    da LES irradia mais que o frustum). Use em LESConfig(receiver_box=...) para não cortar a zona."""
     R = max(60.0, 3.5 * sc.H + sc.cham.L_b)
-    x, q, _ = downwind_footprint(sc, U, R, 2 * int(R / 3.0) + 1)
-    m = q >= level
+    x, q, ch = downwind_footprint(sc, U, R, 2 * int(R / 3.0) + 1)
+    X, Y = np.meshgrid(x, x, indexing="ij")
+    c = se.flame_center_chamberlain(ch, sc.tip_xyz)
+    rec = np.stack([X.ravel(), Y.ravel(), np.full(X.size, 1.5)], 1)
+    qp = se.q_point_source(rec, c, ch.F_s, sc.Q, sc.T_inf, sc.RH).reshape(X.shape) / 1e3
+    m = (q >= level) | (qp >= level)
     if not m.any():
         return (-margin, margin, margin)
-    X, Y = np.meshgrid(x, x, indexing="ij")
     return (float(X[m].min() - margin), float(X[m].max() + margin), float(np.abs(Y[m]).max() + margin))
 
 
