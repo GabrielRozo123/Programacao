@@ -49,7 +49,8 @@ def steel_temperature(q_inc_W: float, T_inf: float = 298.15, alpha: float = 0.9,
 
 
 def zone_extents(q_kW: np.ndarray, rec_x: np.ndarray, rec_y: np.ndarray, stack=(0.0, 0.0)) -> list[dict]:
-    """Para cada nível do API 521: área no solo e distância máxima a partir do pé do flare."""
+    """Para cada nível do API 521: área no solo e distância máxima a partir do pé do flare
+    ("truncado" = a zona chega à borda da grade de receptores; os valores são limites inferiores)."""
     dx = float(rec_x[1] - rec_x[0]) if len(rec_x) > 1 else 1.0
     dy = float(rec_y[1] - rec_y[0]) if len(rec_y) > 1 else 1.0
     RX, RY = np.meshgrid(rec_x, rec_y, indexing="ij")
@@ -57,7 +58,9 @@ def zone_extents(q_kW: np.ndarray, rec_x: np.ndarray, rec_y: np.ndarray, stack=(
     out = []
     for lev, desc in API_521:
         m = q_kW >= lev
-        out.append({"nivel_kW_m2": lev, "descricao": desc, "area_m2": float(m.sum() * dx * dy),
+        # zona encostando na borda dos receptores: área e alcance são só limites inferiores
+        trunc = bool(m.any() and (m[0].any() or m[-1].any() or m[:, 0].any() or m[:, -1].any()))
+        out.append({"nivel_kW_m2": lev, "descricao": desc, "area_m2": float(m.sum() * dx * dy), "truncado": trunc,
                     "raio_max_m": float(R[m].max()) if m.any() else 0.0,
                     "x_min_m": float(RX[m].min()) if m.any() else float("nan"),
                     "x_max_m": float(RX[m].max()) if m.any() else float("nan")})

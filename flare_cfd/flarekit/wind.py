@@ -394,42 +394,75 @@ def rotate_to_site(xd: np.ndarray, yd: np.ndarray, q_down: np.ndarray, grid: Sit
     return out
 
 
-def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API_LEVELS, sub: int = 3):
+def exceedance_maps(sc: se.Scenario, cl: WindClimate, grid: SiteGrid, levels=API_LEVELS, sub: int = 3,
+                    q_solar: float = 0.0):
     """Probabilidade (dado que o flare queima) de cada ponto exceder cada nível, ponderada pela rosa
-    dos ventos, e envoltória (máximo sobre todas as condições com frequência > 0).
+    dos ventos, e envoltória (máximo sobre as condições com frequência > 0).
 
-    Cada setor é dividido em `sub` subdireções (evita mapas em raios). Calmaria → chama vertical."""
+    Cada setor é dividido em `sub` subdireções (evita mapas em raios). Calmaria → chama vertical.
+    P usa a velocidade média de cada classe; a envoltória inclui também a maior velocidade observada
+    (o fluxo máximo cresce com o vento, e a média da classe mais alta subestimaria o pior caso).
+    q_solar [kW/m²] é somado ao fluxo do flare quando o critério é de radiação total (0 = só o flare)."""
     R = max(abs(grid.E).max(), abs(grid.N).max()) * 1.45
     nd = 2 * int(R / 3.0) + 1
     P = {L: np.zeros((len(grid.E), len(grid.N))) for L in levels}
     Psec = {L: np.zeros((16, len(grid.E), len(grid.N))) for L in levels}
     env = np.zeros((len(grid.E), len(grid.N)))
     foot = {}
+
+    def subdirs(k):
+        return [22.5 * k + (j - (sub - 1) / 2) * 22.5 / sub for j in range(sub)]
+
     for b, U in enumerate(cl.bin_speed):
         if cl.freq[:, b].sum() <= 0:
             continue
         xd, qd, _ = downwind_footprint(sc, U, R, nd)
+        qd = qd + q_solar
         foot[b] = (xd, qd)
         for k in range(16):
             f = cl.freq[k, b]
             if f <= 0:
                 continue
-            for j in range(sub):
-                th = 22.5 * k + (j - (sub - 1) / 2) * 22.5 / sub
+            for th in subdirs(k):
                 q = rotate_to_site(xd, xd, qd, grid, th)
                 for L in levels:
                     hit = (f / sub) * (q >= L)
                     P[L] += hit
                     Psec[L][k] += hit
                 env = np.maximum(env, q)
+    # pior caso: maior velocidade observada, nas direções em que a classe mais alta ocorre
+    top = [b for b in range(cl.freq.shape[1]) if cl.freq[:, b].sum() > 0]
+    U_max = float(np.max(cl.U_H)) if len(cl.U_H) else 0.0
+    if top and U_max > cl.bin_speed[top[-1]] + 0.1:
+        xd, qd, _ = downwind_footprint(sc, U_max, R, nd)
+        qd = qd + q_solar
+        foot["U_max"] = (xd, qd)
+        for k in range(16):
+            if cl.freq[k, top[-1]] > 0:
+                for th in subdirs(k):
+                    env = np.maximum(env, rotate_to_site(xd, xd, qd, grid, th))
     if cl.calm > 0:
         xd, qd, _ = downwind_footprint(sc, 0.0, R, nd)
+        qd = qd + q_solar
         q = rotate_to_site(xd, xd, qd, grid, 0.0)
         for L in levels:
             P[L] += cl.calm * (q >= L)
         env = np.maximum(env, q)
         foot["calm"] = (xd, qd)
-    return {"P": P, "P_sector": Psec, "envelope": env, "footprints": foot, "grid": grid}
+    return {"P": P, "P_sector": Psec, "envelope": env, "footprints": foot, "grid": grid, "q_solar": q_solar,
+            "U_max": U_max}
+
+
+def receiver_box(sc: se.Scenario, U: float, level: float = 1.58, margin: float = 15.0) -> tuple:
+    """(x0, x1, y_meia) que cobre a zona q ≥ level de Chamberlain no referencial a jusante, com folga:
+    use em LESConfig(receiver_box=...) para a grade de receptores da LES não cortar a zona."""
+    R = max(60.0, 3.5 * sc.H + sc.cham.L_b)
+    x, q, _ = downwind_footprint(sc, U, R, 2 * int(R / 3.0) + 1)
+    m = q >= level
+    if not m.any():
+        return (-margin, margin, margin)
+    X, Y = np.meshgrid(x, x, indexing="ij")
+    return (float(X[m].min() - margin), float(X[m].max() + margin), float(np.abs(Y[m]).max() + margin))
 
 
 def les_footprint_downwind(rec_x, rec_y, q_les, sc: se.Scenario, U: float, R: float, n: int,

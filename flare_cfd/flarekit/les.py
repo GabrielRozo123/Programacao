@@ -120,6 +120,7 @@ class LESConfig:
     # radiação no solo
     receiver_dx: float = 3.0
     receiver_z: float = 1.5
+    receiver_box: tuple | None = None   # (x0, x1, y_meia) extra coberto por receptores, além do domínio
     emitter_bin: float = 1.5   # agrupa emissores em blocos deste tamanho [m]
     device: str = "auto"
     seed: int = 0
@@ -138,6 +139,9 @@ class LESConfig:
         if name == "teste":
             dom.update(x_range=(min(-24.0, x0 - 15.0), max(60.0, x1 + 30.0)), y_range=(-21.0, 21.0),
                        z_top=max(75.0, H + z1 + 15.0))
+        elif name == "cpu":   # domínio menor que o da GPU (mesma lógica, folgas reduzidas)
+            dom.update(x_range=(min(-30.0, x0 - 15.0), max(100.0, x1 + 60.0)),
+                       y_range=(-max(32.0, yh + 20.0), max(32.0, yh + 20.0)), z_top=max(90.0, H + z1 + 30.0))
         dom.update(kw)
         return LESConfig.preset(name, **dom)
 
@@ -255,8 +259,14 @@ class FlareLES:
         self._poisson_setup()
 
         # ---- receptores no solo
-        rx = np.arange(self.xf[0] + cfg.receiver_dx / 2, self.xf[-1], cfg.receiver_dx)
-        ry = np.arange(self.yf[0] + cfg.receiver_dx / 2, self.yf[-1], cfg.receiver_dx)
+        # (os receptores são só pontos de avaliação: podem ir além do domínio do escoamento para cobrir
+        # toda a zona de 1,58 kW/m²)
+        rx0, rx1, ry0, ry1 = self.xf[0], self.xf[-1], self.yf[0], self.yf[-1]
+        if cfg.receiver_box is not None:
+            bx0, bx1, byh = cfg.receiver_box
+            rx0, rx1, ry0, ry1 = min(rx0, bx0), max(rx1, bx1), min(ry0, -byh), max(ry1, byh)
+        rx = np.arange(rx0 + cfg.receiver_dx / 2, rx1, cfg.receiver_dx)
+        ry = np.arange(ry0 + cfg.receiver_dx / 2, ry1, cfg.receiver_dx)
         self.rec_x, self.rec_y = rx, ry
         RX, RY = np.meshgrid(rx, ry, indexing="ij")
         self.receivers = t(np.stack([RX, RY, np.full_like(RX, cfg.receiver_z)], -1).reshape(-1, 3))

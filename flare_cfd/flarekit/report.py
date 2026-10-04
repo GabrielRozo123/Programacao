@@ -134,7 +134,10 @@ def summary_figure(les, sc: se.Scenario, refs: dict, path: str, title: str, dpi:
         f"   fatal (TNO) {100 * d2['fatalidade (TNO Green Book)']:5.2f}%",
         "",
         "ZONAS API 521     área [m²]  alcance [m]",
-    ] + [f"{z['nivel_kW_m2']:5.2f} kW/m²  {z['area_m2']:9.0f}  {z['raio_max_m']:9.0f}" for z in zones]
+    ] + [f"{z['nivel_kW_m2']:5.2f} kW/m²  {'≥' if z.get('truncado') else ' '}{z['area_m2']:8.0f}  "
+         f"{'≥' if z.get('truncado') else ' '}{z['raio_max_m']:8.0f}" for z in zones]
+    if any(z.get("truncado") for z in zones):
+        lines.append("≥: zona passa da grade de receptores")
     ax.text(0.04, 0.96, "\n".join(lines), transform=ax.transAxes, va="top", color=FG, fontsize=9,
             family="monospace", linespacing=1.5)
     fig.savefig(path, dpi=dpi, facecolor=BG)

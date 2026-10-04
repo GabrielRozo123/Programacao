@@ -88,3 +88,15 @@ def test_short_run_stable(table):
         les.step()
     T, e, mask, q = les.diagnostics(True)
     assert torch.isfinite(T).all() and mask.any() and q.max().item() > 0
+
+
+def test_zone_extents_flags_truncation():
+    from flarekit import safety
+    x = np.arange(-30.0, 31.0, 3.0)
+    X, Y = np.meshgrid(x, x, indexing="ij")
+    q = 12.0 * np.exp(-(X ** 2 + Y ** 2) / 400.0)       # q ≥ 1,58 até r ≈ 28 m: cabe na grade
+    z = {d["nivel_kW_m2"]: d for d in safety.zone_extents(q, x, x)}
+    assert not z[1.58]["truncado"] and not z[9.46]["truncado"]
+    q2 = 12.0 * np.exp(-(X ** 2 + Y ** 2) / 4000.0)     # zona maior que a grade
+    z2 = {d["nivel_kW_m2"]: d for d in safety.zone_extents(q2, x, x)}
+    assert z2[1.58]["truncado"]

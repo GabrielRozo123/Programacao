@@ -80,6 +80,8 @@ if serie.synthetic:
 U_LES, TH_LES = clima.design_wind(MODO_VENTO_LES)
 SETOR = wind.sector_name(TH_LES)
 wind_label = f"vento de {SETOR} · {U_LES:.1f} m/s a {ALTURA:.0f} m"
+if serie.synthetic:
+    wind_label += " (rosa sintética)"
 print(f"\nLES: {wind_label} (modo {MODO_VENTO_LES})")
 
 fig = plt.figure(figsize=(12, 4.2))
@@ -148,7 +150,8 @@ LIVE_EVERY = 5      #@param {type:"integer"}
 
 box = flame_box(ch, sc.H)          # malha fina ajustada à chama prevista por Chamberlain
 cfg = LESConfig.for_flame(PRESET, box, H=sc.H, u_ref=U_LES, z0=clima.z0, mdot=sc.mdot, u_jet=tip["u_j"],
-                          X_rad=ch.F_s, T_inf=sc.T_inf, RH=sc.RH)
+                          X_rad=ch.F_s, T_inf=sc.T_inf, RH=sc.RH,
+                          receiver_box=wind.receiver_box(sc, U_LES))   # receptores cobrem a zona de 1,58 kW/m²
 les = FlareLES(cfg, tab, sc.Q)
 print(les.summary())
 title = f"Flare de propano · {sc.Q/1e6:.0f} MW · LES 3D · {LOCAL}"
@@ -168,16 +171,21 @@ fig, rows, zones = summary_figure(les, sc, refs, "flare_resumo.png", title)
 print_validation(rows)
 print()
 for zz in zones:
-    print(f"{zz['nivel_kW_m2']:5.2f} kW/m² · área {zz['area_m2']:7.0f} m² · alcance {zz['raio_max_m']:5.0f} m · {zz['descricao']}")
+    ge = "≥" if zz["truncado"] else ""   # zona chega à borda da grade de receptores
+    print(f"{zz['nivel_kW_m2']:5.2f} kW/m² · área {ge}{zz['area_m2']:7.0f} m² · alcance {ge}{zz['raio_max_m']:5.0f} m"
+          f" · {zz['descricao']}")
 display(Image("flare_resumo.png"))
 """
 
 SWEEP = r"""
 #@title 6 · Varredura das direções: probabilidade de excedência e envoltória
 from flarekit import render
-RAIO_MAPA = 150.0    #@param {type:"number"}
+RAIO_MAPA = 150.0       #@param {type:"number"}
+RADIACAO_SOLAR = 0.0    #@param {type:"number"}
+# RADIACAO_SOLAR [kW/m²]: some a solar (~0,8–1,0) se o critério adotado for de radiação TOTAL;
+# 0 compara os níveis do API 521 só com a radiação do flare (confira a edição/critério usado)
 grid = wind.SiteGrid.square(RAIO_MAPA, 121)
-mapas = wind.exceedance_maps(sc, clima, grid)            # Chamberlain por classe de velocidade × setor
+mapas = wind.exceedance_maps(sc, clima, grid, q_solar=RADIACAO_SOLAR)   # Chamberlain por classe × setor
 R_dw = RAIO_MAPA * 1.45
 les_down = wind.les_footprint_downwind(les.rec_x, les.rec_y, rec.final["q_mean"], sc, U_LES, R_dw,
                                        2 * int(R_dw / 2.0) + 1)
@@ -195,10 +203,11 @@ from IPython.display import Video
 AUTOR = ""            #@param {type:"string"}
 FPS = 30              #@param {type:"integer"}
 PAINEL_ACELERADO = 2  #@param {type:"integer"}
-sub_hero = f"LES 3D em GPU · {wind_label} · {LOCAL}"
+sub_hero = f"LES 3D em {'GPU' if les.dev.type == 'cuda' else 'CPU'} · {wind_label} · {LOCAL}"
+fonte = serie.source.split(",")[0].split(" (")[0] if not serie.synthetic else "rosa sintética de exemplo"
 segs = [
     render.render_title("v0_titulo.mp4", f"Flare de propano · {sc.Q/1e6:.0f} MW",
-                        f"LES 3D · vento do atlas eólico · {LOCAL}", AUTOR, fps=FPS),
+                        f"LES 3D · vento: {fonte} · {LOCAL}", AUTOR, fps=FPS),
     render.render_hero(rec, ch, "v1_chama.mp4", f"Flare de propano · {sc.Q/1e6:.0f} MW", sub_hero, fps=FPS),
     render.ZoomDashboard(rec, sc, ch, title, dash_sub, t_end=T_END).render("v2_painel.mp4", fps=FPS,
                                                                           every=PAINEL_ACELERADO),

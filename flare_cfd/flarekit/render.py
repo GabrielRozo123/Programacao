@@ -98,13 +98,14 @@ class Recorder:
         d = np.load(path, allow_pickle=False)
         rec = cls.__new__(cls)
         rec.static = {k[2:]: (d[k].item() if d[k].ndim == 0 else d[k]) for k in d.files if k.startswith("s_")}
-        n = len(d["f_t"])
+        A = {k: d[f"f_{k}"] for k in ("t", "step", "dt", "cfl", "wall", "L", "tilt", "Lmean", "tiltmean",
+                                       "averaging", "lum", "zp", "q", "qmean")}   # descomprime uma vez só
         rec.frames = []
-        for i in range(n):
-            f = {k: float(d[f"f_{k}"][i]) for k in ("t", "step", "dt", "cfl", "wall", "L", "tilt", "Lmean", "tiltmean")}
-            f["averaging"] = bool(d["f_averaging"][i])
-            f["lum"], f["zp"], f["q"] = d["f_lum"][i], d["f_zp"][i], d["f_q"][i]
-            qm = d["f_qmean"][i]
+        for i in range(len(A["t"])):
+            f = {k: float(A[k][i]) for k in ("t", "step", "dt", "cfl", "wall", "L", "tilt", "Lmean", "tiltmean")}
+            f["averaging"] = bool(A["averaging"][i])
+            f["lum"], f["zp"], f["q"] = A["lum"][i], A["zp"][i], A["q"][i]
+            qm = A["qmean"][i]
             f["qmean"] = None if np.isnan(qm.astype(float)).all() else qm
             rec.frames.append(f)
         rec.final = {k[2:]: (d[k].item() if d[k].ndim == 0 else d[k]) for k in d.files if k.startswith("r_")}
@@ -288,6 +289,10 @@ class ZoomDashboard:
         q0 = rec.frames[0]["q"].astype(float)
         self.qmesh = ax.pcolormesh(s["rec_x"], s["rec_y"], q0.T, cmap="magma",
                                    norm=mcolors.PowerNorm(0.6, 0, 10), shading="nearest", rasterized=True)
+        cb = fig.colorbar(self.qmesh, ax=ax, pad=0.01, fraction=0.04)
+        cb.ax.tick_params(colors=MUTED, labelsize=8); cb.outline.set_edgecolor(GRID)
+        for lev, c in API_LEVELS:                       # níveis do API 521 marcados na barra de cores
+            cb.ax.axhline(lev, color=c, lw=2)
         ax.plot([0], [0], marker="^", color="white", ms=7, mec="black", zorder=5)
         ax.set_aspect("equal"); ax.set_xlabel("x [m]"); ax.set_ylabel("y [m]")
         self.qc = None
@@ -415,25 +420,30 @@ def run_and_record(les, sc: se.Scenario, title: str, t_end: float, t_avg: float,
         from IPython.display import Image, display
     except ImportError:
         display = None
-    while les.time < t_end:
-        les.step()
-        if les.time >= next_frame:
-            averaging = les.time >= t_avg
-            T, e, mask, q = les.diagnostics(averaging)
-            rec.snap(les, e, q, averaging)
-            next_frame += frame_dt
-            n = len(rec.frames)
-            if live_every and n % live_every == 0 and display is not None:
-                if dash is None:
-                    dash = ZoomDashboard(rec, sc, ch, dash_title or title, dash_sub, t_end=t_end)
-                img = Image(data=dash.png(n - 1), format="jpeg")
-                if handle is None:
-                    handle = display(img, display_id=True)
-                else:
-                    handle.update(img)
-            if log_every and n % log_every == 0:
-                print(f"t = {les.time:6.2f} s · L = {les.history['L'][-1]:5.1f} m · "
-                      f"{les.wall / les.step_n * 1e3:5.0f} ms/passo", flush=True)
+    try:
+        while les.time < t_end:
+            les.step()
+            if les.time >= next_frame:
+                averaging = les.time >= t_avg
+                T, e, mask, q = les.diagnostics(averaging)
+                rec.snap(les, e, q, averaging)
+                next_frame += frame_dt
+                n = len(rec.frames)
+                if live_every and n % live_every == 0 and display is not None:
+                    if dash is None:
+                        dash = ZoomDashboard(rec, sc, ch, dash_title or title, dash_sub, t_end=t_end)
+                    img = Image(data=dash.png(n - 1), format="jpeg")
+                    if handle is None:
+                        handle = display(img, display_id=True)
+                    else:
+                        handle.update(img)
+                if log_every and n % log_every == 0:
+                    print(f"t = {les.time:6.2f} s · L = {les.history['L'][-1]:5.1f} m · "
+                          f"{les.wall / les.step_n * 1e3:5.0f} ms/passo", flush=True)
+    except (KeyboardInterrupt, FloatingPointError, RuntimeError) as exc:
+        # interrompido (ou divergiu): mantém os quadros já gravados para o vídeo
+        print(f"LES interrompida em t = {les.time:.1f} s ({type(exc).__name__}: {exc}); seguindo com "
+              f"{len(rec.frames)} quadros", flush=True)
     rec.finalize(les)
     return rec
 
@@ -534,15 +544,17 @@ def render_wind_sweep(cl, maps, les_down, path: str, U_les: float, title: str, l
     n = int(seconds * fps)
     for i in range(n + int(hold * fps)):
         theta = 360.0 * min(i, n - 1) / n
-        k = int(((theta % 360) + 11.25) // 22.5) % 16
+        kr = int((theta + 11.25) // 22.5)          # sem "dar a volta": controla o acúmulo
+        k = kr % 16
         q = rotate_to_site(xd, xd, qd, grid, theta)
         m1.set_array(q.T.ravel())
         if cont[0] is not None:
             cont[0].remove()
-        lv = [(L, c) for L, c in API_LEVELS if L < q.max()]
+        qs = float(maps.get("q_solar", 0.0))      # mesmo critério dos mapas de probabilidade
+        lv = [(L - qs, c) for L, c in API_LEVELS if 0 < L - qs < q.max()]
         cont[0] = ax_f.contour(grid.E, grid.N, q.T, levels=[L for L, _ in lv], colors=[c for _, c in lv],
                                linewidths=1.5) if lv else None
-        done = 16 if i >= n else k + 1
+        done = 16 if i >= n else min(16, kr + 1)
         Pacc = 100 * Psec[:done].sum(0)
         m2.set_array(np.ma.masked_less(Pacc, 0.05).T.ravel())
         if cont[1] is not None:
@@ -631,10 +643,14 @@ def risk_summary_figure(cl, maps, sc, path: str, title: str):
         cell.set_edgecolor(GRID)
         cell.set_facecolor(PANEL if r else "#1d2733")
         cell.get_text().set_color(API_LEVELS[r - 1][1] if (c == 0 and r) else FG)
+    qs = float(maps.get("q_solar", 0.0))
+    crit = (f"com a radiação do flare + {qs:.2f} kW/m² de solar" if qs > 0
+            else "só com a radiação do flare (sem solar)")
     ax.text(0.58, 0.5, "Alcance máximo (a partir da base do flare) em que o nível\n"
-            "é atingido: na pior direção (envoltória) e com probabilidade\n"
-            "≥ 1% / ≥ 10% do tempo de queima, ponderada pela rosa.\n"
-            "Níveis: API 521 (1,58 · 4,73 · 6,31 · 9,46 kW/m², com solar).",
+            "é atingido: na pior direção (envoltória, até a maior velocidade\n"
+            f"observada, {maps.get('U_max', 0.0):.1f} m/s) e com probabilidade ≥ 1% / ≥ 10% do\n"
+            "tempo de queima, ponderada pela rosa. Níveis do API 521\n"
+            f"comparados {crit}.",
             transform=ax.transAxes, color=MUTED, fontsize=9.5, va="center")
     fig.savefig(path, dpi=DPI, facecolor=BG)
     return rows

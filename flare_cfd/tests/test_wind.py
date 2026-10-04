@@ -94,3 +94,25 @@ def test_exceedance_bounds_and_sectors():
     assert np.all(maps["P"][1.58] + 1e-12 >= maps["P"][4.73])
     U, th = cl.design_wind("dominante_p90")
     assert wind.sector_name(th) == "SE" and U > 0
+
+
+def test_envelope_solar_and_receiver_box():
+    ser = wind.synthetic_series(-22.75, -47.15, n=3000)
+    cl = wind.WindClimate.from_series(ser, 30.0)
+    sc = se.Scenario(PROPANE, u_w=6.0)
+    g = wind.SiteGrid.square(60.0, 31)
+    base = wind.exceedance_maps(sc, cl, g)
+    # a envoltória inclui a maior velocidade observada (fluxo máximo cresce com o vento)
+    assert base["U_max"] == pytest.approx(float(cl.U_H.max()))
+    xd, q_top, _ = wind.downwind_footprint(sc, base["U_max"], 87.0, 59)
+    assert base["envelope"].max() >= 0.98 * q_top[np.abs(xd) <= 60.0][:, np.abs(xd) <= 60.0].max()
+    # somar a solar só pode aumentar P e a envoltória
+    sol = wind.exceedance_maps(sc, cl, g, q_solar=0.9)
+    assert np.all(sol["P"][1.58] + 1e-12 >= base["P"][1.58])
+    assert sol["envelope"] == pytest.approx(base["envelope"] + 0.9)
+    # a caixa de receptores contém a zona de 1,58 kW/m² de Chamberlain
+    x0, x1, yh = wind.receiver_box(sc, 6.0)
+    x, q, _ = wind.downwind_footprint(sc, 6.0, 150.0, 101)
+    X, Y = np.meshgrid(x, x, indexing="ij")
+    m = q >= 1.58
+    assert X[m].min() > x0 and X[m].max() < x1 and np.abs(Y[m]).max() < yh

@@ -29,7 +29,8 @@ solução, varredura das 16 direções do vento com mapas de probabilidade de ex
 No Colab: abra o notebook, escolha *Ambiente de execução → GPU T4* e execute tudo. Na célula 1, informe
 local, latitude/longitude, altura do flare e rugosidade do terreno (z0). A célula 4 roda 60 s de LES
 (o log mostra o tempo de parede e os ms/passo; o preset `gpu` ainda não foi cronometrado numa T4) e grava
-os quadros em `flare_quadros.npz`, de modo que o vídeo (célula 7) pode ser refeito sem rodar a LES de novo.
+os quadros em `flare_quadros.npz`. Na mesma sessão, a célula 7 pode ser refeita (outro FPS, outro corte)
+sem rodar a LES de novo; o `.npz` guarda os quadros para uso posterior com `render.Recorder.load`.
 
 Fluxo do notebook: vento do local → cenário e modelos de referência → termoquímica → LES 3D ao vivo →
 validação → varredura das direções (Chamberlain por setor × classe de velocidade) → vídeo
