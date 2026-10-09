@@ -302,7 +302,12 @@ class Reactor:
         self.state = [{"Y": dev(s["Y"]), "Z": dev(s["Z"]), "E": [dev(e) for e in s["E"]]} for s in d["state"]]
         if f.turb is not None and "k" in d:
             f.turb.k, f.turb.w, f.turb.nu_t, f.turb.u_tau = dev(d["k"]), dev(d["w_t"]), dev(d["nu_t"]), dev(d["u_tau"])
-        self._last_sc = self._energy_setup(SteadyScalar(f, *self.mean_uvw), self.T, hw=dev(d.get("hw")))
+        if d.get("hw") is None:
+            # estado de uma versão anterior, sem a condutância de parede usada: reconcilia temperatura e
+            # química com a condutância recalculada (duas passadas de Picard)
+            self.solve_scalars(picard=2)
+        else:
+            self._last_sc = self._energy_setup(SteadyScalar(f, *self.mean_uvw), self.T, hw=dev(d["hw"]))
         return self
 
     def solve_scalars(self, picard: int = 6, relax: float = 0.6, verbose: bool = False):

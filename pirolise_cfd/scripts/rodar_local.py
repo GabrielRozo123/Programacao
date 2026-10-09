@@ -100,12 +100,18 @@ if RODAR_KP_LAMINAR and AGITADOR == "fita":
     n_kp = {"teste": 40, "gpu": 64, "gpu_fino": 80}[PRESET]
     kp_lam = VAL.kp_ribbon(lambda: ribbon_tank(rpm=RPM), n_diam=n_kp, Re=8.0)
     print(br(f"Kp laminar da fita: {kp_lam['Kp']:.0f} (Re = 8, {kp_lam['steps']} passos, {kp_lam['wall_s']:.0f} s)"))
-flow_c = VAL.flow_checks(kp_lam, kp, h_nagata=h0)
+h_ref = VAL.nagata_reference(R, kp)          # Nagata com as propriedades do CFD (μ do seio e da parede)
+flow_c = VAL.flow_checks(kp_lam, kp, h_nagata=h_ref)
 sys_c, ideal = VAL.system_checks(R, kp)
 checks = flow_c + cheq + sys_c
 VAL.dashboard(checks, "saida/fig_validacao.png", "Validação: modelo × literatura")
+resumo = VAL.compact(checks)             # versão do vídeo: verificações do mesmo tipo numa linha
+VAL.dashboard(resumo, "saida/fig_validacao_video.png", "Validação: modelo × literatura")
 n_ok = sum(c["ok"] for c in checks)
 print(f"{n_ok}/{len(checks)} verificações dentro do alvo")
+for c in checks:
+    if not c["ok"]:
+        print("fora do alvo:", c["item"], "→", br(str(c["valor"])), "| alvo:", br(str(c["alvo"])), "|", c["nota"])
 display(Image("saida/fig_validacao.png", width=960))
 
 #@title 6 · Imagem 3D do reator em corte (GPU)
@@ -143,8 +149,9 @@ V = dict(rpm=nf(RPM), Tw=nf(T_PAREDE), vazao=nf(kp["feed_kgph"]), T=nf(kp["T_bul
          T_max=nf(kp["T_max_C"]), autor=AUTOR, T_vaso=nf(tank.T, 1), vol=nf(R.V_liq, 1),
          Mw0=nf(R.items[0][0].Mw0), Mw=nf(kp["Mw_bulk_kgmol"], 1), eta=nf(1e3 * kp["eta_bulk"], 1),
          q=nf(kp["duty_kW"] / R.A_wall, 1), duty=nf(kp["duty_kW"]), h=nf(kp["h_mean"]),
-         h_vs=br(f"{100 * (kp['h_mean'] / h0 - 1):+.0f}% em relação à correlação de Nagata"),
-         cap_lo=nf(3600 * curva[0].feed), cap_hi=nf(3600 * curva[-1].feed), n_ok=n_ok, n=len(checks))
+         h_vs=br(f"{100 * (kp['h_mean'] / h_ref - 1):+.0f}% em relação à correlação de Nagata"),
+         cap_lo=nf(3600 * curva[0].feed), cap_hi=nf(3600 * curva[-1].feed),
+         n_ok=sum(c["ok"] for c in resumo), n=len(resumo))    # mesma contagem da tabela do vídeo
 F = lambda t: t.format(**V) if isinstance(t, str) else [F(x) for x in t]  # noqa: E731
 RT = ROTEIRO
 seg, curto = [], []
@@ -166,7 +173,7 @@ seg.append(story.render_rotation(cw, "saida/s03_rotacao.mp4", "T", F(ro["title"]
                                  ssaa=ssaa, handle=LINKEDIN, az0=-40, az1=-100, turns=0.5))
 curto.append(seg[-1])
 for key, fig in (("sections", "saida/fig_cortes.png"), ("wall", "saida/fig_parede.png"),
-                 ("capacity", "saida/fig_capacidade.png"), ("validation", "saida/fig_validacao.png")):
+                 ("capacity", "saida/fig_capacidade.png"), ("validation", "saida/fig_validacao_video.png")):
     sx = RT[key]
     out = f"saida/s_{key}.mp4"
     seg.append(hd.caption_segment(fig, out, F(sx["captions"]), F(sx["chapter"]), size=size, fps=FPS,

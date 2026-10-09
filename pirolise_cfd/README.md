@@ -56,6 +56,13 @@ Resultado de referência do reator ideal 0-D (h de Nagata ≈ 290 W/m²K): fundi
 Na malha de 48 células no diâmetro, o Kp laminar da fita dá ~309 (32 células: 326 — converge para o alvo
 com o refinamento) e o balanço de torque fecha em 0,1 %.
 
+Rodada de referência no preset `teste` (40 células, CPU, carga F3, parede a 480 °C): ~190 kg/h, fundido a
+~410 °C, ~65 kW pela camisa, balanços de massa e energia fechando em ~1 %, 23 de 24 verificações no alvo. A que
+fica fora é o coeficiente interno: ~375 W/m²K contra ~280 de Nagata (avaliado com as propriedades do próprio
+CFD), +35 %. É o viés conhecido da lei de parede na malha grossa — o líquido junto à parede gira um pouco mais
+que o real, porque o balanço de torque ainda tem um resíduo — e ele cai com o refinamento (num caso de teste,
+h passou de 380 para 364 W/m²K de 32 para 48 células). Os presets de GPU usam 96 e 128 células.
+
 ## Conteúdo
 
 | Caminho | O que é |

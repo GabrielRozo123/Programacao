@@ -112,6 +112,19 @@ def kp_ribbon(tank_fn, n_diam: int = 40, Re: float = 8.0, device: str = "auto", 
             "torque_balance": -f.torque_wall / max(f.torque_imp, 1e-12)}
 
 
+def nagata_reference(reactor, kpis) -> float:
+    """h de Nagata com as propriedades do próprio CFD: viscosidade do seio, Pr e a correção (μ/μ_w)^0,14
+    com a viscosidade da cera na temperatura da parede (Ea = 27 kJ/mol)."""
+    from .chemistry import nagata_h
+    from .kinetics import R_GAS
+    tank = reactor.tank
+    N, d = tank.rpm / 60.0, tank.impeller_diameter
+    mu = kpis["eta_bulk"]
+    Tb, Tw = kpis["T_bulk_C"] + 273.15, kpis["T_wall_C"] + 273.15
+    mu_w = mu * math.exp(-(27e3 / R_GAS) * (1.0 / Tb - 1.0 / Tw))
+    return nagata_h(reactor.cfg.rho0, N, d, mu, reactor.cp0, 0.11, tank.T, mu_wall=mu_w)[0]
+
+
 def flow_checks(kp: dict | None = None, reactor_kpis: dict | None = None, h_nagata: float | None = None) -> list:
     out = []
     if kp is not None:
@@ -131,7 +144,7 @@ def flow_checks(kp: dict | None = None, reactor_kpis: dict | None = None, h_naga
             h = kp_["h_mean"]
             out.append(check("L1", "coeficiente interno h × Nagata (fita, turbulento)", h,
                              f"{h_nagata:.0f} W/m²K ± 30%", abs(h / h_nagata - 1) <= TARGETS["h_tol"],
-                             "lei de parede de Kader + SST", "{:.0f} W/m²K"))
+                             "mesmas propriedades do CFD; viés da parede cai com a malha", "{:.0f} W/m²K"))
     return out
 
 
@@ -166,6 +179,32 @@ def system_checks(reactor, reactor_kpis: dict) -> list:
 
 
 # ------------------------------------------------------------------ figura
+_GROUPS = [("pico DTG", "(calibração)", "picos de DTG a 10 K/min (HDPE, LDPE, PP, PS)", "consenso da literatura"),
+           ("Kissinger", "", "Kissinger: E recuperada (HDPE, PP)", "±5%"),
+           ("deslocamento do pico", "", "deslocamento do pico por 2× na taxa", "12–16 K"),
+           ("densidade", "", "densidades do fundido (ISO 1133, PE e PP)", "±2%"),
+           ("produtos a 435 °C", "", "produtos a 435 °C: gás, líquido e coque", "faixas da literatura")]
+
+
+def compact(checks: list) -> list:
+    """Junta verificações do mesmo tipo numa linha ("3/3 no alvo"), para caber num quadro de vídeo."""
+    out, used = [], set()
+    for c in checks:
+        if id(c) in used:
+            continue
+        g = next((g for g in _GROUPS if c["item"].startswith(g[0]) and g[1] in c["item"]), None)
+        if g is None:
+            out.append(c)
+            continue
+        members = [m for m in checks if m["item"].startswith(g[0]) and g[1] in m["item"]]
+        used.update(id(m) for m in members)
+        n_ok = sum(m["ok"] for m in members)
+        out.append({"nível": c["nível"], "item": g[2], "valor": f"{n_ok}/{len(members)} no alvo", "alvo": g[3],
+                    "ok": n_ok == len(members), "nota": ""})
+    return out
+
+
+
 def dashboard(checks: list, path: str | None = None, title: str = "Validação", size=(19.2, 10.8)):
     """Tabela de verificações com veredito colorido (PASSOU / FORA)."""
     import matplotlib.pyplot as plt
