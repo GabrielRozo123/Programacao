@@ -49,6 +49,50 @@ class Anchor:
 
 
 @dataclass
+class HelicalRibbon:
+    """Dupla fita helicoidal (dois filetes a 180°) com eixo e braços radiais de fixação.
+
+    D: diâmetro externo [m]; w: largura radial da fita [m]; t: espessura [m]; pitch: passo [m];
+    z0, z1: alturas inicial e final [m]; r_shaft: raio do eixo [m]; n_arms: níveis de braços."""
+    D: float
+    w: float
+    t: float
+    pitch: float
+    z0: float
+    z1: float
+    r_shaft: float
+    n_arms: int = 3
+    phase: float = 0.0
+
+    def sdf(self, p):
+        x, y, z = p[..., 0], p[..., 1], p[..., 2]
+        r = np.hypot(x, y)
+        th = np.arctan2(y, x)
+        Ro = 0.5 * self.D
+        Ri = Ro - self.w
+        # distância normal à superfície helicoidal: Δθ ao filete mais próximo (dois filetes, período π),
+        # projetado na normal da hélice dentro da superfície cilíndrica
+        th_h = self.phase + 2 * math.pi * z / self.pitch
+        dth = np.mod(th - th_h + 0.5 * math.pi, math.pi) - 0.5 * math.pi
+        rm = np.clip(r, Ri, Ro)
+        beta = np.arctan2(self.pitch, 2 * math.pi * rm)          # ângulo da hélice com a horizontal
+        d_n = np.abs(rm * dth) * np.sin(beta) - 0.5 * self.t
+        d_r = np.maximum(Ri - r, r - Ro)
+        d_z = np.maximum(self.z0 - z, z - self.z1)
+        q = np.stack([d_n, d_r, d_z], -1)
+        ribbon = np.linalg.norm(np.maximum(q, 0.0), axis=-1) + np.minimum(q.max(-1), 0.0)
+        shaft = np.maximum(r - self.r_shaft, self.z0 - z)
+        parts = [ribbon, shaft]
+        # braços radiais nos níveis inferior, intermediário(s) e superior, alinhados aos filetes
+        for zl in np.linspace(self.z0 + 0.5 * self.w, self.z1 - 0.5 * self.w, self.n_arms):
+            ang = self.phase + 2 * math.pi * zl / self.pitch
+            c, s = math.cos(ang), math.sin(ang)
+            xr, yr = c * x + s * y, -s * x + c * y              # eixo x' ao longo do braço
+            parts.append(_box_sdf(np.stack([xr, yr, z], -1), (0.0, 0.0, zl), (Ro - 0.5 * self.w, 0.5 * self.t, 0.5 * self.w)))
+        return np.minimum.reduce(parts)
+
+
+@dataclass
 class Shaft:
     """Só o eixo central (caso de verificação de Couette circular)."""
     r_shaft: float
@@ -100,10 +144,22 @@ class Tank:
         imp = self.impeller
         s = (f"vaso T = {self.T:.2f} m, líquido até {self.H_L:.2f} m "
              f"({math.pi * self.R ** 2 * self.H_L:.2f} m³); {self.rpm:.0f} rpm")
-        if isinstance(imp, Anchor):
-            s += (f"; âncora D = {imp.D:.2f} m (D/T = {imp.D / self.T:.2f}, folga na parede "
+        if isinstance(imp, (Anchor, HelicalRibbon)):
+            kind = "âncora" if isinstance(imp, Anchor) else "dupla fita helicoidal"
+            s += (f"; {kind} D = {imp.D:.2f} m (D/T = {imp.D / self.T:.2f}, folga na parede "
                   f"{1e3 * (self.R - 0.5 * imp.D):.0f} mm)")
         return s
+
+
+def ribbon_tank(T: float = 0.8, H_over_T: float = 1.0, D_over_T: float = 0.90, rpm: float = 30.0,
+                w_over_D: float = 0.10, pitch_over_D: float = 1.0, t: float | None = None) -> Tank:
+    """Vaso padrão com dupla fita helicoidal (p/d = 1, w/d = 0,1; folga c/T = 0,05 para ter ≥ 4 células no vão)."""
+    H_L = H_over_T * T
+    D = D_over_T * T
+    c = 0.5 * (T - D)
+    rib = HelicalRibbon(D=D, w=w_over_D * D, t=t if t is not None else 0.035 * T, pitch=pitch_over_D * D,
+                        z0=c, z1=H_L - c, r_shaft=0.035 * T)
+    return Tank(T=T, H_L=H_L, impeller=rib, rpm=rpm)
 
 
 def standard_anchor_tank(T: float = 1.6, H_over_T: float = 1.0, D_over_T: float = 0.92, rpm: float = 30.0,
