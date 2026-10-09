@@ -96,13 +96,14 @@ def capacity_figure(curve, cfd_point=None, path=None, coke_wall_C=520.0, title="
 # ---------------------------------------------------------------- cortes 2D
 def _plane(f, q, axis="y"):
     """Fatia vertical que passa pelo eixo (plano x–z, média das duas linhas centrais em y)."""
-    q = np.asarray(q)
+    q = np.asarray(q, dtype=float)
     j = q.shape[1] // 2
     return 0.5 * (q[:, j - 1, :] + q[:, j, :])
 
 
 def sections_figure(reactor, path=None, title="Por dentro do reator", subtitle=None):
-    """Plano vertical pelo eixo (referencial da fita): temperatura, massa molar e viscosidade, velocidade."""
+    """Meio corte vertical (do eixo à parede), no referencial da fita: temperatura, massa molar,
+    viscosidade e velocidade, com as setas da circulação secundária (radial–axial)."""
     f = reactor.flow
     fl = (f.fluid > 0.5).cpu().numpy()
     x = f.xc
@@ -113,38 +114,45 @@ def sections_figure(reactor, path=None, title="Por dentro do reator", subtitle=N
     ul, vl, wl = [a.cpu().numpy() for a in f.lab_velocity_centers()]
     U = np.sqrt(ul ** 2 + vl ** 2 + wl ** 2)
     m = _plane(f, fl) > 0.5
-    fig = _fig(title, subtitle or "corte vertical pelo eixo, no referencial que gira com a fita")
-    panels = [("Temperatura", T, "inferno", "°C", None),
-              ("Massa molar média (Mw)", Mw, "viridis", "kg/mol", None),
-              ("Viscosidade", np.log10(np.maximum(eta, 1e-6)), "magma", "log₁₀ Pa s", None),
-              ("Velocidade (laboratório)", U, "cividis", "m/s", None)]
-    ext = [x[0], x[-1], 0.0, reactor.tank.H_L]
-    R = reactor.tank.R
-    for k, (name, q, cmap, unit, _) in enumerate(panels):
-        ax = fig.add_axes([0.04 + 0.24 * k, 0.10, 0.20, 0.72])
-        P = np.where(m, _plane(f, q), np.nan)
+    half = x > 0
+    R, H = reactor.tank.R, reactor.tank.H_L
+    fig = _fig(title, subtitle or "meio corte vertical, do eixo (esquerda) à parede aquecida (direita), no referencial da fita")
+    panels = [("Temperatura", T, "inferno", "°C"), ("Massa molar (Mw)", Mw, "viridis", "kg/mol"),
+              ("Viscosidade", np.log10(np.maximum(eta, 1e-6)), "magma", "log₁₀ Pa s"),
+              ("Velocidade e circulação", U, "cividis", "m/s")]
+    xh = x[half]
+    ext = [0.0, xh[-1] + 0.5 * f.h, 0.0, H]
+    w_ax = 0.155
+    for k, (name, q, cmap, unit) in enumerate(panels):
+        ax = fig.add_axes([0.05 + 0.237 * k, 0.15, w_ax, 0.68])
+        P = np.where(m, _plane(f, q), np.nan)[half]
         vals = P[np.isfinite(P)]
         lo, hi = np.percentile(vals, 1), np.percentile(vals, 99.5)
         im = ax.imshow(P.T, origin="lower", extent=ext, cmap=cmap, vmin=lo, vmax=hi, interpolation="bilinear",
                        aspect="equal")
         if name.startswith("Velocidade"):
-            jj = slice(None, None, 3)
-            Wp = _plane(f, wl)
-            Up = _plane(f, ul)
-            X, Z = np.meshgrid(x, z, indexing="ij")
-            ax.quiver(X[jj, jj], Z[jj, jj], np.where(m, Up, 0)[jj, jj], np.where(m, Wp, 0)[jj, jj], color="white",
-                      alpha=0.55, scale=6.0, width=0.004)
+            Up, Wp = _plane(f, ul)[half], _plane(f, wl)[half]
+            mm = m[half]
+            Up, Wp = np.where(mm, Up, 0.0), np.where(mm, Wp, 0.0)
+            sp = np.hypot(Up, Wp)
+            ref = max(np.percentile(sp[mm], 95), 1e-6)
+            X, Z = np.meshgrid(xh, z, indexing="ij")
+            st = max(1, len(xh) // 9)
+            ax.quiver(X[::st, ::st], Z[::st, ::st], Up[::st, ::st], Wp[::st, ::st], color="white", alpha=0.8,
+                      scale=ref * 14, width=0.012, headwidth=3.5)
+            ax.text(0.02 * R, 0.02 * H, br(f"setas: circulação secundária (até {100 * ref:.0f} cm/s)"),
+                    color="white", fontsize=10, alpha=0.9)
         _style(ax, name)
-        ax.set_xlim(-R * 1.02, R * 1.02)
-        ax.set_ylim(0, reactor.tank.H_L)
-        ax.set_xticks([-R, 0, R])
-        ax.set_xticklabels([br(f"{-R:.1f}"), "0", br(f"{R:.1f}")])
-        ax.set_xlabel("r [m]", color=MUTED, fontsize=12)
-        if k == 0:
-            ax.set_ylabel("altura [m]", color=MUTED, fontsize=12)
-        cb = fig.colorbar(im, ax=ax, orientation="horizontal", fraction=0.05, pad=0.08)
+        ax.set_xlim(0, R)
+        ax.set_ylim(0, H)
+        ax.set_xticks([0, R / 2, R])
+        ax.set_xticklabels(["0", br(f"{R / 2:.1f}"), br(f"{R:.1f}")])
+        ax.set_xlabel("raio [m]", color=MUTED, fontsize=12)
+        ax.set_ylabel("altura [m]" if k == 0 else "", color=MUTED, fontsize=12)
+        cax = fig.add_axes([0.05 + 0.237 * k + w_ax + 0.008, 0.15, 0.010, 0.68])
+        cb = fig.colorbar(im, cax=cax)
         cb.ax.tick_params(colors=MUTED, labelsize=11)
-        cb.ax.xaxis.set_major_formatter(_Comma())
+        cb.ax.yaxis.set_major_formatter(_Comma())
         cb.set_label(br(unit), color=MUTED, fontsize=12)
         cb.outline.set_edgecolor(GRID)
     return _save(fig, path)
@@ -159,22 +167,27 @@ def _bulk_Mw(reactor):
 
 # ----------------------------------------------------------------- mapa de parede
 def wall_map_figure(reactor, path=None, title="Onde o calor entra", subtitle=None):
-    """Fluxo de calor local na parede lateral, desenrolada (ângulo × altura), no referencial da fita."""
+    """Fluxo de calor local na parede lateral (h da lei de parede × (T_parede − T)), desenrolada em
+    ângulo × altura, no referencial da fita. Média por célula do mapa: sem o padrão da parede em escada."""
     import torch
     f = reactor.flow
-    sc = reactor._last_sc
-    q = sc.wall_flux(reactor.T) * reactor.cfg.rho0 * reactor.cp0          # W por célula
+    hw = getattr(reactor, "_hw_used", None)                      # W/(m² K) por área real
+    hw = reactor._wall_cond() if hw is None else hw
+    q = hw * (reactor.T_wall - reactor.T)
     fl = reactor.flm > 0
-    side = fl & (f.r_c > reactor.tank.R - 1.5 * f.h) & (q > 0)
+    zc = f._t(f.P_c[..., 2])
+    side = fl & (hw > 0) & (f.r_c > reactor.tank.R - 1.5 * f.h) & (zc > f.hz)
     X, Y = f._t(f.P_c[..., 0]), f._t(f.P_c[..., 1])
-    th = torch.atan2(Y, X)[side].cpu().numpy()
-    zz = f._t(f.P_c[..., 2])[side].cpu().numpy()
-    qq = q[side].cpu().numpy()
-    nth, nz = 48, f.nz
-    H2, xe, ye = np.histogram2d(th, zz, bins=[nth, nz], range=[[-math.pi, math.pi], [0, reactor.tank.H_L]], weights=qq)
-    A = 2 * math.pi * reactor.tank.R * reactor.tank.H_L / (nth * nz)           # área de cada célula do mapa
-    qmap = H2 / A / 1e3                                                          # kW/m²
-    fig = _fig(title, subtitle or "fluxo de calor na parede lateral, desenrolada (ângulo × altura), em kW/m²")
+    th = torch.rad2deg(torch.atan2(Y, X))[side].cpu().numpy()
+    zz = zc[side].cpu().numpy()
+    qq = q[side].cpu().numpy() / 1e3
+    nth, nz = 36, max(8, f.nz // 2)
+    rng = [[-180, 180], [0, reactor.tank.H_L]]
+    S, _, _ = np.histogram2d(th, zz, bins=[nth, nz], range=rng, weights=qq)
+    C, _, _ = np.histogram2d(th, zz, bins=[nth, nz], range=rng)
+    qmap = np.where(C > 0, S / np.maximum(C, 1), np.nan)
+    fig = _fig(title, subtitle or br(f"fluxo de calor na parede lateral, desenrolada (ângulo × altura); média "
+                                     f"{np.nanmean(qq):.1f} kW/m²"))
     ax = fig.add_axes([0.06, 0.12, 0.80, 0.70])
     im = ax.imshow(qmap.T, origin="lower", extent=[-180, 180, 0, reactor.tank.H_L], aspect="auto", cmap="inferno",
                    interpolation="bicubic")

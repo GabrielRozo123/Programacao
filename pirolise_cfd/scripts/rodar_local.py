@@ -3,9 +3,11 @@ import os, sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)) + '/..')
 def display(*a, **k):
     pass
+Image = Video = lambda *a, **k: None
 
 #@title Carrega o pacote (recarrega se as células acima mudarem)
-import importlib, sys
+import importlib, os, sys
+os.makedirs("saida", exist_ok=True)
 for m in [m for m in sys.modules if m == "pyrokit" or m.startswith("pyrokit.")]:
     del sys.modules[m]
 sys.path.insert(0, ".")
@@ -56,15 +58,21 @@ print(br(f"h (Nagata) = {h0:.0f} W/m²K | T fundido {r0.T - 273.15:.1f} °C | {3
          f"{r0.duty / 1e3:.1f} kW | residência {r0.residence_h:.2f} h | viscosidade {1e3 * r0.eta:.1f} mPa s"))
 
 #@title 3 · CFD 3D (GPU): escoamento ↔ temperatura e química, até o regime permanente
-import time
+import os, time
+USAR_ESTADO_SALVO = False   #@param {type:"boolean"}
 cfg = ReactorConfig(T_wall_C=T_PAREDE, **PRESETS[PRESET])
 R = Reactor(tank, feed, cfg)
-print(R.flow.summary(), "|", f"Δ = {1e3 * R.flow.h:.1f} mm, folga da fita = {(tank.R - tank.impeller_diameter / 2) / R.flow.h:.1f} células")
-t0 = time.time()
-kp = R.run(verbose=True)
-print(br(f"\nPronto em {(time.time() - t0) / 60:.1f} min"))
-torch.save({"T": R.T.cpu(), "state": [{k: (v.cpu() if torch.is_tensor(v) else [e.cpu() for e in v]) for k, v in s.items()}
-            for s in R.state], "kpis": kp}, "saida/resultado.pt")
+print(R.flow.summary(), "|", f"folga da fita = {(tank.R - tank.impeller_diameter / 2) / R.flow.h:.1f} células")
+estado = f"saida/estado_{PRESET}_{CARGA}_{T_PAREDE:.0f}.pt"
+if USAR_ESTADO_SALVO and os.path.exists(estado):
+    R.load_state(estado)
+    kp = R.kpis()
+    print("estado carregado de", estado)
+else:
+    t0 = time.time()
+    kp = R.run(verbose=True)
+    print(br(f"\nPronto em {(time.time() - t0) / 60:.1f} min"))
+    R.save_state(estado)
 
 #@title 4 · Resultados: números do ponto de operação, cortes e mapa de parede
 q_med = kp["duty_kW"] / R.A_wall
@@ -76,7 +84,7 @@ linhas = [("plástico processado", f"{kp['feed_kgph']:.0f} kg/h"), ("vapor (óle
           ("viscosidade no seio", f"{1e3 * kp['eta_bulk']:.1f} mPa s (Re = {kp['Re']:.0f})"),
           ("potência do agitador", f"{1e3 * kp['power_kW']:.1f} W (Np = {kp['Np']:.2f})"),
           ("tempo de residência", f"{kp['residence_h']:.2f} h"),
-          ("vapor: gás / óleo / cera / coque", " / ".join(f"{100 * v:.0f}%" for v in kp["slate"].values()))]
+          ("vapor: gás / óleo / cera / coque", " / ".join(f"{100 * v:.1f}%" for v in kp["slate"].values()))]
 for a, b in linhas:
     print(f"{a:34s} {br(b)}")
 FG.capacity_figure(curva, kp, "saida/fig_capacidade.png")
@@ -89,7 +97,7 @@ for p in ("saida/fig_capacidade.png", "saida/fig_cortes.png", "saida/fig_parede.
 RODAR_KP_LAMINAR = True   #@param {type:"boolean"}
 kp_lam = None
 if RODAR_KP_LAMINAR and AGITADOR == "fita":
-    n_kp = {"teste": 32, "gpu": 48, "gpu_fino": 64}[PRESET]
+    n_kp = {"teste": 40, "gpu": 64, "gpu_fino": 80}[PRESET]
     kp_lam = VAL.kp_ribbon(lambda: ribbon_tank(rpm=RPM), n_diam=n_kp, Re=8.0)
     print(br(f"Kp laminar da fita: {kp_lam['Kp']:.0f} (Re = 8, {kp_lam['steps']} passos, {kp_lam['wall_s']:.0f} s)"))
 flow_c = VAL.flow_checks(kp_lam, kp, h_nagata=h0)
@@ -181,7 +189,8 @@ seg.append(hd.render_title_card("saida/s10_final.mp4", F(ec["line"]), "", F(ec["
 curto.append(seg[-1])
 hd.assemble(seg, "saida/pirolise_reator.mp4", fps=FPS, size=size)
 hd.assemble(curto, "saida/pirolise_reator_curto.mp4", fps=FPS, size=size)
-story.cover_image(cw, "saida/capa.png", "T", F(hk["title"]), big, size=(1920, 1080), ssaa=ssaa)
+story.cover_image(cw, "saida/capa.png", "T", F(hk["title"]), big, size=(1920, 1080), ssaa=ssaa,
+                  subtitle=F(hk["kicker"]))
 for p in ("saida/pirolise_reator.mp4", "saida/pirolise_reator_curto.mp4"):
     print(br(f"{p}: {os.path.getsize(p) / 1e6:.1f} MB"))
 display(Video("saida/pirolise_reator_curto.mp4", embed=True, width=960))

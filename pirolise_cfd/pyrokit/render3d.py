@@ -126,12 +126,16 @@ class Cutaway:
     @torch.no_grad()
     def render(self, field: str, theta: float = 0.0, az: float = -60.0, el: float = 24.0, dist: float | None = None,
                size=(1920, 1080), ssaa: float = 1.5, fov: float = 32.0, background=None, max_steps: int = 140,
-               exposure: float = 1.0) -> np.ndarray:
+               exposure: float = 1.0, shift: float = 0.0) -> np.ndarray:
+        """shift: desloca o reator na tela (fração da largura; > 0 empurra para a esquerda)."""
         W0, H0 = size
         W, H = int(W0 * ssaa), int(H0 * ssaa)
         T = self.tank.T
-        dist = dist or 3.1 * T
-        target = (0.0, 0.0, 0.47 * self.H)
+        dist = dist or 3.5 * T
+        a = math.radians(az)
+        span = 2 * dist * math.tan(math.radians(fov) / 2) * W0 / H0          # largura visível no alvo
+        off = shift * span
+        target = (-off * math.sin(a), off * math.cos(a), 0.47 * self.H)        # ao longo do vetor "direita"
         o, d = self._rays(W, H, az, el, dist, fov, target)
         phi_c = math.radians(az)                       # a cunha aponta para a câmera
         n = o.shape[0]

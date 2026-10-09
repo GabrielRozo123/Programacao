@@ -99,19 +99,29 @@ def render_rotation(cw, path, field, title="", subtitle="", kicker="", captions=
 
 
 def cover_image(cw, path, field, title, lines, size=(1920, 1080), theta=0.6, az=-55.0, el=24.0, ssaa=1.5,
-                accent=(255, 176, 64)):
-    """Capa (miniatura do post): o reator em corte e o resultado principal em letras grandes."""
+                accent=(255, 176, 64), subtitle=""):
+    """Capa (miniatura do post): o reator em corte à esquerda e, à direita, o título e o resultado
+    principal em letras grandes."""
     from PIL import Image, ImageDraw
+    from .video import _wrap_balanced
     W, H = size
     s = H / 1080.0
-    rgb = cw.render(field, theta=theta, az=az, el=el, size=size, ssaa=ssaa)
+    rgb = cw.render(field, theta=theta, az=az, el=el, size=size, ssaa=ssaa, shift=0.17, dist=3.0 * cw.tank.T)
     im = Image.fromarray(rgb).convert("RGBA")
     d = ImageDraw.Draw(im)
-    d.text((int(60 * s), int(50 * s)), br(title), font=_font(int(58 * s), True), fill=(240, 244, 250, 255))
-    for k, (val, lab) in enumerate(lines):
-        y = int(230 * s) + k * int(200 * s)
-        d.text((W - int(70 * s), y), br(val), font=_font(int(96 * s), True), fill=accent + (255,), anchor="ra")
-        d.text((W - int(70 * s), y + int(112 * s)), br(lab), font=_font(int(30 * s)), fill=(225, 230, 240, 255),
-               anchor="ra")
+    x = int(0.60 * W)
+    f_t = _font(int(54 * s), True)
+    y = int(90 * s)
+    for ln in _wrap_balanced(d, br(title), f_t, int(0.37 * W)):
+        d.text((x, y), ln, font=f_t, fill=(240, 244, 250, 255))
+        y += int(64 * s)
+    if subtitle:
+        d.text((x, y + int(8 * s)), br(subtitle), font=_font(int(26 * s)), fill=(170, 180, 195, 255))
+        y += int(40 * s)
+    y += int(50 * s)
+    for val, lab in lines:
+        d.text((x, y), br(val), font=_font(int(96 * s), True), fill=accent + (255,))
+        d.text((x, y + int(112 * s)), br(lab), font=_font(int(30 * s)), fill=(225, 230, 240, 255))
+        y += int(200 * s)
     im.convert("RGB").save(path)
     return path

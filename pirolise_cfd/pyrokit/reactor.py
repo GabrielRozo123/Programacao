@@ -252,6 +252,59 @@ class Reactor:
             dSv.append(sv * (p.E / (R_GAS * T ** 2) + 2 * dlnN))
         return Sv, dSv
 
+    def _energy_setup(self, sc, T, hw=None):
+        """Monta a equação da energia em sc (difusão molecular + turbulenta, parede pela lei de Kader,
+        alimentação, dissipação e sumidouro endotérmico linearizado em torno de T)."""
+        f, cfg = self.flow, self.cfg
+        rho0, cp = cfg.rho0, self.cp0
+        nu_t = f.turb.nu_t if f.turb is not None else torch.zeros_like(f.P)
+        GT = 0.11 / (rho0 * cp) + nu_t / cfg.Pr_t
+        hw = self._wall_cond() if hw is None else hw
+        self._hw_used = hw
+        wall_cond = hw * self._side_factor(sc) / (rho0 * cp)       # lateral: área real / área em escada
+        bottom_cond = hw / (rho0 * cp)                             # fundo: faces alinhadas, área exata
+        Sf = self.F * self.feed_mask / self.V_feed
+        Sv, dSv = self._vapour(T)
+        dH = [c.dH for c, _ in self.items]
+        sinkT = sum(h_ * d for h_, d in zip(dH, dSv))
+        src = -sum(h_ * s_ for h_, s_ in zip(dH, Sv)) + sinkT * T + self._dissipation()
+        SpT = Sf / rho0 + sinkT / (rho0 * cp)
+        ScT = Sf * self.feed.T_feed / rho0 + src / (rho0 * cp)
+        return sc.setup(GT, SpT, ScT, dirichlet_mask=self.vessel_solid > 0, dirichlet_value=self.T_wall,
+                        bottom_value=self.T_wall, wall_cond=self._blend_wall(wall_cond, bottom_cond))
+
+    # ------------------------------------------------------------- salvar / carregar
+    def save_state(self, path: str):
+        """Grava o estado convergido (escoamento, turbulência, temperatura, química) para refazer
+        figuras, imagens e vídeo sem rodar o CFD de novo."""
+        f = self.flow
+        cpu = lambda a: a.detach().cpu() if torch.is_tensor(a) else a  # noqa: E731
+        d = {"u": f.u, "v": f.v, "w": f.w, "P": f.P, "mu": f.mu, "mu_t": f.mu_t, "gamma": f.gamma,
+             "time": f.time, "step_n": f.step_n, "history": f.history, "mean_uvw": self.mean_uvw,
+             "T": self.T, "F": self.F, "T_wall": self.T_wall, "eta0": self._eta0, "hist_kp": self.history,
+             "hw": self._hw_used,
+             "state": [{"Y": s["Y"], "Z": s["Z"], "E": list(s["E"])} for s in self.state]}
+        if f.turb is not None:
+            d.update(k=f.turb.k, w_t=f.turb.w, nu_t=f.turb.nu_t, u_tau=f.turb.u_tau)
+        torch.save({k: (cpu(v) if not isinstance(v, (list, dict)) else v) for k, v in d.items()}, path)
+        return path
+
+    def load_state(self, path: str):
+        f = self.flow
+        d = torch.load(path, map_location=f.dev, weights_only=False)
+        dev = lambda a: a.to(f.dev) if torch.is_tensor(a) else a  # noqa: E731
+        for k in ("u", "v", "w", "P", "mu", "mu_t", "gamma"):
+            setattr(f, k, dev(d[k]))
+        f.time, f.step_n, f.history = d["time"], d["step_n"], d["history"]
+        self.mean_uvw = [dev(a) for a in d["mean_uvw"]]
+        self.T, self.F, self.T_wall, self._eta0 = dev(d["T"]), d["F"], d["T_wall"], dev(d["eta0"])
+        self.history = d["hist_kp"]
+        self.state = [{"Y": dev(s["Y"]), "Z": dev(s["Z"]), "E": [dev(e) for e in s["E"]]} for s in d["state"]]
+        if f.turb is not None and "k" in d:
+            f.turb.k, f.turb.w, f.turb.nu_t, f.turb.u_tau = dev(d["k"]), dev(d["w_t"]), dev(d["nu_t"]), dev(d["u_tau"])
+        self._last_sc = self._energy_setup(SteadyScalar(f, *self.mean_uvw), self.T, hw=dev(d.get("hw")))
+        return self
+
     def solve_scalars(self, picard: int = 6, relax: float = 0.6, verbose: bool = False):
         """Temperatura e estado do polímero em regime permanente sobre o escoamento médio (Picard
         sub-relaxado: espécies → temperatura → controle de nível)."""
@@ -261,14 +314,6 @@ class Reactor:
         sc = SteadyScalar(f, *self.mean_uvw)
         nu_t = f.turb.nu_t if f.turb is not None else torch.zeros_like(f.P)
         Gs = nu_t / cfg.Sc_t + 1e-9
-        k_mol = 0.11
-        GT = k_mol / (rho0 * self.cp0) + nu_t / cfg.Pr_t
-        hw = self._wall_cond()
-        fac = self._side_factor(sc)
-        # bottom: área exata (faces alinhadas); lateral: corrigida pela área em escada
-        wall_cond = hw * fac / (rho0 * self.cp0)
-        bottom_cond = hw / (rho0 * self.cp0)
-        Tf = self.feed.T_feed
         info = {}
         fl = self.flm > 0
         for it in range(picard):
@@ -297,14 +342,7 @@ class Reactor:
                 scale = torch.where(Es > 0.98 * s["Y"], 0.98 * s["Y"] / Es.clamp(min=1e-30), torch.ones_like(Es))
                 s["E"] = [e * scale for e in s["E"]]
             # ---- energia (linearização de Newton do sumidouro endotérmico, com o estado novo)
-            Sv, dSv = self._vapour(T)
-            dH = [c.dH for c, _ in self.items]
-            sinkT = sum(h_ * d for h_, d in zip(dH, dSv))
-            src = -sum(h_ * s_ for h_, s_ in zip(dH, Sv)) + sinkT * T + self._dissipation()
-            SpT = Sf / rho0 + sinkT / (rho0 * self.cp0)
-            ScT = Sf * Tf / rho0 + src / (rho0 * self.cp0)
-            sc.setup(GT, SpT, ScT, dirichlet_mask=self.vessel_solid > 0, dirichlet_value=self.T_wall,
-                     bottom_value=self.T_wall, wall_cond=self._blend_wall(wall_cond, bottom_cond))
+            self._energy_setup(sc, T)
             Tn, res, nit = sc.solve_ptc(torch.where(fl, self.T, torch.full_like(self.T, self.T_wall)), dtau0=5.0)
             Tn = torch.where(fl, self.T + relax * (Tn - self.T), Tn)
             # fora do fluido: parede do vaso na temperatura imposta; agitador com a do fluido vizinho
@@ -395,9 +433,17 @@ class Reactor:
     def run(self, verbose: bool = True, callback=None):
         cfg = self.cfg
         t0 = time.perf_counter()
+        def progress(rx):
+            f = rx.flow
+            N = rx.tank.rpm / 60.0
+            print(f"  escoamento: volta {f.time * N:5.1f} · Np {rx.power_number():.2f} · "
+                  f"{1e3 * f.wall / max(f.step_n, 1):.0f} ms/passo · {(time.perf_counter() - t0) / 60:.1f} min",
+                  flush=True)
+
         for k in range(cfg.outer):
             revs = cfg.revs_first if k == 0 else cfg.revs_next
-            self.run_flow(revs, callback=callback)
+            cb = callback if callback is not None else (progress if verbose else None)
+            self.run_flow(revs, log_every=2.0, callback=cb)
             info = self.solve_scalars(verbose=verbose)
             self.flow_rho_body(relax=0.5)
             kp = self.kpis()

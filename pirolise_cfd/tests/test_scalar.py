@@ -42,3 +42,24 @@ def test_advection_keeps_uniform_field():
     T, res, it = sc.solve(tol=1e-10)
     assert res < 1e-8
     assert float((T - 5.0).abs().max()) < 1e-4
+
+
+def test_conservative_fluxes_and_energy_balance():
+    """Fluxos projetados no fluido (divergência nula) e balanço global: o que entra pela parede sai
+    pelos sumidouros, mesmo com a fronteira imersa difusa e o escoamento girando."""
+    from pyrokit.geometry import ribbon_tank
+    tank = ribbon_tank(T=0.8, rpm=30.0)
+    f = TankFlow(tank, FlowConfig(n_diam=20, device="cpu", dtype="float32", spin0=0.8),
+                 lambda g: torch.full_like(g, 0.5))
+    for _ in range(60):
+        f.step()
+    sc = SteadyScalar(f)
+    flux = float(sum(q.abs().sum() for q in sc.Q))
+    assert float(sc.divQ.abs().sum()) < 1e-4 * flux, (float(sc.divQ.abs().sum()), flux)
+    sp, Tf, Tw = 2e-3, 300.0, 700.0
+    sc.setup(Gamma=torch.full_like(f.P, 1e-4), Sp=torch.full_like(f.P, sp), Sc=torch.full_like(f.P, sp * Tf),
+             dirichlet_mask=f.fluid < 0.5, dirichlet_value=Tw, bottom_value=Tw)
+    T, res, n = sc.solve_ptc(torch.full_like(f.P, 500.0), tol=1e-5, steps=40)
+    q_in = float(sc.wall_flux(T).sum())
+    q_out = float(((sp * T - sp * Tf) * sc.fluid).sum()) * sc.V
+    assert abs(q_in - q_out) / abs(q_in) < 0.01, (q_in, q_out, res)

@@ -51,3 +51,22 @@ def test_power_law_couette_torque():
     T_exact = 2 * math.pi * tank.H_L * K * (2 * w / (n * (r1 ** (-2 / n) - R ** (-2 / n)))) ** n
     T_sim = np.mean(f.history["torque"][-200:])
     assert abs(T_sim / T_exact - 1) < 0.12, (T_sim, T_exact)
+
+
+def test_wall_function_vessel_brakes_spinning_liquid():
+    """Lei de parede no vaso (RANS): sem agitador, o líquido girando perde momento angular só pela parede,
+    e a área em que a tensão é aplicada é a do cilindro real."""
+    import math
+    from pyrokit.turbulence import SST
+    tank = Tank(T=0.8, H_L=0.4, impeller=None, rpm=30.0)
+    f = TankFlow(tank, FlowConfig(n_diam=20, rho=640.0, device="cpu", spin0=0.9, vessel_ibm="wallfn"),
+                 lambda g: torch.full_like(g, 3e-3))
+    f.turb = SST(f)
+    area = float(f.delta_w.sum()) * f.vol
+    assert abs(area / (2 * math.pi * tank.R * tank.H_L) - 1) < 1e-6
+    L0 = f.angular_momentum()
+    for _ in range(80):
+        f.step()
+    L1 = f.angular_momentum()
+    assert torch.isfinite(f.u).all()
+    assert f.torque_wall < 0 and L1 < L0           # a parede (parada no laboratório) freia o líquido
