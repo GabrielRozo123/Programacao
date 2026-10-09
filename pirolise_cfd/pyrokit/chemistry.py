@@ -180,13 +180,19 @@ class CSTRResult:
         return self.holdup / self.feed / 3600.0
 
 
-def _species_given_s(feed: FeedSpec, T, Sf, s, rho, f_cut=1.0):
+def _coefficients(feed: FeedSpec, T, f_cut=1.0):
+    """Constantes de cada polímero que só dependem de T (calculadas uma vez por temperatura)."""
+    out = []
+    for c, w in feed.items():
+        out.append((c, w, float(k_c(c, T)), float(n_star(c, T, f_cut)), [float(r) for r in class_rates(c, T)]))
+    return out
+
+
+def _species_given_s(feed: FeedSpec, T, Sf, s, rho, f_cut=1.0, co=None):
     """Estado de cada polímero para alimentação Sf e vapor total s [kg/(m³ s)] (sistema linear 2×2)."""
     out, Sv = [], []
     d = Sf - s
-    for c, w in feed.items():
-        kc = k_c(c, T)
-        ns = n_star(c, T, f_cut)
+    for c, w, kc, ns, (r1, r2, r3) in (co or _coefficients(feed, T, f_cut)):
         a = rho * kc * ns ** 2 * c.m0
         Zf = w / c.Mn0
         # Y d + (1+s_C) a Z = Sf w ;  −(ρ k_c/m0) Y + (d + 2ρ k_c N*) Z = Sf Zf
@@ -198,7 +204,6 @@ def _species_given_s(feed: FeedSpec, T, Sf, s, rho, f_cut=1.0):
             Y = Sf * w / (d + (1 + S_CHAR) * rho * kc * ns)
             Z = Y / (ns * c.m0)
         sv = a * min(Z, Y / (ns * c.m0))
-        r1, r2, r3 = class_rates(c, T)
         E1 = Sf * w / (d + rho * r1)
         E2 = rho * r1 * E1 / (d + rho * r2)
         E3 = rho * r2 * E2 / (d + rho * r3)
@@ -207,17 +212,18 @@ def _species_given_s(feed: FeedSpec, T, Sf, s, rho, f_cut=1.0):
     return out, Sv
 
 
-def _steady_species(feed: FeedSpec, T, Sf, rho, f_cut=1.0):
+def _steady_species(feed: FeedSpec, T, Sf, rho, f_cut=1.0, co=None):
     """Estado estacionário do tanque perfeitamente misturado: acha o vapor total s = Σ S_v,i(s) em [0, Sf)."""
+    co = co or _coefficients(feed, T, f_cut)
     lo, hi = 0.0, Sf * (1 - 1e-9)
-    for _ in range(100):
+    for _ in range(60):
         mid = 0.5 * (lo + hi)
-        _, Sv = _species_given_s(feed, T, Sf, mid, rho, f_cut)
+        _, Sv = _species_given_s(feed, T, Sf, mid, rho, f_cut, co)
         if sum(Sv) > mid:
             lo = mid
         else:
             hi = mid
-    st, Sv = _species_given_s(feed, T, Sf, 0.5 * (lo + hi), rho, f_cut)
+    st, Sv = _species_given_s(feed, T, Sf, 0.5 * (lo + hi), rho, f_cut, co)
     return st, sum(Sv), Sv
 
 
@@ -232,14 +238,16 @@ def solve_cstr(feed: FeedSpec, volume: float, area: float, h_in: float, T_wall: 
 
     def at_T(T):
         # a vazão é tal que alimentação = vapor + purga (sólidos mantidos em SOLIDS_TARGET)
+        co = _coefficients(feed, T, f_cut)
+
         def resid(Sf):
-            st, Sv, _ = _steady_species(feed, T, Sf, rho, f_cut)
+            st, Sv, _ = _steady_species(feed, T, Sf, rho, f_cut, co)
             F = Sf * volume
             V = Sv * volume
             D = (F * ash + S_CHAR * V) / SOLIDS_TARGET
             return F - V - D, st, Sv
         lo, hi = 1e-7, 10.0
-        for _ in range(80):              # bisseção em log
+        for _ in range(56):              # bisseção em log
             mid = math.sqrt(lo * hi)
             r, _, _ = resid(mid)
             if r > 0:
@@ -256,7 +264,7 @@ def solve_cstr(feed: FeedSpec, volume: float, area: float, h_in: float, T_wall: 
 
     if feed_rate is not None:            # modo A
         lo, hi = 600.0, 760.0
-        for _ in range(60):
+        for _ in range(40):
             mid = 0.5 * (lo + hi)
             F = at_T(mid)[0]
             if F > feed_rate:
@@ -268,7 +276,7 @@ def solve_cstr(feed: FeedSpec, volume: float, area: float, h_in: float, T_wall: 
         T_wall = T + Q / (h_in * area)
     else:                                # modo B
         lo, hi = 600.0, min(T_wall, 780.0)
-        for _ in range(60):
+        for _ in range(40):
             mid = 0.5 * (lo + hi)
             F, V, D, Q, st = at_T(mid)
             if h_in * area * (T_wall - mid) > Q:

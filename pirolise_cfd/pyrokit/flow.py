@@ -40,6 +40,8 @@ class FlowConfig:
     upwind: float = 0.0          # mistura com upwind de 1ª ordem (0 = 3ª ordem pura)
     mu_max: float = 1e9          # teto de viscosidade [Pa s] (estabilidade do passo explícito)
     spin0: float = 0.0           # partida: núcleo girando a spin0·Ω no referencial fixo (0 = repouso)
+    vessel_ibm: str = "diffuse"  # "diffuse" (sem deslizamento, laminar) ou "wallfn" (lei de parede, RANS)
+    advection: str = "conservative"  # "conservative" (fluxos, conserva momento) ou "advective" (u·∇u)
     device: str = "auto"
     dtype: str = "float32"
 
@@ -85,11 +87,40 @@ class TankFlow:
         frac = lambda s: np.clip(0.5 + s / h, 0.0, 1.0)  # noqa: E731   fração sólida (SDF > 0 no sólido)
         self.chi_v = [t(frac(tank.vessel_sdf(P))) for P in (P_u, P_v, P_w)]      # parede do vaso
         self.chi_i = [t(frac(tank.impeller_sdf(P))) for P in (P_u, P_v, P_w)]    # agitador
+        w = self.omega
+        self.uwall = [t(w * P_u[..., 1]), t(-w * P_v[..., 0]), torch.zeros_like(self.chi_v[2])]  # −Ω×r
+        self.vtarget = list(self.uwall)
+        self.vghost = None             # faces do vaso profundo (sem troca de momento por advecção)
+        self.wallfn = cfg.vessel_ibm == "wallfn"
+        if self.wallfn:
+            # Lei de parede no vaso (RANS). Numa malha cartesiana a parede cilíndrica vira uma escada; no
+            # referencial do agitador ela gira, e qualquer forçamento sem deslizamento (suavizado ou nítido)
+            # faz os degraus empurrarem o fluido como dentes de engrenagem, com um torque que não diminui
+            # com o refinamento (verificado em 32, 48 e 64 células). Aqui:
+            #  * além de Δ/2 dentro da parede, a região fantasma gira como corpo rígido com a velocidade
+            #    angular média (por altura) do anel de fluido junto à parede: a escada entre os dois fica
+            #    "invisível", porque os dois lados andam juntos (sem velocidade radial: impermeável);
+            #  * a tensão τ_w = ρu_τ² (lei de Spalding) entra como força distribuída nesse anel (δ = 1/Δ
+            #    numa faixa de uma célula), com a área verdadeira do cilindro.
+            s_f = [tank.vessel_sdf(P) for P in (P_u, P_v, P_w)]
+            self.chi_v = [torch.zeros_like(c) for c in self.chi_v]
+            self.ghost_face = [t((sf > 0.5 * h).astype(float)) > 0.5 for sf in s_f]
+            s_c = tank.vessel_sdf(self.P_c)
+            self.ring = t(((s_c > -h) & (s_c <= 0.0)).astype(float))      # anel de fluido junto à parede
+            # δ da interface [1/m]: faixa de uma célula do lado do fluido, para que a força caia em faces
+            # que não são reimpostas (as faces além de Δ/2 da parede são fantasmas)
+            band = (s_c > -h) & (s_c <= 0.0)
+            per_layer = band[..., 0].sum() * h * h                     # volume da faixa por unidade de altura
+            self.delta_w = t(np.where(band, 2 * math.pi * tank.R / max(per_layer, 1e-30), 0.0))  # ∫δ = área real
+            self.beyond_wall = t((s_c > 0.5 * h).astype(float))              # além da parede: μ ≈ 0
+            Xc, Yc = self.P_c[..., 0], self.P_c[..., 1]
+            rc = np.hypot(Xc, Yc) + 1e-12
+            self.n_c = (t(Xc / rc), t(Yc / rc))
+            self.uwall_c = (t(w * Yc), t(-w * Xc))
+            self.tau_w = None
         self.chi_i = [ci * (1 - cv) for ci, cv in zip(self.chi_i, self.chi_v)]
         # casca da parede do vaso (onde há fluido por perto): só ela entra no torque da parede
         self.shell = [t((tank.vessel_sdf(P) < 1.5 * h).astype(float)) for P in (P_u, P_v)]
-        w = self.omega
-        self.uwall = [t(w * P_u[..., 1]), t(-w * P_v[..., 0]), torch.zeros_like(self.chi_v[2])]  # −Ω×r
         self.xu, self.yu = t(P_u[..., 0]), t(P_u[..., 1])
         self.xv, self.yv = t(P_v[..., 0]), t(P_v[..., 1])
         self.fluid = t(1.0 - np.maximum(frac(tank.vessel_sdf(self.P_c)), frac(tank.impeller_sdf(self.P_c))))
@@ -208,14 +239,39 @@ class TankFlow:
         return g
 
     # -------------------------------------------------------------- momento
-    def _adv_visc(self, comp, q, adv, mu_q, mu_bot=None):
+    def _advect_conservative(self, comp, q, vel):
+        """∇·(u q) em forma de fluxo nos volumes de controle da componente comp, com interpolação upwind de
+        3ª ordem nas faces. Pelas faces impermeáveis (velocidade normal nula) não passa momento: num vaso
+        fechado o momento só é trocado com as paredes pela tensão e pela pressão."""
+        beta = self.cfg.upwind
+        out = 0.0
+        for a in range(3):
+            qp = self._pad_comp(q, comp, a, 2)
+            nf = q.shape[a] + 1
+            l2, l1, r1, r2 = (sl(qp, a, k, k + nf) for k in range(4))
+            U = 0.5 * (l1 + r1) if a == comp else to_faces(vel[a], comp)
+            qf = torch.where(U >= 0, (-l2 + 5 * l1 + 2 * r1) / 6.0, (2 * l1 + 5 * r1 - r2) / 6.0)
+            if beta > 0:
+                qf = (1 - beta) * qf + beta * torch.where(U >= 0, l1, r1)
+            F = U * qf
+            if self.vghost is not None and comp < 2:
+                # vaso profundo (reimposto a cada estágio): nenhum fluxo de momento entra ou sai dele
+                gp = pad(self.vghost[comp].to(q.dtype), a)
+                F = F * (1 - torch.maximum(sl(gp, a, 0, nf), sl(gp, a, 1, nf + 1)))
+            out = out + (sl(F, a, 1, None) - sl(F, a, 0, -1)) / self.H[a]
+        return out
+
+    def _adv_visc(self, comp, q, adv, mu_q, mu_bot=None, qv=None, vel=None):
         """Upwind de 3ª ordem e ∇·(μ∇q)/ρ para a componente comp (nas suas faces); mu_bot: viscosidade
-        da face-fantasma do fundo (função de parede), no lugar da réplica da primeira camada."""
+        da face-fantasma do fundo (função de parede), no lugar da réplica da primeira camada; qv: campo
+        usado no termo viscoso (com a velocidade da parede nas faces sólidas, na parede nítida)."""
         beta = self.cfg.upwind
         A, Vs = 0.0, 0.0
+        qv = q if qv is None else qv
         for axis, a in enumerate(adv):
             h = self.H[axis]
             qp = self._pad_comp(q, comp, axis, 2)
+            qvp = qp if qv is q else self._pad_comp(qv, comp, axis, 1)
             n = q.shape[axis]
             qm2, qm1 = sl(qp, axis, 0, n), sl(qp, axis, 1, n + 1)
             qp1, qp2 = sl(qp, axis, 3, n + 3), sl(qp, axis, 4, n + 4)
@@ -225,25 +281,38 @@ class TankFlow:
             if beta > 0:
                 d1 = torch.where(a >= 0, (q - qm1) / h, (qp1 - q) / h)
                 d3 = (1 - beta) * d3 + beta * d1
-            A = A + a * d3
+            if vel is None:
+                A = A + a * d3
             mp = pad(mu_q, axis)
             if axis == 2 and mu_bot is not None:
                 mp = torch.cat([mu_bot, sl(mp, 2, 1, None)], dim=2)
             mu_p = 0.5 * (mu_q + sl(mp, axis, 2, None))
             mu_m = 0.5 * (mu_q + sl(mp, axis, 0, -2))
-            Vs = Vs + (mu_p * (qp1 - q) - mu_m * (q - qm1)) / (h * h)
+            if qv is q:
+                Vs = Vs + (mu_p * (qp1 - q) - mu_m * (q - qm1)) / (h * h)
+            else:
+                k0 = 1 if qvp is not qp else 2
+                vm1, vp1 = sl(qvp, axis, k0 - 1, n + k0 - 1), sl(qvp, axis, k0 + 1, n + k0 + 1)
+                Vs = Vs + (mu_p * (vp1 - qv) - mu_m * (qv - vm1)) / (h * h)
+        if vel is not None:
+            A = self._advect_conservative(comp, q, vel)
         return A - Vs / self.rho
 
     def momentum_rhs(self, u, v, w, g=None):
         """F tal que ∂u/∂t = −F − ∇P (sem a pressão)."""
         mu = self.mu + self.mu_t
-        uc, vc, wc = avg(u, 0), avg(v, 1), avg(w, 2)
         mb = self.mu_bottom
+        if self.wallfn:                       # além da parede: sem atrito (a tensão é a da lei de parede)
+            mu = torch.where(self.beyond_wall > 0, 1e-3 * self.mu, mu)
+            if mb is not None:
+                mb = torch.where(self.beyond_wall[:, :, :1] > 0, 1e-3 * mb, mb)
+        uc, vc, wc = avg(u, 0), avg(v, 1), avg(w, 2)
+        vel = (u, v, w) if self.cfg.advection == "conservative" else None
         Fu = self._adv_visc(0, u, (u, to_faces(vc, 0), to_faces(wc, 0)), to_faces(mu, 0),
-                            None if mb is None else to_faces(mb, 0))
+                            None if mb is None else to_faces(mb, 0), vel=vel)
         Fv = self._adv_visc(1, v, (to_faces(uc, 1), v, to_faces(wc, 1)), to_faces(mu, 1),
-                            None if mb is None else to_faces(mb, 1))
-        Fw = self._adv_visc(2, w, (to_faces(uc, 2), to_faces(vc, 2), w), to_faces(mu, 2))
+                            None if mb is None else to_faces(mb, 1), vel=vel)
+        Fw = self._adv_visc(2, w, (to_faces(uc, 2), to_faces(vc, 2), w), to_faces(mu, 2), vel=vel)
         # termo transposto (∇u)ᵀ·∇μ: importante onde a viscosidade varia muito (reologia, turbulência)
         if g is not None:
             dmu = [cgrad(mu, j, self.H[j]) for j in range(3)]
@@ -257,13 +326,56 @@ class TankFlow:
         Fv = Fv + 2 * om * to_faces(uc, 1)
         if self.body is not None:
             Fu, Fv, Fw = Fu - self.body[0], Fv - self.body[1], Fw - self.body[2]
+        if self.wallfn and self.tau_w is not None:
+            fx, fy, fz = self.tau_faces
+            Fu, Fv, Fw = Fu - fx, Fv - fy, Fw - fz
         return Fu, Fv, Fw
+
+    def wall_shear(self):
+        """Lei de parede no vaso: u_τ de Spalding com a velocidade tangencial relativa à parede na faixa
+        da interface (y = Δ) e a aceleração −u_τ² δ t̂ [m/s²] nos centros (congelada durante o passo)."""
+        from .turbulence import spalding_utau
+        uc, vc, wc = avg(self.u, 0), avg(self.v, 1), avg(self.w, 2)
+        nx, ny = self.n_c
+        ux, uy = uc - self.uwall_c[0], vc - self.uwall_c[1]
+        un = ux * nx + uy * ny
+        tx, ty, tz = ux - un * nx, uy - un * ny, wc
+        Ut = torch.sqrt(tx * tx + ty * ty + tz * tz).clamp(min=1e-9)
+        nu = (self.mu / self.rho).clamp(min=1e-9)
+        ut = spalding_utau(Ut, torch.full_like(Ut, self.h), nu)
+        a = -(ut ** 2) * self.delta_w / Ut
+        self.u_tau_w = torch.where(self.delta_w > 0, ut, torch.zeros_like(ut))
+        self.tau_w = (a * tx, a * ty, a * tz)
+        # nas faces (as fantasmas são reimpostas, então a força ali se perderia): renormaliza o torque de
+        # cada camada para o da tensão modelada, para que a força aplicada seja a da área verdadeira
+        X, Y = self.n_c[0] * self.r_c, self.n_c[1] * self.r_c
+        keep = [(~g).to(self.ft) for g in self.ghost_face]
+        fx, fy, fz = (to_faces(c, k) * keep[k] for k, c in enumerate(self.tau_w))
+        t_cell = (X * self.tau_w[1] - Y * self.tau_w[0]).sum((0, 1))
+        t_face = (self.xv * fy).sum((0, 1)) - (self.yu * fx).sum((0, 1))
+        sc = torch.where(t_face.abs() > 1e-30, t_cell / t_face, torch.ones_like(t_cell)).clamp(0.5, 2.0).view(1, 1, -1)
+        self.tau_faces = (fx * sc, fy * sc, fz)
+        return self.tau_w
+
+    def _slip_ghost(self, u, v, w):
+        """Região além da parede: gira como corpo rígido com a velocidade angular média (por altura) do
+        primeiro anel de fluido, sem componente radial nem axial. Um campo de rotação rígida tem divergência
+        nula, e a troca de momento por advecção com o líquido junto à parede fica neutra em média."""
+        uc, vc = avg(u, 0), avg(v, 1)
+        X, Y = self.n_c[0] * self.r_c, self.n_c[1] * self.r_c
+        om = (X * vc - Y * uc) / self.r_c.clamp(min=1e-9) ** 2
+        wz = (om * self.ring).sum((0, 1)) / self.ring.sum((0, 1)).clamp(min=1.0)       # [nz]
+        wz = wz.view(1, 1, -1)
+        u = torch.where(self.ghost_face[0], -wz * self.yu, u)
+        v = torch.where(self.ghost_face[1], wz * self.xv, v)
+        w = torch.where(self.ghost_face[2], torch.zeros_like(w), w)
+        return u, v, w
 
     def _force(self, q, comp):
         """Forçamento direto: impõe a velocidade do sólido; devolve (q, impulso do agitador, da parede)."""
         ci, cv = self.chi_i[comp], self.chi_v[comp]
         di = ci * (0.0 - q)
-        dv = cv * (self.uwall[comp] - q)
+        dv = cv * (self.vtarget[comp] - q)
         return q + di + dv, di, dv
 
     def _apply_bc(self, w):
@@ -295,14 +407,20 @@ class TankFlow:
             self.turb.update(self.dt, g, self.gamma)
         dt = self.compute_dt()
         self.dt = dt
+        if self.wallfn:
+            self.wall_shear()
         u0, v0, w0 = self.u, self.v, self.w
 
         def stage(uu, vv, ww, coef):
+            if self.wallfn:
+                uu, vv, ww = self._slip_ghost(uu, vv, ww)
             uu, ai_u, av_u = self._force(uu, 0)
             vv, ai_v, av_v = self._force(vv, 1)
             ww, _, _ = self._force(ww, 2)
             ww = self._apply_bc(ww)
             uu, vv, ww, phi = self.project(uu, vv, ww, coef)
+            if self.wallfn:
+                uu, vv, ww = self._slip_ghost(uu, vv, ww)
             uu, bi_u, bv_u = self._force(uu, 0)              # reforço: o sólido fica exatamente na sua velocidade
             vv, bi_v, bv_v = self._force(vv, 1)
             ww, _, _ = self._force(ww, 2)
@@ -322,9 +440,18 @@ class TankFlow:
         # ---- torques: impulso efetivo no passo (o estágio 1 entra com peso 1/2)
         Iu_i, Iv_i, Iu_v, Iv_v = [0.5 * a + b for a, b in zip(I1, I2)]
         self.torque_imp = self._torques(Iu_i, Iv_i, dt, "i")
-        self.torque_wall = self._torques(Iu_v * self.shell[0], Iv_v * self.shell[1], dt, "v")
-        if self.cfg.bottom == "wall":
-            self.torque_wall += self.bottom_torque()
+        if self.wallfn:
+            # lei de parede: o torque da parede é o da tensão modelada (a remoção da componente normal
+            # é radial e não exerce torque)
+            ax, ay, _ = self.tau_w
+            X, Y = self._t(self.P_c[..., 0]), self._t(self.P_c[..., 1])
+            self.torque_wall = self.rho * self.vol * float((X * ay - Y * ax).sum())
+            if self.cfg.bottom == "wall":
+                self.torque_wall += self.bottom_torque()
+        else:
+            self.torque_wall = self._torques(Iu_v * self.shell[0], Iv_v * self.shell[1], dt, "v")
+            if self.cfg.bottom == "wall":
+                self.torque_wall += self.bottom_torque()
         if not torch.isfinite(self.u).all():
             raise FloatingPointError(f"o escoamento divergiu em t = {self.time:.3f} s")
         self.time += dt
@@ -334,11 +461,19 @@ class TankFlow:
         self.wall += time.perf_counter() - t0
         return dt
 
+    def angular_momentum(self):
+        """Momento angular do fluido em torno do eixo, no referencial do laboratório [kg m²/s]."""
+        ul, vl, _ = self.lab_velocity_centers()
+        X, Y = self._t(self.P_c[..., 0]), self._t(self.P_c[..., 1])
+        return self.rho * float(((X * vl - Y * ul) * self.fluid).sum()) * self.vol
+
     def bottom_torque(self):
         """Torque da parede do fundo sobre o fluido (tensão viscosa na primeira camada)."""
         mu_c = (self.mu + self.mu_t)[:, :, :1]
         if self.mu_bottom is not None:                       # mesma média da face usada no momento
             mu_c = 0.5 * (mu_c + self.mu_bottom)
+        if self.wallfn:
+            mu_c = mu_c * (self.fluid[:, :, :1] > 0.5)
         mu_u = to_faces(mu_c, 0)
         mu_v = to_faces(mu_c, 1)
         tu = mu_u * (self.ubot - self.u[:, :, :1]) / (0.5 * self.hz) * (1 - self.chi_v[0][:, :, :1])

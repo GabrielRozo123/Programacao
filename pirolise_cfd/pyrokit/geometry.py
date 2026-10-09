@@ -14,11 +14,96 @@ from dataclasses import dataclass, field
 import numpy as np
 
 
+class _NP:
+    """Operações das SDFs em NumPy (malha) — a mesma geometria roda em PyTorch na renderização (GPU)."""
+    hypot, atan2, mod, abs, sin = np.hypot, np.arctan2, np.mod, np.abs, np.sin
+
+    @staticmethod
+    def clip(x, lo, hi):
+        return np.clip(x, lo, hi)
+
+    @staticmethod
+    def max(a, b):
+        return np.maximum(a, b)
+
+    @staticmethod
+    def min(a, b):
+        return np.minimum(a, b)
+
+    @staticmethod
+    def stack(xs):
+        return np.stack(xs, -1)
+
+    @staticmethod
+    def norm(q):
+        return np.linalg.norm(q, axis=-1)
+
+    @staticmethod
+    def maxlast(q):
+        return q.max(-1)
+
+    @staticmethod
+    def full(p, v):
+        return np.full(p.shape[:-1], v)
+
+
+class _TORCH:
+    @staticmethod
+    def _t(x, ref):
+        return x if hasattr(x, "dtype") and not isinstance(x, (float, int)) else ref.new_tensor(float(x))
+
+    hypot = staticmethod(lambda a, b: __import__("torch").hypot(a, b))
+    atan2 = staticmethod(lambda a, b: __import__("torch").atan2(a, b))
+    mod = staticmethod(lambda a, b: __import__("torch").remainder(a, b))
+    abs = staticmethod(lambda a: a.abs())
+    sin = staticmethod(lambda a: a.sin())
+
+    @staticmethod
+    def clip(x, lo, hi):
+        import torch
+        return torch.minimum(torch.maximum(x, _TORCH._t(lo, x)), _TORCH._t(hi, x))
+
+    @staticmethod
+    def max(a, b):
+        import torch
+        ref = a if hasattr(a, "new_tensor") else b
+        return torch.maximum(_TORCH._t(a, ref), _TORCH._t(b, ref))
+
+    @staticmethod
+    def min(a, b):
+        import torch
+        ref = a if hasattr(a, "new_tensor") else b
+        return torch.minimum(_TORCH._t(a, ref), _TORCH._t(b, ref))
+
+    @staticmethod
+    def stack(xs):
+        import torch
+        return torch.stack(xs, -1)
+
+    @staticmethod
+    def norm(q):
+        import torch
+        return torch.linalg.vector_norm(q, dim=-1)
+
+    @staticmethod
+    def maxlast(q):
+        return q.max(-1).values
+
+    @staticmethod
+    def full(p, v):
+        return p.new_full(p.shape[:-1], v)
+
+
+def _xp(p):
+    return _NP if isinstance(p, np.ndarray) else _TORCH
+
+
 def _box_sdf(p, center, half):
-    """SDF de uma caixa alinhada aos eixos (p: [..., 3])."""
-    q = np.abs(p - np.asarray(center)) - np.asarray(half)
-    outside = np.linalg.norm(np.maximum(q, 0.0), axis=-1)
-    inside = np.minimum(q.max(axis=-1), 0.0)
+    """SDF de uma caixa alinhada aos eixos (p: [..., 3], NumPy ou PyTorch)."""
+    X = _xp(p)
+    q = X.stack([X.abs(p[..., k] - center[k]) - half[k] for k in range(3)])
+    outside = X.norm(X.max(q, 0.0))
+    inside = X.min(X.maxlast(q), 0.0)
     return outside + inside
 
 
@@ -43,9 +128,10 @@ class Anchor:
         arms = [_box_sdf(p, (s * (Ra - 0.5 * self.w), 0.0, zc), (0.5 * self.w, 0.5 * self.t, 0.5 * self.h_arm))
                 for s in (-1.0, 1.0)]
         bar = _box_sdf(p, (0.0, 0.0, z0 + 0.5 * self.w), (Ra, 0.5 * self.t, 0.5 * self.w))
-        shaft = np.hypot(p[..., 0], p[..., 1]) - self.r_shaft
-        shaft = np.maximum(shaft, z0 - p[..., 2])           # o eixo começa na barra inferior
-        return np.minimum.reduce([arms[0], arms[1], bar, shaft])
+        X = _xp(p)
+        shaft = X.hypot(p[..., 0], p[..., 1]) - self.r_shaft
+        shaft = X.max(shaft, z0 - p[..., 2])                # o eixo começa na barra inferior
+        return X.min(X.min(arms[0], arms[1]), X.min(bar, shaft))
 
 
 @dataclass
@@ -65,31 +151,32 @@ class HelicalRibbon:
     phase: float = 0.0
 
     def sdf(self, p):
+        X = _xp(p)
         x, y, z = p[..., 0], p[..., 1], p[..., 2]
-        r = np.hypot(x, y)
-        th = np.arctan2(y, x)
+        r = X.hypot(x, y)
+        th = X.atan2(y, x)
         Ro = 0.5 * self.D
         Ri = Ro - self.w
         # distância normal à superfície helicoidal: Δθ ao filete mais próximo (dois filetes, período π),
         # projetado na normal da hélice dentro da superfície cilíndrica
         th_h = self.phase + 2 * math.pi * z / self.pitch
-        dth = np.mod(th - th_h + 0.5 * math.pi, math.pi) - 0.5 * math.pi
-        rm = np.clip(r, Ri, Ro)
-        beta = np.arctan2(self.pitch, 2 * math.pi * rm)          # ângulo da hélice com a horizontal
-        d_n = np.abs(rm * dth) * np.sin(beta) - 0.5 * self.t
-        d_r = np.maximum(Ri - r, r - Ro)
-        d_z = np.maximum(self.z0 - z, z - self.z1)
-        q = np.stack([d_n, d_r, d_z], -1)
-        ribbon = np.linalg.norm(np.maximum(q, 0.0), axis=-1) + np.minimum(q.max(-1), 0.0)
-        shaft = np.maximum(r - self.r_shaft, self.z0 - z)
-        parts = [ribbon, shaft]
+        dth = X.mod(th - th_h + 0.5 * math.pi, math.pi) - 0.5 * math.pi
+        rm = X.clip(r, Ri, Ro)
+        beta = X.atan2(self.pitch + 0 * rm, 2 * math.pi * rm)    # ângulo da hélice com a horizontal
+        d_n = X.abs(rm * dth) * X.sin(beta) - 0.5 * self.t
+        d_r = X.max(Ri - r, r - Ro)
+        d_z = X.max(self.z0 - z, z - self.z1)
+        q = X.stack([d_n, d_r, d_z])
+        ribbon = X.norm(X.max(q, 0.0)) + X.min(X.maxlast(q), 0.0)
+        out = X.min(ribbon, X.max(r - self.r_shaft, self.z0 - z))         # fitas + eixo
         # braços radiais nos níveis inferior, intermediário(s) e superior, alinhados aos filetes
         for zl in np.linspace(self.z0 + 0.5 * self.w, self.z1 - 0.5 * self.w, self.n_arms):
             ang = self.phase + 2 * math.pi * zl / self.pitch
             c, s = math.cos(ang), math.sin(ang)
             xr, yr = c * x + s * y, -s * x + c * y              # eixo x' ao longo do braço
-            parts.append(_box_sdf(np.stack([xr, yr, z], -1), (0.0, 0.0, zl), (Ro - 0.5 * self.w, 0.5 * self.t, 0.5 * self.w)))
-        return np.minimum.reduce(parts)
+            out = X.min(out, _box_sdf(X.stack([xr, yr, z]), (0.0, 0.0, zl),
+                                      (Ro - 0.5 * self.w, 0.5 * self.t, 0.5 * self.w)))
+        return out
 
 
 @dataclass
@@ -98,7 +185,7 @@ class Shaft:
     r_shaft: float
 
     def sdf(self, p):
-        return np.hypot(p[..., 0], p[..., 1]) - self.r_shaft
+        return _xp(p).hypot(p[..., 0], p[..., 1]) - self.r_shaft
 
 
 @dataclass

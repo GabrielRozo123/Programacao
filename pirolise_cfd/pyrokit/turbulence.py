@@ -134,6 +134,7 @@ class SST:
         om = flow.omega
         uw = np.stack([om * P[..., 1], -om * P[..., 0], 0 * r], -1)
         self.uw = t(np.where((which == 2)[..., None], 0.0, uw))     # agitador parado; vaso e fundo: −Ω×r
+        self.side = t(which == 0) > 0.5                               # parede lateral é a mais próxima
         # células de parede: fluido com vizinho sólido (ou no fundo) e área de parede por volume
         sol = (~fl).to(flow.ft)
         nb = 0.0
@@ -146,6 +147,9 @@ class SST:
             nb = nb + bot
         self.a_w = nb * self.flf                                      # [1/m] área de parede / volume
         self.wallcell = (self.a_w > 0) & fl
+        # parede em escada: área das faces / área verdadeira ≈ |n_x| + |n_y| + |n_z| (em média, 4/π no vaso);
+        # a tensão de parede é dividida por esse fator para que a força total seja a da superfície real
+        self.stair = self.n.abs().sum(-1).clamp(1.0, 3.0 ** 0.5)
         self.wallzone = ((self.y < 1.5 * h) & fl) | self.wallcell
         # ---- campos k, ω
         U = om * tank.R
@@ -242,17 +246,23 @@ class SST:
         self.F1 = F1
         nu_t = A1 * self.k / torch.maximum(A1 * self.w, gamma * F2)
         self.nu_t = torch.minimum(nu_t, self.nu_t_max_ratio * nu) * self.flf
-        # ---- viscosidade para o momento: μ_t no fluido; nas células sólidas vizinhas, a viscosidade de
-        # parede que reproduz τ_w = ρu_τ² na face (média aritmética das duas células)
-        mu_eff = f.mu + rho * self.nu_t
-        mu_w = rho * ut ** 2 * f.h / Um.clamp(min=1e-6)
-        ghost = torch.where(self.wallcell, (2 * mu_w - mu_eff).clamp(min=0.0), torch.zeros_like(mu_w))
+        # ---- viscosidade para o momento. Nas células de parede, a viscosidade efetiva é a da lei de parede,
+        # μ_w = ρu_τ²Δ/|U_t|, que dá τ_w = ρu_τ² na face com o sólido; a mesma μ_w é estendida para as
+        # células sólidas vizinhas, de modo que a média na face seja μ_w qualquer que seja o ν_t transportado
+        # (com k difundido do núcleo, ν_t na primeira célula pode ser muito maior que κu_τy, e a tensão na
+        # parede sairia multiplicada).
+        mu_w = (rho * ut ** 2 * f.h / Um.clamp(min=1e-6) / self.stair).clamp(min=f.mu)
+        # com a lei de parede do escoamento (getattr wallfn), a parede lateral já recebe a tensão como
+        # força distribuída: ali a viscosidade fica a natural, e a do sólido além da parede é anulada
+        wc = self.wallcell & ~self.side if getattr(f, "wallfn", False) else self.wallcell
+        mu_eff = torch.where(wc, mu_w, f.mu + rho * self.nu_t)
+        ghost = torch.where(wc, mu_w, torch.where(self.wallcell, mu_eff, torch.zeros_like(mu_w)))
         solid_mu = extend_into_solid(ghost, self.wallcell, passes=1)
-        f.mu_t = torch.where(self.fl, rho * self.nu_t, (solid_mu - f.mu).clamp(min=-0.999 * f.mu))
+        f.mu_t = torch.where(self.fl, mu_eff - f.mu, (solid_mu - f.mu).clamp(min=-0.999 * f.mu))
         if f.cfg.bottom == "wall":
             # fundo (face da malha): viscosidade da face-fantasma que dá τ_w na primeira camada
             mwb = rho * ut[:, :, :1] ** 2 * (0.5 * f.hz) / Um[:, :, :1].clamp(min=1e-6)
-            f.mu_bottom = (2 * mwb - mu_eff[:, :, :1]).clamp(min=0.0)
+            f.mu_bottom = (2 * mwb - mu_eff[:, :, :1]).clamp(min=0.05 * mwb)
         return self
 
     def wall_heat_transfer(self, cp, k_mol, Pr=None):

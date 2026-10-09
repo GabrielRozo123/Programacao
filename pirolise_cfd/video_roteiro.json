@@ -1,0 +1,89 @@
+{
+ "hook": {
+  "kicker": "CFD 3D no Google Colab",
+  "title": "Reator de pirólise de plástico",
+  "subtitle": "Fita helicoidal a {rpm} rpm · parede a {Tw} °C · carga pós-consumo",
+  "big": [["{vazao} kg/h", "de plástico virando óleo e cera"], ["{T} °C", "no plástico fundido"]]
+ },
+ "title_card": {
+  "title": "Pirólise de plástico: um reator agitado simulado em 3D",
+  "subtitle": "Escoamento, calor e química do fundido em um só modelo, validado com a literatura",
+  "credit": "{autor}",
+  "disclaimer": "Composições, reologia e cinética de artigos abertos; sem dados de projeto ou de clientes."
+ },
+ "context_cards": [
+  {
+   "kicker": "O desafio",
+   "headline": "Transformar plástico em óleo exige calor no lugar certo",
+   "bullets": [
+    "O plástico entra derretido, a 300 °C, viscoso como mel grosso.",
+    "No reator, ele precisa chegar a ~400 °C para as cadeias se quebrarem.",
+    "Parede quente demais forma coque; mistura ruim deixa carga sem converter."
+   ]
+  },
+  {
+   "kicker": "O que foi feito",
+   "headline": "Um reator agitado em 3D, do escoamento à química",
+   "bullets": [
+    "Vaso encamisado de {T_vaso} m (≈ {vol} m³) com fita helicoidal dupla.",
+    "Turbulência k-ω SST, reologia do fundido e cinética de cisão de cadeias.",
+    "Tudo em Python, rodando em GPU no Google Colab."
+   ]
+  }
+ ],
+ "rotation": {
+  "chapter": "Dentro do reator",
+  "title": "Temperatura do plástico fundido",
+  "subtitle": "Corte do vaso; a fita gira em câmera lenta",
+  "captions": [
+   "O plástico entra a 300 °C perto da superfície e se mistura em segundos.",
+   "A camisa a {Tw} °C mantém o fundido entre {T_min} e {T_max} °C."
+  ]
+ },
+ "sections": {
+  "chapter": "Escoamento e química",
+  "captions": [
+   "As cadeias se quebram: a massa molar cai de {Mw0} para {Mw} kg/mol no reator.",
+   "Com isso a viscosidade despenca: o seio do reator vira uma cera fina, de {eta} mPa s."
+  ]
+ },
+ "wall": {
+  "chapter": "Troca térmica",
+  "captions": [
+   "O calor entra pela parede: {q} kW/m² em média, {duty} kW no total.",
+   "Coeficiente interno de {h} W/m²K, {h_vs}."
+  ]
+ },
+ "capacity": {
+  "chapter": "Capacidade",
+  "captions": [
+   "Mais calor na parede, mais plástico processado: {cap_lo} a {cap_hi} kg/h entre 440 e 540 °C.",
+   "No ponto simulado: {vazao} kg/h, com {duty} kW pela camisa."
+  ]
+ },
+ "validation": {
+  "chapter": "Validação",
+  "captions": [
+   "{n_ok} de {n} verificações dentro do alvo.",
+   "Termogravimetria da literatura, potência da fita, troca térmica (Nagata) e balanços de massa e energia."
+  ]
+ },
+ "kpis": {
+  "title": "Números do ponto de operação",
+  "labels": ["plástico processado", "temperatura do fundido", "calor pela camisa", "óleo e cera no vapor"]
+ },
+ "closing": {
+  "kicker": "Para a gestão",
+  "headline": "Uma ferramenta rápida para testar o reator antes de construir",
+  "bullets": [
+    "Compara temperaturas de parede, rotações, agitadores e cargas em horas, não semanas.",
+    "Mostra onde o calor entra e onde há risco de coque ou de carga não convertida.",
+    "Aberta e auditável: cada hipótese está no código e no relatório."
+  ]
+ },
+ "end_card": {
+  "line": "Simulação 3D aberta, validada e reprodutível no navegador",
+  "author": "{autor}"
+ },
+ "caption": "Plástico pós-consumo virando óleo dentro de um reator agitado — simulado em 3D, do escoamento à química, rodando no Google Colab.\n\nO caso: um vaso encamisado de {T_vaso} m com fita helicoidal dupla a {rpm} rpm, parede a {Tw} °C e carga de poliolefinas (HDPE, LDPE e PP). O modelo junta turbulência k-ω SST, a reologia do plástico fundido (que cai de milhares de Pa s para alguns mPa s quando as cadeias se quebram) e a cinética de cisão de cadeias calibrada com termogravimetria da literatura.\n\nResultado: {vazao} kg/h de plástico processado, fundido a {T} °C e {duty} kW entrando pela camisa. {n_ok} de {n} verificações batem com a literatura (TGA, potência da fita, troca térmica de Nagata e balanços).\n\nTudo com dados abertos, sem informações de projeto. Código e relatório no GitHub.\n\n#CFD #Pirólise #Reciclagem #EconomiaCircular #EngenhariaQuímica #Simulação #Python #IndústriaQuímica"
+}
