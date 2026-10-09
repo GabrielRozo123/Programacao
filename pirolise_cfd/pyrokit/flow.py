@@ -39,6 +39,7 @@ class FlowConfig:
     bottom: str = "wall"         # "wall" (parede que gira) ou "slip" (verificação)
     upwind: float = 0.0          # mistura com upwind de 1ª ordem (0 = 3ª ordem pura)
     mu_max: float = 1e9          # teto de viscosidade [Pa s] (estabilidade do passo explícito)
+    spin0: float = 0.0           # partida: núcleo girando a spin0·Ω no referencial fixo (0 = repouso)
     device: str = "auto"
     dtype: str = "float32"
 
@@ -99,14 +100,16 @@ class TankFlow:
         self.vbot = self.uwall[1][:, :, :1]
 
         # ---- campos (velocidade relativa ao agitador); partida: líquido em repouso no referencial fixo
-        self.u = self.uwall[0].clone() * (1 - self.chi_i[0])
-        self.v = self.uwall[1].clone() * (1 - self.chi_i[1])
+        self.u = self.uwall[0].clone() * (1 - self.chi_i[0]) * (1 - cfg.spin0)
+        self.v = self.uwall[1].clone() * (1 - self.chi_i[1]) * (1 - cfg.spin0)
         self.w = torch.zeros_like(self.chi_v[2])
         self.P = torch.zeros(self.nx, self.ny, self.nz, dtype=self.ft, device=self.dev)   # p/ρ
         self.mu = torch.full_like(self.P, float(self.mu_fn(torch.zeros(1, dtype=self.ft, device=self.dev))[0]))
         self.mu_t = torch.zeros_like(self.P)
         self.gamma = torch.zeros_like(self.P)
         self.body = None            # forças de corpo extras (ex.: empuxo), lista de 3 tensores nas faces
+        self.turb = None            # modelo RANS (turbulence.SST), opcional
+        self.mu_bottom = None       # viscosidade da face-fantasma do fundo (função de parede)
 
         self._poisson_setup()
         self.time, self.step_n, self.dt, self.wall = 0.0, 0, cfg.dt_max, 0.0
@@ -205,8 +208,9 @@ class TankFlow:
         return g
 
     # -------------------------------------------------------------- momento
-    def _adv_visc(self, comp, q, adv, mu_q):
-        """Upwind de 3ª ordem e ∇·(μ∇q)/ρ para a componente comp (nas suas faces)."""
+    def _adv_visc(self, comp, q, adv, mu_q, mu_bot=None):
+        """Upwind de 3ª ordem e ∇·(μ∇q)/ρ para a componente comp (nas suas faces); mu_bot: viscosidade
+        da face-fantasma do fundo (função de parede), no lugar da réplica da primeira camada."""
         beta = self.cfg.upwind
         A, Vs = 0.0, 0.0
         for axis, a in enumerate(adv):
@@ -223,6 +227,8 @@ class TankFlow:
                 d3 = (1 - beta) * d3 + beta * d1
             A = A + a * d3
             mp = pad(mu_q, axis)
+            if axis == 2 and mu_bot is not None:
+                mp = torch.cat([mu_bot, sl(mp, 2, 1, None)], dim=2)
             mu_p = 0.5 * (mu_q + sl(mp, axis, 2, None))
             mu_m = 0.5 * (mu_q + sl(mp, axis, 0, -2))
             Vs = Vs + (mu_p * (qp1 - q) - mu_m * (q - qm1)) / (h * h)
@@ -232,8 +238,11 @@ class TankFlow:
         """F tal que ∂u/∂t = −F − ∇P (sem a pressão)."""
         mu = self.mu + self.mu_t
         uc, vc, wc = avg(u, 0), avg(v, 1), avg(w, 2)
-        Fu = self._adv_visc(0, u, (u, to_faces(vc, 0), to_faces(wc, 0)), to_faces(mu, 0))
-        Fv = self._adv_visc(1, v, (to_faces(uc, 1), v, to_faces(wc, 1)), to_faces(mu, 1))
+        mb = self.mu_bottom
+        Fu = self._adv_visc(0, u, (u, to_faces(vc, 0), to_faces(wc, 0)), to_faces(mu, 0),
+                            None if mb is None else to_faces(mb, 0))
+        Fv = self._adv_visc(1, v, (to_faces(uc, 1), v, to_faces(wc, 1)), to_faces(mu, 1),
+                            None if mb is None else to_faces(mb, 1))
         Fw = self._adv_visc(2, w, (to_faces(uc, 2), to_faces(vc, 2), w), to_faces(mu, 2))
         # termo transposto (∇u)ᵀ·∇μ: importante onde a viscosidade varia muito (reologia, turbulência)
         if g is not None:
@@ -265,7 +274,7 @@ class TankFlow:
         uc, vc, wc = avg(self.u, 0).abs(), avg(self.v, 1).abs(), avg(self.w, 2).abs()
         rate = (uc / self.h + vc / self.h + wc / self.hz).max().item()
         dt = self.cfg.cfl / max(rate, 1e-9)
-        nu_max = ((self.mu + self.mu_t) * self.fluid).max().item() / self.rho
+        nu_max = (self.mu + self.mu_t).max().item() / self.rho
         if nu_max > 0:
             dt = min(dt, 0.45 / (2.0 * nu_max * self.inv_d2))
         dt = min(dt, 0.45 / max(self.omega, 1e-9), self.cfg.dt_max)
@@ -280,6 +289,10 @@ class TankFlow:
         impulso total no sólido inclui a pressão e dá o torque)."""
         t0 = time.perf_counter()
         g = self.update_viscosity() if update_mu else self.strain(self.u, self.v, self.w)[0]
+        if self.turb is not None:
+            if not update_mu:
+                self.gamma = self.strain(self.u, self.v, self.w)[1]
+            self.turb.update(self.dt, g, self.gamma)
         dt = self.compute_dt()
         self.dt = dt
         u0, v0, w0 = self.u, self.v, self.w
@@ -323,8 +336,11 @@ class TankFlow:
 
     def bottom_torque(self):
         """Torque da parede do fundo sobre o fluido (tensão viscosa na primeira camada)."""
-        mu_u = to_faces((self.mu + self.mu_t)[:, :, :1], 0)
-        mu_v = to_faces((self.mu + self.mu_t)[:, :, :1], 1)
+        mu_c = (self.mu + self.mu_t)[:, :, :1]
+        if self.mu_bottom is not None:                       # mesma média da face usada no momento
+            mu_c = 0.5 * (mu_c + self.mu_bottom)
+        mu_u = to_faces(mu_c, 0)
+        mu_v = to_faces(mu_c, 1)
         tu = mu_u * (self.ubot - self.u[:, :, :1]) / (0.5 * self.hz) * (1 - self.chi_v[0][:, :, :1])
         tv = mu_v * (self.vbot - self.v[:, :, :1]) / (0.5 * self.hz) * (1 - self.chi_v[1][:, :, :1])
         A = self.h * self.h
