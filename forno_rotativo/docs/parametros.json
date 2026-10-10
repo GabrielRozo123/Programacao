@@ -1,0 +1,975 @@
+{
+ "legenda": {
+  "nivel": {
+   "TC": "lido no texto completo",
+   "R": "resumo apenas - faixa da literatura (nao verificado no texto completo)",
+   "S": "secundario/vendedor/busca - faixa da literatura (nao verificado no texto completo)",
+   "D": "derivado aqui por calculo",
+   "H": "hipotese de projeto",
+   "C": "calibrado por nos (nao e valor de literatura)"
+  },
+  "verificado": "true somente quando o numero foi confirmado em texto completo (TC) ou e algebra exata; numeros entre colchetes [n] referem-se a lista de referencias do brief"
+ },
+ "parametros": [
+  {
+   "grupo": "A_geometria",
+   "nome": "D_i",
+   "valor": "0.50",
+   "unidade": "m",
+   "fonte": "escolha de projeto; analogos Hwan 2009 D_iw 0.498 m x 3.98 m [16]; Mines Albi 0.21 m [75]; Suzuki 1.0 m [2]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "faixa de estudo 0.21-1.0 m"
+  },
+  {
+   "grupo": "A_geometria",
+   "nome": "L_aquecido",
+   "valor": "4.0",
+   "unidade": "m",
+   "fonte": "escolha; Hwan 3.98 m [16]; Colin 4.2 m [8]; Hamm L/D 7.1 [46]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "L/D = 8; 4 zonas de 1 m"
+  },
+  {
+   "grupo": "A_geometria",
+   "nome": "espessura_parede",
+   "valor": "10",
+   "unidade": "mm",
+   "fonte": "hipotese; Suzuki SUS310S 25 mm [2]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "aco 310S; k ~19 W/mK assumido"
+  },
+  {
+   "grupo": "A_geometria",
+   "nome": "inclinacao",
+   "valor": "1.0 (0.5-3)",
+   "unidade": "grau",
+   "fonte": "Colin 2015: classicamente 1-3 graus (citando Boateng) [8]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "o valor base e escolha"
+  },
+  {
+   "grupo": "A_geometria",
+   "nome": "represa_descarga",
+   "valor": "50 (0-80)",
+   "unidade": "mm",
+   "fonte": "hipotese; calculo Saeman [D]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "rotacao",
+   "valor": "2 (0 estatico, 0.5, 1, 3, 4, 6)",
+   "unidade": "rpm",
+   "fonte": "Colin 2015 1-5 rpm [8]; Bhatt 2 rpm [44]; Suzuki 2.7-4.0 rpm [3]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "o valor base e escolha"
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "Froude_base",
+   "valor": "1.1e-3",
+   "unidade": "-",
+   "fonte": "Fr = omega^2 R/g [23]",
+   "verificado": true,
+   "nivel": "D",
+   "nota": "regime de rolamento (1e-4 a 1e-2 Mellmann; 5e-4 a 2e-2 Henein, via Santos 2016 [23])"
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "alimentacao_plastico",
+   "valor": "20 (10-60)",
+   "unidade": "kg/h",
+   "fonte": "hipotese; Beckmann piloto 10 kg/h PE [13]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "flocos PE/PP 50/50, 3-10 mm"
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "densidade_aparente_flocos",
+   "valor": "350 (250-500)",
+   "unidade": "kg/m3",
+   "fonte": "datasheets de regrind (busca); fluff de Hamm 60-250 [46]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "NAO usar 610 kg/m3 (pellet de biomassa, Jaworski [86])"
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "carreador_razao_massica",
+   "valor": "9:1 (variantes 0, 3, 9)",
+   "unidade": "kg areia/kg plastico",
+   "fonte": "Beckmann 2003: 90 kg/h areia + 10 kg/h PE [13]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "carreador_material",
+   "valor": "areia de quartzo d_p 0.5 mm (0.2-1); alternativa esferas de aco 1-1.5 mm",
+   "unidade": "-",
+   "fonte": "Nafsun Tab.1 areia 0.2 mm [4]; esferas de aco 1-1.5 mm (revisao, secundario)",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "T_entrada_carreador",
+   "valor": "350 (25 = configuracao Beckmann)",
+   "unidade": "C",
+   "fonte": "hipotese (recirculacao quente)",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "setpoints_parede_4_zonas",
+   "valor": "450/600/600/600 (varredura 550-700 nas zonas 2-4)",
+   "unidade": "C",
+   "fonte": "hipotese; Beckmann 300/400/500/500 [13]; Suzuki 555 e 630 [2]; Hamm casca 750 / processo 500 [46]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "N2_purga",
+   "valor": "1.5 (0.5-5)",
+   "unidade": "Nm3/h",
+   "fonte": "escalado de Beckmann: 0.8 Nm3/h para 10 kg/h PE [13]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "co-corrente; purga de partida >= 10 Nm3/h recomendada"
+  },
+  {
+   "grupo": "A_operacao",
+   "nome": "pressao_interna",
+   "valor": "+50 a +200 (cenarios -200 a +500)",
+   "unidade": "Pa (manometrica)",
+   "fonte": "US 11319493: 0.0010-0.030 psi [50]; Kern: alguns mbar abaixo da atmosfera [47]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "enchimento_medio",
+   "valor": "9-12",
+   "unidade": "%",
+   "fonte": "Saeman com 1 grau, 2 rpm, represa 50 mm, q_v 0.12-0.17 m3/h [D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "alvo 10-20 % (Nafsun [4])"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "tempo_residencia_solidos",
+   "valor": "32-35 (Saeman); 26-35 corrigido",
+   "unidade": "min",
+   "fonte": "[D]; Saeman superestima o MRT em 4-25 % (Colin 2015 [8])",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "Sullivan da 27 min (theta 33, S 1, N 3)"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "tempo_contato_parede",
+   "valor": "8.0",
+   "unidade": "s",
+   "fonte": "t_c = 2 eps/omega com eps 48 graus a 2 rpm [D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": ""
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "area_parede_coberta_por_m",
+   "valor": "0.42",
+   "unidade": "m2/m",
+   "fonte": "[D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "parede exposta 1.15 m2/m; corda 0.37 m/m"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "h_ws_esperado_2rpm",
+   "valor": "carreador ~200 (h_pen ~250); flocos ~50 (h_pen ~105); fundido h_pen ~250",
+   "unidade": "W/m2K",
+   "fonte": "[D] modelo em serie",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "validar contra Nafsun/Moumin"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "carga_termica_processo",
+   "valor": "20 (37 com areia fria)",
+   "unidade": "kW",
+   "fonte": "[D]: plastico 12.8 kW (2.3 MJ/kg) + areia 350->500 C 7.5 kW",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "perdas +3-5 kW; fluxo medio ~4 kW/m2 (5.8 com areia fria)"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "tempo_residencia_vapor",
+   "valor": "85-300",
+   "unidade": "s",
+   "fonte": "[D] V/Q com M 0.05-0.30 kg/mol, 500 C, N2 1.5 Nm3/h",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "leito fixo/fluidizado: 1.65-3.76 s (Abdy [40])"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "Re_omega_freeboard",
+   "valor": "~500",
+   "unidade": "-",
+   "fonte": "[D] D^2 omega/(2 nu), nu 7.8e-5 m2/s",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "Gr ~2.6e7 (dT 100 K); laminar, estratificacao estavel"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "potencia_acionamento_piloto",
+   "valor": "0.03-0.2",
+   "unidade": "kW",
+   "fonte": "[D] CE Raymond/Perry via NPTEL [56] e torque do centro de gravidade",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "menos de 1 % da carga termica"
+  },
+  {
+   "grupo": "A_derivados",
+   "nome": "purga_partida",
+   "valor": "2.0 trocas de volume ate 2.76 % O2; 3.0 ate 1 %; ~85 min a 1.5 Nm3/h",
+   "unidade": "-",
+   "fonte": "[D] mistura perfeita",
+   "verificado": false,
+   "nivel": "D",
+   "nota": ""
+  },
+  {
+   "grupo": "A_internos",
+   "nome": "lifters_zona_descarga",
+   "valor": "6 x 50 mm (retos), nos ultimos 0.8 m",
+   "unidade": "-",
+   "fonte": "regra D/12-D/8 (NPTEL [56], secundario); Suzuki H_l/H_w > 0.45 e L_l/L_w < 1 [3]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "so para solidos de escoamento livre (Sunkara [18])"
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "tambor",
+   "valor": "2.6 x 6.6",
+   "unidade": "m",
+   "fonte": "Doing DY-1-10 / Sihai LJ-10 (paginas de vendedor) [58][49]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "dados de vendedor"
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "rotacao",
+   "valor": "0.4 (0.4-0.8)",
+   "unidade": "rpm",
+   "fonte": "Ma & Zhong [49]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "dado de vendedor relatado em relatorio"
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "enchimento_max",
+   "valor": "2/3",
+   "unidade": "fracao de volume",
+   "fonte": "Ma & Zhong (Doing, Kingtiger) [49]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "carga",
+   "valor": "10 t de pneus ou 8-10 t de fardos de plastico",
+   "unidade": "t/batelada",
+   "fonte": "Sihai [58]; Beston ULTRA [59]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "vendedor"
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "queimadores",
+   "valor": "3 x 300000 kcal/h (~1.05 MW)",
+   "unidade": "-",
+   "fonte": "Sihai LJ-10 [58]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": ""
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "motor_acionamento",
+   "valor": "5.5 (total instalado 19-20.5)",
+   "unidade": "kW",
+   "fonte": "Sihai [58]; Doing [49]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "CE Raymond da 3.2-3.4 kW a 0.4 rpm [D]"
+  },
+  {
+   "grupo": "B_batelada",
+   "nome": "orcamento_termico",
+   "valor": "14-22 GJ/batelada (pneus); contato 0.16-0.25 MW; radiacao 0.25-0.45 MW",
+   "unidade": "-",
+   "fonte": "Gamboa [88] (resumo); [D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": ""
+  },
+  {
+   "grupo": "C_industrial",
+   "nome": "Hamm_D_L",
+   "valor": "2.8 x 20 (aquecido)",
+   "unidade": "m",
+   "fonte": "DGE Hamm 2009 [46]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "C_industrial",
+   "nome": "Hamm_operacao",
+   "valor": "6.65 t/h por forno; enchimento ~15 %; ~90 min; processo ~500 C; casca ~750 C",
+   "unidade": "-",
+   "fonte": "[46]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "alimentacao CDR/RDF, nao plastico puro"
+  },
+  {
+   "grupo": "C_industrial",
+   "nome": "Hamm_energia",
+   "valor": "gas natural 29.2 GJ/h (10.8 % da entrada); ~2.2 MJ/kg bruto, ~1.5 MJ/kg liquido",
+   "unidade": "-",
+   "fonte": "[46]; razoes por kg derivadas",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "as razoes por kg sao [D]"
+  },
+  {
+   "grupo": "C_industrial",
+   "nome": "Hamm_residencia_vapor",
+   "valor": "64 (M 0.05), 191 (M 0.15), 383 (M 0.30)",
+   "unidade": "s",
+   "fonte": "[D] verificado, por forno",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "substitui a estimativa de 20-35 s"
+  },
+  {
+   "grupo": "transporte",
+   "nome": "Saeman_ODE",
+   "valor": "dh/dz = tan(th)[3 q_v/(4 pi n R^3)(2h/R-(h/R)^2)^-1.5 - tan(beta)/sin(th)]",
+   "unidade": "n em rev/s; z a partir da descarga",
+   "fonte": "Patisson Eq.1 [9]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "fator 1/cos(beta) desprezivel abaixo de 5 graus"
+  },
+  {
+   "grupo": "transporte",
+   "nome": "Sullivan_MRT",
+   "valor": "tau = 1.77 L sqrt(theta) F/(S D N)",
+   "unidade": "min; graus; rpm",
+   "fonte": "Colin 2014 Eq.6 [7]; apendice EPA (secundario)",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "erro de -13 a +13 % nos dados de Colin 2015 [D]"
+  },
+  {
+   "grupo": "transporte",
+   "nome": "Peclet_axial",
+   "valor": "361-645 (cavacos); ~2000 (L/D 19); 71-77 (Hwan, com lifters)",
+   "unidade": "-",
+   "fonte": "Colin 2015 Tab.2 [8]; Thammavong Tab.21 [10]; Hwan [16]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "fluxo pistonado na base; sensibilidade 70-2000"
+  },
+  {
+   "grupo": "transporte",
+   "nome": "angulo_repouso",
+   "valor": "areia 32.4 (dinamico); esferas de PP 30.3-35.5; cavacos 42 (dinamico); pellets de PE 25 (estatico)",
+   "unidade": "grau",
+   "fonte": "Seidenbecher 2022 [19]; PMC13438115 [89]; Colin 2015 [8]; Boateng Tab.4.1 [21]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "sem dado para flocos plasticos puros"
+  },
+  {
+   "grupo": "transporte",
+   "nome": "MRT_hold_up_Colin2015",
+   "valor": "MRT 31.8-109.4 min; hold-up 5.2-18.1 %; 8 corridas (1-2 graus, 2-4 rpm, 4-8 kg/h)",
+   "unidade": "min; %",
+   "fonte": "Colin 2015 Tab.2 [8]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "alvo de validacao N1"
+  },
+  {
+   "grupo": "transversal",
+   "nome": "camada_ativa_PE",
+   "valor": "14-38 % da profundidade; u_s/(omega R) 1.7-7.5; cisalhamento 6.6-17.5 1/s",
+   "unidade": "-",
+   "fonte": "Boateng 1993 Tab.4.2, pellets de PE 3.63 mm, tambor 0.96 m [21]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "transversal",
+   "nome": "tempo_mistura_termica",
+   "valor": "~59 s (~6 rev) a 6 rpm, F 20 %, vidro 2 mm, criterio dT <= 5 K",
+   "unidade": "s",
+   "fonte": "Nafsun 2015 [5]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "as '2 revolucoes' de Wes valem so com tiras acima de 5 rpm (nao verificado)"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "h_ws_medido_F20",
+   "valor": "argila expandida 27-41 (1 rpm) / 36-54 (6 rpm); areia 81-122 / 198-298; vidro 60-90 / 85-127; aco 173-259 / 213-320; clinquer 54-82 / 80-120; po animal 65-98 / 127-190",
+   "unidade": "W/m2K",
+   "fonte": "Nafsun 2014 Tab.2 [4]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "desvio de regressao ~20 %"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "h_ws_areia_Moumin",
+   "valor": "136.5 (64-184)",
+   "unidade": "W/m2K",
+   "fonte": "Moumin 2021, F 10 %, 1 rpm [6]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "tiras de 2 mm: x2.2-3.1 em po coesivo"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "h_pen",
+   "valor": "2 sqrt(k rho c/(pi t_c)); t_c = gamma/(pi n) (gamma semi-angulo, n em rev/s)",
+   "unidade": "W/m2K",
+   "fonte": "Nafsun Eq.3 [4]; Moumin Eq.2.3-2.4 [6]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "reproduz a coluna Wes de Nafsun em 1-3 %"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "chi_Li",
+   "valor": "0.1 (Sullivan-Sabersky 0.085)",
+   "unidade": "-",
+   "fonte": "Moumin Tab.1 [6]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "faixa 0.096-0.198 so em fonte secundaria; NAO extrapolar o ajuste de Colin acima de 2 mm"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "h_contato_flocos",
+   "valor": "90 (50-250)",
+   "unidade": "W/m2K",
+   "fonte": "retrocalculado da argila expandida [D, verificacao H]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "h_ws de flocos a 2 rpm ~50 W/m2K"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "Tscheng_Watkinson_parede_leito",
+   "valor": "h = 11.6 (k/(R gamma)) (omega R^2 gamma/a)^0.3",
+   "unidade": "W/m2K; omega em rad/s",
+   "fonte": "Moumin Tab.1 [6]; Hared Eq.2.20 [11]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "so sensibilidade; as formas secundarias diferem de 2pi a 4pi^2 no argumento"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "U_parede_residuo_Suzuki",
+   "valor": "22->55 (555 C); 27->55 (630 C)",
+   "unidade": "W/m2K (area interna total)",
+   "fonte": "Suzuki 2008a [2]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "fluxo pico 11 e 16.5 kW/m2; tempo de pirolise 42 / 30 min"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "U_medio_lifters_rpm",
+   "valor": "38.6 (2.7 rpm); 43.4 (4.0 rpm); 45.3 (6x200 mm, 2.7 rpm); 50.1 (ambos)",
+   "unidade": "W/m2K",
+   "fonte": "Suzuki 2008b [3]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "lifters sozinhos +15-17 %; tempo 31 min com ambos"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "U_Hwan",
+   "valor": "31->35 (gas de combustao -> leito); enchimento 14-17 %; MRT ~15 min",
+   "unidade": "W/m2K",
+   "fonte": "Hwan 2009 [16]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "com lifters segmentados; nao e valor 'sem internos'"
+  },
+  {
+   "grupo": "calor_contato",
+   "nome": "h_com_lifters_Bongo",
+   "valor": "45-1132 (100-500 C, 2-12 rpm, areia)",
+   "unidade": "W/m2K",
+   "fonte": "Bongo Njeng 2018 [15]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "retangulares > sem lifters > retos"
+  },
+  {
+   "grupo": "radiacao",
+   "nome": "emissividade_parede",
+   "valor": "0.87-0.91 (347 SS oxidado); 0.9 (aco oxidado)",
+   "unidade": "-",
+   "fonte": "Wade 1959 [14] (resumo NASA); Patisson [9]",
+   "verificado": false,
+   "nivel": "R",
+   "nota": "base 0.88"
+  },
+  {
+   "grupo": "radiacao",
+   "nome": "emissividade_leito",
+   "valor": "0.9 (char/carvao 0.9-1)",
+   "unidade": "-",
+   "fonte": "Lebas 1995 [12]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "sem medida para plastico/fundido: lacuna"
+  },
+  {
+   "grupo": "radiacao",
+   "nome": "comprimento_medio_feixe",
+   "valor": "L_m = 0.95 (D - H)",
+   "unidade": "m",
+   "fonte": "Lebas Eq.IV.2 [12]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "gas cinza: erro abaixo de 20 % se eps > 0.8"
+  },
+  {
+   "grupo": "radiacao",
+   "nome": "eps_gas",
+   "valor": "0 (base); 0-0.3 sensibilidade",
+   "unidade": "-",
+   "fonte": "Beckmann: gas de pirolise nao cinza [13]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": ""
+  },
+  {
+   "grupo": "radiacao",
+   "nome": "h_rad_corpo_negro",
+   "valor": "96 (550/400 C); 116 (600/450); 139 (650/500)",
+   "unidade": "W/m2K",
+   "fonte": "[D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "multiplicar por eps_eff 0.6-0.85 e fator de forma"
+  },
+  {
+   "grupo": "conveccao",
+   "nome": "Seghir_Ouali",
+   "valor": "Nu_gw = 0.01963 Re^0.9285 + 8.5101e-6 Re_w^1.4513",
+   "unidade": "-",
+   "fonte": "Colin Eq.27 [7]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "Re 0-3e4; Re_w 1.6e3-2.77e5"
+  },
+  {
+   "grupo": "conveccao",
+   "nome": "Tscheng_gas",
+   "valor": "Nu_gb = 0.46 Re^0.535 Re_w^0.104 eta^-0.341; Nu_gw = 1.54 Re^0.575 Re_w^-0.292",
+   "unidade": "-",
+   "fonte": "Hared Eq.2.13/2.15 [11]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "validade 1600<Re<7800 e 20<Re_w<800 (secundario)"
+  },
+  {
+   "grupo": "conveccao",
+   "nome": "h_gas_tipico",
+   "valor": "2-10",
+   "unidade": "W/m2K",
+   "fonte": "Thammavong h_sg medido 2.2-4.8 [10]; Patisson 10 assumido [9]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "parede",
+   "nome": "profundidade_regenerativa",
+   "valor": "4-12 mm (aco); 15 mm e +-75 C (refratario)",
+   "unidade": "mm",
+   "fonte": "[D]; Patisson [9]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "refratario verificado; aco derivado"
+  },
+  {
+   "grupo": "parede",
+   "nome": "perda_isolamento",
+   "valor": "0.2-0.4",
+   "unidade": "kW/m2",
+   "fonte": "[D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "conveccao externa 3-40 W/m2K, 17 medido [9]"
+  },
+  {
+   "grupo": "plastico",
+   "nome": "T_fusao",
+   "valor": "LDPE 114.2; PP 154.5 (DSC); HDPE 125-135; PS Tg ~100",
+   "unidade": "C",
+   "fonte": "Yanez 2013 [81]; manuais",
+   "verificado": false,
+   "nivel": "S",
+   "nota": ""
+  },
+  {
+   "grupo": "plastico",
+   "nome": "entalpia_fusao",
+   "valor": "PE 218; PP 80",
+   "unidade": "J/g",
+   "fonte": "Stoliarov & Walters [43]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": ""
+  },
+  {
+   "grupo": "plastico",
+   "nome": "k_PP_solido",
+   "valor": "0.280 (26 C)",
+   "unidade": "W/mK",
+   "fonte": "Thermtest MTPS [80]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "faixa 0.1-0.3"
+  },
+  {
+   "grupo": "plastico",
+   "nome": "k_eff_leito_flocos",
+   "valor": "0.08-0.12 (0.05-0.14)",
+   "unidade": "W/mK",
+   "fonte": "Zehner-Schlunder [D]; analogo argila expandida 0.12 [4]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "nenhuma medida encontrada"
+  },
+  {
+   "grupo": "plastico",
+   "nome": "limite_particula_concentrada",
+   "valor": "d < 2 mm",
+   "unidade": "mm",
+   "fonte": "Zhang F. 2025 [32]",
+   "verificado": false,
+   "nivel": "R",
+   "nota": "acima de 4 mm, gradiente interno > 10 K"
+  },
+  {
+   "grupo": "plastico",
+   "nome": "temperatura_bulbo_umido_polimero",
+   "valor": "<= 550-600 C mesmo com ambiente > 900 C",
+   "unidade": "C",
+   "fonte": "Locaspi 2025 [36]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "plastico",
+   "nome": "carbono_fixo",
+   "valor": "HDPE 0.01; LDPE 0; PP 0.16-1.22; PVC 5.2-6.3",
+   "unidade": "% em massa",
+   "fonte": "Shah 2023 (revisao) [66]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": ""
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "RS_L2_HDPE_LDPE_PP_PS",
+   "valor": "E 238/215/179/180; A 5.2e14/1.92e13/6.98e10/4.1e11",
+   "unidade": "kJ/mol; 1/s",
+   "fonte": "E de Aboulkas 2010 [42] (resumo; acesso fechado); A calibrado aos picos de DTG 475/465/455/420 C",
+   "verificado": false,
+   "nivel": "C",
+   "nota": ""
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "Westerhout_1a_ordem",
+   "valor": "HDPE 1.9e13/220; LDPE 1.0e15/241; PP 3.2e15/244; PS 3.3e13/204",
+   "unidade": "1/s; kJ/mol",
+   "fonte": "Westerhout 1997 Tab.4 [33]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "ajustado a 400-450 C (PS 365-400); RCD de PS = 1.3e14/219 (Tab.5)"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "t90_HDPE",
+   "valor": "15.7 (450 C); 1.48 (500 C, extrapolado)",
+   "unidade": "min",
+   "fonte": "[D] a partir de [33]",
+   "verificado": true,
+   "nivel": "D",
+   "nota": ""
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "conversao_Pires_450C_30min",
+   "valor": "medida ~20 % (80.09 % nao convertido) contra 98.8 % pela cinetica",
+   "unidade": "%",
+   "fonte": "Pires 2025 Tab.3.3 [35]; [D]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "limitacao por aquecimento"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "PVC_2_etapas",
+   "valor": "I: 75 kJ/mol, A 2.98e4 1/s, P2 (semente 1e-4); II: 140 kJ/mol, A 8.07e7 1/s, F3; HCl 0.583 kg/kg",
+   "unidade": "-",
+   "fonte": "Al-Yaari & Dubdub 2021 [41]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "Ea da etapa I na literatura: 49-190"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "PET_1a_ordem",
+   "valor": "E 210, A 2.59e13, char 0.15",
+   "unidade": "kJ/mol; 1/s; -",
+   "fonte": "rodada anterior",
+   "verificado": false,
+   "nivel": "C",
+   "nota": ""
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "calor_pirolise",
+   "valor": "PE 920+-120; PP 1310+-70; PS 1000+-90 (HDPE 670-1375; PP 542 em Li 2026)",
+   "unidade": "kJ/kg",
+   "fonte": "Stoliarov [43]; Li 2026 Tab.2 [31]",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "o valor 542 de Li 2026 foi lido em texto completo"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "energia_total_25C_480C",
+   "valor": "HDPE 2.28; LDPE 2.22; PP 2.49; PS 1.87",
+   "unidade": "MJ/kg",
+   "fonte": "[D]",
+   "verificado": false,
+   "nivel": "D",
+   "nota": "Stoliarov 1.8-2.54"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "split_volateis_primarios",
+   "valor": "G 0.10 / O(C5-C20) 0.55 / W(C21+) 0.35",
+   "unidade": "fracao massica",
+   "fonte": "[C] a partir de Pires 2025 [35] e Baird 2025 (resumo)",
+   "verificado": false,
+   "nivel": "C",
+   "nota": "botao de calibracao"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "Lechleitner_PP_fundido",
+   "valor": "W->SO 2.0e2/80; W->LL 1.0e5/100; W->G 5.0e14/249",
+   "unidade": "1/s; kJ/mol",
+   "fonte": "Lechleitner 2021 [34]; Li 2026 Tab.2 [31]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "opcional (sensibilidade do PP)"
+  },
+  {
+   "grupo": "cinetica",
+   "nome": "craqueamento_freeboard_opcaoB",
+   "valor": "k_O = 1.0e16 exp(-300 kJ/mol/RT); k_W = 3 k_O; phi_A de 0 (<= 600 C) a 0.3 (700 C)",
+   "unidade": "1/s",
+   "fonte": "[C]; ancoras Pires [35], Gracida-Alvarez [38], CRECK [36], van Wyk [37]",
+   "verificado": false,
+   "nivel": "C",
+   "nota": "k_O 9.2e-4 (550 C), 0.0113 (600), 0.106 (650), 0.79 (700), 4.8 (750)"
+  },
+  {
+   "grupo": "gas",
+   "nome": "LOC_NFPA69_N2",
+   "valor": "H2 4.6; CO 5.1; CH4 11.1; C2H4 8.5; C3H8 10.7",
+   "unidade": "% vol O2",
+   "fonte": "NFPA 69 FDR Tab.C.1(a) [53]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "limite monitorado 0.6 x 4.6 = 2.76 %; nao monitorado 1.84 %"
+  },
+  {
+   "grupo": "gas",
+   "nome": "pressurizacao_N2_Hedlund",
+   "valor": "40 kPa -> O2 15 %",
+   "unidade": "% vol",
+   "fonte": "Hedlund 2023 [52]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "gas",
+   "nome": "insert_central",
+   "valor": "cilindro fechado de 20 cm x 230 cm; residencia do vapor reduzida 'by nearly half'",
+   "unidade": "-",
+   "fonte": "US 11319493 [50]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "variante do Caso A"
+  },
+  {
+   "grupo": "vedacao",
+   "nome": "vazamento_relativo_selos",
+   "valor": "labirinto >>5 %; lamina simples <<3-5 %; lamina dupla <<1-3 %; fole <<1 %",
+   "unidade": "%",
+   "fonte": "FEECO [54]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "nao serve como condicao de contorno (grandeza indefinida)"
+  },
+  {
+   "grupo": "acionamento",
+   "nome": "CE_Raymond_Perry",
+   "valor": "P[W] = N(0.2562 d w + 0.01038 D' W + 0.00543 W)",
+   "unidade": "N em rpm; d, D' em m; w, W em kg",
+   "fonte": "NPTEL Mod.4 [56] (Perry eq. 20-44)",
+   "verificado": false,
+   "nivel": "S",
+   "nota": "conversao SI verificada contra o exemplo resolvido"
+  },
+  {
+   "grupo": "acionamento",
+   "nome": "torque_partida",
+   "valor": "ate 250 % do torque normal",
+   "unidade": "%",
+   "fonte": "Metso [55]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "lifters",
+   "nome": "enchimento_carga_projeto",
+   "valor": "5-15 (medido 4.5-14.8 no tambor de 0.5 m)",
+   "unidade": "%",
+   "fonte": "Karali 2015 [17]; Perry 10-15 %",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "15-20 % e SOBRECARGA"
+  },
+  {
+   "grupo": "lifters",
+   "nome": "altura_queda_cortina",
+   "valor": "28.2-31.0 (h/D 0.56-0.62), 3 rpm",
+   "unidade": "cm",
+   "fonte": "Karali 2015 [17]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "lifters",
+   "nome": "Schofield_Glikin",
+   "valor": "tan g = [mu cos a + Fr(rH/R)(cos d - mu sin d)]/[cos a - Fr(rH/R)(sin d + mu cos d)]",
+   "unidade": "-",
+   "fonte": "Sunkara [18]; Karali [17]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "so para solidos de escoamento livre"
+  },
+  {
+   "grupo": "lifters",
+   "nome": "Baker_carga_projeto",
+   "valor": "H_tot = 1.38 (2 sum H_i - H_FUF) (Karali); 1.24 (...)(1+S) (Ajayi)",
+   "unidade": "-",
+   "fonte": "Karali [17]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "validacao_lab",
+   "nome": "bancada_Zhang_Lund",
+   "valor": "D 300 mm x 65 mm; parede 773 K; 6 rpm; N2 350+-10 mL/min; LDPE 2.5 mm; T media das particulas ~600 K a 100 s (Zhang) contra ~540 K (Star-CCM+ Lund)",
+   "unidade": "-",
+   "fonte": "Belcher 2026 [28]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": "os valores de Zhang sao de segunda mao"
+  },
+  {
+   "grupo": "validacao_lab",
+   "nome": "custo_CFD_DEM_StarCCM",
+   "valor": "21.6/32.5/46.2 h em 64 nucleos para 15 s fisicos; 66k/113k/448k celulas; ~2000 particulas",
+   "unidade": "h",
+   "fonte": "Belcher 2026 Tab.5.1 [28]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "hardware",
+   "nome": "T4",
+   "valor": "8.1 TFLOPS FP32; 16 GB; 320+ GB/s; 70 W",
+   "unidade": "-",
+   "fonte": "NVIDIA [27]",
+   "verificado": true,
+   "nivel": "TC",
+   "nota": ""
+  },
+  {
+   "grupo": "numerica",
+   "nome": "presets",
+   "valor": "teste: 1D 200 / 2D 96^2 x 6 / 3D 32x32x256; gpu: 1D 400 / 2D 192^2 x 12-16 / 3D 64x64x512 (2.1M, dx ~8 mm); gpu_fino: 3D 80x80x640 (4.1M)",
+   "unidade": "celulas",
+   "fonte": "[H]",
+   "verificado": false,
+   "nivel": "H",
+   "nota": "tempo de producao ~35-55 min [U]"
+  }
+ ]
+}
