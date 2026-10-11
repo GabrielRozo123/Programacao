@@ -99,7 +99,9 @@ class DrumDEM:
         self.x = t(pts)
         self.v = torch.zeros_like(self.x)
         self.w = torch.zeros_like(self.x)
-        self.r = t(0.5 * d)
+        self.r_final = t(0.5 * d)
+        self.grow0 = min(1.0, cfg.d_mean / d_hi)
+        self.r = self.r_final * self.grow0
         self._set_mass()
         # rótulos de material (cores) e de mistura (lado inicial)
         if labels_frac:
@@ -159,7 +161,7 @@ class DrumDEM:
 
     def _lattice(self, N, gen):
         """Rede cúbica dentro do tambor, longe das aletas, preenchida de baixo para cima."""
-        dr, a = self.drum, self.d_max * 1.04
+        dr, a = self.drum, self.cfg.d_mean * 1.03     # rede no diâmetro médio: os raios crescem no assentamento
         nx = max(int(self.Lx / a), 1)
         xs = (np.arange(nx) + 0.5) * self.Lx / nx
         ys = np.arange(-dr.R + a, dr.R - a / 2, a)
@@ -370,9 +372,14 @@ class DrumDEM:
                     self._rebuild()
 
     def settle(self, seconds: float = 2.0, damping: float = 4.0):
-        """Assentamento com o tambor parado e amortecimento global."""
+        """Assentamento com o tambor parado e amortecimento global; os raios crescem até o valor final
+        nos primeiros 60 % (a rede inicial usa o diâmetro médio, sem sobreposição)."""
         om, self.omega, self.damping = self.omega, 0.0, damping
-        self.run(seconds)
+        for i in range(10):
+            f = self.grow0 + (1 - self.grow0) * min(1.0, (i + 1) / 6)
+            self.r = self.r_final * f
+            self._set_mass()
+            self.run(seconds / 10)
         self.omega, self.damping = om, 0.0
         self.v.zero_(); self.w.zero_()
         self.reset_stats()

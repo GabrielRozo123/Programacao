@@ -505,6 +505,7 @@ class BatchDrum:
                   h_wb=float(np.mean(self._last["h_wb"])),
                   oleo_kg=self.cum["oleo"], aquoso_kg=self.cum["aquoso"], gas_kg=self.cum["gas"],
                   coque_kg=self.cum["coque"], carvao_kg=float(np.sum(self.kin.mass("CHAR") + self.kin.mass("CB"))),
+                  cinzas_kg=float(np.sum(self.kin.mass("INERT"))),
                   carga_kg=float(np.sum(self.kin.total())), agua_kg=float(np.sum(self.kin.mass("H2O"))),
                   vazao_oleo_kg_h=r["oil"] * 3600, vazao_gas_kg_h=r["gas"] * 3600,
                   frac_fundido=float(np.mean(g["frac"][1])), aux_kg=self.cum["aux_kg"],
@@ -518,7 +519,8 @@ class BatchDrum:
                     eps=g["eps"].copy(), beta=g["beta"].copy(), frac=[a.copy() for a in g["frac"]],
                     q_f=self._last["q_f"].copy(), Tg_fur=self._last["fdiag"]["Tg"].copy(),
                     Tr_fur=self._last["fdiag"]["Tr"].copy(), Q_fire=self.Q_fire, Tg=self.Tg.copy(),
-                    char=self.kin.mass("CHAR") + self.kin.mass("CB"), total=self.kin.total())
+                    char=self.kin.mass("CHAR") + self.kin.mass("CB"), total=self.kin.total(),
+                    vol=self.kin.volume(self.T, self.loose_scale))
         self.snaps.append(snap)
         return snap
 
