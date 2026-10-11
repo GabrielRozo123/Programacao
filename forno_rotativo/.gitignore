@@ -2,3 +2,4 @@ __pycache__/
 saida/
 *.pt
 saida_previa/
+.wf_*.js

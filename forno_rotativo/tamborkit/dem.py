@@ -51,6 +51,8 @@ class DEMConfig:
     device: str = "auto"
     seed: int = 0
     compile: bool = False        # torch.compile do passo (GPU); cai para o modo normal se falhar
+    contact_time: float | None = None   # se dado: rigidez por par k = m_eff (π/t_c)²/(1 − β²) — duração do
+    #                                     contato fixa, independente do tamanho (pedaços que encolhem/fundem)
 
 
 @dataclass
@@ -73,7 +75,7 @@ class DEMStats:
 
 
 class DrumDEM:
-    def __init__(self, drum: Drum, cfg: DEMConfig, labels_frac: dict | None = None):
+    def __init__(self, drum: Drum, cfg: DEMConfig, labels_frac: dict | None = None, init: dict | None = None):
         self.drum, self.cfg = drum, cfg
         dev = cfg.device
         if dev == "auto":
@@ -85,26 +87,41 @@ class DrumDEM:
         self.Lx = cfg.slab if self.periodic else drum.L
 
         # ---- partículas: tamanhos, massas e posições iniciais numa rede acima do leito final
+        t = lambda a: torch.as_tensor(np.asarray(a), dtype=self.ft, device=self.dev)  # noqa: E731
         d_lo, d_hi = cfg.d_mean * (1 - cfg.d_spread), cfg.d_mean * (1 + cfg.d_spread)
-        self.d_max = d_hi
         Vmean = math.pi / 6 * (d_hi ** 4 - d_lo ** 4) / (4 * (d_hi - d_lo)) if d_hi > d_lo else math.pi / 6 * cfg.d_mean ** 3
         A = math.pi * drum.R ** 2
-        N = int(round(cfg.phi_pack * cfg.fill * A * self.Lx / Vmean))
-        pts = self._lattice(N, gen)
-        N = len(pts)
-        d = gen.uniform(d_lo, d_hi, N)
-        self.rho_p = cfg.rho_bulk / cfg.phi_pack
-        t = lambda a: torch.as_tensor(np.asarray(a), dtype=self.ft, device=self.dev)  # noqa: E731
+        if init is not None:          # partículas dadas (DEM com mudança de fase): posições, diâmetros, densidades
+            pts, d = np.asarray(init["x"], float), np.asarray(init["d"], float)
+            N = len(pts)
+            d_hi = float(d.max())
+            self.rho_p = t(init["rho"])
+            grow0 = init.get("grow0", 0.5)
+            active = np.asarray(init.get("active", np.ones(N, bool)))
+        else:
+            N = int(round(cfg.phi_pack * cfg.fill * A * self.Lx / Vmean))
+            pts = self._lattice(N, gen)
+            N = len(pts)
+            d = gen.uniform(d_lo, d_hi, N)
+            self.rho_p = cfg.rho_bulk / cfg.phi_pack
+            grow0 = min(1.0, cfg.d_mean / d_hi)
+            active = np.ones(N, bool)
+        self.d_max = d_hi
         self.N = N
         self.x = t(pts)
         self.v = torch.zeros_like(self.x)
         self.w = torch.zeros_like(self.x)
         self.r_final = t(0.5 * d)
-        self.grow0 = min(1.0, cfg.d_mean / d_hi)
+        self.grow0 = grow0
         self.r = self.r_final * self.grow0
+        self.active = t(active.astype(np.float32))
+        self.stick = torch.zeros(N, dtype=self.ft, device=self.dev)   # pegajosidade (0–1) de cada partícula
         self._set_mass()
         # rótulos de material (cores) e de mistura (lado inicial)
-        if labels_frac:
+        if init is not None:
+            self.label_names = list(init["names"])
+            self.label = torch.as_tensor(np.asarray(init["label"]), device=self.dev, dtype=torch.long)
+        elif labels_frac:
             keys = list(labels_frac)
             p = np.array([labels_frac[k] for k in keys], float); p /= p.sum()
             self.label_names = keys
@@ -113,17 +130,24 @@ class DrumDEM:
             self.label_names = ["carga"]
             self.label = torch.zeros(N, dtype=torch.long, device=self.dev)
 
-        # ---- contato: rigidez para a sobreposição alvo no fundo do leito
-        H = bed_depth(cfg.fill, drum.R)
-        self.kn = cfg.rho_bulk * G * H * cfg.d_mean / cfg.overlap
-        self.kt = cfg.kt_kn * self.kn
-        m_mean = self.rho_p * Vmean
+        # ---- contato: rigidez para a sobreposição alvo no fundo do leito (ou duração de contato fixa)
         lne = math.log(max(cfg.e_n, 1e-4))
         self.beta_n = -lne / math.sqrt(math.pi ** 2 + lne ** 2)
-        t_c = math.pi * math.sqrt(0.5 * d_lo ** 3 / cfg.d_mean ** 3 * m_mean / self.kn)
+        self.tc_mode = cfg.contact_time is not None
+        if self.tc_mode:
+            t_c = cfg.contact_time
+            self.w2 = (math.pi / t_c) ** 2 / (1 - self.beta_n ** 2)
+            self.kn = self.kt = None
+            self.f_coh = 0.0
+        else:
+            H = bed_depth(cfg.fill, drum.R)
+            self.kn = cfg.rho_bulk * G * H * cfg.d_mean / cfg.overlap
+            self.kt = cfg.kt_kn * self.kn
+            m_mean = float(np.mean(np.asarray(self.rho_p.cpu() if torch.is_tensor(self.rho_p) else self.rho_p))) * Vmean
+            t_c = math.pi * math.sqrt(0.5 * d_lo ** 3 / cfg.d_mean ** 3 * m_mean / self.kn)
+            self.f_coh = cfg.cohesion * m_mean * G
         self.t_contact = t_c
         self.dt = cfg.dt_frac * t_c
-        self.f_coh = cfg.cohesion * m_mean * G
         self.t, self.theta = 0.0, 0.0
         self.omega = 0.0          # começa parado (assentamento)
         self.damping = 0.0        # amortecimento global (só no assentamento)
@@ -213,6 +237,7 @@ class DrumDEM:
         dist = dx.norm(dim=-1)
         ar = torch.arange(self.N, device=self.dev)[:, None]
         valid = (cand >= 0) & (cand != ar) & (dist < self.r[:, None] + self.r[j] + self.cfg.skin * self.d_max)
+        valid &= (self.active[:, None] > 0) & (self.active[j] > 0)
         key = torch.where(valid, dist, torch.full_like(dist, float("inf")))
         K = self.cfg.k_nb
         nmax = int(valid.sum(1).max().item())
@@ -237,25 +262,26 @@ class DrumDEM:
         self.x_ref = x.clone()
 
     # ------------------------------------------------------------ contato
-    def _law(self, delta, n, u, m_eff, xi, kt, mu, rad, dt):
+    def _law(self, delta, n, u, m_eff, xi, kn, kt, mu, rad, dt, f_coh):
         """Força na partícula i (normal + tangencial), torque tangencial e novo histórico.
 
         delta: sobreposição; n: normal unitária de i para o outro corpo; u: velocidade do ponto de contato
         de i relativa ao outro corpo; rad: braço (raio de i até o ponto de contato)."""
         touch = delta > 0
         un = (u * n).sum(-1)
-        gn = 2 * self.beta_n * torch.sqrt(m_eff * self.kn)
-        fn = self.kn * delta + gn * un
-        fn = torch.where(touch, fn.clamp(min=-self.f_coh), torch.zeros_like(fn))
+        gn = 2 * self.beta_n * torch.sqrt(m_eff * kn)
+        fn = kn * delta + gn * un
+        fn = torch.where(touch, torch.maximum(fn, -f_coh * torch.ones_like(fn)), torch.zeros_like(fn))
         ut = u - un[..., None] * n
         xi = xi - (xi * n).sum(-1, keepdim=True) * n + ut * dt
         gt = 2 * self.beta_n * torch.sqrt(m_eff * kt)
-        ft = -kt * xi - gt[..., None] * ut
-        fmax = mu * fn.clamp(min=0)
+        ktv = kt[..., None] if torch.is_tensor(kt) else kt
+        ft = -ktv * xi - gt[..., None] * ut
+        fmax = mu * (fn + f_coh).clamp(min=0)
         ftn = ft.norm(dim=-1).clamp(min=1e-12)
         slip = ftn > fmax
         ft = torch.where(slip[..., None], ft * (fmax / ftn)[..., None], ft)
-        xi = torch.where(slip[..., None], -ft / kt, xi)
+        xi = torch.where(slip[..., None], -ft / ktv, xi)
         xi = torch.where(touch[..., None], xi, torch.zeros_like(xi))
         ft = torch.where(touch[..., None], ft, torch.zeros_like(ft))
         F = -fn[..., None] * n + ft
@@ -298,17 +324,29 @@ class DrumDEM:
         u = (v[:, None] + torch.cross(w[:, None].expand_as(n), ai[..., None] * n, dim=-1)) \
             - (v[j] + torch.cross(w[j], -aj[..., None] * n, dim=-1))
         m_eff = m[:, None] * m[j] / (m[:, None] + m[j])
-        Fp, Mp, fnp, xi = self._law(delta, n, u, m_eff, xi, self.kt, self.cfg.mu, ai, dt)
+        if self.tc_mode:
+            kn_p = m_eff * self.w2
+            kt_p = self.cfg.kt_kn * kn_p
+            fc_p = self.cfg.cohesion * G * m_eff * torch.minimum(self.stick[:, None], self.stick[j])
+        else:
+            kn_p, kt_p, fc_p = self.kn, self.kt, self.f_coh
+        Fp, Mp, fnp, xi = self._law(delta, n, u, m_eff, xi, kn_p, kt_p, self.cfg.mu, ai, dt, fc_p)
         r_eff = r[:, None] * r[j] / (r[:, None] + r[j])
         wrel = w[:, None] - w[j]
         # paredes
         dw_, nw, pw = self._walls(x, theta)
-        delw = r[:, None] - dw_
+        delw = torch.where(self.active[:, None] > 0, r[:, None] - dw_, torch.full_like(dw_, -1.0))
         aw = r[:, None] - 0.5 * delw.clamp(min=0)
         vwall = torch.stack([torch.zeros_like(pw[..., 0]), -omega * pw[..., 2], omega * pw[..., 1]], -1)
         uw = v[:, None] + torch.cross(w[:, None].expand_as(nw), aw[..., None] * nw, dim=-1) - vwall
-        Fw, Mw, fnw, xi_w = self._law(delw, nw, uw, m[:, None].expand_as(delw), xi_w, self.kt,
-                                     self.cfg.mu_wall, aw, dt)
+        mw_ = m[:, None].expand_as(delw)
+        if self.tc_mode:
+            kn_w = mw_ * self.w2
+            kt_w = self.cfg.kt_kn * kn_w
+            fc_w = 0.5 * self.cfg.cohesion * G * mw_ * self.stick[:, None]
+        else:
+            kn_w, kt_w, fc_w = self.kn, self.kt, self.f_coh
+        Fw, Mw, fnw, xi_w = self._law(delw, nw, uw, mw_, xi_w, kn_w, kt_w, self.cfg.mu_wall, aw, dt, fc_w)
         # resistência ao rolamento (torque constante, regularizado perto de ω_rel = 0)
         mr = self.cfg.mu_r
 
@@ -320,7 +358,7 @@ class DrumDEM:
         w_wall = torch.stack([w[:, 0] - omega, w[:, 1], w[:, 2]], -1)
         Mr = roll(wrel, fnp, r_eff).sum(1) + roll(w_wall[:, None].expand_as(nw), fnw, r[:, None].expand_as(fnw)).sum(1)
         F = Fp.sum(1) + Fw.sum(1)
-        F = F + torch.stack([torch.zeros_like(m), torch.zeros_like(m), -m * G], -1)
+        F = F + torch.stack([torch.zeros_like(m), torch.zeros_like(m), -m * G * self.active], -1)
         M = Mp.sum(1) + Mw.sum(1) + Mr
         F = F - damping * m[:, None] * v
         M = M - damping * I[:, None] * w
@@ -352,12 +390,13 @@ class DrumDEM:
             self.t += dt
             self.theta += self.omega * dt
             self.steps += 1
+            self._post_step(dt)
             # estatísticas (sem sincronizar com a CPU)
             a = self._acc
             a["n"] += 1
             a["torque"] = a["torque"] + tq
             self._free = torch.where(ncont == 0, self._free + dt, torch.zeros_like(self._free))
-            a["air"] = a["air"] + (self._free > 4 * self.t_contact).float().mean()
+            a["air"] = a["air"] + ((self._free > 4 * self.t_contact).float() * self.active).sum() / self.active.sum().clamp(min=1)
             a["ovl"] = torch.maximum(torch.as_tensor(a["ovl"], device=self.dev), ovl)
             started = shell & (self._contact_t0 < 0)
             ended = (~shell) & (self._contact_t0 >= 0)
@@ -370,6 +409,10 @@ class DrumDEM:
                 disp = self._wrap(self.x - self.x_ref).norm(dim=-1).max()
                 if float(disp) > 0.5 * self.cfg.skin * self.d_max:
                     self._rebuild()
+
+    def _post_step(self, dt):
+        """Gancho para forças externas aplicadas após a integração (poça de fundido no DEM com mudança de fase)."""
+        return None
 
     def settle(self, seconds: float = 2.0, damping: float = 4.0):
         """Assentamento com o tambor parado e amortecimento global; os raios crescem até o valor final
@@ -404,7 +447,8 @@ class DrumDEM:
     def frame(self) -> dict:
         """Estado leve para renderização (float16 na CPU)."""
         return dict(t=self.t, theta=self.theta, x=self.x.half().cpu().numpy(),
-                    speed=self.v.norm(dim=-1).half().cpu().numpy())
+                    speed=self.v.norm(dim=-1).half().cpu().numpy(), r=self.r.half().cpu().numpy(),
+                    active=self.active.cpu().numpy() > 0)
 
     def surface_angle(self):
         """Ângulo dinâmico: reta ajustada ao topo do leito no miolo da corda (partículas fora das aletas)."""
@@ -491,7 +535,7 @@ class DrumDEM:
         x = self.x.cpu().numpy()
         r = self.r.cpu().numpy()
         rho = np.hypot(x[:, 1], x[:, 2])
-        near = rho > self.drum.R - r - 0.02
+        near = (rho > self.drum.R - r - 0.02) & (self.active.cpu().numpy() > 0)
         if near.any():
             phi = np.arctan2(x[near, 2], x[near, 1])
             h, _ = np.histogram(phi, bins=36, range=(-math.pi, math.pi))

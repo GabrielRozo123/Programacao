@@ -132,7 +132,7 @@ class CrossSection:
         return self.c[0] + np.asarray(y) * self.s, self.c[1] - np.asarray(z) * self.s
 
     # ---------------------------------------------------------- partes
-    def furnace_layer(self, T_refr_C=700.0, gas=None, flame=None):
+    def furnace_layer(self, T_refr_C=700.0, gas=None, flame=None, flame_img=None):
         """Caixa da fornalha, refratário e gás. gas/flame: (T_K [ny, nz], yc, zc) da LES no plano do queimador."""
         hw, zb, zt = self.box["half_width"], self.box["z_bot"], self.box["z_top"]
         wall = self.box.get("wall", 0.18)
@@ -172,6 +172,13 @@ class CrossSection:
                 ImageFilter.GaussianBlur(radius=max(4, int(0.035 * self.s))))
             img = img + 0.55 * np.asarray(glow, np.float32)
             a_gas = a
+        if flame_img is not None:
+            # chamas renderizadas com base física (flames.FlameRenderer.render_on_grid): luz somada à cena
+            rgb_f, a_f = flame_img
+            a_f = np.where(inside & (self.rho > self.drum.R + 0.01), a_f, 0.0)
+            img = img * (1 - 0.6 * a_f[..., None]) + 255.0 * np.asarray(rgb_f, np.float32) * \
+                (inside & (self.rho > self.drum.R + 0.01))[..., None]
+            a_gas = a_f
         # bocais dos queimadores na parede lateral
         for zb_ in self.box.get("burners_z", (-1.0,)):
             bx, bz = self.px(-hw, zb_)
@@ -274,3 +281,55 @@ def draw_overlay(canvas: Image.Image, cs: CrossSection, theta, labels=True, s=1.
     for poly in cs.lifters_polys(theta):
         d.polygon([(float(x), float(y)) for x, y in poly], fill=lifter_col + (255,), outline=(60, 60, 66, 255))
     return canvas
+
+
+# ----------------------------------------------------------- carga com mudança de fase (PhaseDEM)
+def phase_colors(rec, label, mode="temperatura", T_bed_C=None):
+    """Cor de cada pedaço: material → (aquecimento) → fundido âmbar → carvão. mode 'material' mantém a cor do
+    material (segmento da química); 'temperatura' usa o mapa de temperatura da barra de cores."""
+    from .phasedem import MATERIALS, CHAR_RGB, MELT_RGB
+    base = np.array([m[3] for m in MATERIALS] + [CHAR_RGB], float)[label]
+    Tp = np.asarray(rec["Tp"], float) - 273.15
+    fm = np.asarray(rec["f_m"], float) / 255.0
+    ch = np.asarray(rec["charf"], float) / 255.0
+    if mode == "temperatura":
+        w = np.clip((Tp - 40.0) / 60.0, 0, 1)[:, None] * 0.85
+        col = base * (1 - w) + thermal_rgb(Tp) * w
+    else:
+        col = base.copy()
+    col = col * (1 - fm[:, None] * 0.7) + np.array(MELT_RGB, float) * fm[:, None] * 0.7
+    col = col * (1 - ch[:, None] * 0.9) + np.array(CHAR_RGB, float) * ch[:, None] * 0.9
+    return col
+
+
+def draw_phase_bed(cs, img, rec, label, mode="temperatura"):
+    """Pedaços ativos do PhaseDEM + a poça de fundido translúcida por cima dos submersos."""
+    act = np.asarray(rec["active"], bool)
+    x = np.asarray(rec["x"], np.float32)[act]
+    r = np.asarray(rec["r"], np.float32)[act]
+    col = phase_colors(rec, label, mode)[act]
+    if len(x):
+        img, _ = cs.bed_particles(img, x, r, col)
+    p = rec["pool"]
+    if p.get("area", 0.0) > 1e-5:
+        from .geometry import fill_half_angle
+        from .phasedem import MELT_RGB
+        R = cs.drum.R
+        eps = fill_half_angle(max(p["area"] / (math.pi * R ** 2), 1e-5))
+        beta = p.get("beta", 0.1)
+        nrm = np.array([-math.sin(beta), math.cos(beta)])
+        d = cs.Yw * nrm[0] + cs.Zw * nrm[1]
+        depth = -R * math.cos(eps) - d
+        m = (depth > 0) & (cs.rho < R)
+        conv = float(p.get("conv", 0.0))
+        if mode == "temperatura":
+            c = thermal_rgb(p["T"] - 273.15) * 0.75 + np.array(MELT_RGB) * 0.25
+        else:
+            c = np.array(MELT_RGB, float)
+        c = c * (1 - 0.55 * conv) + np.array([60, 32, 14], float) * 0.55 * conv
+        gloss = np.exp(-(depth * cs.s / 3.0) ** 2)
+        a = 0.72
+        pix = c[None, None, :] * (0.8 + 0.2 * np.clip(1 - depth / max(R * (1 - math.cos(eps)), 1e-3), 0, 1))[..., None] \
+            + 80 * gloss[..., None]
+        img[m] = img[m] * (1 - a) + np.clip(pix[m], 0, 255) * a
+    return img

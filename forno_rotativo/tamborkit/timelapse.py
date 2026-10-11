@@ -115,7 +115,8 @@ class BatchScene:
     """Quadros do time-lapse: corte + gráfico + números + legendas."""
 
     def __init__(self, batch, dem_sets: dict, les_frames=None, size=(1920, 1080), fps=30, seconds=40.0,
-                 vis_rev_s=6.0, title="Pirólise em batelada num tambor rotativo", subtitle=""):
+                 vis_rev_s=6.0, title="Pirólise em batelada num tambor rotativo", subtitle="", flames=None,
+                 flames_Q=400e3):
         self.b = batch
         self.log, self.snaps = batch.log, batch.snaps
         self.size, self.fps, self.seconds = size, fps, seconds
@@ -126,14 +127,16 @@ class BatchScene:
                                size=(int(1000 * s), int(960 * s)))
         self.chart = LiveChart(self.log, size=(int(800 * s), int(690 * s)), dpi=int(100 * s))
         self.dem = dem_sets
-        self.les = les_frames          # dict(T=[n, ny, nz], yc, zc, Q)
+        self.les = les_frames          # dict(T=[n, ny, nz], yc, zc, Q) — fatia 2D (modo antigo)
+        self.flames, self.flames_Q = flames, flames_Q   # FlameRenderer (vista 'corte'): chamas com base física
         self.vis_rev_s = vis_rev_s
         self.events = batch_events(self.log)
         self.t_end = float(self.log[-1]["t_h"])
         self.title, self.subtitle = title, subtitle
         self.cbar = colorbar(int(430 * s), int(60 * s), s=s)
         for k, d in self.dem.items():
-            d["rgb_mat"] = np.array([MATERIAL_RGB.get(d["names"][i], (180, 180, 170)) for i in d["label"]], float)
+            if k != "fase":
+                d["rgb_mat"] = np.array([MATERIAL_RGB.get(d["names"][i], (180, 180, 170)) for i in d["label"]], float)
 
     # --------------------------------------------------------------- estado
     def _snap(self, t_h):
@@ -183,17 +186,22 @@ class BatchScene:
         phi_sorted = phi_lab[order]
         # giro mostrado = o dos quadros do DEM (as partículas e as aletas ficam sincronizadas; o trecho gravado
         # cobre um número inteiro de passagens de aleta, então o laço não tem emenda visível)
-        dem0 = self.dem.get("solto") or next(iter(self.dem.values()))
-        theta_vis = float(dem0["frames"][k % len(dem0["frames"])]["theta"])
+        dem0 = self.dem.get("solto")
+        theta_vis = float(dem0["frames"][k % len(dem0["frames"])]["theta"]) if dem0 else 0.0
         # ---- fornalha e chamas
         gas = None
-        if self.les is not None:
+        flame_img = None
+        if getattr(self, "flames", None) is not None:
+            Q = max(g("Q_fire_kW") * 1e3, 1.0)
+            scale = float(np.clip(Q / self.flames_Q, 0.05, 1.2))
+            flame_img = self.flames.render_on_grid(k, cs.Yw, cs.Zw, gain=scale ** 0.8)
+        elif self.les is not None:
             T = self.les["T"][k % len(self.les["T"])]
             Q = max(g("Q_fire_kW") * 1e3, 1.0)
             scale = float(np.clip(Q / self.les["Q"], 0.08, 1.2))
             gas = (T, self.les["yc"], self.les["zc"], scale ** 0.6)
         T_ref = float(np.mean(sn["Tr_fur"])) - 273.15
-        img, _ = cs.furnace_layer(T_refr_C=T_ref, gas=gas)
+        img, _ = cs.furnace_layer(T_refr_C=T_ref, gas=gas, flame_img=flame_img)
         # casco (desenhado no laboratório: o padrão térmico fica parado; as aletas giram)
         nphi = len(Ts_lab)
         phi_bins = (np.arange(nphi) + 0.5) * 2 * math.pi / nphi - math.pi
@@ -209,14 +217,22 @@ class BatchScene:
         char = np.clip(char_m / max(tot_m, 1e-9), 0, 1)
         mat_w = float(np.clip((T_bed - 35.0) / 50.0, 0, 1))
         layers = []
-        if "solto" in self.dem and (lo > 0.25 or me < 0.35) and re < 0.65:
+        if "fase" in self.dem:
+            # DEM com mudança de fase: os mesmos pedaços da partida ao carvão (sem troca de conjunto)
+            from .scene import draw_phase_bed
+            fz = self.dem["fase"]
+            tb = fz.setdefault("_tb", np.array([r["t_b"] for r in fz["recs"]]) / 3600.0)
+            rec = fz["recs"][int(np.argmin(np.abs(tb - t_h)))]
+            img = draw_phase_bed(cs, img, rec, fz["label"], mode="temperatura")
+            theta_vis = float(rec["theta"])
+        elif "solto" in self.dem and (lo > 0.25 or me < 0.35) and re < 0.65:
             xs, rs, col, th_dem = self._bed_particles("solto", k, F, beta, T_bed, Ts_lab, char * 0.5, phi_sorted, mat_w)
             w = float(np.clip((lo + 0.2 - me) / 0.4, 0, 1)) if me > 0.2 else 1.0
             layers.append(("p", xs, rs, col, w))
-        if me >= 0.2 and re < 0.75:
+        if "fase" not in self.dem and me >= 0.2 and re < 0.75:
             w = float(np.clip((me - 0.2) / 0.3, 0, 1))
             layers.append(("pool", F, beta, T_bed, char, w))
-        if "carvao" in self.dem and re >= 0.45:
+        if "fase" not in self.dem and "carvao" in self.dem and re >= 0.45:
             xs, rs, col, th_dem = self._bed_particles("carvao", k, F, beta, T_bed, Ts_lab, min(char * 1.6, 0.9),
                                                       phi_sorted, 1.0)
             w = float(np.clip((re - 0.45) / 0.25, 0, 1))

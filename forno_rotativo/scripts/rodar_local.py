@@ -33,10 +33,12 @@ PRESET = os.environ.get("PRESET", PRESET)
 PRESETS = {
     # DEM: rotação simulada, tamanho dos pedaços e fatia periódica; LES: malha e tempos; vídeo: segundos do time-lapse
     # o DEM grava um terço de volta (duas passagens de aleta): o laço do vídeo não tem emenda
-    "teste": dict(dem_rpm=2.4, dem_d=0.09, dem_slab=0.5, char_d=0.03, char_slab=0.2, dem_rec=1 / 3, les="teste",
-                  les_t=22.0, les_rec=4.0, timelapse_s=30.0),
-    "gpu": dict(dem_rpm=1.6, dem_d=0.07, dem_slab=0.8, char_d=0.025, char_slab=0.25, dem_rec=1 / 3, les="gpu",
-                les_t=30.0, les_rec=5.0, timelapse_s=40.0),
+    # DEM com mudança de fase: rotação simulada (regime de rolamento), fatia, voltas para a batelada inteira e
+    # duração do contato; LES: malha e tempos; vídeo: segundos do time-lapse
+    "teste": dict(dem_rpm=3.0, dem_slab=0.4, dem_rev=4.0, dem_tc=0.010, les="teste", les_t=17.0, les_rec=3.0,
+                  timelapse_s=30.0),
+    "gpu": dict(dem_rpm=2.0, dem_slab=0.5, dem_rev=6.0, dem_tc=0.006, les="gpu", les_t=24.0, les_rec=4.0,
+                timelapse_s=40.0),
 }
 P = PRESETS[PRESET]
 drum = Drum(R=0.70, L=4.9, rpm=RPM, n_lifters=ALETAS, lifter_h=0.12, lifter_t=0.012)
@@ -85,42 +87,37 @@ for k in ("oleo", "aquoso", "gas", "carvao", "cinzas"):
     print(br(f"  {k:8s} {100 * s_rot[k]:5.1f} % da carga úmida"))
 print(br(f"combustível auxiliar: {s_rot['aux_kg']:.0f} kg de GLP ({s_rot['aux_GJ_por_t']:.2f} GJ/t); gás para o flare: {s_rot['Q_flare_GJ']:.2f} GJ"))
 
-#@title 3 · DEM da carga: lixo solto no início e carvão no fim
-from tamborkit.dem import DrumDEM, DEMConfig
-def roda_dem(fill, d, rho_bulk, slab, labels=None, mu_r=0.25, mu=0.55):
-    dr = Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"], n_lifters=drum.n_lifters, lifter_h=drum.lifter_h, lifter_t=drum.lifter_t)
-    dem = DrumDEM(dr, DEMConfig(fill=fill, d_mean=d, rho_bulk=rho_bulk, slab=slab, mu_r=mu_r, mu=mu), labels)
-    print(dem.describe())
-    dem.settle(1.0); dem.spin_up()
-    T = 60 / P["dem_rpm"]
-    dem.run(0.3 * T); dem.reset_stats()
-    lab = (dem.x[:, 1].cpu().numpy() > 0).astype(float)
-    frames = []
-    dem.run(P["dem_rec"] * T, frame_dt=P["dem_rec"] * T / 120, on_frame=lambda d_: frames.append(d_.frame()), verbose=True)
-    st = dem.stats().as_dict()
-    return dict(frames=frames[:120], r=dem.r.cpu().numpy(), label=dem.label.cpu().numpy(), names=dem.label_names,
-                stats=st, rpm=P["dem_rpm"], fill=fill, lacey=dem.lacey(lab))
-labels = {"filme": 0.30, "rigido": 0.30, "isopor": 0.12, "pet": 0.08, "organico": 0.1, "borracha": 0.04, "areia": 0.06}
-dem_sets = {"solto": roda_dem(0.62, P["dem_d"], 200.0, P["dem_slab"], labels),
-            "carvao": roda_dem(0.05, P["char_d"], 380.0, P["char_slab"], mu_r=0.15, mu=0.6)}
-for k, v in dem_sets.items():
-    print(k, {kk: round(vv, 3) for kk, vv in v["stats"].items()}, "Lacey", round(v["lacey"], 2))
-rows_dem = VAL.dem_checks(dem_sets["solto"]["stats"], 0.62,
-                          Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"]))
-print(VAL.summary(rows_dem))
+#@title 3 · DEM da carga com mudança de fase: da partida ao carvão
+from tamborkit.phasedem import PhaseDEM, PhaseConfig, NAMES
+pdem = PhaseDEM(drum, charge, b_rot.log, PhaseConfig(slab=P["dem_slab"], rpm=P["dem_rpm"], n_rev=P["dem_rev"],
+                                                    contact_time=P["dem_tc"]))
+print(pdem.describe())
+recs = pdem.run_batch()
+st_pre = pdem.stats().as_dict()
+fase = dict(recs=recs, label=pdem.label.cpu().numpy(), names=NAMES)
+# trecho frio (antes do relógio da batelada): lixo solto girando com as aletas, para o segmento "dentro do tambor"
+pre = pdem.pre_records
+dem_solto = dict(frames=pre, r=pre[0]["r"], label=pdem.label.cpu().numpy(), names=NAMES, rpm=P["dem_rpm"],
+                 fill=charge.fill, stats=st_pre, lacey=float("nan"))
+rows_dem = VAL.dem_checks(st_pre, charge.fill, Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"]))
+rows_fase = VAL.phase_checks(fase, b_rot.log, drum, P["dem_slab"])
+print(VAL.summary(rows_dem + rows_fase))
 
 #@title 4 · LES 3D da fornalha (chamas de GLP na partida, com o casco a 500 °C)
 from tamborkit.furnace_les import FurnaceLES, FurnaceLESConfig
+from tamborkit.flames import FlameRecorder, FlameRenderer
 Q_LES = 400e3
 les = FurnaceLES(FurnaceLESConfig.preset(P["les"], Q_fire=Q_LES, T_shell=T_PAREDE + 273.15, rpm=RPM))
 print(br(f"LES: {les.n_cells / 1e3:.0f} mil células de {les.h * 100:.0f} cm; {les.tab['source']}"))
-i0 = les.burner_cells[0][0]
-rec = []
-t_rec0 = P["les_t"] - P["les_rec"]
-les.run(P["les_t"], t_avg=P["les_rec"], frame_dt=1 / 30, on_frame=lambda L: rec.append(L.T[i0].cpu().numpy().copy()) if L.time > t_rec0 else None)
+gravador = FlameRecorder(les, t_start=P["les_t"] - P["les_rec"])
+les.run(P["les_t"], t_avg=P["les_rec"], frame_dt=1 / 30, on_frame=gravador)
 eb = les.energy_balance()
 flux = les.drum_flux_map()
-les_frames = dict(T=np.array(rec), yc=les.yc, zc=les.zc, Q=Q_LES, Tmean=les.mean("T"), xc=les.xc)
+chamas = gravador.data()
+dev = "cuda" if torch.cuda.is_available() else "cpu"
+fl_corte = FlameRenderer(chamas, view="corte", device=dev)
+fl_lateral = FlameRenderer(chamas, view="lateral", device=dev)
+les_frames = dict(Q=Q_LES, Tmean=les.mean("T"), xc=les.xc, yc=les.yc, zc=les.zc)
 ST.flux_figure(flux, les_frames, "saida/fig_fornalha.png")
 display(Image("saida/fig_fornalha.png", width=1100))
 print(br(f"calor para o tambor: {eb['Q_paredes'] / 1e3:.0f} kW de {Q_LES / 1e3:.0f} kW ({100 * eb['Q_paredes'] / Q_LES:.0f} %); "
@@ -130,7 +127,7 @@ print(br(f"calor para o tambor: {eb['Q_paredes'] / 1e3:.0f} kW de {Q_LES / 1e3:.
 rows_batch = VAL.batch_checks(s_rot, s_est, sweep, log=b_rot.log)
 rows_les = [VAL._row("N1 LES", "conservação de massa na fornalha (saída/entrada)", eb["m_out"] / eb["m_in"], "1 ± 0,1",
                      0.9, 1.1, "", "projeção na continuidade discreta")]
-resumo = rows_kin + rows_dem + rows_les + rows_batch
+resumo = rows_kin + rows_dem + rows_fase + rows_les + rows_batch
 print(VAL.summary(resumo))
 ST.validation_figure(resumo, "saida/fig_validacao.png")
 display(Image("saida/fig_validacao.png", width=1100))
@@ -159,8 +156,8 @@ F = lambda t: t.format(**V) if isinstance(t, str) else [F(x) for x in t]  # noqa
 RT = ROTEIRO
 seg, curto = [], []
 tl = RT["timelapse"]
-scene = BatchScene(b_rot, dem_sets, les_frames, size=size, fps=FPS, seconds=P["timelapse_s"], title=F(tl["title"]),
-                   subtitle=F(tl["subtitle"]))
+scene = BatchScene(b_rot, {"fase": fase}, None, size=size, fps=FPS, seconds=P["timelapse_s"], title=F(tl["title"]),
+                   subtitle=F(tl["subtitle"]), flames=fl_corte, flames_Q=Q_LES)
 seg.append(scene.render("saida/s00_timelapse.mp4")); curto.append(seg[-1])
 tc = RT["title_card"]
 fundo = hd.Backdrop("saida/s00_timelapse.mp4", size)
@@ -168,17 +165,22 @@ seg.append(hd.render_title_card("saida/s01_titulo.mp4", F(tc["title"]), F(tc["su
                                 F(tc["disclaimer"]), size=size, fps=FPS, seconds=4.5, backdrop=fundo))
 cards = [{k: F(v) for k, v in c.items()} for c in RT["context_cards"]]
 seg.append(hd.render_text_cards("saida/s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.5, backdrop=fundo))
-seg.append(render_compare(b_rot, b_est, "saida/s03_comparacao.mp4", seconds=16.0, fps=FPS, size=size, les=les_frames))
+rt = RT["rates"]
+seg.append(ST.render_rates_segment(drum, b_rot.log, fase, "saida/s025_taxas.mp4", seconds=20.0, fps=FPS, size=size,
+                                   title=F(rt["title"]), subtitle=F(rt["subtitle"])))
+seg.append(render_compare(b_rot, b_est, "saida/s03_comparacao.mp4", seconds=16.0, fps=FPS, size=size,
+                          flames=fl_corte, flames_Q=Q_LES))
 curto.append(seg[-1])
 cp = RT["compare"]
 seg.append(hd.caption_segment("saida/fig_curvas.png", "saida/s04_curvas.mp4", F(cp["captions"]), F(cp["chapter"]),
                               size=size, fps=FPS, seconds=8.0, handle=LINKEDIN))
 dm = RT["dem"]
-seg.append(ST.render_dem_segment(drum, dem_sets["solto"], "saida/s05_dem.mp4", seconds=9.0, fps=FPS, size=size,
+seg.append(ST.render_dem_segment(drum, dem_solto, "saida/s05_dem.mp4", seconds=9.0, fps=FPS, size=size,
                                  title=F(dm["title"]), captions=F(dm["captions"]), speed_label=F(dm["speed"])))
 fl = RT["flame"]
-seg.append(ST.render_flame_segment(drum, les_frames, "saida/s06_chamas.mp4", Ts_C=T_PAREDE, seconds=8.0, fps=FPS,
-                                   size=size, title=F(fl["title"]), captions=F(fl["captions"]), info=F(fl["info"])))
+seg.append(ST.render_flame_views(drum, fl_corte, fl_lateral, chamas["meta"], "saida/s06_chamas.mp4", Ts_C=T_PAREDE,
+                                 seconds=9.0, fps=FPS, size=size, title=F(fl["title"]), captions=F(fl["captions"]),
+                                 info=F(fl["info"])))
 seg.append(hd.caption_segment("saida/fig_fornalha.png", "saida/s07_fluxo.mp4", F(fl["captions"])[1:], "Fornalha",
                               size=size, fps=FPS, seconds=6.0, handle=LINKEDIN))
 cv = RT["curves"]

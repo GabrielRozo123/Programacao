@@ -24,7 +24,7 @@
    "headline": "Uma batelada inteira, da partida ao carvão",
    "bullets": [
     "Fornalha: chamas de GLP e do próprio gás da pirólise (LES 3D) e radiação para o casco.",
-    "Carga: movimento por elementos discretos (DEM), calor por contato e radiação, cinética de 9 componentes.",
+    "Carga: DEM com mudança de fase (encolhe, gruda, funde numa poça, vira carvão), cinética de 9 componentes.",
     "Vapores: craqueamento no espaço livre, condensador e o gás voltando para o queimador."
    ]
   }
@@ -40,19 +40,23 @@
  "dem": {
   "title": "Dentro do tambor: as aletas levantam a carga",
   "captions": [
-   "Cada pedaço é uma partícula: atrito, rolamento e choques com o casco e as aletas.",
+   "Cada pedaço é uma partícula com a massa real do seu material: filme, frasco, isopor, PET, papel, borracha, areia.",
    "O DEM mede o que o modelo térmico precisa: parede coberta, tempo de contato e cortinas."
   ],
   "speed": "DEM a {rpm_dem} rpm (mesmo regime de rolamento do tambor real), mostrado acelerado"
  },
  "flame": {
-  "title": "A fornalha: LES 3D da combustão",
+  "title": "A fornalha: chamas da LES 3D renderizadas com base física",
   "captions": [
-   "Os queimadores queimam GLP na partida e, depois, o gás não condensável da própria pirólise.",
-   "O casco recebe calor principalmente por radiação dos gases quentes e do refratário."
+   "A luz da chama é a fuligem incandescente (cor de corpo negro) e a base azul vem da liberação de calor.",
+   "Os queimadores queimam GLP na partida e, depois, o gás não condensável da própria pirólise."
   ],
-  "info": ["fração de mistura + equilíbrio químico (Cantera)", "radiação: gás (WSGG) e fuligem",
-           "{Q_les} kW de queima, chama a {T_chama} °C", "{Q_tambor} kW entram no tambor ({ef} %)"]
+  "info": [
+   "fração de mistura + equilíbrio químico (Cantera)",
+   "radiação: gás (WSGG) e fuligem",
+   "{Q_les} kW de queima, chama a {T_chama} °C",
+   "{Q_tambor} kW entram no tambor ({ef} %)"
+  ]
  },
  "curves": {
   "chapter": "Rotação e aletas",
@@ -70,7 +74,12 @@
  },
  "kpis": {
   "title": "Uma batelada de {massa} t de lixo marinho",
-  "labels": ["de batelada", "de óleo", "de carvão + cinzas", "de GLP por tonelada"]
+  "labels": [
+   "de batelada",
+   "de óleo",
+   "de carvão + cinzas",
+   "de GLP por tonelada"
+  ]
  },
  "closing": {
   "kicker": "Para a gestão",
@@ -85,5 +94,9 @@
   "line": "Combustão, troca térmica e cinética de um tambor de pirólise, no navegador",
   "author": "{autor}"
  },
- "caption": "Por que um reator de pirólise de lixo plástico gira? Simulei uma batelada inteira num tambor rotativo do tamanho do equipamento da UFRJ/IVIG, que processa lixo da Baía de Guanabara.\n\nO modelo junta a combustão na fornalha (LES 3D, com o gás da própria pirólise voltando para o queimador), o movimento da carga (DEM, com as aletas levantando o lixo), a troca de calor parede-carga e a cinética de nove componentes do lixo: polietileno, polipropileno, isopor, PET, PVC, borracha, papel e madeira, além da areia.\n\nResultado: {massa} t de lixo úmido rendem {oleo} kg de óleo em {t_rot} h, com o gás próprio sustentando a queima depois da partida. Com o tambor parado, a mesma carga levaria mais de {t_est} h e o casco passaria de {Tmax_est} °C sob a chama.\n\nValidação: {n_ok} de {n} verificações contra a literatura (Suzuki, Faussone, Fulgencio-Medrano, dados da Beston e da UFRJ).\n\nCódigo aberto e reprodutível no Google Colab.\n\n#CFD #Pirólise #EconomiaCircular #LixoMarinho #BaíaDeGuanabara #EngenhariaQuímica #DEM #Combustão #Simulação"
+ "caption": "Por que um reator de pirólise de lixo plástico gira? Simulei uma batelada inteira num tambor rotativo do tamanho do equipamento da UFRJ/IVIG, que processa lixo da Baía de Guanabara.\n\nO modelo junta a combustão na fornalha (LES 3D, com o gás da própria pirólise voltando para o queimador), o movimento da carga (DEM, com as aletas levantando o lixo), a troca de calor parede-carga e a cinética de nove componentes do lixo: polietileno, polipropileno, isopor, PET, PVC, borracha, papel e madeira, além da areia.\n\nResultado: {massa} t de lixo úmido rendem {oleo} kg de óleo em {t_rot} h, com o gás próprio sustentando a queima depois da partida. Com o tambor parado, a mesma carga levaria mais de {t_est} h e o casco passaria de {Tmax_est} °C sob a chama.\n\nValidação: {n_ok} de {n} verificações contra a literatura (Suzuki, Faussone, Fulgencio-Medrano, dados da Beston e da UFRJ).\n\nCódigo aberto e reprodutível no Google Colab.\n\n#CFD #Pirólise #EconomiaCircular #LixoMarinho #BaíaDeGuanabara #EngenhariaQuímica #DEM #Combustão #Simulação",
+ "rates": {
+  "title": "A pirólise ao vivo: o que reage em cada momento",
+  "subtitle": "Esquerda: os pedaços do DEM mudando de fase · direita: taxa de reação de cada componente (como uma DTG no tempo da batelada)"
+ }
 }

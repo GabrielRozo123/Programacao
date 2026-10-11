@@ -99,3 +99,46 @@ def test_scene_renders():
     xyz = np.array([[0.1, 0.0, -0.5], [0.2, 0.05, -0.5]], np.float32)
     out, a = cs.bed_particles(img, xyz, np.array([0.05, 0.05], np.float32), np.array([[200, 50, 50], [50, 200, 50]], float))
     assert a.sum() > 50 and np.isfinite(out).all()
+
+
+def test_phase_dem_short():
+    """DEM com mudança de fase numa batelada curtíssima: massa segue o modelo, plásticos entram na poça."""
+    from tamborkit.batch import BatchDrum, BatchConfig
+    from tamborkit.phasedem import PhaseDEM, PhaseConfig, melt_viscosity
+    dr = Drum(R=0.70, L=4.9, rpm=0.8, n_lifters=6, lifter_h=0.12, lifter_t=0.012)
+    b = BatchDrum(dr, fd.Charge(mass=1000.0, fill=0.65), cfg=BatchConfig(t_max_h=10))
+    b.run(verbose=False)
+    pd = PhaseDEM(dr, fd.Charge(mass=1000.0, fill=0.65), b.log,
+                  PhaseConfig(slab=0.32, rpm=3.0, n_rev=0.08, pre_rev=0.01, frames=8, pre_frames=2,
+                              contact_time=0.012, device="cpu"))
+    n0 = int(pd.active.sum())
+    pd.settle(0.2)
+    for t_h in (0.0, 2.5, 3.5, 6.0):
+        pd.update_state(t_h * 3600)
+        pd.step(20)
+    assert int(pd.active.sum()) < n0                    # fundidos saíram do DEM para a poça
+    m_bed = b.log[-1]["carga_kg"] * pd.pc.slab / dr.L
+    m_dem = float(pd.m[pd.active > 0].sum()) + pd.pool.get("mass", 0.0)
+    assert abs(m_dem - m_bed) / m_bed < 0.1
+    assert melt_viscosity(473.15, 0.0) > 100 and melt_viscosity(693.15, 0.3) < 0.1
+
+
+def test_flame_projection_synthetic():
+    """Bolha quente com fuligem: imagem finita nas duas vistas; na lateral o tambor tapa o que está atrás."""
+    from tamborkit.flames import FlameRenderer, incandescence_rgb
+    assert incandescence_rgb(1100.0).sum() > incandescence_rgb(900.0).sum()
+    nx, ny, nz, h = 20, 12, 14, 0.15
+    xc = (np.arange(nx) + 0.5) * h; yc = -0.9 + (np.arange(ny) + 0.5) * h; zc = -1.0 + (np.arange(nz) + 0.5) * h
+    X, Y, Z = np.meshgrid(xc, yc, zc, indexing="ij")
+    T = 600 + 1300 * np.exp(-((X - 1.5) ** 2 + (Y + 0.5) ** 2 + (Z + 0.8) ** 2) / 0.08)
+    fv = 0.3 * np.exp(-((X - 1.5) ** 2 + (Y + 0.5) ** 2 + (Z + 0.8) ** 2) / 0.08)
+    fr = dict(t=0.0, T=T.astype(np.float16), fv=fv.astype(np.float16), q=np.zeros_like(T, np.float16),
+              u=np.zeros_like(T, np.float16), v=np.zeros_like(T, np.float16), w=np.zeros_like(T, np.float16),
+              fluid=np.ones_like(T, np.uint8))
+    meta = dict(xc=xc, yc=yc, zc=zc, h=h, R_out=0.4, L_drum=2.5, half_width=0.9, z_bot=-1.0, z_top=1.1, Lx=3.0,
+                burners_x=(1.5,), burner_z=-0.8, Q_fire=3e5, T_shell=773.0, T_refr=1000.0, Z_st=0.06, fv_scale=0.2,
+                fluid=np.ones_like(T, np.uint8))
+    data = dict(frames=[fr, fr], meta=meta)
+    for view, ext in (("corte", (-0.9, 0.9, -1.0, 1.1)), ("lateral", (0.0, 3.0, -1.0, 1.1))):
+        rgb, a = FlameRenderer(data, view=view, detail=0.0).render_image(0, ext, (96, 80))
+        assert np.isfinite(rgb).all() and rgb.max() > 0.2

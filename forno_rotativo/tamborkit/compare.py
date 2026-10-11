@@ -45,9 +45,9 @@ def char_function(b, sn, mid):
     return lambda sig: np.clip(np.interp(sig, centers, f) * 1.5, 0, 0.9)
 
 
-def draw_section(cs: CrossSection, b, sn, theta_vis=0.0, gas=None):
+def draw_section(cs: CrossSection, b, sn, theta_vis=0.0, gas=None, flame_img=None):
     mid = b.cfg.nx // 2
-    img, _ = cs.furnace_layer(T_refr_C=float(np.mean(sn["Tr_fur"])) - 273.15, gas=gas)
+    img, _ = cs.furnace_layer(T_refr_C=float(np.mean(sn["Tr_fur"])) - 273.15, gas=gas, flame_img=flame_img)
     phi_lab = (b.phi0 + sn["theta"] + math.pi) % (2 * math.pi) - math.pi
     o = np.argsort(phi_lab)
     nphi = len(phi_lab)
@@ -59,7 +59,8 @@ def draw_section(cs: CrossSection, b, sn, theta_vis=0.0, gas=None):
     return img, float(Ts.max())
 
 
-def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), t_end_h=None, les=None):
+def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), t_end_h=None, les=None,
+                   flames=None, flames_Q=400e3):
     W, H = size
     s = H / 1080
     t_end = t_end_h or max(b_est.log[-1]["t_h"], b_rot.log[-1]["t_h"])
@@ -77,11 +78,14 @@ def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), 
                font=_font(int(36 * s), True), fill=(245, 245, 245))
         for j, (b, lab, ts_log) in enumerate(((b_est, "tambor parado", le), (b_rot, f"girando a {b_rot.rpm:.1f} rpm, 6 aletas".replace(".", ","), lr))):
             sn, _ = _snap_at(b, t_h)
-            gas = None
-            if les is not None and t_h <= ts_log[-1]:
+            gas, flame_img = None, None
+            if flames is not None and t_h <= ts_log[-1]:
+                gain = float(np.clip(sn["Q_fire"] / flames_Q, 0.05, 1.2)) ** 0.8
+                flame_img = flames.render_on_grid(k, cs.Yw, cs.Zw, gain=gain)
+            elif les is not None and t_h <= ts_log[-1]:
                 gain = float(np.clip(sn["Q_fire"] / les["Q"], 0.08, 1.2)) ** 0.6
                 gas = (les["T"][k % len(les["T"])], les["yc"], les["zc"], gain)
-            img, Tmax = draw_section(cs, b, sn, gas=gas)
+            img, Tmax = draw_section(cs, b, sn, gas=gas, flame_img=flame_img)
             x0 = int((60 + j * 920) * s)
             canvas.paste(Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)), (x0, int(120 * s)))
             done = t_h > ts_log[-1] + 1e-6

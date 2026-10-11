@@ -117,3 +117,38 @@ def summary(rows) -> str:
         lines.append(f"  [{'ok' if r['ok'] else '!!'}] {r['grupo']:<14} {r['item']:<52} {vs:>8} {r['unidade']:<5} alvo {r['alvo']}")
     from .video import br
     return br("\n".join(lines))
+
+
+def phase_checks(fase: dict, log: list, drum, slab: float) -> list:
+    """DEM com mudança de fase × modelo da batelada (massa e enchimento) e a ordem física das reações."""
+    import numpy as np
+    from .phasedem import melt_viscosity
+    rows = []
+    recs = fase["recs"]
+    lt = np.array([r["t_h"] for r in log]) * 3600.0
+    frac = slab / drum.L
+    errs, fills = [], []
+    for rec in recs[len(recs) // 10::max(len(recs) // 10, 1)]:
+        m_bed = float(np.interp(rec["t_b"], lt, [r["carga_kg"] for r in log])) * frac
+        m_dem = rec["m_dem"] + rec["pool"].get("mass", 0.0)
+        errs.append(abs(m_dem - m_bed) / max(m_bed, 1e-9))
+        F_b = float(np.interp(rec["t_b"], lt, [r["enchimento"] for r in log]))
+        fills.append(rec["fill_dem"] / max(F_b, 1e-9))
+    rows.append(_row("N1 mudança de fase", "massa do DEM (pedaços + poça) × batelada", 100 * float(np.max(errs)),
+                     "< 5 %", 0, 5, "%", "acoplamento em uma via (o DEM segue a conversão de cada componente)"))
+    rows.append(_row("N1 mudança de fase", "enchimento do DEM / enchimento da batelada (mediana)",
+                     float(np.median(fills)), "1 ± 0,35", 0.65, 1.35, "",
+                     "colapso solto → denso por material × volume aparente do modelo da batelada"))
+    order = ["água", "PVC", "celulósicos", "PS", "PP", "PE"]
+    t = np.array([r["t_h"] for r in log])
+    peaks = [float(t[int(np.argmax([r[f"taxa_{g}"] for r in log]))]) for g in order]
+    ok = all(b >= a for a, b in zip(peaks, peaks[1:]))
+    rows.append(_row("N2 cinética", "ordem dos picos de taxa: água < PVC < celulósicos < PS < PP < PE", 1.0 if ok else 0.0,
+                     "sim", 0.5, 1.5, "", "ordem dos picos de TGA (Westerhout 1997; Aboulkas 2010; pesquisa R2)"))
+    eta_melt = float(melt_viscosity(473.15, 0.0))
+    eta_wax = float(melt_viscosity(693.15, 0.3))
+    rows.append(_row("N1 mudança de fase", "viscosidade do PE fundido a 200 °C", eta_melt, "10²–10⁴ Pa·s", 1e2, 1e4,
+                     "Pa·s", "PE/PP fundidos (faixa de catálogo; reator agitado, Cross)"))
+    rows.append(_row("N1 mudança de fase", "viscosidade do fundido craqueado (420 °C, 30 % convertido)", eta_wax,
+                     "≤ 0,1 Pa·s (cera)", 1e-4, 0.1, "Pa·s", "ceras de PE (POLYWAX: mPa·s); Westerhout"))
+    return rows

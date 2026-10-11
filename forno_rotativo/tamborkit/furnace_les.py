@@ -527,6 +527,35 @@ class FurnaceLES:
         phi_c = -180 + (np.arange(nphi) + 0.5) * 360 / nphi
         return dict(q=q, Tg=Tg, phi=phi_c, x=(np.arange(nxb) + 0.5) * cfg.L_drum / nxb)
 
+    # ------------------------------------------------------- visualização
+    def _grad2_fluid(self, q):
+        """|∇q|² só com vizinhos fluidos (diferença central, unilateral junto a sólido; o Z̃ das células
+        sólidas fica parado no valor inicial e criaria gradientes falsos no casco)."""
+        g2 = 0.0
+        for ax in range(3):
+            qp, fp = _pad(q, ax), _pad(self.fluid, ax)
+            fm, fq = _sl(fp, ax, 0, -2), _sl(fp, ax, 2, None)
+            d = ((_sl(qp, ax, 2, None) - q) * fq + (q - _sl(qp, ax, 0, -2)) * fm) / ((fq + fm).clamp(min=1.0) * self.h)
+            g2 = g2 + d * d
+        return g2 * self.fluid
+
+    def flame_fields(self, fv_scale: float = 0.2) -> dict:
+        """Campos 3D do estado atual para a renderização das chamas (tamborkit.flames), no dispositivo.
+
+        * f_v: fuligem da relação de estado (tabela β-PDF; pico de 1 ppm em φ ≈ 2) × fv_scale;
+        * q: liberação de calor da química rápida [W/m³], q = ρ D |∇Z̃|² · LHV/(1 − Z_st) · P(Z_st)
+          (ρχ/2 com χ = 2D|∇Z̃|², D = (ν_t + ν)/Sc_t; P(Z_st) gaussiana com σ² = s Z̃(1 − Z̃) + (Z_st/2)²);
+        * velocidade nos centros das células (para advectar o detalhe abaixo da malha) e a máscara fluida."""
+        with torch.no_grad():
+            Z, Zst = self.Z, float(self.Z_st)
+            fv = self._lookup(self.tab_fv, Z, self.s) * fv_scale * self.fluid
+            D = (self._nu_t(self.u, self.v, self.w) + 3e-5) / self.cfg.Sc_t
+            var = self.s * Z * (1 - Z) + (0.5 * Zst) ** 2
+            P = torch.exp(-0.5 * (Z - Zst) ** 2 / var) / torch.sqrt(2 * math.pi * var)
+            q = self.rho * D * self._grad2_fluid(Z) * (self.LHV / (1 - Zst)) * P
+            return dict(T=self.T, fv=fv, q=q, u=_avg(self.u, 0), v=_avg(self.v, 1), w=_avg(self.w, 2),
+                        fluid=self.fluid)
+
     def run(self, t_end: float, t_avg: float = 0.0, frame_dt: float | None = None, on_frame=None,
             verbose: bool = True):
         next_frame = self.time

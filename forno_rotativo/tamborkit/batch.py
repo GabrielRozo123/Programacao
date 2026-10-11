@@ -41,6 +41,9 @@ K_TAR_CHAR = (1.0e5, 107.5e3)
 MW_LUMP = {"G_HC": 0.025, "G_OX": 0.033, "O": 0.15, "W": 0.40, "A": 0.10, "OX": 0.12, "TAR": 0.10,
            "H2O": 0.018, "HCl": 0.0365, "N2": 0.028}
 CP_VAP = 2200.0
+# grupos de componentes para o gráfico da taxa de pirólise (na ordem em que reagem)
+GROUPS = {"água": ["H2O"], "PVC": ["PVC", "PVCr"], "celulósicos": ["CELL"], "PS": ["PS"], "PP": ["PP"],
+          "PE": ["LDPE", "HDPE"], "PET": ["PET"], "borracha": ["RUBa", "RUBb", "RUBc"]}
 
 
 @dataclass
@@ -149,6 +152,7 @@ class BatchDrum:
         self.T = np.full(n, T0)
         self.Tg = np.full(c.nx, T0)
         self.m_charge0 = sum(m.values())
+        self.m0_comp = dict(m)
         # contabilidade
         self.t, self.theta = 0.0, 0.0
         self.prod = {k: 0.0 for k in fd.LUMPS + ["COKE"]}
@@ -304,7 +308,7 @@ class BatchDrum:
         Q_conv_top = b.h_fb * A_surf * (self.Tg - T_top)
         Q_top = Q_rad_bed + Q_curt + Q_conv_top
         # ---- química
-        prod, heat, _ = self.kin.react(self.T, dt)
+        prod, heat, rx_rates = self.kin.react(self.T, dt)
         if self.rotating:
             Q = Q_wall + Q_top
             # dispersão axial
@@ -414,6 +418,8 @@ class BatchDrum:
         self.theta += self.Omega * dt
         rate = oil + gas
         self.peak_rate = max(self.peak_rate, rate)
+        self._rx = {k: float(np.sum(v)) for k, v in rx_rates.items()}
+        self._rx["H2O"] = float(np.sum(evap)) / dt
         self._last = dict(geo=geo, q_f=q_f, q_in=q_in, cov=cov, fdiag=fdiag, h_wb=h_wb, rates=dict(oil=oil, aq=aq,
                           gas=gas, coke=coke), use=use, Q_ncg=Q_ncg_used, Q_flare=Q_flare, Q_rad_bed=Q_rad_bed,
                           Q_wall=Q_wall, Q_curt=Q_curt, phi_lab=phi_wrapped)
@@ -512,6 +518,15 @@ class BatchDrum:
                   vazao_oleo_kg_h=r["oil"] * 3600, vazao_gas_kg_h=r["gas"] * 3600,
                   frac_fundido=float(np.mean(g["frac"][1])), aux_kg=self.cum["aux_kg"],
                   HCl_kg=self.prod["HCl"])
+        # taxa de reação (kg/h de componente consumido) e conversão de cada grupo: o "DTG" da batelada
+        rx = getattr(self, "_rx", {})
+        for g, keys in GROUPS.items():
+            st[f"taxa_{g}"] = 3600.0 * sum(rx.get(k, 0.0) for k in keys)
+            m0 = sum(self.m0_comp[k] for k in keys)
+            st[f"conv_{g}"] = 1.0 - sum(float(np.sum(self.kin.mass(k))) for k in keys) / m0 if m0 > 0 else 1.0
+        st["taxa_total"] = sum(st[f"taxa_{g}"] for g in GROUPS if g != "água")
+        for k in fd.ORDER:
+            st[f"m_{k}"] = float(np.sum(self.kin.mass(k)))
         self.log.append(st)
         return st
 
