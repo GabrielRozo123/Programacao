@@ -418,7 +418,7 @@ class BatchDrum:
                           gas=gas, coke=coke), use=use, Q_ncg=Q_ncg_used, Q_flare=Q_flare, Q_rad_bed=Q_rad_bed,
                           Q_wall=Q_wall, Q_curt=Q_curt, phi_lab=phi_wrapped)
         if (self.t > 3600 and rate < c.end_frac * self.peak_rate and self.peak_rate > 0
-                and float(self.T.mean()) > 673.15):
+                and float((self.kin.total() * self.T).sum() / max(self.kin.total().sum(), 1e-9)) > 673.15):
             self.done = True
 
     # ---------------------------------------------- pilha estática: camadas
@@ -492,7 +492,9 @@ class BatchDrum:
         g = self._last["geo"]
         fd_ = self._last["fdiag"]
         r = self._last["rates"]
-        st = dict(t_h=self.t / 3600, T_carga=float(self.T.mean()) - 273.15,
+        mass = self.kin.total()
+        T_mw = float((mass * self.T).sum() / max(mass.sum(), 1e-9))
+        st = dict(t_h=self.t / 3600, T_carga=T_mw - 273.15,
                   T_carga_min=float(self.T.min()) - 273.15, T_carga_max=float(self.T.max()) - 273.15,
                   T_casco=float(self.Ts.mean()) - 273.15, T_casco_max=float(self.Ts.max()) - 273.15,
                   T_vapor=self.T_vap_out - 273.15, T_fumos=fd_["T_flue"] - 273.15,

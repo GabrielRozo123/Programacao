@@ -1,0 +1,208 @@
+# Gerado por build_notebook.py: as células do notebook em sequência (para rodar fora do Colab).
+import os, sys
+os.chdir(os.path.dirname(os.path.abspath(__file__)) + '/..')
+def display(*a, **k):
+    pass
+Image = Video = lambda *a, **k: None
+
+#@title Carrega o pacote
+import importlib, os, sys, json, pickle, math
+os.makedirs("saida", exist_ok=True)
+for m in [m for m in sys.modules if m == "tamborkit" or m.startswith("tamborkit.")]:
+    del sys.modules[m]
+sys.path.insert(0, ".")
+import numpy as np, matplotlib.pyplot as plt, torch
+from tamborkit import feed as fd, validation as VAL, story as ST
+from tamborkit.geometry import Drum
+from tamborkit.batch import BatchDrum, BatchConfig, Control
+from tamborkit.furnace import Furnace
+from tamborkit.video import br
+
+#@title Parâmetros do caso
+PRESET = "gpu"            #@param ["teste", "gpu"]
+CARGA = "base"            #@param ["base", "plastico_triado", "rejeito_rio"]
+MASSA_KG = 1000.0         #@param {type:"number"}
+UMIDADE = 0.15            #@param {type:"number"}
+RPM = 0.8                 #@param {type:"number"}
+ALETAS = 6                #@param {type:"integer"}
+T_PAREDE = 500.0          #@param {type:"slider", min:420, max:580, step:10}
+AUTOR = "Gabriel Rozo · CAExperts"   #@param {type:"string"}
+LINKEDIN = "linkedin.com/in/gabrielhrozo"   #@param {type:"string"}
+import os
+PRESET = os.environ.get("PRESET", PRESET)
+PRESETS = {
+    # DEM: rotação simulada, tamanho dos pedaços e fatia periódica; LES: malha e tempos; vídeo: segundos do time-lapse
+    # o DEM grava um terço de volta (duas passagens de aleta): o laço do vídeo não tem emenda
+    "teste": dict(dem_rpm=2.4, dem_d=0.09, dem_slab=0.5, char_d=0.03, char_slab=0.2, dem_rec=1 / 3, les="teste",
+                  les_t=22.0, les_rec=4.0, timelapse_s=30.0),
+    "gpu": dict(dem_rpm=1.6, dem_d=0.07, dem_slab=0.8, char_d=0.025, char_slab=0.25, dem_rec=1 / 3, les="gpu",
+                les_t=30.0, les_rec=5.0, timelapse_s=40.0),
+}
+P = PRESETS[PRESET]
+drum = Drum(R=0.70, L=4.9, rpm=RPM, n_lifters=ALETAS, lifter_h=0.12, lifter_t=0.012)
+charge = fd.Charge(**{**fd.CHARGES[CARGA].__dict__, "mass": MASSA_KG, "moisture": UMIDADE, "fill": 0.65})
+control = Control(setpoint_C=T_PAREDE)
+print(charge.describe())
+print(br(f"tambor Ø {drum.D:.2f} m × {drum.L:.1f} m, {ALETAS} aletas de {drum.lifter_h * 1000:.0f} mm, {RPM} rpm, Fr = {drum.froude():.1e}"))
+
+#@title 1 · Cinética e TGA (picos de DTG, rendimentos finais)
+rows_kin = VAL.chemistry_checks() + VAL.furnace_checks()
+print(VAL.summary(rows_kin))
+fig, ax = plt.subplots(figsize=(10, 5))
+for k in ["LDPE", "HDPE", "PP", "PS", "PET", "PVC", "CELL", "RUBc"]:
+    T, m, d = fd.tga(k, 10)
+    ax.plot(T - 273.15, d * 100, label=fd.COMPONENTS[k].name)
+T, m, d = fd.tga(charge.masses(), 10)
+ax.plot(T - 273.15, d * 100, "k", lw=3, label="carga (mistura)")
+ax.set_xlim(100, 650); ax.set_xlabel("T (°C)"); ax.set_ylabel("−dm/dT (%/K) a 10 K/min"); ax.legend(fontsize=8)
+fig.savefig("saida/fig_tga.png", dpi=120, bbox_inches="tight"); plt.show()
+y = fd.ultimate_yields(charge)
+print(br("rendimentos finais (isoterma, sem craqueamento secundário): " +
+         ", ".join(f"{k} {100 * v:.1f}%" for k, v in y.items() if v > 0.001)))
+
+#@title 2 · Batelada completa: girando × parado, sem aletas e outras rotações
+def roda(mode="rotativo", rpm=None, n_lifters=None, snap=120.0, t_max=14.0):
+    d = Drum(R=drum.R, L=drum.L, rpm=rpm or drum.rpm, n_lifters=drum.n_lifters if n_lifters is None else n_lifters,
+             lifter_h=drum.lifter_h, lifter_t=drum.lifter_t)
+    b = BatchDrum(d, charge, cfg=BatchConfig(mode=mode, t_max_h=t_max, snap_every=snap, control=control))
+    s = b.run(verbose=False)
+    s["h_mean"] = float(np.mean([r["h_wb"] for r in b.log]))
+    s["Tmax"] = max(r["T_casco_max"] for r in b.log)
+    return b, s
+
+b_rot, s_rot = roda("rotativo")
+print(br(f"girando: {s_rot['duracao_h']:.1f} h, óleo {100 * s_rot['oleo']:.0f} %, casco máx {s_rot['Tmax']:.0f} °C"))
+b_est, s_est = roda("estatico", t_max=16.0)
+print(br(f"parado:  {s_est['duracao_h']:.1f} h, óleo {100 * s_est['oleo']:.0f} %, não convertido {100 * s_est['nao_convertido']:.1f} %, casco máx {s_est['Tmax']:.0f} °C"))
+sweep = {}
+for nome, kw in (("sem_aletas", dict(n_lifters=0)), ("rpm0.4", dict(rpm=0.4)), ("rpm2", dict(rpm=2.0))):
+    _, sweep[nome] = roda(snap=1800.0, **kw)
+    print(br(f"{nome:10s}: {sweep[nome]['duracao_h']:.2f} h, h parede-carga {sweep[nome]['h_mean']:.0f} W/m²K"))
+ST.curves_figure({f"girando {RPM} rpm": b_rot.log, "parado": b_est.log}, "saida/fig_curvas.png",
+                 "Girando × parado: mesma carga, mesma fornalha")
+display(Image("saida/fig_curvas.png", width=1100))
+for k in ("oleo", "aquoso", "gas", "carvao", "cinzas"):
+    print(br(f"  {k:8s} {100 * s_rot[k]:5.1f} % da carga úmida"))
+print(br(f"combustível auxiliar: {s_rot['aux_kg']:.0f} kg de GLP ({s_rot['aux_GJ_por_t']:.2f} GJ/t); gás para o flare: {s_rot['Q_flare_GJ']:.2f} GJ"))
+
+#@title 3 · DEM da carga: lixo solto no início e carvão no fim
+from tamborkit.dem import DrumDEM, DEMConfig
+def roda_dem(fill, d, rho_bulk, slab, labels=None, mu_r=0.25, mu=0.55):
+    dr = Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"], n_lifters=drum.n_lifters, lifter_h=drum.lifter_h, lifter_t=drum.lifter_t)
+    dem = DrumDEM(dr, DEMConfig(fill=fill, d_mean=d, rho_bulk=rho_bulk, slab=slab, mu_r=mu_r, mu=mu), labels)
+    print(dem.describe())
+    dem.settle(1.0); dem.spin_up()
+    T = 60 / P["dem_rpm"]
+    dem.run(0.3 * T); dem.reset_stats()
+    lab = (dem.x[:, 1].cpu().numpy() > 0).astype(float)
+    frames = []
+    dem.run(P["dem_rec"] * T, frame_dt=P["dem_rec"] * T / 120, on_frame=lambda d_: frames.append(d_.frame()), verbose=True)
+    st = dem.stats().as_dict()
+    return dict(frames=frames[:120], r=dem.r.cpu().numpy(), label=dem.label.cpu().numpy(), names=dem.label_names,
+                stats=st, rpm=P["dem_rpm"], fill=fill, lacey=dem.lacey(lab))
+labels = {"filme": 0.30, "rigido": 0.30, "isopor": 0.12, "pet": 0.08, "organico": 0.1, "borracha": 0.04, "areia": 0.06}
+dem_sets = {"solto": roda_dem(0.62, P["dem_d"], 200.0, P["dem_slab"], labels),
+            "carvao": roda_dem(0.05, P["char_d"], 380.0, P["char_slab"], mu_r=0.15, mu=0.6)}
+for k, v in dem_sets.items():
+    print(k, {kk: round(vv, 3) for kk, vv in v["stats"].items()}, "Lacey", round(v["lacey"], 2))
+rows_dem = VAL.dem_checks(dem_sets["solto"]["stats"], 0.62,
+                          Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"]))
+print(VAL.summary(rows_dem))
+
+#@title 4 · LES 3D da fornalha (chamas de GLP na partida, com o casco a 500 °C)
+from tamborkit.furnace_les import FurnaceLES, FurnaceLESConfig
+Q_LES = 400e3
+les = FurnaceLES(FurnaceLESConfig.preset(P["les"], Q_fire=Q_LES, T_shell=T_PAREDE + 273.15, rpm=RPM))
+print(br(f"LES: {les.n_cells / 1e3:.0f} mil células de {les.h * 100:.0f} cm; {les.tab['source']}"))
+i0 = les.burner_cells[0][0]
+rec = []
+t_rec0 = P["les_t"] - P["les_rec"]
+les.run(P["les_t"], t_avg=P["les_rec"], frame_dt=1 / 30, on_frame=lambda L: rec.append(L.T[i0].cpu().numpy().copy()) if L.time > t_rec0 else None)
+eb = les.energy_balance()
+flux = les.drum_flux_map()
+les_frames = dict(T=np.array(rec), yc=les.yc, zc=les.zc, Q=Q_LES, Tmean=les.mean("T"), xc=les.xc)
+ST.flux_figure(flux, les_frames, "saida/fig_fornalha.png")
+display(Image("saida/fig_fornalha.png", width=1100))
+print(br(f"calor para o tambor: {eb['Q_paredes'] / 1e3:.0f} kW de {Q_LES / 1e3:.0f} kW ({100 * eb['Q_paredes'] / Q_LES:.0f} %); "
+         f"T máx {eb['T_max'] - 273:.0f} °C; massa: saída/entrada = {eb['m_out'] / eb['m_in']:.2f}"))
+
+#@title 5 · Validação
+rows_batch = VAL.batch_checks(s_rot, s_est, sweep, log=b_rot.log)
+rows_les = [VAL._row("N1 LES", "conservação de massa na fornalha (saída/entrada)", eb["m_out"] / eb["m_in"], "1 ± 0,1",
+                     0.9, 1.1, "", "projeção na continuidade discreta")]
+resumo = rows_kin + rows_dem + rows_les + rows_batch
+print(VAL.summary(resumo))
+ST.validation_figure(resumo, "saida/fig_validacao.png")
+display(Image("saida/fig_validacao.png", width=1100))
+json.dump(dict(rotativo=s_rot, estatico=s_est, sweep=sweep, validacao=[{k: (bool(v) if k == "ok" else v) for k, v in r.items()} for r in resumo]),
+          open("saida/resultados.json", "w"), ensure_ascii=False, indent=1, default=float)
+
+#@title Roteiro do vídeo (textos editáveis)
+ROTEIRO = json.load(open("video_roteiro.json", encoding="utf-8"))
+
+#@title 6 · Vídeo em HD: time-lapse com gráfico ao vivo, parado × girando, DEM e chamas
+from tamborkit import video as hd
+from tamborkit.timelapse import BatchScene
+from tamborkit.compare import render_compare
+FPS = 30                  #@param {type:"integer"}
+RESOLUCAO = "1080p"       #@param ["720p", "1080p"]
+size = {"720p": (1280, 720), "1080p": (1920, 1080)}[RESOLUCAO]
+nf = lambda x, dd=0: br(f"{x:.{dd}f}")  # noqa: E731
+V = dict(massa=nf(MASSA_KG / 1000, 1), D=nf(drum.D, 1), L=nf(drum.L, 1), rpm=nf(RPM, 1), Tw=nf(T_PAREDE), autor=AUTOR,
+         t_rot=nf(s_rot["duracao_h"], 1), t_est=nf(s_est["duracao_h"], 0), Tmax_est=nf(s_est["Tmax"]),
+         oleo=nf(s_rot["oleo_kg"]), rpm_dem=nf(P["dem_rpm"], 1), Q_les=nf(Q_LES / 1e3),
+         T_chama=nf(eb["T_max"] - 273.15), Q_tambor=nf(eb["Q_paredes"] / 1e3), ef=nf(100 * eb["Q_paredes"] / Q_LES),
+         g_rpm=nf(100 * (s_rot["duracao_h"] - sweep["rpm2"]["duracao_h"]) / s_rot["duracao_h"]),
+         g_aleta=nf(100 * (sweep["sem_aletas"]["duracao_h"] - s_rot["duracao_h"]) / sweep["sem_aletas"]["duracao_h"]),
+         n_ok=sum(r["ok"] for r in resumo), n=len(resumo))
+F = lambda t: t.format(**V) if isinstance(t, str) else [F(x) for x in t]  # noqa: E731
+RT = ROTEIRO
+seg, curto = [], []
+tl = RT["timelapse"]
+scene = BatchScene(b_rot, dem_sets, les_frames, size=size, fps=FPS, seconds=P["timelapse_s"], title=F(tl["title"]),
+                   subtitle=F(tl["subtitle"]))
+seg.append(scene.render("saida/s00_timelapse.mp4")); curto.append(seg[-1])
+tc = RT["title_card"]
+fundo = hd.Backdrop("saida/s00_timelapse.mp4", size)
+seg.append(hd.render_title_card("saida/s01_titulo.mp4", F(tc["title"]), F(tc["subtitle"]), F(tc["credit"]),
+                                F(tc["disclaimer"]), size=size, fps=FPS, seconds=4.5, backdrop=fundo))
+cards = [{k: F(v) for k, v in c.items()} for c in RT["context_cards"]]
+seg.append(hd.render_text_cards("saida/s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.5, backdrop=fundo))
+seg.append(render_compare(b_rot, b_est, "saida/s03_comparacao.mp4", seconds=16.0, fps=FPS, size=size, les=les_frames))
+curto.append(seg[-1])
+cp = RT["compare"]
+seg.append(hd.caption_segment("saida/fig_curvas.png", "saida/s04_curvas.mp4", F(cp["captions"]), F(cp["chapter"]),
+                              size=size, fps=FPS, seconds=8.0, handle=LINKEDIN))
+dm = RT["dem"]
+seg.append(ST.render_dem_segment(drum, dem_sets["solto"], "saida/s05_dem.mp4", seconds=9.0, fps=FPS, size=size,
+                                 title=F(dm["title"]), captions=F(dm["captions"]), speed_label=F(dm["speed"])))
+fl = RT["flame"]
+seg.append(ST.render_flame_segment(drum, les_frames, "saida/s06_chamas.mp4", Ts_C=T_PAREDE, seconds=8.0, fps=FPS,
+                                   size=size, title=F(fl["title"]), captions=F(fl["captions"]), info=F(fl["info"])))
+seg.append(hd.caption_segment("saida/fig_fornalha.png", "saida/s07_fluxo.mp4", F(fl["captions"])[1:], "Fornalha",
+                              size=size, fps=FPS, seconds=6.0, handle=LINKEDIN))
+cv = RT["curves"]
+va = RT["validation"]
+seg.append(hd.caption_segment("saida/fig_validacao.png", "saida/s08_validacao.mp4", F(va["captions"]), F(va["chapter"]),
+                              size=size, fps=FPS, seconds=7.0, handle=LINKEDIN))
+kv = [dict(value=s_rot["duracao_h"], fmt="{:.1f}", unit="h"), dict(value=s_rot["oleo_kg"], fmt="{:.0f}", unit="kg"),
+      dict(value=s_rot["carvao_kg"] + s_rot["cinzas_kg"], fmt="{:.0f}", unit="kg"),
+      dict(value=s_rot["aux_kg"] / (MASSA_KG / 1000), fmt="{:.0f}", unit="kg")]
+for d_, lab in zip(kv, RT["kpis"]["labels"]):
+    d_["label"] = lab
+seg.append(hd.render_kpi_card("saida/s09_numeros.mp4", F(RT["kpis"]["title"]), kv, size=size, fps=FPS, seconds=6.0, backdrop=fundo))
+curto.append(seg[-1])
+seg.append(hd.render_text_cards("saida/s10_gestao.mp4", [{k: F(v) for k, v in RT["closing"].items()}], size=size,
+                                fps=FPS, seconds=7.0, backdrop=fundo))
+ec = RT["end_card"]
+seg.append(hd.render_title_card("saida/s11_final.mp4", F(ec["line"]), "", F(ec["author"]), "", size=size, fps=FPS,
+                                seconds=4.0, backdrop=fundo, contact=LINKEDIN))
+curto.append(seg[-1])
+hd.assemble(seg, "saida/tambor_pirolise.mp4", fps=FPS, size=size)
+hd.assemble(curto, "saida/tambor_pirolise_curto.mp4", fps=FPS, size=size)
+hd.still_of("saida/s00_timelapse.mp4", "saida/capa.png", P["timelapse_s"] * 0.55)
+for p in ("saida/tambor_pirolise.mp4", "saida/tambor_pirolise_curto.mp4"):
+    print(br(f"{p}: {os.path.getsize(p) / 1e6:.1f} MB"))
+display(Video("saida/tambor_pirolise_curto.mp4", embed=True, width=960))
+print("\nTexto sugerido para o post:\n")
+print(br(F(RT["caption"])))

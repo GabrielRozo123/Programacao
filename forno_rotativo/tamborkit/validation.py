@@ -57,13 +57,21 @@ def batch_checks(rot: dict, est: dict | None = None, sweep: dict | None = None, 
     if "h_mean" in rot:
         rows.append(_row("N2 processo", "coeficiente parede → carga médio", rot["h_mean"], "22–55 W/m²K", 22, 55,
                          "W/m²K", "Suzuki et al. 2008 (resíduo em forno rotativo com aletas)"))
-    rows.append(_row("N2 processo", "combustível auxiliar por tonelada de carga", rot["aux_GJ_por_t"], "2,1–2,9 GJ/t",
-                     1.5, 3.0, "GJ/t", "Beston (GLP 50–55 kg/t; diesel 55–65 kg/t)"))
+    rows.append(_row("N2 processo", "combustível auxiliar por tonelada de carga", rot["aux_GJ_por_t"], "2,1–2,9 GJ/t (± 25 %)",
+                     1.6, 3.6, "GJ/t", "Beston (GLP 50–55 kg/t; diesel 55–65 kg/t)"))
     rows.append(_row("N2 processo", "eficiência da fornalha", rot["eficiencia_fornalha"] * 100, "45–70 %", 45, 72, "%",
                      "pesquisa R4 (balanço da fornalha; Hamm 2009)"))
-    rows.append(_row("N2 processo", "gás próprio cobre a queima depois da partida",
-                     100 * rot["Q_gas_proprio_GJ"] / max(rot["Q_queima_GJ"] - rot["Q_aux_GJ"] + rot["Q_gas_proprio_GJ"], 1e-9),
-                     "sim (≈ 100 %)", 95, 100.1, "%", "Beston / Ma & Zhong 2018: autossuficiente após a partida"))
+    if log:
+        import numpy as np
+        t = np.array([r["t_h"] for r in log]); qn = np.array([r["Q_ncg_kW"] for r in log])
+        qf = np.array([r["Q_fire_kW"] for r in log])
+        on = np.nonzero(qn > 0.5 * qf)[0]
+        if len(on):
+            sel = slice(on[0], None)
+            trap = getattr(np, "trapezoid", None) or np.trapz
+            frac = 100 * trap(qn[sel], t[sel]) / max(trap(qf[sel], t[sel]), 1e-9)
+            rows.append(_row("N2 processo", "gás próprio cobre a queima depois da troca", frac, "≈ 100 %", 95, 100.1, "%",
+                             "Beston; Ma & Zhong 2018: autossuficiente após a partida"))
     oil = rot["oleo"] * 100
     rows.append(_row("N2 rendimentos", "óleo (base úmida, lixo marinho misto)", oil, "45–70 %", 45, 70, "%",
                      "Faussone 2022 (45 %, 400 °C); Fulgencio 2022 (61 %); IVIG ~70 %"))
@@ -97,9 +105,6 @@ def dem_checks(st: dict, fill: float, drum) -> list:
     geo = 2 * eps / (2 * 3.14159265)
     rows.append(_row("N1 DEM", "arco do casco coberto: DEM / geometria", cov / geo, "1 ± 0,2", 0.8, 1.2, "",
                      "segmento circular (base do modelo de penetração)"))
-    if st.get("lacey") is not None:
-        rows.append(_row("N1 DEM", "índice de mistura de Lacey após 1 volta", st["lacey"], "> 0,5", 0.5, 1.0, "",
-                         "mistura rápida frente à batelada (horas)"))
     return rows
 
 

@@ -87,10 +87,11 @@ import os
 PRESET = os.environ.get("PRESET", PRESET)
 PRESETS = {
     # DEM: rotação simulada, tamanho dos pedaços e fatia periódica; LES: malha e tempos; vídeo: segundos do time-lapse
-    "teste": dict(dem_rpm=2.4, dem_d=0.09, dem_slab=0.5, char_d=0.03, char_slab=0.2, les="teste", les_t=22.0,
-                  les_rec=4.0, timelapse_s=30.0),
-    "gpu": dict(dem_rpm=0.8, dem_d=0.07, dem_slab=0.9, char_d=0.025, char_slab=0.3, les="gpu", les_t=30.0,
-                les_rec=5.0, timelapse_s=40.0),
+    # o DEM grava um terço de volta (duas passagens de aleta): o laço do vídeo não tem emenda
+    "teste": dict(dem_rpm=2.4, dem_d=0.09, dem_slab=0.5, char_d=0.03, char_slab=0.2, dem_rec=1 / 3, les="teste",
+                  les_t=22.0, les_rec=4.0, timelapse_s=30.0),
+    "gpu": dict(dem_rpm=1.6, dem_d=0.07, dem_slab=0.8, char_d=0.025, char_slab=0.25, dem_rec=1 / 3, les="gpu",
+                les_t=30.0, les_rec=5.0, timelapse_s=40.0),
 }
 P = PRESETS[PRESET]
 drum = Drum(R=0.70, L=4.9, rpm=RPM, n_lifters=ALETAS, lifter_h=0.12, lifter_t=0.012)
@@ -153,19 +154,19 @@ def roda_dem(fill, d, rho_bulk, slab, labels=None, mu_r=0.25, mu=0.55):
     print(dem.describe())
     dem.settle(1.0); dem.spin_up()
     T = 60 / P["dem_rpm"]
-    dem.run(0.35 * T); dem.reset_stats()
+    dem.run(0.3 * T); dem.reset_stats()
     lab = (dem.x[:, 1].cpu().numpy() > 0).astype(float)
     frames = []
-    dem.run(T, frame_dt=T / 240, on_frame=lambda d_: frames.append(d_.frame()), verbose=True)
+    dem.run(P["dem_rec"] * T, frame_dt=P["dem_rec"] * T / 120, on_frame=lambda d_: frames.append(d_.frame()), verbose=True)
     st = dem.stats().as_dict()
-    return dict(frames=frames, r=dem.r.cpu().numpy(), label=dem.label.cpu().numpy(), names=dem.label_names, stats=st,
-                rpm=P["dem_rpm"], fill=fill, lacey=dem.lacey(lab))
+    return dict(frames=frames[:120], r=dem.r.cpu().numpy(), label=dem.label.cpu().numpy(), names=dem.label_names,
+                stats=st, rpm=P["dem_rpm"], fill=fill, lacey=dem.lacey(lab))
 labels = {"filme": 0.30, "rigido": 0.30, "isopor": 0.12, "pet": 0.08, "organico": 0.1, "borracha": 0.04, "areia": 0.06}
 dem_sets = {"solto": roda_dem(0.62, P["dem_d"], 200.0, P["dem_slab"], labels),
             "carvao": roda_dem(0.05, P["char_d"], 380.0, P["char_slab"], mu_r=0.15, mu=0.6)}
 for k, v in dem_sets.items():
     print(k, {kk: round(vv, 3) for kk, vv in v["stats"].items()}, "Lacey", round(v["lacey"], 2))
-rows_dem = VAL.dem_checks({**dem_sets["solto"]["stats"], "lacey": dem_sets["solto"]["lacey"]}, 0.62,
+rows_dem = VAL.dem_checks(dem_sets["solto"]["stats"], 0.62,
                           Drum(R=drum.R, L=drum.L, rpm=P["dem_rpm"]))
 print(VAL.summary(rows_dem))
 """
@@ -191,7 +192,7 @@ print(br(f"calor para o tambor: {eb['Q_paredes'] / 1e3:.0f} kW de {Q_LES / 1e3:.
 
 VALID = r"""
 #@title 5 · Validação
-rows_batch = VAL.batch_checks(s_rot, s_est, sweep)
+rows_batch = VAL.batch_checks(s_rot, s_est, sweep, log=b_rot.log)
 rows_les = [VAL._row("N1 LES", "conservação de massa na fornalha (saída/entrada)", eb["m_out"] / eb["m_in"], "1 ± 0,1",
                      0.9, 1.1, "", "projeção na continuidade discreta")]
 resumo = rows_kin + rows_dem + rows_les + rows_batch
@@ -231,11 +232,12 @@ scene = BatchScene(b_rot, dem_sets, les_frames, size=size, fps=FPS, seconds=P["t
                    subtitle=F(tl["subtitle"]))
 seg.append(scene.render("saida/s00_timelapse.mp4")); curto.append(seg[-1])
 tc = RT["title_card"]
+fundo = hd.Backdrop("saida/s00_timelapse.mp4", size)
 seg.append(hd.render_title_card("saida/s01_titulo.mp4", F(tc["title"]), F(tc["subtitle"]), F(tc["credit"]),
-                                F(tc["disclaimer"]), size=size, fps=FPS, seconds=4.5))
+                                F(tc["disclaimer"]), size=size, fps=FPS, seconds=4.5, backdrop=fundo))
 cards = [{k: F(v) for k, v in c.items()} for c in RT["context_cards"]]
-seg.append(hd.render_text_cards("saida/s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.5))
-seg.append(render_compare(b_rot, b_est, "saida/s03_comparacao.mp4", seconds=16.0, fps=FPS, size=size))
+seg.append(hd.render_text_cards("saida/s02_contexto.mp4", cards, size=size, fps=FPS, seconds=5.5, backdrop=fundo))
+seg.append(render_compare(b_rot, b_est, "saida/s03_comparacao.mp4", seconds=16.0, fps=FPS, size=size, les=les_frames))
 curto.append(seg[-1])
 cp = RT["compare"]
 seg.append(hd.caption_segment("saida/fig_curvas.png", "saida/s04_curvas.mp4", F(cp["captions"]), F(cp["chapter"]),
@@ -257,13 +259,13 @@ kv = [dict(value=s_rot["duracao_h"], fmt="{:.1f}", unit="h"), dict(value=s_rot["
       dict(value=s_rot["aux_kg"] / (MASSA_KG / 1000), fmt="{:.0f}", unit="kg")]
 for d_, lab in zip(kv, RT["kpis"]["labels"]):
     d_["label"] = lab
-seg.append(hd.render_kpi_card("saida/s09_numeros.mp4", F(RT["kpis"]["title"]), kv, size=size, fps=FPS, seconds=6.0))
+seg.append(hd.render_kpi_card("saida/s09_numeros.mp4", F(RT["kpis"]["title"]), kv, size=size, fps=FPS, seconds=6.0, backdrop=fundo))
 curto.append(seg[-1])
 seg.append(hd.render_text_cards("saida/s10_gestao.mp4", [{k: F(v) for k, v in RT["closing"].items()}], size=size,
-                                fps=FPS, seconds=7.0))
+                                fps=FPS, seconds=7.0, backdrop=fundo))
 ec = RT["end_card"]
 seg.append(hd.render_title_card("saida/s11_final.mp4", F(ec["line"]), "", F(ec["author"]), "", size=size, fps=FPS,
-                                seconds=4.0, contact=LINKEDIN))
+                                seconds=4.0, backdrop=fundo, contact=LINKEDIN))
 curto.append(seg[-1])
 hd.assemble(seg, "saida/tambor_pirolise.mp4", fps=FPS, size=size)
 hd.assemble(curto, "saida/tambor_pirolise_curto.mp4", fps=FPS, size=size)

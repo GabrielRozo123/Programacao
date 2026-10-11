@@ -181,7 +181,10 @@ class BatchScene:
         order = np.argsort(phi_lab)
         Ts_lab = (sn["Ts"][mid] - 273.15)[order]
         phi_sorted = phi_lab[order]
-        theta_vis = 2 * math.pi * (k / self.fps) / self.vis_rev_s
+        # giro mostrado = o dos quadros do DEM (as partículas e as aletas ficam sincronizadas; o trecho gravado
+        # cobre um número inteiro de passagens de aleta, então o laço não tem emenda visível)
+        dem0 = self.dem.get("solto") or next(iter(self.dem.values()))
+        theta_vis = float(dem0["frames"][k % len(dem0["frames"])]["theta"])
         # ---- fornalha e chamas
         gas = None
         if self.les is not None:
@@ -218,6 +221,8 @@ class BatchScene:
                                                       phi_sorted, 1.0)
             w = float(np.clip((re - 0.45) / 0.25, 0, 1))
             layers.append(("p", xs, rs, col, w))
+            if w > 0.5:
+                theta_vis = float(th_dem)
         for L_ in layers:
             if L_[0] == "p":
                 _, xs, rs, col, w = L_

@@ -45,9 +45,9 @@ def char_function(b, sn, mid):
     return lambda sig: np.clip(np.interp(sig, centers, f) * 1.5, 0, 0.9)
 
 
-def draw_section(cs: CrossSection, b, sn, theta_vis=0.0):
+def draw_section(cs: CrossSection, b, sn, theta_vis=0.0, gas=None):
     mid = b.cfg.nx // 2
-    img, _ = cs.furnace_layer(T_refr_C=float(np.mean(sn["Tr_fur"])) - 273.15)
+    img, _ = cs.furnace_layer(T_refr_C=float(np.mean(sn["Tr_fur"])) - 273.15, gas=gas)
     phi_lab = (b.phi0 + sn["theta"] + math.pi) % (2 * math.pi) - math.pi
     o = np.argsort(phi_lab)
     nphi = len(phi_lab)
@@ -59,7 +59,7 @@ def draw_section(cs: CrossSection, b, sn, theta_vis=0.0):
     return img, float(Ts.max())
 
 
-def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), t_end_h=None):
+def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), t_end_h=None, les=None):
     W, H = size
     s = H / 1080
     t_end = t_end_h or max(b_est.log[-1]["t_h"], b_rot.log[-1]["t_h"])
@@ -77,7 +77,11 @@ def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), 
                font=_font(int(36 * s), True), fill=(245, 245, 245))
         for j, (b, lab, ts_log) in enumerate(((b_est, "tambor parado", le), (b_rot, f"girando a {b_rot.rpm:.1f} rpm, 6 aletas".replace(".", ","), lr))):
             sn, _ = _snap_at(b, t_h)
-            img, Tmax = draw_section(cs, b, sn)
+            gas = None
+            if les is not None and t_h <= ts_log[-1]:
+                gain = float(np.clip(sn["Q_fire"] / les["Q"], 0.08, 1.2)) ** 0.6
+                gas = (les["T"][k % len(les["T"])], les["yc"], les["zc"], gain)
+            img, Tmax = draw_section(cs, b, sn, gas=gas)
             x0 = int((60 + j * 920) * s)
             canvas.paste(Image.fromarray(np.clip(img, 0, 255).astype(np.uint8)), (x0, int(120 * s)))
             done = t_h > ts_log[-1] + 1e-6
@@ -92,7 +96,7 @@ def render_compare(b_rot, b_est, path, seconds=18.0, fps=30, size=(1920, 1080), 
             if done:
                 d.text((x0 + int(520 * s), int(90 * s)), br(f"terminou em {ts_log[-1]:.1f} h"), font=_font(int(26 * s), True),
                        fill=(140, 255, 160))
-        d.text((int(860 * s), int(22 * s) + int(50 * s)), br(f"{t_h:4.1f} h"), font=_font(int(44 * s), True), fill=(255, 255, 255))
+        d.text((int(1700 * s), int(14 * s)), br(f"{t_h:4.1f} h"), font=_font(int(48 * s), True), fill=(255, 255, 255))
         canvas.paste(cbar, (int(700 * s), int(1010 * s)), cbar)
         pipe.write(np.asarray(canvas.convert("RGB")))
     return pipe.close()

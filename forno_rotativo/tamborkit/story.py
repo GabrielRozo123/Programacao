@@ -52,7 +52,7 @@ def render_dem_segment(drum, dem: dict, path, seconds=9.0, fps=30, size=(1920, 1
                      f"parede coberta pela carga: {100 * st['covered_frac']:.0f} % do perímetro",
                      f"contato com a parede: {st['passive_contact_s'] * dem['rpm'] / 0.8:.0f} s por volta (a 0,8 rpm)",
                      f"em queda nas cortinas: {100 * st['airborne_frac']:.1f} % dos pedaços",
-                     f"mistura (índice de Lacey) após 1 volta: {dem.get('lacey', float('nan')):.2f}"]
+                     f"mistura (índice de Lacey) no trecho mostrado: {dem.get('lacey', float('nan')):.2f}"]
         for i, ln in enumerate(lines):
             d.text((int(1090 * s), int(470 * s) + i * int(44 * s)), br(ln), font=_font(int(25 * s)), fill=(240, 240, 240))
         if speed_label:
