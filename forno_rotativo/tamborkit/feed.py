@@ -332,7 +332,7 @@ class KineticState:
                 continue
             v = self.mass(k) / c.rho_dense
             vt = vt + v
-            if c.Tm > 0 or c.key == "PS":
+            if c.Tm > 0:
                 vm = vm + v * melt_fraction(c, T)
         return np.where(vt > 0, vm / np.maximum(vt, 1e-30), 0.0)
 
@@ -347,12 +347,32 @@ class KineticState:
             if k == "H2O":
                 continue
             m = self.mass(k)
-            if c.Tm > 0 or k == "PS":
-                f = melt_fraction(c, T) if c.Tm > 0 else np.clip((np.asarray(T, float) - 383.15) / 30.0, 0, 1)
+            if c.Tm > 0:
+                f = melt_fraction(c, T)
                 V = V + m * ((1 - f) / (c.rho_loose * loose_scale) + f / c.rho_dense)
             else:
                 V = V + m * ((1 - ms) / (c.rho_loose * loose_scale) + ms / c.rho_dense)
         return V
+
+    def state_fractions(self, T):
+        """Frações (em volume denso) do leito: pedaços soltos, fundido e resíduo granular (carvão/cinzas)."""
+        T = np.asarray(T, float)
+        loose = melt = res = 0.0
+        for k in ORDER:
+            c = COMPONENTS[k]
+            if k == "H2O":
+                continue
+            v = self.mass(k) / c.rho_dense
+            if k in ("CHAR", "CB", "INERT", "PVCr"):
+                res = res + v
+            elif c.Tm > 0:
+                f = melt_fraction(c, T)
+                melt = melt + v * f
+                loose = loose + v * (1 - f)
+            else:
+                loose = loose + v
+        tot = np.maximum(loose + melt + res, 1e-30)
+        return loose / tot, melt / tot, res / tot
 
     def conductivity(self, T, d_piece: float = 0.08, eps: float = 0.85):
         """Condutividade efetiva do leito [W/(m K)]: média em volume do material denso, ponderada pela

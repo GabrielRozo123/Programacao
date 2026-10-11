@@ -169,12 +169,14 @@ class FurnaceZones:
         loss = Ar * U * (Tr - f.T_amb)
         return Tg, Tr, q, loss, eg
 
-    def solve(self, Ts_lab: np.ndarray, Q_fire: float, m_fuel_flue: float, pwc: float):
+    def solve(self, Ts_lab: np.ndarray, Q_fire: float, m_fuel_flue: float, pwc: float, phi_deg=None):
         """Ts_lab [nx, nphi] temperatura do casco em cada setor de laboratório.
 
         Q_fire: liberação total [W]; m_fuel_flue: vazão total de gases de combustão [kg/s].
+        phi_deg: ângulo de laboratório atual de cada setor (o casco gira; padrão = ângulos da construção).
         Devolve q [nx, nphi] (fluxo da fornalha para o casco, W/m²) e um dicionário de diagnóstico."""
         f = self.f
+        zone = self.zone if phi_deg is None else f.zone_of(phi_deg)
         q = np.zeros_like(Ts_lab)
         mdot = np.maximum(m_fuel_flue, 1e-4) * self.w
         Qrel = Q_fire * self.w
@@ -183,7 +185,7 @@ class FurnaceZones:
         order = [0, 1, 3, 2]                    # câmara → laterais → topo
         T_side_out = np.zeros((self.nx, 2))
         for zi in order:
-            sel = self.zone == zi
+            sel = zone == zi
             Ts = Ts_lab[:, sel]
             Ash = np.full(Ts.shape, self.A_sec)
             if zi == 0:
