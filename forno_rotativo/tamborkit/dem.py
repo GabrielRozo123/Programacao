@@ -487,15 +487,15 @@ class DrumDEM:
         st.airborne_frac = float(a["air"]) / n if a["n"] else float("nan")
         st.max_overlap = float(a["ovl"]) / self.cfg.d_mean
         st.wall_contact_s = float(a["ep_sum"]) / max(int(a["ep_n"]), 1) if int(a["ep_n"]) else float("nan")
-        # arco coberto: partículas encostadas no casco, por ângulo
+        # arco coberto: setores de 10° com ao menos uma partícula encostada no casco (folga < 2 cm)
         x = self.x.cpu().numpy()
+        r = self.r.cpu().numpy()
         rho = np.hypot(x[:, 1], x[:, 2])
-        near = rho > self.drum.R - 0.75 * self.cfg.d_mean
+        near = rho > self.drum.R - r - 0.02
         if near.any():
             phi = np.arctan2(x[near, 2], x[near, 1])
-            h, _ = np.histogram(phi, bins=72, range=(-math.pi, math.pi))
-            occ = h >= max(2, 0.25 * np.median(h[h > 0])) if (h > 0).any() else h > 0
-            st.covered_frac = float(occ.mean())
+            h, _ = np.histogram(phi, bins=36, range=(-math.pi, math.pi))
+            st.covered_frac = float((h >= 1).mean())
             if self.omega > 0:
                 st.passive_contact_s = st.covered_frac * 2 * math.pi / self.omega
         return st

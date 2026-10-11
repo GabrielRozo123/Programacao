@@ -47,7 +47,7 @@ CP_VAP = 2200.0
 class BedModel:
     """Parâmetros da troca de calor interna (valores de projeto [H] e faixas da literatura)."""
     h_contact: tuple = (30.0, 150.0, 70.0)     # parede→pedaços soltos / fundido / carvão [W/(m² K)] [H]
-    beta_deg: tuple = (40.0, 4.0, 33.0)        # ângulo dinâmico: soltos (DEM) / fundido / carvão
+    beta_deg: tuple = (32.0, 4.0, 33.0)        # ângulo dinâmico: soltos (DEM: 32°) / fundido / carvão
     curtain: tuple = (0.25, 0.08, 0.30)        # área extra de cortina / área da superfície (com aletas) [H/DEM]
     d_pore: tuple = (0.02, 0.002, 0.004)       # tamanho de poro para a radiação no leito [m]
     eps_wall_in: float = 0.80                  # casco por dentro (com depósitos)

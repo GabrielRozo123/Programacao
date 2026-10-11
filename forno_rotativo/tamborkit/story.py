@@ -8,7 +8,15 @@ from PIL import Image, ImageDraw
 
 from .scene import CrossSection, colorbar, draw_overlay, thermal_rgb
 from .timelapse import MATERIAL_RGB
-from .video import FFmpegPipe, _font, br, draw_lower_third, even_captions, _caption_alpha
+from .video import FFmpegPipe, _font, _wrap, br, draw_lower_third, even_captions, _caption_alpha
+
+
+def _title(d, text, x, y, s, width=800, size=36):
+    f = _font(int(size * s), True)
+    lines = _wrap(d, br(text), f, int(width * s))
+    for i, ln in enumerate(lines):
+        d.text((x, y + i * int(size * 1.25 * s)), ln, font=f, fill=(245, 245, 245))
+    return y + len(lines) * int(size * 1.25 * s)
 
 BOX = dict(half_width=1.0, z_bot=-1.30, z_top=0.95, wall=0.17)
 
@@ -34,8 +42,7 @@ def render_dem_segment(drum, dem: dict, path, seconds=9.0, fps=30, size=(1920, 1
         canvas = Image.new("RGBA", size, (12, 14, 20, 255))
         canvas.paste(scene, (int(60 * s), int(60 * s)))
         d = ImageDraw.Draw(canvas)
-        d.text((int(1080 * s), int(90 * s)), br(title), font=_font(int(38 * s), True), fill=(245, 245, 245))
-        y = int(170 * s)
+        y = _title(d, title, int(1080 * s), int(70 * s), s) + int(24 * s)
         for name, c in MATERIAL_RGB.items():
             if name not in dem["names"]:
                 continue
@@ -50,16 +57,17 @@ def render_dem_segment(drum, dem: dict, path, seconds=9.0, fps=30, size=(1920, 1
         if st:
             lines = [f"ângulo dinâmico do leito: {st['beta_deg']:.0f}°",
                      f"parede coberta pela carga: {100 * st['covered_frac']:.0f} % do perímetro",
-                     f"contato com a parede: {st['passive_contact_s'] * dem['rpm'] / 0.8:.0f} s por volta (a 0,8 rpm)",
+                     f"cada ponto do casco passa {st['passive_contact_s'] * dem['rpm'] / 0.8:.0f} s sob a carga por volta",
                      f"em queda nas cortinas: {100 * st['airborne_frac']:.1f} % dos pedaços",
                      f"mistura (índice de Lacey) no trecho mostrado: {dem.get('lacey', float('nan')):.2f}"]
         for i, ln in enumerate(lines):
             d.text((int(1090 * s), int(470 * s) + i * int(44 * s)), br(ln), font=_font(int(25 * s)), fill=(240, 240, 240))
         if speed_label:
-            d.text((int(1090 * s), int(720 * s)), br(speed_label), font=_font(int(20 * s)), fill=(170, 175, 185))
+            for i, ln in enumerate(_wrap(d, br(speed_label), _font(int(20 * s)), int(780 * s))):
+                d.text((int(1090 * s), int(740 * s) + i * int(26 * s)), ln, font=_font(int(20 * s)), fill=(170, 175, 185))
         if caps:
             txt, a = _caption_alpha(caps, k / fps)
-            draw_lower_third(canvas, txt, a, s)
+            draw_lower_third(canvas, txt, a, s * 0.85, y_bottom=int(1030 * s), max_w=int(760 * s), x0=int(1070 * s))
         pipe.write(np.asarray(canvas.convert("RGB")))
     return pipe.close()
 
@@ -81,12 +89,12 @@ def render_flame_segment(drum, les: dict, path, Ts_C=500.0, seconds=8.0, fps=30,
         canvas = Image.new("RGBA", size, (12, 14, 20, 255))
         canvas.paste(scene, (int(40 * s), int(50 * s)))
         d = ImageDraw.Draw(canvas)
-        d.text((int(1080 * s), int(90 * s)), br(title), font=_font(int(38 * s), True), fill=(245, 245, 245))
+        y = _title(d, title, int(1080 * s), int(70 * s), s) + int(30 * s)
         for i, ln in enumerate(info):
-            d.text((int(1090 * s), int(180 * s) + i * int(46 * s)), br(ln), font=_font(int(26 * s)), fill=(235, 235, 235))
+            d.text((int(1090 * s), y + i * int(46 * s)), br(ln), font=_font(int(26 * s)), fill=(235, 235, 235))
         if caps:
             txt, a = _caption_alpha(caps, k / fps)
-            draw_lower_third(canvas, txt, a, s)
+            draw_lower_third(canvas, txt, a, s * 0.85, y_bottom=int(1030 * s), max_w=int(760 * s), x0=int(1070 * s))
         pipe.write(np.asarray(canvas.convert("RGB")))
     return pipe.close()
 
