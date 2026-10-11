@@ -71,6 +71,8 @@ Por isso cada bloco roda no seu relógio. Uma CFD-DEM acoplada da batelada intei
 
 ## Validação
 
+Na rodada de referência (preset `teste`), **29 de 29** verificações ficam dentro do alvo.
+
 | Nível | Verificações |
 |---|---|
 | N1 componentes | Picos de DTG e T(k = 10⁻³ s⁻¹) de cada polímero; emissividade do gás; regime, ângulo e arco coberto do DEM; mistura em uma volta; conservação de massa da LES; balanços de massa e energia da batelada |
@@ -85,7 +87,7 @@ Por isso cada bloco roda no seu relógio. Uma CFD-DEM acoplada da batelada intei
 | `tamborkit/` | Pacote: carga e cinética, batelada, fornalha (zonas e LES), DEM, validação, cena, time-lapse e vídeo |
 | `video_roteiro.json` | Textos do vídeo (editáveis), com campos `{...}` preenchidos pela rodada |
 | `docs/brief_tambor_batelada.md` | Base de projeto (pesquisa sintetizada); `docs/pesquisa/` traz os resultados brutos com fontes |
-| `tests/` | Testes (`pytest -q`) |
+| `tests/` | Testes (`pytest -q`, 8 testes, ~1 min em CPU) |
 | `build_notebook.py` | Regenera o notebook e `scripts/rodar_local.py` |
 
 ## Uso
