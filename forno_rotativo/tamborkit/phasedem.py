@@ -317,14 +317,27 @@ class PhaseDEM(DrumDEM):
                          beta=beta, lam=lam)
         # ---- grânulos de carvão nascem na poça
         m_g = pc.char_rho * math.pi / 6 * pc.char_d ** 3
-        n_new = int((char_made - self.char_spawned) / m_g)
-        if n_new > 0 and self.pool["eps"] > 0:
+        n_need = int((char_made - self.char_spawned) / m_g)
+        if n_need > 0 and self.pool["eps"] > 0:
             free = torch.nonzero((self.active == 0) & gran & (~self.merged)).flatten()
-            n_new = min(n_new, len(free))
+            n_new = min(n_need, len(free))
             if n_new > 0:
                 idx = free[:n_new]
                 self._spawn(idx, m_g)
                 self.char_spawned += n_new * m_g
+            if n_new < n_need:
+                # reserva esgotada: o carvão que falta engorda os grânulos que já existem (massa conservada)
+                g_act = gran & (self.active > 0)
+                m_g_act = float(self.m[g_act].sum())
+                left = char_made - self.char_spawned
+                if m_g_act > 0 and left > 0:
+                    f = 1.0 + left / m_g_act
+                    self.m[g_act] *= f
+                    self.r[g_act] *= f ** (1.0 / 3.0)
+                    self.r_final[g_act] = self.r[g_act]
+                    self.I[g_act] = 0.4 * self.m[g_act] * self.r[g_act] ** 2
+                    self.char_spawned += left
+                    self._dirty = True
         if getattr(self, "_dirty", False):
             self._rebuild()
             self._dirty = False

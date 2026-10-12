@@ -351,9 +351,10 @@ def render_flame_views(drum, flames_corte, flames_lateral, meta, path, Ts_C=500.
         d.text((int(40 * s), int(118 * s)), "corte (ao longo do eixo)", font=_font(int(20 * s)), fill=(190, 195, 205))
         d.text((int(810 * s), int(118 * s)), "vista lateral: os dois queimadores ao longo do tambor",
                font=_font(int(20 * s)), fill=(190, 195, 205))
+        y_info = int(150 * s) + (int(760 * s) + side_h) // 2 + int(50 * s)
         for i, ln in enumerate(info):
-            d.text((int(810 * s) + (i % 2) * int(540 * s), int(930 * s) + (i // 2) * int(40 * s)), br(ln),
-                   font=_font(int(22 * s)), fill=(225, 225, 230))
+            d.text((int(810 * s), y_info + i * int(40 * s)), "· " + br(ln), font=_font(int(22 * s)),
+                   fill=(225, 225, 230))
         if caps:
             txt, al = _caption_alpha(caps, k / fps)
             draw_lower_third(canvas, txt, al, s * 0.8, y_bottom=int(1060 * s), max_w=int(740 * s), x0=int(30 * s))
