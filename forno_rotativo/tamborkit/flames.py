@@ -10,16 +10,19 @@ Pós-processamento dos quadros 3D gravados da LES (furnace_les.FurnaceLES), no e
   com a transmitância acumulada. L_vis(T) e a cor saem do espectro λ^(−1,39)·B_λ(T) integrado nas funções
   de cor CIE 1931 (a mesma tabela do flare): ~1400 K laranja-avermelhado, ~1800 K amarelo, ~2200 K branco;
 * quimiluminescência azul (CH*, C₂*) proporcional à liberação de calor da química rápida
-  q = ρχ/2 · LHV/(1 − Z_st) · P(Z_st), fina e sem absorção, cor sRGB linear ≈ (0,22; 0,42; 1,0). Sem
-  medida de referência para a razão azul/fuligem, o ganho é visual: uma folha de chama de ~1 MW/m² de
-  calor por área projetada vale ~1 % da luminância de um corpo negro a 1800 K (parâmetro `blue`);
+  q = ρχ/2 · LHV/(1 − Z_st) · P(Z_st), fina e sem absorção, cor sRGB linear ≈ (0,22; 0,42; 1,0), só onde q
+  passa de 10 % do pico (sem véu azul do gás morno). Sem medida de referência para a razão azul/fuligem, o
+  ganho é visual: ~1 MW/m² de calor por área projetada vale ~0,4 % da luminância de um corpo negro a 1800 K
+  (parâmetro `blue`);
+* resolução abaixo da célula: T, f_v e q interpolados (trilinear) numa grade ~3 cm antes da emissão — como a
+  luminância cresce ~T^20, as bordas da chama ficam finas em vez de quadradas;
 * superfícies (vista lateral): casco de aço e refratário com a incandescência do próprio T (ponto de
   Draper ≈ 798 K, vermelho escuro quase invisível; ~1100 K cereja/laranja) e iluminados de forma difusa
   pela luz da chama (soma das células emissoras, ∝ cos θ/r², sem sombra);
 * detalhe abaixo da malha (opcional): ruído fractal advectado com a velocidade projetada (advecção de
   textura em duas fases), que deforma e modula a chama só na escala da célula — efeito visual;
-* exposição automática pelo percentil 99,7 da luminância (mediana móvel de ±20 quadros, independente da
-  ordem de renderização), bloom em duas escalas, ACES e sRGB.
+* exposição automática pelo percentil 99,9 da luminância (mediana móvel de ±20 quadros, independente da
+  ordem de renderização), compressão HDR (radiância^0,5), bloom em duas escalas, ACES e sRGB.
 
 Custo (CPU, 4 núcleos, malha 'teste' 54×20×22): ~0,1–0,25 s por quadro de 1080p; a projeção 3D → 2D é
 pequena (ms); o grosso é a amostragem por pixel (grid_sample) e o bloom. Na GPU, ~10× mais rápido.
@@ -192,111 +195,174 @@ def fractal_noise(n: int, lam_min: float, lam_max: float, beta: float, gen: torc
 
 
 # ============================================================ projeção ao longo da linha de visada
-def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.012, T_shell: float | None = None,
-            T_refr: float | None = None):
-    """Integra emissão e absorção ao longo da visada. Devolve (rgb linear [A, Z, 3], opacidade [A, Z]) com
-    A = y (vista 'corte', visada +x) ou x (vista 'lateral', visada +y a partir da parede dos queimadores).
+def _lut_torch(dev):
+    """(T0, ΔT, L_fuligem [n, 3], L_corpo_negro [n, 3]) como tensores: radiância visível relativa já com a cor."""
+    T, c_s, Y_s, c_b, Y_b = _lut()
+    ls = torch.as_tensor(c_s * Y_s[:, None], dtype=torch.float32, device=dev)
+    lb = torch.as_tensor(c_b * Y_b[:, None], dtype=torch.float32, device=dev)
+    return float(T[0]), float(T[1] - T[0]), ls, lb
 
-    Vista lateral: o raio para no casco do tambor (opaco), que entra com a sua incandescência e iluminado
-    pela luz das chamas; se o raio atravessa tudo, aparece o refratário do fundo (incandescência de T_refr)."""
-    T_lut, c_s, Y_s, _, _ = _lut()
-    T = np.asarray(frame["T"], np.float32)
-    fv = np.asarray(frame["fv"], np.float32) * 1e-6
-    q = np.asarray(frame["q"], np.float32)
-    fl = np.asarray(frame.get("fluid", meta["fluid"]), np.float32)
-    h = meta["h"]
+
+def _lookup(table, T, T0, dT):
+    n = table.shape[0]
+    x = ((T - T0) / dT).clamp(0.0, n - 1.001)
+    i0 = x.floor().long()
+    f = (x - i0)[..., None]
+    return table[i0] * (1.0 - f) + table[i0 + 1] * f
+
+
+def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.004, T_shell: float | None = None,
+            T_refr: float | None = None, up: int = 3, device: str = "cpu"):
+    """Integra emissão e absorção ao longo da visada. Devolve (rgb linear das chamas [A, Z, 3], opacidade [A, Z],
+    rgb linear das superfícies vistas [A, Z, 3] — zero na vista 'corte') com
+    A = y (vista 'corte', visada +x) ou x (vista 'lateral', visada +y a partir da parede dos queimadores), numa
+    grade `up` vezes mais fina que a da LES nos dois eixos da imagem (centros em a0 − h/2 + (j + ½)·h/up).
+
+    Resolução abaixo da célula: T, f_v e q são interpolados (trilinear) antes de calcular a emissão; como a
+    luminância visível cresce ~T^20 perto de 1500 K, isso afina as bordas da chama em vez de borrar a emissão
+    célula a célula.
+
+    Vista lateral: o raio para no casco do tambor (opaco), que entra com a sua incandescência e iluminado pela
+    luz das chamas (difusa, ρ/π·L·Ω ~ 2 % da radiância da chama, mais a luz local borrada); a face de baixo,
+    voltada para os queimadores, recebe mais luz (sombreamento de cilindro). Se o raio atravessa tudo, aparece
+    o refratário do fundo (incandescência de T_refr, também iluminado)."""
+    dev = torch.device(device)
+    T0, dT, L_s, _ = _lut_torch(dev)
+    h = float(meta["h"])
+    fl0 = frame.get("fluid", meta["fluid"])
+    f = torch.stack([torch.as_tensor(np.asarray(a, np.float32), device=dev)
+                     for a in (frame["T"], frame["fv"], frame["q"], fl0)])
     ax = 0 if view == "corte" else 1
+    img_axes = (1, 2) if view == "corte" else (0, 2)
+    size = list(f.shape[1:])
+    for a in img_axes:
+        size[a] *= up
+    f = F.interpolate(f[None], size=size, mode="trilinear", align_corners=False)[0]
+    T, fv, q, fl = f[0], f[1].clamp(min=0.0) * 1e-6, f[2].clamp(min=0.0), f[3].clamp(0.0, 1.0)
+
+    def centres(c, n):
+        c = np.asarray(c, float)
+        a0 = c[0] - h / 2
+        return torch.as_tensor(a0 + (np.arange(n) + 0.5) * (h * len(c) / n), dtype=torch.float32, device=dev)
+    xs, ys, zs = (centres(meta[k], size[i]) for i, k in enumerate(("xc", "yc", "zc")))
+
     dtau = C_SOOT * fv * T * h * fl
-    Tq = np.clip(T, T_lut[0], T_lut[-1])
-    col = np.stack([np.interp(Tq, T_lut, c_s[:, i]) for i in range(3)], -1)
-    Ys = np.interp(Tq, T_lut, Y_s)
-    emis = (1.0 - np.exp(-dtau))[..., None] * col * Ys[..., None]
-    emis = emis + (blue * q * h * fl)[..., None] * np.asarray(BLUE_RGB, np.float32)
+    emis = (1.0 - torch.exp(-dtau))[..., None] * _lookup(L_s, T, T0, dT)
+    # quimiluminescência só onde a liberação de calor passa de 10 % do pico (sem véu azul do gás morno), com o pico
+    # limitado ao percentil 99,5 (a borda do jato na boca do queimador tem |∇Z|² de uma célula só)
+    qs = q.flatten()[::max(1, q.numel() // 200000)]
+    q_hi = float(torch.quantile(qs, 0.995)) + 1e-30
+    qe = (q.clamp(max=q_hi) - 0.10 * q_hi).clamp(min=0.0) * fl
     if view == "lateral":
-        Y, Zc = np.meshgrid(meta["yc"], meta["zc"], indexing="ij")
-        drum2d = (np.hypot(Y, Zc) < meta["R_out"])[None] & (np.asarray(meta["xc"])[:, None, None] < meta["L_drum"])
-        blocked = np.cumsum(drum2d, axis=1) > 0                  # da parede dos queimadores (y mínimo) para dentro
-        first = drum2d & ~np.concatenate([np.zeros_like(blocked[:, :1]), blocked[:, :-1]], 1)
-        dtau = np.where(blocked, 0.0, dtau)
-        emis = np.where(blocked[..., None], 0.0, emis)
-    cum = np.cumsum(dtau, axis=ax)
-    trans_before = np.exp(-(cum - dtau))
-    rgb = (emis * trans_before[..., None]).sum(axis=ax)
-    trans = np.exp(-cum.take(-1, axis=ax))
+        X, Y, Z = torch.meshgrid(xs, ys, zs, indexing="ij")
+        drum = (torch.hypot(Y, Z) < meta["R_out"]) & (X < meta["L_drum"])
+        blocked = torch.cumsum(drum.int(), dim=1) > 0                   # da parede dos queimadores para dentro
+        prev = torch.cat([torch.zeros_like(blocked[:, :1]), blocked[:, :-1]], 1)
+        first = blocked & ~prev
+        dtau = torch.where(blocked, torch.zeros_like(dtau), dtau)
+        emis = torch.where(blocked[..., None], torch.zeros_like(emis), emis)
+    cum = torch.cumsum(dtau, dim=ax)
+    trans_before = torch.exp(-(cum - dtau))
+    rgb = (emis * trans_before[..., None]).sum(dim=ax)
+    trans = torch.exp(-cum.select(ax, -1))
+    if blue > 0:
+        if view == "lateral":
+            qe = torch.where(blocked, torch.zeros_like(qe), qe)
+        bl = blur((blue * h * (qe * trans_before).sum(dim=ax))[None], 0.6 * up)[0]   # posição da folha: ± ½ célula
+        rgb = rgb + bl[..., None] * torch.tensor(BLUE_RGB, device=dev)
+    surf_rgb = torch.zeros_like(rgb)
     if view == "lateral":
         T_sh = meta["T_shell"] if T_shell is None else T_shell
         T_rf = meta["T_refr"] if T_refr is None else T_refr
-        hit = first.any(axis=1)
-        t_hit = (trans_before * first).sum(axis=1)
-        flame_light = float(rgb.sum(axis=-1).mean())
-        steel = np.array([0.55, 0.57, 0.60], np.float32)
-        surf = incandescence_rgb(T_sh)[None, None] + 0.35 * flame_light * steel
-        back = incandescence_rgb(T_rf)[None, None] * np.ones(rgb.shape, np.float32)
-        rgb = rgb + np.where(hit[..., None], t_hit[..., None] * surf, trans[..., None] * back)
-        trans = np.where(hit, 0.0, trans)
-    return rgb.astype(np.float32), (1.0 - trans).astype(np.float32)
+        hit = first.any(dim=1)
+        t_hit = (trans_before * first).sum(dim=1)
+        lum = rgb.sum(-1)
+        peak = float(torch.quantile(lum.flatten()[::max(1, lum.numel() // 200000)], 0.995)) + 1e-30
+        sig = 0.35 / (h / up)                                           # luz local: ~35 cm de alcance
+        glow = blur(rgb.permute(2, 0, 1), sig).permute(1, 2, 0).sum(-1, keepdim=True)
+        nz = (zs / meta["R_out"]).clamp(-1, 1)[None, :, None]           # normal do casco no ponto visto (z/R)
+        shade = 0.35 + 0.65 * (-nz).clamp(min=0.0)
+        steel = torch.tensor([0.50, 0.52, 0.56], device=dev)
+        brick = torch.tensor([0.60, 0.33, 0.22], device=dev)
+        inc_sh = torch.as_tensor(incandescence_rgb(T_sh), dtype=torch.float32, device=dev)
+        inc_rf = torch.as_tensor(incandescence_rgb(T_rf), dtype=torch.float32, device=dev)
+        surf = inc_sh + (0.02 * peak + 0.25 * glow) * shade * steel
+        back = inc_rf + (0.006 * peak + 0.10 * glow) * brick
+        surf_rgb = torch.where(hit[..., None], t_hit[..., None] * surf, trans[..., None] * back)
+        trans = torch.where(hit, torch.zeros_like(trans), trans)
+    return (rgb.cpu().numpy().astype(np.float32), (1.0 - trans).cpu().numpy().astype(np.float32),
+            surf_rgb.cpu().numpy().astype(np.float32))
 
 
 class FlameRenderer:
     """Quadros das chamas a partir dos quadros 3D gravados (FlameRecorder.data())."""
 
     def __init__(self, data: dict, view: str = "corte", exposure: float = 1.0, bloom: float = 0.5,
-                 detail: float = 0.3, blue: float = 0.012, seed: int = 3, device: str = "cpu"):
+                 detail: float = 0.2, blue: float = 0.004, seed: int = 3, device: str = "cpu", gamma: float = 0.5,
+                 up: int | None = None):
         self.frames, self.meta = data["frames"], data["meta"]
+        self.gamma = gamma
         self.view, self.exposure, self.bloom, self.detail, self.blue = view, exposure, bloom, detail, blue
         self.dev = torch.device(device)
-        self.proj = [project(f, self.meta, view, blue) for f in self.frames]
-        lum = np.array([np.percentile(p[0].sum(-1), 99.7) for p in self.proj])
+        m = self.meta
+        # grade da imagem ~3 cm: 0,10 m → ×3; 0,05 m → ×2; 0,035 m → ×1
+        self.up = up if up is not None else max(1, int(round(m["h"] / 0.033)))
+        self.proj = [project(f, m, view, blue, up=self.up, device=device) for f in self.frames]
+        lum = np.array([float(np.percentile(p[0].sum(-1), 99.9)) for p in self.proj])   # pelas chamas
         k = 20
         self.norm = np.array([np.median(lum[max(0, i - k):i + k + 1]) for i in range(len(lum))])
         gen = torch.Generator().manual_seed(seed)
-        self.noise = [fractal_noise(256, 3.0, 40.0, 3.0, gen) for _ in range(3)]
-        m = self.meta
-        if view == "corte":
-            self.ax0, self.ax1 = np.asarray(m["yc"]), np.asarray(m["zc"])
-        else:
-            self.ax0, self.ax1 = np.asarray(m["xc"]), np.asarray(m["zc"])
+        self.noise = [fractal_noise(256, 3.0, 40.0, 3.0, gen) for _ in range(2)]
+        self.hp = m["h"] / self.up
+        self.ax0 = np.asarray(m["yc"] if view == "corte" else m["xc"])
+        self.ax1 = np.asarray(m["zc"])
 
     def _sample(self, img: np.ndarray, A, B):
-        """Amostra bicúbica de img [n0, n1, C] nas coordenadas físicas (A, B) dos pixels."""
+        """Amostra bilinear (sem sobressinal nas bordas) de img [n0, n1, C] nas coordenadas físicas (A, B) dos pixels."""
         t = torch.as_tensor(img, dtype=torch.float32, device=self.dev).permute(2, 0, 1)
-        t = blur(t, 0.7)
+        t = blur(t, 0.8)
         n0, n1 = img.shape[:2]
         h = self.meta["h"]
-        gx = 2 * ((torch.as_tensor(np.array(B), dtype=torch.float32) - (self.ax1[0] - h / 2)) / (n1 * h)) - 1
-        gy = 2 * ((torch.as_tensor(np.array(A), dtype=torch.float32) - (self.ax0[0] - h / 2)) / (n0 * h)) - 1
+        a0, b0 = self.ax0[0] - h / 2, self.ax1[0] - h / 2
+        gx = 2 * ((torch.as_tensor(np.array(B), dtype=torch.float32) - b0) / (n1 * self.hp)) - 1
+        gy = 2 * ((torch.as_tensor(np.array(A), dtype=torch.float32) - a0) / (n0 * self.hp)) - 1
         grid = torch.stack([gx, gy], -1)[None].to(self.dev)
-        out = F.grid_sample(t[None], grid, mode="bicubic", padding_mode="zeros", align_corners=False)[0]
+        out = F.grid_sample(t[None], grid, mode="bilinear", padding_mode="zeros", align_corners=False)[0]
         return out.clamp(min=0.0)
 
     def _detail(self, A, B, i):
-        """Modulação abaixo da malha: duas fases de ruído rolando para cima (empuxo), misturadas sem emenda."""
-        if self.detail <= 0:
-            return 1.0
-        t = i * 0.05
+        """Modulação abaixo da malha (efeito visual): ruído fractal com comprimentos de onda de ~2 a 25 cm,
+        em duas fases que sobem com o empuxo (~1,5 m/s) e se alternam sem emenda."""
+        texel = 160.0                                       # texels por metro
+        t = i / 30.0
         P = 0.8
         ph = (t % P) / P
+        A_t = torch.as_tensor(np.array(A), dtype=torch.float32)
+        B_t = torch.as_tensor(np.array(B), dtype=torch.float32)
         tot = 0.0
         for k, off in enumerate((0.0, 0.5)):
-            s = ((ph + off) % 1.0)
+            s = (ph + off) % 1.0
             wgt = 1 - abs(2 * s - 1)
-            shift = 1.2 * s * P
-            u = torch.as_tensor((A * 7.0) % 256, dtype=torch.float32)
-            v = torch.as_tensor(((B - shift) * 7.0) % 256, dtype=torch.float32)
-            nz = self.noise[k]
-            ii, jj = u.long() % 256, v.long() % 256
-            tot = tot + wgt * nz[ii, jj]
-        return (1.0 + self.detail * torch.as_tensor(tot)).clamp(min=0.0)
+            u = torch.remainder(A_t * texel, 256.0)
+            v = torch.remainder((B_t - 1.2 * s * P) * texel + 97.0 * k, 256.0)
+            nz = F.pad(self.noise[k][None, None], (0, 1, 0, 1), mode="circular")
+            grid = torch.stack([(v + 0.5) / 257 * 2 - 1, (u + 0.5) / 257 * 2 - 1], -1)[None]
+            tot = tot + wgt * F.grid_sample(nz, grid, mode="bilinear", align_corners=False)[0, 0]
+        return (1.0 + self.detail * tot).clamp(min=0.0).to(self.dev)
 
     def render_on_grid(self, i: int, A, B, gain: float = 1.0):
         """(rgb [H, W, 3] em 0–1 com tone mapping, opacidade [H, W]) nas coordenadas físicas A (y ou x), B (z)."""
         i = i % len(self.proj)
-        rgb, op = self.proj[i]
-        img = np.concatenate([rgb, op[..., None]], -1)
+        rgb, op, surf = self.proj[i]
+        img = np.concatenate([rgb, op[..., None], surf], -1)
         s = self._sample(img, A, B)
         lin, alpha = s[:3], s[3].clamp(0, 1)
-        lin = lin * self._detail(np.asarray(A), np.asarray(B), i)[None] if self.detail > 0 else lin
-        lin = lin * (gain * self.exposure * 0.85 / max(self.norm[i], 1e-30))
+        if self.detail > 0:
+            lin = lin * self._detail(A, B, i)[None]        # o detalhe só deforma a chama, não as superfícies
+        lin = lin + s[4:]
+        # compressão da faixa dinâmica (câmera HDR): radiância^γ antes do tone mapping, para a chama não virar
+        # só o pico mais quente (a luminância visível cresce ~T^20 perto de 1500 K)
+        lin = (lin * (gain / max(self.norm[i], 1e-30))).clamp(min=0.0) ** self.gamma * (self.exposure * 1.6)
         if self.bloom > 0:
             bright = (lin - 0.6).clamp(min=0.0)
             lin = lin + self.bloom * (0.6 * blur(bright, 6.0) + 0.4 * blur(bright, 22.0))
@@ -308,6 +374,6 @@ class FlameRenderer:
         """Imagem isolada (W×H) cobrindo extent = (a0, a1, b0, b1) em metros (a horizontal, b vertical)."""
         W, H = size
         a0, a1, b0, b1 = extent
-        A = np.broadcast_to(np.linspace(a0, a1, W)[None, :], (H, W))
-        B = np.broadcast_to(np.linspace(b1, b0, H)[:, None], (H, W))
+        A = np.ascontiguousarray(np.broadcast_to(np.linspace(a0, a1, W)[None, :], (H, W)))
+        B = np.ascontiguousarray(np.broadcast_to(np.linspace(b1, b0, H)[:, None], (H, W)))
         return self.render_on_grid(i, A, B, gain)

@@ -109,7 +109,7 @@ def test_phase_dem_short():
     b = BatchDrum(dr, fd.Charge(mass=1000.0, fill=0.65), cfg=BatchConfig(t_max_h=10))
     b.run(verbose=False)
     pd = PhaseDEM(dr, fd.Charge(mass=1000.0, fill=0.65), b.log,
-                  PhaseConfig(slab=0.32, rpm=3.0, n_rev=0.08, pre_rev=0.01, frames=8, pre_frames=2,
+                  PhaseConfig(slab=0.5, rpm=3.0, n_rev=0.08, pre_rev=0.01, frames=8, pre_frames=2,
                               contact_time=0.012, device="cpu"))
     n0 = int(pd.active.sum())
     pd.settle(0.2)

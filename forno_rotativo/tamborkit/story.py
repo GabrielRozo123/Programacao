@@ -206,14 +206,26 @@ GROUP_MSG = {"água": "Secagem: a água do lixo sai a 100 °C",
              "borracha": "Borracha: óleo e negro de fumo"}
 
 
+def _smooth_rate(t, r, w):
+    """Média móvel centrada de largura w (h) de uma taxa, pela integral acumulada (conserva a massa)."""
+    I = np.concatenate([[0.0], np.cumsum(0.5 * (r[1:] + r[:-1]) * np.diff(t))])
+    lo, hi = np.clip(t - w / 2, t[0], t[-1]), np.clip(t + w / 2, t[0], t[-1])
+    return (np.interp(hi, t, I) - np.interp(lo, t, I)) / np.maximum(hi - lo, 1e-9)
+
+
 class RatesChart:
-    def __init__(self, log, size=(820, 760), dpi=100):
+    """Taxas por grupo (empilhadas) e conversões. A taxa é suavizada em ~6 min (a secagem avança fatia a fatia
+    e, passo a passo, sai serrilhada; uma termobalança também integra no intervalo de amostragem)."""
+
+    def __init__(self, log, size=(820, 760), dpi=100, smooth_h=0.1):
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         self.plt, self.log, self.size, self.dpi = plt, log, size, dpi
         self.t = np.array([r["t_h"] for r in log])
         self.rates = np.array([[r[f"taxa_{g}"] for g, _, _ in GROUP_STYLE] for r in log])
+        if smooth_h > 0 and len(self.t) > 2:
+            self.rates = np.stack([_smooth_rate(self.t, c, smooth_h) for c in self.rates.T], 1)
         self.conv = np.array([[r[f"conv_{g}"] for g, _, _ in GROUP_STYLE] for r in log])
         self.rmax = float(self.rates.sum(1).max()) * 1.1
 
@@ -241,7 +253,8 @@ class RatesChart:
         a1.set_ylabel("taxa de reação (kg/h)", color="w", fontsize=13)
         a2.set_ylabel("convertido", color="w", fontsize=13)
         a2.set_xlabel("tempo de batelada (h)", color="w", fontsize=13)
-        a1.legend(loc="upper left", fontsize=10, frameon=False, labelcolor="w", ncol=2)
+        if k > 1:
+            a1.legend(loc="upper left", fontsize=10, frameon=False, labelcolor="w", ncol=2)
         buf = io.BytesIO()
         fig.savefig(buf, format="png", transparent=True, dpi=self.dpi)
         plt.close(fig)

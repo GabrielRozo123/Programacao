@@ -34,10 +34,10 @@ Uma batelada inteira de **lixo marinho misto** (o resíduo pós-consumo que a UF
 |---|---|
 | 1 | **Cinética** de 9 componentes do lixo (PE, PP, PS, PET, PVC em duas etapas, borracha, celulósicos, água, areia) e TGA |
 | 2 | **Batelada de 6–8 h**: fornalha (zonas de Hottel, WSGG), casco girando, contato parede-carga (penetração), radiação interna, secagem, fusão, pirólise, carvão, craqueamento no espaço livre, condensador e **gás próprio voltando ao queimador** — **girando × parado**, com e sem aletas, várias rotações |
-| 3 | **DEM** da carga: pedaços de lixo girando com o tambor e as aletas (GPU) |
-| 4 | **LES 3D da fornalha**: chamas dos queimadores, gases quentes em volta do tambor e fluxo de calor no casco |
+| 3 | **DEM com mudança de fase** (GPU): cada pedaço de lixo gira com o tambor e as aletas, amolece, gruda, funde numa poça viscosa, craqueia e vira carvão, no relógio da batelada |
+| 4 | **LES 3D da fornalha**: chamas dos queimadores (renderizadas pela emissão da fuligem), gases quentes em volta do tambor e fluxo de calor no casco |
 | 5 | **Validação** (Suzuki, Faussone, Fulgencio-Medrano, Beston, UFRJ) com veredito por item |
-| 6 | **Vídeo em HD**: o time-lapse da batelada com o **gráfico se atualizando ao vivo**, parado × girando, DEM e chamas |
+| 6 | **Vídeo em HD**: o time-lapse da batelada com o **gráfico se atualizando ao vivo**, a **taxa de pirólise** de cada componente junto com a mudança de fase, parado × girando, DEM e chamas |
 
 **Antes de rodar:** *Ambiente de execução → Alterar o tipo de ambiente de execução → GPU T4*. Sem GPU use o preset `teste`.
 
@@ -91,7 +91,7 @@ PRESETS = {
     # o DEM grava um terço de volta (duas passagens de aleta): o laço do vídeo não tem emenda
     # DEM com mudança de fase: rotação simulada (regime de rolamento), fatia, voltas para a batelada inteira e
     # duração do contato; LES: malha e tempos; vídeo: segundos do time-lapse
-    "teste": dict(dem_rpm=3.0, dem_slab=0.4, dem_rev=4.0, dem_tc=0.010, les="teste", les_t=17.0, les_rec=3.0,
+    "teste": dict(dem_rpm=3.0, dem_slab=0.5, dem_rev=4.0, dem_tc=0.010, les="teste", les_t=17.0, les_rec=3.0,
                   timelapse_s=30.0),
     "gpu": dict(dem_rpm=2.0, dem_slab=0.5, dem_rev=6.0, dem_tc=0.006, les="gpu", les_t=24.0, les_rec=4.0,
                 timelapse_s=40.0),
@@ -284,7 +284,8 @@ OUTRO = r"""
 ## Limitações e próximos passos
 
 * **Carga**: em cada fatia o leito girando é bem misturado na seção (o DEM mostra que a mistura leva poucas voltas, minutos contra horas de batelada) e troca calor pelo modelo de penetração; o tambor parado é uma pilha que só conduz (camadas). A fusão é tratada como colapso do volume aparente, sem escoamento do fundido entre fatias.
-* **DEM**: esferas macias (rigidez reduzida) numa fatia periódica, nos estados "lixo solto" e "carvão"; no preset `teste` a rotação simulada é 3× a real (mesmo regime de rolamento).
+* **DEM com mudança de fase**: esferas macias (rigidez reduzida) numa fatia periódica, com o relógio comprimido (algumas voltas para a batelada inteira) e acoplamento em uma via (a batelada dita a temperatura e a conversão). A poça é um inventário com superfície plana inclinada, não um fluido resolvido; faixas de fusão, retração e coesão são ordens de grandeza. No preset `teste` a rotação simulada é 3× a real (mesmo regime de rolamento).
+* **Chamas**: renderizadas da LES pela emissão da fuligem e pela quimiluminescência na linha de visada; o detalhe abaixo da malha é só visual.
 * **Fornalha**: o modelo zonal (Hottel + WSGG) conduz a batelada; a LES 3D mostra as chamas e a distribuição do calor no casco para um estado de queima (o refratário é tratado como rerradiante).
 * **Química**: lumps de produtos por componente com rendimentos da literatura; craqueamento secundário simples no espaço livre; sem cloro no óleo (8–30 % do Cl do PVC iria para o óleo, Fulgencio-Medrano 2022).
 * **Próximos passos**: medir no equipamento da UFRJ a temperatura da carga e da parede ao longo da batelada; calibrar a composição real do lixo; espaço livre 3D com o refluxo da cera.
