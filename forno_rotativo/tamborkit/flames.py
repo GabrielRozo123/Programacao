@@ -12,7 +12,7 @@ Pós-processamento dos quadros 3D gravados da LES (furnace_les.FurnaceLES), no e
 * quimiluminescência azul (CH*, C₂*) proporcional à liberação de calor da química rápida
   q = ρχ/2 · LHV/(1 − Z_st) · P(Z_st), fina e sem absorção, cor sRGB linear ≈ (0,22; 0,42; 1,0), só onde q
   passa de 10 % do pico (sem véu azul do gás morno). Sem medida de referência para a razão azul/fuligem, o
-  ganho é visual: ~1 MW/m² de calor por área projetada vale ~0,4 % da luminância de um corpo negro a 1800 K
+  ganho é visual: ~1 MW/m² de calor por área projetada vale ~0,3 % da luminância de um corpo negro a 1800 K
   (parâmetro `blue`);
 * resolução abaixo da célula: T, f_v e q interpolados (trilinear) numa grade ~3 cm antes da emissão — como a
   luminância cresce ~T^20, as bordas da chama ficam finas em vez de quadradas;
@@ -24,8 +24,8 @@ Pós-processamento dos quadros 3D gravados da LES (furnace_les.FurnaceLES), no e
 * exposição automática pelo percentil 99,9 da luminância (mediana móvel de ±20 quadros, independente da
   ordem de renderização), compressão HDR (radiância^0,5), bloom em duas escalas, ACES e sRGB.
 
-Custo (CPU, 4 núcleos, malha 'teste' 54×20×22): ~0,1–0,25 s por quadro de 1080p; a projeção 3D → 2D é
-pequena (ms); o grosso é a amostragem por pixel (grid_sample) e o bloom. Na GPU, ~10× mais rápido.
+Custo (CPU, 2 núcleos, malha de 5 cm 108×40×45): projeção ~0,2 s por quadro (uma vez, no início); depois
+~0,2–0,4 s por quadro de 1080p (amostragem por pixel e bloom). Na GPU, ~10× mais rápido.
 """
 from __future__ import annotations
 
@@ -211,7 +211,7 @@ def _lookup(table, T, T0, dT):
     return table[i0] * (1.0 - f) + table[i0 + 1] * f
 
 
-def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.004, T_shell: float | None = None,
+def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.003, T_shell: float | None = None,
             T_refr: float | None = None, up: int = 3, device: str = "cpu"):
     """Integra emissão e absorção ao longo da visada. Devolve (rgb linear das chamas [A, Z, 3], opacidade [A, Z],
     rgb linear das superfícies vistas [A, Z, 3] — zero na vista 'corte') com
@@ -223,7 +223,7 @@ def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.004, T
     célula a célula.
 
     Vista lateral: o raio para no casco do tambor (opaco), que entra com a sua incandescência e iluminado pela
-    luz das chamas (difusa, ρ/π·L·Ω ~ 2 % da radiância da chama, mais a luz local borrada); a face de baixo,
+    luz das chamas (difusa, ρ/π·L·Ω ~ 1 % da radiância da chama, mais a luz local borrada); a face de baixo,
     voltada para os queimadores, recebe mais luz (sombreamento de cilindro). Se o raio atravessa tudo, aparece
     o refratário do fundo (incandescência de T_refr, também iluminado)."""
     dev = torch.device(device)
@@ -286,7 +286,7 @@ def project(frame: dict, meta: dict, view: str = "corte", blue: float = 0.004, T
         brick = torch.tensor([0.60, 0.33, 0.22], device=dev)
         inc_sh = torch.as_tensor(incandescence_rgb(T_sh), dtype=torch.float32, device=dev)
         inc_rf = torch.as_tensor(incandescence_rgb(T_rf), dtype=torch.float32, device=dev)
-        surf = inc_sh + (0.02 * peak + 0.25 * glow) * shade * steel
+        surf = inc_sh + (0.01 * peak + 0.25 * glow) * shade * steel
         back = inc_rf + (0.006 * peak + 0.10 * glow) * brick
         surf_rgb = torch.where(hit[..., None], t_hit[..., None] * surf, trans[..., None] * back)
         trans = torch.where(hit, torch.zeros_like(trans), trans)
@@ -298,7 +298,7 @@ class FlameRenderer:
     """Quadros das chamas a partir dos quadros 3D gravados (FlameRecorder.data())."""
 
     def __init__(self, data: dict, view: str = "corte", exposure: float = 1.0, bloom: float = 0.5,
-                 detail: float = 0.2, blue: float = 0.004, seed: int = 3, device: str = "cpu", gamma: float = 0.5,
+                 detail: float = 0.15, blue: float = 0.003, seed: int = 3, device: str = "cpu", gamma: float = 0.5,
                  up: int | None = None):
         self.frames, self.meta = data["frames"], data["meta"]
         self.gamma = gamma
@@ -331,9 +331,9 @@ class FlameRenderer:
         return out.clamp(min=0.0)
 
     def _detail(self, A, B, i):
-        """Modulação abaixo da malha (efeito visual): ruído fractal com comprimentos de onda de ~2 a 25 cm,
+        """Modulação abaixo da malha (efeito visual): ruído fractal com comprimentos de onda de ~3 a 33 cm,
         em duas fases que sobem com o empuxo (~1,5 m/s) e se alternam sem emenda."""
-        texel = 160.0                                       # texels por metro
+        texel = 120.0                                       # texels por metro
         t = i / 30.0
         P = 0.8
         ph = (t % P) / P
