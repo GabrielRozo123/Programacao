@@ -65,7 +65,7 @@ class PhaseConfig:
     f_merge: float = 0.85            # fração fundida a partir da qual o pedaço entra na poça
     cohesion: float = 1.5            # força coesiva máxima / peso efetivo, para pedaços totalmente pegajosos
     flow_frac: float = 0.6           # velocidade do fundido = flow_frac × rotação de corpo rígido
-    beta_pool_deg: float = 6.0       # inclinação da superfície da poça (fundido viscoso arrastado pela parede)
+    beta_max_deg: float = 30.0       # inclinação máxima da superfície da poça (fundido muito viscoso, λ < 2)
     char_d: float = 0.03             # diâmetro dos grânulos de carvão que nascem na poça [m]
     char_rho: float = 420.0          # massa específica aparente dos grânulos [kg/m³]
     shrink_char: dict = field(default_factory=lambda: {"organico": 0.45, "borracha": 0.55, "pvc": 0.70})
@@ -82,13 +82,16 @@ def melt_viscosity(T_K, conv):
 
     η₀(T) de PE/PP fundido (~10³ Pa s a 200 °C, energia de ativação de fluxo ~30 kJ/mol) e queda com a cisão
     das cadeias: Mn/Mn₀ = 1/(1 + DPn₀ · 0,068 · √α) (cisão aleatória, mesma relação do reator agitado) e
-    η ∝ Mn^3,4 acima do emaranhamento; abaixo dele, o ramo de ceras (mPa s)."""
+    η ∝ Mn^3,4 acima do emaranhamento. Abaixo dele, o ramo das ceras: ~18 mPa s a 200 °C (cera de PE com
+    Mn ~1500, ficha POLYWAX), energia de ativação ~22 kJ/mol → ~3 mPa s a 420 °C, o valor central do fundido
+    já craqueado (0,4–9 mPa s para α = 0,05–0,8). O colapso da viscosidade vem antes da perda de massa
+    (α ~ 1 %), como no fundido de PE degradado (Radhakrishnan; NIST TN 1493)."""
     T = np.asarray(T_K, float)
     eta0 = 1.0e3 * np.exp(30e3 / 8.314 * (1.0 / np.maximum(T, 300.0) - 1.0 / 473.15))
     dpn0 = 30.0 / 0.028
     ratio = 1.0 / (1.0 + dpn0 * 0.068 * np.sqrt(np.clip(conv, 0.0, 1.0)))
     eta = eta0 * ratio ** 3.4
-    wax = 2.0e-3 * np.exp(25e3 / 8.314 * (1.0 / np.maximum(T, 300.0) - 1.0 / 473.15))
+    wax = 1.8e-2 * np.exp(22e3 / 8.314 * (1.0 / np.maximum(T, 300.0) - 1.0 / 473.15))
     return np.maximum(eta, wax)
 
 
@@ -157,8 +160,8 @@ class PhaseDEM(DrumDEM):
         # inventário da poça: massa "inicial equivalente" de cada polímero (m0_eq·u(t) é o que resta)
         self.pool_m0 = {c: 0.0 for c in MELTERS.values()}
         self.char_spawned = 0.0
-        self.pool = dict(area=0.0, eps=0.0, beta=math.radians(pc.beta_pool_deg), T=fd.T0, mu=1e3, rho=750.0,
-                         conv=0.0)
+        self.pool = dict(area=0.0, eps=0.0, beta=0.0, T=fd.T0, mu=1e3, rho=750.0, conv=0.0, lam=float("inf"))
+        self.omega_real = drum.omega                 # a poça representa o fundido do tambor real
         self.t_b = 0.0
         self.records, self.pre_records = [], []
         self.lt = np.array([r["t_h"] for r in batch_log]) * 3600.0
@@ -298,9 +301,20 @@ class PhaseDEM(DrumDEM):
         conv_po = 1.0 - sum(self.pool_m0[c] * self._u(row, [c]) for c in self.pool_m0) / max(sum(self.pool_m0.values()), 1e-9)
         area = vol_pool / pc.slab
         F = area / (math.pi * self.drum.R ** 2)
-        self.pool.update(area=area, F=F, eps=fill_half_angle(F) if F > 1e-5 else 0.0, T=T_bed,
-                         mu=float(melt_viscosity(T_bed, conv_po)), rho=mass_pool / max(vol_pool, 1e-12) if vol_pool > 0 else 750.0,
-                         conv=conv_po, mass=mass_pool)
+        eps = fill_half_angle(F) if F > 1e-5 else 0.0
+        mu = float(melt_viscosity(T_bed, conv_po))
+        rho_p = mass_pool / max(vol_pool, 1e-12) if vol_pool > 0 else 750.0
+        # superfície da poça: o fundido viscoso é arrastado pela parede e se acumula no lado que sobe.
+        # Inclinação ~ atan(μU/(ρgH²)) (U = ΩR, H = profundidade); regimes de Ashmore et al. (2003) pelo
+        # λ = F²ρgR/(μΩ): λ < 2 o fundido gira com a parede (filme), λ > 5 poça plana no fundo.
+        R = self.drum.R
+        H = R * (1 - math.cos(eps))
+        U = self.omega_real * R
+        tilt = mu * U / (rho_p * G * H ** 2) if H > 1e-4 else 0.0
+        beta = math.atan(min(tilt, math.tan(math.radians(pc.beta_max_deg))))
+        lam = F ** 2 * rho_p * G * R / (mu * self.omega_real) if F > 0 else float("inf")
+        self.pool.update(area=area, F=F, eps=eps, T=T_bed, mu=mu, rho=rho_p, conv=conv_po, mass=mass_pool,
+                         beta=beta, lam=lam)
         # ---- grânulos de carvão nascem na poça
         m_g = pc.char_rho * math.pi / 6 * pc.char_d ** 3
         n_new = int((char_made - self.char_spawned) / m_g)

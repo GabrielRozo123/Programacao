@@ -1,0 +1,734 @@
+[
+ {
+  "tema": "collapse",
+  "topic": "P1: How individual pieces of post-consumer plastic waste soften, shrink, melt, stick and pool when heated slowly (1-5 K/min) in a rotating batch pyrolysis drum (Beston BLJ-3 class). Covers EPS collapse; DSC melting ranges and shrink-back for LDPE/HDPE/PP/PET/PVC/PA6; sticky points and defluidization; surface tension and contact angle of melts; loose-to-dense bed density; DEM contact laws for wet or sintering pieces and when to merge them into a melt pool.",
+  "findings": [
+   {
+    "parameter": "EPS shrink onset (thermal exposure)",
+    "value": "Shrinkage starts at 80 °C. Maximum service temperature is 80 °C. Above that EPS softens, shrinks and finally melts.",
+    "units": "°C",
+    "context": "Building-grade EPS under constant exposure. EPS density range covered by the White Book regression is 8-55 kg/m3.",
+    "source": "EUMEPS (2014) EPS White Book, §3.3.2 and §3.34",
+    "url": "https://www.eumeps.org",
+    "access": "full-text",
+    "evidence": "\"On constant exposure to temperatures from 80 °C onwards, EPS softens and shrinks and finally melts.\" / \"For EPS the commonly used maximum service temperature is 80 °C (over 80 °C EPS will start to shrink).\" / \"Regression for 8 [kg/m³] < a < 55 [kg/m³]\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "EPS collapse behaviour (soften -> contract -> molten film)",
+    "value": "Above 100 °C EPS softens, contracts and then melts. Under radiant heat it shrank rapidly away from the source and collapsed into a film of molten PS (no ignition up to 20 kW/m2). Foam is about 98% air and 2% PS by volume. Ignitable gases form only at or above 350 °C, and molten EPS self-ignites at 450 °C.",
+    "units": "°C; vol%",
+    "context": "Cone-calorimeter and fire tests on EPS boards",
+    "source": "EUMEPS, 'Behaviour of EPS in case of fire' (copy hosted by InspectApedia)",
+    "url": "https://inspectapedia.com/Energy/Polystyrene_Insulation.php",
+    "access": "full-text",
+    "evidence": "\"If EPS is exposed to temperatures above 100° C, it begins to soften, to contract and finally to melt.\" / \"EPS board shrank rapidly away from the heat source and collapsed into a film of molten polystyrene. No flaming ignition was observed at a heat flux of up to 20 kW/m2.\" / \"higher ratio of air (98%) to polystyrene (2%)\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "EPS densification by hot air: temperature, volume ratio, time",
+    "value": "(a) At 149-177 °C (300-350 °F), 4 ft3 of loose-fill EPS shrank to 85-115 in3, a volume reduction of about 60-80x, in about 2.5 min. (b) The EPS softening range is 165-195 °C. Densified product occupies about 7% of the original volume (16 -> 240 kg/m3, still porous lumps). LDPE film particles heated to at least 145 °C soften, collapse and pucker.",
+    "units": "°C; volume ratio; min; kg/m3",
+    "context": "Convective hot-air densifiers: (a) gravity chute with perforated walls, (b) heated swirling-gas chamber. The figures are for pieces under strong convective heating, not for slow drum heating.",
+    "source": "(a) Fuss G.G., US 5,286,321 A (Free Flow Packaging, 1994); (b) Goehner J.C. & K.J., US 5,667,746 A (Limited Resources Inc, 1997)",
+    "url": "https://patents.google.com/patent/US5286321A/en ; https://patents.google.com/patent/US5667746A/en",
+    "access": "full-text",
+    "evidence": "(a) \"heating the material ... to a temperature on the order of 300° to 350° F\"; \"four cubic feet of polystyrene foam particles ... is reduced to a volume on the order of 85 to 115 cubic inches, a reduction of about 60 to 80 times. This amount of material is processed in approximately 2.5 minutes\". (b) \"For expanded polystyrene the softening range is 165° to 195° C.\"; \"The densified thermoplastic polymer occupies only about 7% of the original volume ... about 16 kg/m3 ... will form a densified polystyrene polymer having a density of about 240 kg/m3\"; \"low density polyethylene ... heated ... to at least 145° C., to soften and densify the polymer, collapsing the structure of the film and causing the film to pucker\"",
+    "confidence": "medium-high (patent examples)"
+   },
+   {
+    "parameter": "EPS/PS in pyrolysis: Tg, melt flow, density",
+    "value": "EPS Tg is about 100 °C, and EPS melts at about 160 °C during thermal decomposition. PS density is 1040-1050 kg/m3. With EPS at 15-30 kg/m3, the loose-to-solid ratio is 35-70 [D].",
+    "units": "°C; kg/m3",
+    "context": "Semi-batch thermal pyrolysis of post-industrial EPS (350-450 °C, 5-25 °C/min); the paper quotes the property values from its refs [52], [47], [17], [32].",
+    "source": "Gonzalez-Aguilar A.M. et al. (2022) Polymers 14:4957",
+    "url": "https://doi.org/10.3390/polym14224957 (full text via Europe PMC PMC9699519)",
+    "access": "full-text (values quoted secondary inside paper)",
+    "evidence": "\"EPS has shown a glass transition temperature of around 100 °C [52], and when thermally decomposed melts at about 160 °C, and the volatility of molten polymer with high molecular weight decreases at 275 °C [47]\"; Table: \"Density, kg/m3 1040–1050\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "PET (amorphous) Tg, cold crystallisation (whitening) and melt vs heating rate",
+    "value": "At 10 °C/min: Tg about 71 °C, cold crystallisation Tc about 120 °C, melt Tm about 255 °C. Read from the figures: Tg about 65 °C and Tc about 109 °C at 2.5 °C/min, Tc about 112 °C at 5 °C/min. Melting is almost unaffected by heating rate.",
+    "units": "°C",
+    "context": "DSC of bottle-grade PET preform material, 2.5-40 °C/min",
+    "source": "Rabello M.S., Wellen R.M.R. (2008) Rev. Eletr. Mater. Processos 3.2:01-09",
+    "url": "http://www.dema.ufcg.edu.br/revista",
+    "access": "full-text (2.5 and 5 K/min values read from Figs 6-7 [D])",
+    "evidence": "\"A transição vítrea (Tg) ocorreu em torno de 71ºC, a cristalização a frio (Tc) em ~120ºC e a fusão (Tm) em ~255ºC\"; \"o comportamento de fusão do PET praticamente não foi afetado para as diferentes taxas de aquecimento\"; Fig. 7 Tc vs rate: lowest point (2.5 °C/min) ≈109 °C",
+    "confidence": "high (10 K/min); medium (figure-read values)"
+   },
+   {
+    "parameter": "Shrink-back of oriented PET bottles",
+    "value": "Biaxially stretched PET walls start to shrink above 60 °C. At 85 °C and above they shrink 'considerably and rapidly'. Controlled shrink happens at 65-100 °C, best at 75-90 °C. The bottle Tg is about 76 °C (83 °C in one example), and residual blow-moulding stress is released once T > Tg.",
+    "units": "°C",
+    "context": "Hot-fill and shrink processes for PET containers. Free (unconstrained) shrink magnitude was not found.",
+    "source": "Thomasset J., US 8,333,055 B2 (Aisapack Holding SA); Bouffand M.-B., EP 3 291 962 B1 (SAEME/Danone, 2020)",
+    "url": "https://patents.google.com/patent/US8333055B2/en ; https://data.epo.org/publication-server/rest/v1.2/patents/EP3291962NWB1/document.xml",
+    "access": "full-text",
+    "evidence": "\"the temperature at which the molecular mobility becomes sufficient to allow shrinkage, is above 60° C. hot-filling temperatures are at least 85° C ... At these temperatures, the walls of the PET container shrink considerably and rapidly\"; \"generally between 65° C. and 100° C. However, a shrinkage temperature between 75° C. and 90° C. is advantageous\"; EP: \"PET is a semi-crystalline thermoplastic with a glass transition temperature (Tg) of about 76°C\"; \"residual stress, which is released once T > Tg\"; \"Tg* = 83°C\"",
+    "confidence": "medium-high"
+   },
+   {
+    "parameter": "Melting peaks of marine-relevant polymers (mixed 2-5 mm pieces)",
+    "value": "HDPE 126 °C, PP 164 °C, PA6 221 °C, PET 251 °C (endothermic peaks at 10 °C/min, N2)",
+    "units": "°C",
+    "context": "TG-DSC of a mixed microplastic sample (HDPE, PP, Nylon 6, PET), 2-10 mg",
+    "source": "Rigaku Application Note B-TA1006 'Microplastics characterization by TG-DSC'",
+    "url": "https://rigaku.com (app note B-TA1006; [cópia local])",
+    "access": "full-text (vendor note)",
+    "evidence": "\"The results reveal endothermic peaks due to melting at 126℃, 164℃, 221℃ and 251℃ in the mixed polymer sample\"",
+    "confidence": "medium-high"
+   },
+   {
+    "parameter": "Real fishing-net melting ranges: softening, visual melt start/end, DSC",
+    "value": "PE nets: Kofler softening 140-145 °C, melt start 145-170 °C, melt end 160 to ≥190 °C. DSC first-heating peak-end 142.4-145.9 °C, second-heating peak 133.7-137.4 °C. PP nets: softening 175, melt start 180, end 200 °C; DSC first-heating peak-end 170.9-172.7, second-heating peak 163.0-165.9 °C. PE/PP ropes: visual onset about 160, completion up to 190 °C. PA6: DSC first-heating peak-end 230.1 °C, second heating 221.8 °C, no visual melting up to 230 °C. Visual melt end sits on average 20.6 K (14-28 K) above the DSC peak-end.",
+    "units": "°C",
+    "context": "Post-consumer and virgin fishing-net recyclates (oriented fibres and ropes). Kofler bench, handheld device, DSC 10 K/min.",
+    "source": "Waschke S., Tetzner J., Potempa T., Ehleben M. (2026) Polymers 18:1809",
+    "url": "https://doi.org/10.3390/polym18151809 (Europe PMC PMC13467709)",
+    "access": "full-text",
+    "evidence": "Table 2 rows, e.g. \"PE HLU Virgin net PE Kofler 140 ± 5 145 ± 5 170 ± 5 142.4 ± 0.5 (PE) 133.7 ± 0.3 (PE)\"; \"PP Mixture blue PP Kofler 175 ± 5 180 ± 5 200 ± 5 172.7 ± 0.8 (PP) 163.0 ± 1.3 (PP)\"; \"The offset between MB 1.0 (T melt,end) and DSC (first-heating peak-end) is +20.6 °C on average (range +14.1 to +27.6 °C; n = 4)\"; \"visual methods record the overlapping melting envelope (onset ca. 160 °C; completion up to 190 °C)\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "LDPE/PP grade melting points; PE/PP partial-melting onset (TM-DSC)",
+    "value": "LDPE Tm 106 °C (Lupolen 1800S), 108 °C (1800H) and 114 °C (Klüber), with processing at 160-240 °C. Homo-PP (Moplen HP501H) Tm 160 °C. In TM-DSC the non-reversing melting signal of HDPE appears from about 0 °C and that of PP from about 30 °C. The HDPE peak is 132.0 °C.",
+    "units": "°C",
+    "context": "DSC confirmed the grade Tm values (Voelp). NETZSCH used TM-DSC at 10 K/min on HDPE/PP blends.",
+    "source": "Voelp A., Bumajdad A., Al-Salem S.M. (2025) ACS Omega (doi 10.1021/acsomega.4c10458); NETZSCH Application Note 266 (Khalid O., Rudolph N.)",
+    "url": "https://doi.org/10.1021/acsomega.4c10458 (PMC11800051); [cópia local]",
+    "access": "full-text",
+    "evidence": "\"LDPE ... with a melting point (Tm) reported as 114 °C and a processing (melt) temperature range between 160 and 240 °C ... Lupolen 1800H ... Tm of 108 °C ... Lupolen 1800S ... Tm of 106 °C ... PP ... Moplen HP501H ... Tm of 160 °C\"; \"The Tm observed conformed with the manufacturer's reported data.\" NETZSCH: \"For HDPE, melting starts already at about 0°C ... In case of PP ... the non-reversing signal emerges at about 30°C.\"; \"Peak: 132.0 °C\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "Sticky point of PE particles: melt-initiation temperature (MIT) criterion",
+    "value": "MIT is the onset (tangent intersection) of the first-melt DSC curve, e.g. MIT 97.4 °C against a peak of 116.1 °C. Resin becomes sticky (reactor sheeting) once T_bed − MIT_R exceeds 5-7 K. The patent's correlation is MIT = 763.4ρ − 1.7524 ln(MI) − 606.09 (°C; ρ g/cc; MI dg/min). Dissolved condensable hydrocarbons depress MIT by up to 15-16 K. [D] Using the correlation: LDPE film (ρ 0.920, MI 1) MIT ≈ 96 °C, so sticky from about 101-103 °C. HDPE (0.955, 0.3) MIT ≈ 125 °C, which extrapolates beyond the LLDPE range the correlation was fitted on.",
+    "units": "°C; K",
+    "context": "Gas-phase fluid-bed PE reactors (metallocene LLDPE). Applying it to waste pieces is an analogy [H]. Hydrocarbon depression is plausible in a pyrolysis drum with wax and oil reflux [H].",
+    "source": "Hagerty R.O., Markel E.J., Pannell R.B., US 7,774,178 B2 (Univation Technologies, 2010)",
+    "url": "https://patents.google.com/patent/US7774178B2/en",
+    "access": "full-text",
+    "evidence": "\"For this particular polymer, the peak melting temperature was determined 116.1° C., and the MIT was determined as 97.4° C.\"; \"MIT=763.4ρ−1.7524 ln(MI)−606.09\"; \"conditions of limiting stickiness occur when the current ΔMIT value exceeds a limiting value in the range from 5° C. to 6° C.\"; \"may be as high as 15-16° C. for typical metallocene resin products produced in condensed mode\"",
+    "confidence": "high (for PE powders); medium as transfer to waste pieces"
+   },
+   {
+    "parameter": "Sticking of amorphous materials above Tg (PS, amorphous PET) - analogy",
+    "value": "Amorphous materials stick at about T − Tg = 10-15 K. [D] PS (Tg ≈ 100 °C) becomes sticky at about 110-115 °C. Amorphous PET (Tg 65-76 °C) becomes sticky at about 80-90 °C, until cold crystallisation (about 105-120 °C) stiffens it again.",
+    "units": "K",
+    "context": "Dried amorphous carbohydrate and dairy powders. Transferring this to polymers is an analogy [H].",
+    "source": "O'Donoghue L.T. et al. (2020) Foods 9:1295",
+    "url": "https://doi.org/10.3390/foods9091295 (PMC7555034)",
+    "access": "full-text (criterion quoted from its ref. 19)",
+    "evidence": "\"the temperature at which sticking occurred in dried amorphous carbohydrate solutions was reported to be approximately 10–15 °C above the T g\"",
+    "confidence": "low-medium (analogy)"
+   },
+   {
+    "parameter": "Rotary-kiln practice for PE/PP chips: anti-adhesion feed temperature; wall temperature",
+    "value": "Shredded PE/PP plates (≤1 cm, about 100 µm thick) must stay below 90 °C (e.g. 50 °C) in the feed tube to avoid plasticising and adhesions. They are thrown onto a 600-700 °C kiln wall (ID 70-100 cm, 10-20 rpm) and evaporate there.",
+    "units": "°C; rpm",
+    "context": "Continuous rotary-kiln evaporator for thermoplastic waste",
+    "source": "Brueck G.K., US 11,988,382 B2 (Fuenix Ecogy IP BV)",
+    "url": "https://patents.google.com/patent/US11988382B2/en",
+    "access": "full-text",
+    "evidence": "\"the temperature in the conveyor tube 8 is below 90° C. In particular, the temperature should clearly be below 90° C., for instance at 50° C. The small plates for instance consist of polyethylene or polypropylene.\"; \"hardly any or no adhesions are formed in the conveyor tube\"; \"wall temperature of 600° C. to 700° C.\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Defluidization / agglomeration by molten plastic (fluidized and spouted beds)",
+    "value": "In NETL MFiX-DEM, plastic particles at or above about 200 °C count as melted and fuse with sand on contact. The molten droplet is deleted and its mass and species go to the sand particle in a perfectly inelastic collision. Liquid is redistributed during sand-sand collisions. Base case: LDPE melt 100 mPa·s; sensitivity runs 20-2000 mPa·s and 19-80 mN/m. Defluidization happens at start-up, when temperatures and pyrolysis rates are low, and clears when inlet velocity rises from 3 to 3.25 m/s. Liquid transfer time is about 1 ms at 1 Pa·s. Critical-coating-thickness concept (Aguado 2005): below it sand does not fuse; above it agglomerates grow irreversibly. Separately, Arena & Mastellone (bubbling fluidized bed, 450-650 °C, PE and PET) found time-to-defluidization linear in bed hold-up / feed rate, with no substantial effect of gas velocity.",
+    "units": "°C; mPa·s; mN/m; m/s",
+    "context": "Conical spouted bed, sand 1 mm, LDPE 0.5 mm",
+    "source": "Banerjee S. (2024) NETL Multiphase Flow Workshop, OSTI 2569375; Arena U., Mastellone M.L. (2000) (abstract via web search only)",
+    "url": "https://www.osti.gov/servlets/purl/2569375 ; https://iris.unicampania.it/handle/11591/183675",
+    "access": "full-text (slides); abstract/secondary (Arena & Mastellone)",
+    "evidence": "\"Plastic particles ≳200 °C are considered to be melted and allowed to fuse with the sand particles on contact; the liquid volume is subsequently redistributed between sand particles during sand-sand collisions\"; \"Molten plastic droplet deleted on contact with sand particle and mass and species transferred in perfectly inelastic collision\"; \"If the thickness of the layer that coats the particles is lower than a critical value, the sand particles do not fuse • Beyond this value, agglomerates grow irreversibly\"; \"For liquid viscosity of 1 kg/m-s (1000 mPa-s), the liquid transfer time was around 1 ms\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Surface tension of polymer melts vs temperature (pendant drop)",
+    "value": "γ = a − b·t (mN/m, t in °C). LLDPE: a 39.05, b 0.0725. i-PP1: 44.46, 0.1038. i-PP2: 42.94, 0.1039. PS (Mn 41.2k): 47.22, 0.065. Polydisperse PS (Mn 107k): 50.8-54.4, 0.102-0.115. [D] LLDPE 28.2 (150 °C) and 24.5 (200 °C); PP 22.2-23.7 (200 °C); PS 31.5-34.2 (200 °C).",
+    "units": "mN/m",
+    "context": "Pendant drop under argon, about 180-220 °C (453-493 K). Extrapolating above about 260 °C is unreliable (PP would reach implausible values).",
+    "source": "Moreira J.C., Demarquette N.R., Shimizu R.N., Samara M.K., Kamal M.R. (2003) Polímeros 13(1):45-53",
+    "url": "https://www.redalyc.org/pdf/470/47013110.pdf",
+    "access": "full-text (Table 4 read from page image)",
+    "evidence": "Tabela 4 (Experimental): \"i-PP1 44,46 0,1038 0,9935\"; \"i-PP2 42,94 0,1039 0,9943\"; \"LLDPE 39,05 0,0725 0,9982\"; \"PS41.200 mono 47,22 0,065 0,9049\"; caption \"γ=a - bt\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "PET (and others) surface tension",
+    "value": "PET: 36.2 mN/m at 270 °C (γd 18.5, γp 17.7), extrapolated from solid contact angles. Melt values extrapolated to 20 °C (Wu): PET 44.6, PVC 43.8, PS 40.7, PE 35.3-36.8, PP 28.3-30.1, PA66 46.5 mN/m. [D] PET at 270 °C ≈ 28.4 mN/m using −dγ/dT = 0.065 [S].",
+    "units": "mN/m",
+    "context": "Contact-angle (OWRK) extrapolation versus melt-measured values",
+    "source": "You X., Snowdon M.R., Misra M., Mohanty A.K. (2018) ACS Omega 3:11759; Accu Dyne Test polymer surface data sheets (compiling Wu 1971, 1982 etc.)",
+    "url": "https://doi.org/10.1021/acsomega.8b01353 (PMC6645286); https://www.accudynetest.com/polymer_surface_data/pet.pdf",
+    "access": "full-text (You); secondary compilation (Accu Dyne)",
+    "evidence": "You et al. Table 1: \"surface tension (mN m–1) @ 270 °C ... PET ... 36.2 18.5 17.7\"; Accu Dyne: \"Wu, 1971(41) From polymer melt γs = 44.6 mJ/m2 (γsd = 34.7; γsp = 9.9); 20oC Direct measurement of polymer melt extrapolated to 20oC\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Contact angle of polymer melt on steel",
+    "value": "Molten PP (MFR 8) on polished steel under N2: 85.0° (185 °C), 77.1° (200 °C), 72.6° (210 °C), 67.1° (220 °C). Linear in zero-shear viscosity: PP θ = 0.0086·η0 + 53.34. Master curve for PP and PMMA: θ = 0.0077·η0 + 54.92 (θ in °, η0 in Pa·s). η0 of PP = 3778, 2628, 2210 and 1719 Pa·s at 185/200/210/220 °C; E0 = 42.92 kJ/mol. [D] θ tends to about 55° as η0 → 0 (cracked melt).",
+    "units": "°; Pa·s",
+    "context": "Sessile drop on a polished tool-steel surface. Oxidised or coked reactor steel was not studied.",
+    "source": "Zitzenbacher G., Dirnberger H., Längauer M., Holzer C. (2018) Polymers 10:38",
+    "url": "https://doi.org/10.3390/polym10010038 (PMC6415194)",
+    "access": "full-text",
+    "evidence": "\"The contact angle of molten PP on polished steel is 85.0°, 77.1°, 72.6°, and 67.1° at temperatures of 185, 200, 210, and 220 °C, respectively.\"; \"(7) PP : θ = 0.0086 η 0 + 53.34 , R 2 = 0.98\"; \"(9) θ = 0.0077 η 0 + 54.92\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "Liquid-bridge DEM contact laws (capillary, viscous, rupture, liquid distribution)",
+    "value": "Israelachvili capillary force between pieces and with walls, Lian rupture distance, Reynolds lubrication normal force with a roughness cut-off, Popov tangential viscous force, and the Shi & McCarthy liquid share per bridge (formulas in the equations list). h is the shortest surface-to-surface gap. A newer velocity-dependent rupture length (Mikami form) is also available.",
+    "units": "N; m",
+    "context": "CFD-DEM of wet and coating granulation. The same model was ported to molten plastic by NETL (Banerjee 2024).",
+    "source": "Grohn P., Lawall M., Oesau T., Heinrich S., Antonyuk S. (2020) Processes 8:1090; Grohn P., Heinrich S., Antonyuk S. (2023) Pharmaceutics 15:469",
+    "url": "https://doi.org/10.3390/pr8091090 ; https://doi.org/10.3390/pharmaceutics15020469 (PMC9963257)",
+    "access": "full-text",
+    "evidence": "Grohn 2020 Eq. (10) \"Fcap,pp = −4πRγcos(θ) / [1 + 1/sqrt(1 + 2V/(πRh²))] \"... Eq.(15) \"hrup = (1 + 0.5θ)Vb^1/3\"; Eq.(17) \"Fvis,n = 6πηvis R² up,ij,n / h\"; \"a minimum distance is set for the calculation of the viscous\"; Grohn 2023: \"h is the shortest distance between the particles or the particle and the wall\"",
+    "confidence": "high"
+   },
+   {
+    "parameter": "Polymer sintering / neck growth (Frenkel and three-stage visco-elastic model) in DEM",
+    "value": "Frenkel stage: a/R = (t/τs)^1/2 with τs = ηR/γ. Earlier stages: JKR adhesive flat a0 and visco-elastic 'zipping' a1. Full coalescence is a_f = 2^(1/3)·R, reached through a maximum plastic overlap. Data: PS (R = 30 µm) relaxes at about 0.03 s and follows Frenkel after 0.11 s. PA12 (R = 31.5 µm) reaches a/R = 1 at 4.0 s and full coalescence at 6.1 s. γ: PS 35.0, PA12 40.7, PEEK 41.0 mN/m. Frenkel overpredicts early neck growth.",
+    "units": "s; mN/m",
+    "context": "Binary coalescence on a hot stage, calibrated in MercuryDPM",
+    "source": "Alvarez J.E., Snijder H., Vaneker T., Cheng H., Luding S., Weinhart T. (2021) EPJ Web Conf. 249:05001",
+    "url": "https://doi.org/10.1051/epjconf/202124905001",
+    "access": "full-text",
+    "evidence": "\"a2/R = (t/τs)^1/2 ... where τs = ηR/γ = R/8C1γ\"; \"a0/R = (9πC0W/2R)^1/3 ... W = 2γ\"; \"The maximum overlap (a/R = 1.0) is achieved at t = 4.0 s ... complete the coalescence, a = 2^1/3 R, is reached at 6.1 s\"",
+    "confidence": "medium-high"
+   },
+   {
+    "parameter": "Wet-collision agglomeration criterion (Stokes number) and lubrication force",
+    "value": "St = m̃v0/(6πµã²). Lubrication force F_L = (6πµã²v/x)[1 − x/xmax]². Ennis et al.: wet restitution e_w = 0 for St < Stc and e_w = e_d(1 − Stc/St) otherwise, with Stc = (1/e_d)·ln(xb/x0) as printed (roughness-limited). Agglomeration is detected when the relative velocity reaches zero. Stc falls as viscosity rises. [D] Two 75 mm pieces (0.2 kg each, v = 0.05 m/s, µ = 1e4 Pa·s): St ≈ 8e-5, so they always agglomerate. At µ = 1e-2 Pa·s (cracked melt) St ≈ 80, so they rebound.",
+    "units": "-",
+    "context": "Three-body pendulum experiments with oil-coated steel spheres",
+    "source": "Donahue C.M., Hrenya C.M., Davis R.H., Nakagawa K.J., Zelinskaya A.P., Joseph G.G., 'Stokes' cradle: normal three-body collisions between wetted particles' (arXiv:0912.3753; J. Fluid Mech. 2010)",
+    "url": "https://arxiv.org/abs/0912.3753",
+    "access": "full-text",
+    "evidence": "Eq.(1) \"St = m̃ v0 / 6πµã²\"; Eq.(4) \"FL(t) = 6πµã²v/x [1 − x/xmax]²\"; Eq.(15)-(16) Ennis model \"ew = 0, St < Stc; ed(1 − Stc/St), St > Stc\"; \"agglomeration is detected when the relative velocity is equal to zero during the approach or rebound phase\"",
+    "confidence": "high (formulas); [D] numbers for drum pieces"
+   },
+   {
+    "parameter": "Loose bulk density of collected plastic waste",
+    "value": "Plastic film 0.020 t/m3, plastic bottles 0.023 t/m3, pots/tubs/trays 0.025 t/m3, steel cans 0.086, card 0.06 t/m3. [D] Loose-to-melt volume ratio for film is about 37 (to 740 kg/m3) and for bottles about 32. For context, 1 t of wet charge in the BLJ-3 drum at 2/3 fill gives about 199 kg/m3 average apparent density.",
+    "units": "t/m3",
+    "context": "Uncompacted kerbside or container material (WRAP figures used by Defra EPR LAPCAP). Shredded or baled marine litter will be denser.",
+    "source": "Defra (2026) EPR for packaging, Annex C: LAPCAP alignment of WRAP's bulk density figures",
+    "url": "https://www.gov.uk/government/publications/epr-for-packaging-how-local-authority-payments-are-calculated/annex-c-lapcap-alignment-of-wraps-bulk-density-figures-with-defras-material-categories",
+    "access": "full-text",
+    "evidence": "\"Film or other flexible plastic packaging non- DRS | Plastic film | 0.02\"; \"Plastic bottles packaging non- DRS | Plastic bottles | 0.023\"; \"Plastic pots, tubs and trays | 0.025\"",
+    "confidence": "high (for loose collected material)"
+   },
+   {
+    "parameter": "Melting time scale of a commercial batch rotary kiln charge",
+    "value": "Ramp from room temperature to 100 °C at 1.5 °C/min and hold 50 min (melting and de-watering). Ramp to 150 °C at 1.5 °C/min and hold 200 min until all plastics are evenly melted. Ramp 1 °C/min to 250 °C and hold 120 min (Cl release). Then 250 -> 400 °C over 200 min for pyrolysis of the melt.",
+    "units": "°C/min; min",
+    "context": "SK Innovation batch rotary kiln example (multi-tonne waste plastics)",
+    "source": "Jo S. et al., US 12,296,504 B2 (SK Innovation, 2025)",
+    "url": "https://patents.google.com/patent/US12296504B2/en",
+    "access": "full-text",
+    "evidence": "\"raise the temperature from room temperature to 100° C. at a rate of 1.5° C./min, and maintain the temperature for 50 minutes to melt waste plastics and remove moisture ... raise the temperature to 150° C. at a rate of 1.5° C./min and then ... maintain the temperature for 200 minutes. Step 3 When all input waste plastics were evenly melted, the temperature was raised from 150° C. to 250° C. at a rate of 1° C./min and then maintained for 120 minutes.\"",
+    "confidence": "medium-high"
+   },
+   {
+    "parameter": "Shrink-back of oriented PE film",
+    "value": "80% unrestrained linear shrink at 135 °C (ASTM D2732, oven) for a 2.0 mil MDPE/sLLDPE collation shrink film. Other examples report MD shrink at 135 °C.",
+    "units": "% linear",
+    "context": "Collation shrink film. Generic bags and films shrink less but curl into balls near the melting point [H].",
+    "source": "US 8,637,607 B2 (Equistar Chemicals LP) 'Polyethylene blends and films'",
+    "url": "https://patents.google.com/patent/US8637607B2/en",
+    "access": "full-text",
+    "evidence": "\"shrinkage @ 135° C ... of 80% (ASTM D2732 Unrestrained Linear Shrink in oven at 135 C)\"; claim: \"a shrinkage of 80% at 135° C\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Rigid PVC: Tg, onset of HCl loss, char residue",
+    "value": "DMA Tg (tan δ peak) 94.7 °C. TGA at 10 °C/min in N2: T1% 250.5, T5% 266.3, T10% 276.1, T50% 316.0 °C; residue at 700 °C 18.1%. Processed 'in the molten state' at about 190-200 °C (pressed at 190 °C; Congo-red stability at 200 °C). No crystalline melt. Typical rigid-PVC Vicat of about 79-80 °C is only [S], not verified.",
+    "units": "°C; wt%",
+    "context": "Unplasticised PVC compound (stabilised) as reference for composites",
+    "source": "Tomaszewska J. et al. (2022) Materials 15:8102",
+    "url": "https://doi.org/10.3390/ma15228102 (PMC9693884)",
+    "access": "full-text",
+    "evidence": "Table 3 \"PVC 250.5 266.3 276.1 316.0 18.1\"; Table 4 \"PVC 3136 2979 2548 94.7\" (E' 30/50/70 °C, Tg); \"pressed at the temperature of 190 °C\"; \"Congo red ... at 200 °C\"; TGA \"at a scanning rate of 10 °C/min ... under a nitrogen-protective atmosphere\"",
+    "confidence": "high (for that compound)"
+   },
+   {
+    "parameter": "Internal temperature gradients in plastic pieces (lumped-piece validity)",
+    "value": "Pieces larger than 4 mm develop more than 10 K core-to-surface gradients during pyrolysis. A homogeneous (Lagrangian) particle is valid only below about 2 mm. [D] Films are lumped; 60-90 mm thick pieces and caps are not.",
+    "units": "mm; K",
+    "context": "Particle-resolved CFD of an HDPE particle in hot N2",
+    "source": "Zhang F., Tavakkol S., Galeazzo F.C.C., Stapf D. (2025) Heat Mass Transfer 61:12",
+    "url": "https://doi.org/10.1007/s00231-024-03524-6",
+    "access": "full-text",
+    "evidence": "\"For particle diameters larger than 4 mm, distinct temperature gradients within the particle can be detected, leading to a temperature difference of more than 10 K\"; \"the Lagrangian approach ... is only applicable for particle diameters smaller than 2 mm\"",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Pre-melting raises reactor capacity (indirect evidence of loose-bed volume and heat-transfer limit)",
+    "value": "Adding a separate melt tank raised reactor capacity by 100% (Hydrocarbon Processing; the AIChE slides say about 90%). Reactor internal modifications added a further ~500%. The melt tank also vents HCl.",
+    "units": "%",
+    "context": "Lummus/New Hope pyrolysis scale-up, batch to continuous",
+    "source": "Chakraborty S. (Lummus) Hydrocarbon Processing June 2025; AIChE 2025 slides 'Advancement in large-scale pyrolysis technology'",
+    "url": "https://read.nxtbook.com/gulf_energy_information/hydrocarbon_processing/june_2025/petrochemical_technologies_chakraborty_lummus_technology.html",
+    "access": "secondary (vendor)",
+    "evidence": "\"Melt tank addition : This resulted in a 100% reactor capacity increase\"; slides: \"Resulted in 90% reactor capacity\"",
+    "confidence": "low-medium"
+   },
+   {
+    "parameter": "Melt-fraction closure (enthalpy method) for polymers",
+    "value": "Liquid fraction α_l = (H − Hs)/(Hl − Hs) between the solidus and liquidus enthalpies. Polymer melting is a continuous mushy-zone transition (molecular-scale continuity), so sharp-front models are a limiting case.",
+    "units": "-",
+    "context": "Review of particle-scale modelling of plastic waste melting, pyrolysis and gasification",
+    "source": "Madanikashani S. et al. (2022) Materials 15:4215",
+    "url": "https://doi.org/10.3390/ma15124215 (PMC9228121)",
+    "access": "full-text",
+    "evidence": "\"(3) α l = { 0 if H ≤ H s ; (H − H s)/(H l − H s) if H s < H ≤ H l ; 1 if H > H l\"; \"polymer melting is characterized by a continuous transition between the solid and liquid phases\"",
+    "confidence": "high"
+   }
+  ],
+  "equations": [
+   {
+    "name": "Capillary force, particle-particle (Israelachvili form)",
+    "expression": "F_cap,pp = −4π R* γ cosθ / [1 + 1/sqrt(1 + 2V_b/(π R* h²))]   (equivalently −4πR*γcosθ·[1 + (1+2V_b/(πR*h²))^(-1/2)]^(-1)); R* = r_i r_j/(r_i + r_j)",
+    "source": "Grohn et al. 2020 Processes 8:1090 Eq.(10),(12); Grohn et al. 2023 Pharmaceutics 15:469 Eq.(15),(17); used for molten LDPE by Banerjee 2024 (NETL)",
+    "validity": "Pendular bridge, h ≥ 0 (shortest surface gap). At h -> 0 it reduces to 2πR*γcosθ. [D] For drum pieces (R* ≈ 19 mm, γ 25 mN/m, θ 70°) it gives ≈2 mN, about 1e-3 to 2e-2 of a piece's weight, so it is negligible as a cohesive force at piece scale. It matters only for films and fines.",
+    "variables": "γ surface tension [N/m]; θ contact angle; V_b bridge volume [m3]; h gap [m]; r_i, r_j radii"
+   },
+   {
+    "name": "Capillary force, particle-wall",
+    "expression": "F_cap,pw = −8π R* γ cosθ / [1 + 1/sqrt(1 + 2V_b/(π R* h²))]",
+    "source": "Grohn et al. 2020 Eq.(11); Grohn et al. 2023 Eq.(16)",
+    "validity": "As above. For wall contact R* = r_i. Wall film thickness h0,w = V_cell/S_cell.",
+    "variables": "as above"
+   },
+   {
+    "name": "Liquid-bridge rupture distance (Lian et al. 1993)",
+    "expression": "h_rup = (1 + 0.5 θ) V_b^(1/3)",
+    "source": "Grohn et al. 2020 Eq.(15), citing Lian, Thornton & Adams (1993)",
+    "validity": "Static Young-Laplace bridges, θ in radians. A velocity-dependent alternative (Mikami-type, Grohn 2023 Eq.(22)-(23)) is l_max,pp = (0.99 + 0.62θ)·V_b^0.34·(1 + C_pp·u_im ...)^(2/3), with C_pp = 6.266 s/m and C_pw = 4.424 s/m for the wall form (0.95 + 0.22θ)·V_b^0.32. The exact grouping of the velocity term should be checked against the PDF.",
+    "variables": "θ contact angle [rad]; V_b bridge volume [m3]; u_im impact velocity [m/s]"
+   },
+   {
+    "name": "Normal viscous (Reynolds lubrication) force",
+    "expression": "F_vis,n = 6π η R*² u_n / h ,  h = max(h, h_min)",
+    "source": "Grohn 2020 Eq.(17); Grohn 2023 Eq.(24) (Adams & Perchard); Donahue et al. arXiv:0912.3753 Eq.(4) with the finite-film factor [1 − x/x_max]²",
+    "validity": "h << R*, low gap Reynolds number. h_min is set by surface roughness. For 60-90 mm waste pieces take h_min ≈ 0.1-1 mm [H]. [D] With η = 1e4 Pa·s, u = 0.05 m/s, h = 1 mm the force is about 3e3 N, far above the weight, so in the 150-250 °C range the viscous term dominates the contact.",
+    "variables": "η melt viscosity [Pa·s]; u_n normal relative velocity; h gap"
+   },
+   {
+    "name": "Tangential viscous force (Popov)",
+    "expression": "F_vis,t = 2π η R* u_t ln(1 + R*/(2h))",
+    "source": "Grohn 2020 Eq.(18); Grohn 2023 Eq.(25)",
+    "validity": "Sphere sliding on a wetted plate",
+    "variables": "u_t tangential relative velocity"
+   },
+   {
+    "name": "Capillary and Stokes numbers; Ennis agglomeration criterion",
+    "expression": "Ca = η u/γ ;  St = m̃ v0/(6π µ ã²) ;  e_w = 0 if St < St_c ; e_w = e_d(1 − St_c/St) if St > St_c ;  St_c = (1/e_d) ln(x_b/x_0) as printed in Donahue Eq.(16) (roughness x_b vs film x_0; the commonly quoted Ennis 1991 form is St* = (1 + 1/e) ln(h/h_a) [S])",
+    "source": "Grohn 2020 Eq.(16); Donahue et al. arXiv:0912.3753 Eqs.(1),(15),(16)",
+    "validity": "Rigid-sphere lubrication. Stc actually decreases with viscosity (elastohydrodynamics, pressure-dependent viscosity). Use it as a merge/bounce switch [H].",
+    "variables": "m̃ reduced mass; ã reduced radius; e_d dry restitution"
+   },
+   {
+    "name": "Liquid share contributed to a bridge (Shi & McCarthy)",
+    "expression": "V_b,i = (L_i/2)·[1 − sqrt(1 − r_j²/(r_i + r_j)²)] ;  V_b = V_b,i + V_b,j ; wall: V_b,j = h_wall π r_i² ; after rupture V_b is split equally",
+    "source": "Grohn et al. 2023 Pharmaceutics 15:469 Eqs.(18)-(21)",
+    "validity": "Monodisperse pendular regime",
+    "variables": "L_i liquid volume on particle i"
+   },
+   {
+    "name": "Liquid-layer thickness on a coated particle",
+    "expression": "h0,p = [3(V_liq + V_dry)/(4π)]^(1/3) − r_i",
+    "source": "Grohn et al. 2020 Eq.(13)",
+    "validity": "Uniform thin film. A bridge forms when the gap is smaller than the film thicknesses.",
+    "variables": "V_liq liquid volume; V_dry dry particle volume"
+   },
+   {
+    "name": "Non-instantaneous liquid redistribution (NETL MFiX)",
+    "expression": "xferMass = c · |m_LL − m_I| / 2 ,  c ≈ t_collision/τ_transfer (c = 1, 0.01, 1e-4 tested; τ_transfer ≈ 1 ms at 1 Pa·s)",
+    "source": "Banerjee 2024 NETL workshop slides (OSTI 2569375)",
+    "validity": "Liquid melt layers on inert particles. The transfer time grows with viscosity.",
+    "variables": "m_LL, m_I liquid masses on the two particles"
+   },
+   {
+    "name": "Frenkel viscous sintering (neck growth) and full coalescence",
+    "expression": "a/R = (t/τs)^(1/2), τs = ηR/γ ;  full coalescence of two equal spheres: a_f = 2^(1/3) R ;  JKR initial flat: a0/R = (9π C0 W/(2R))^(1/3), W = 2γ, C0 = 1/(2E) ;  zipping: a1/R = (63π³/16)^(1/7) (δc/R)^(2/7) (2C1 γ t/R)^(1/7) ;  a = max(a0, a1, a2)",
+    "source": "Alvarez et al. 2021 EPJ Web Conf. 249:05001 Eqs.(3)-(5) (after Lin, Hui & Jagota 2001; Frenkel 1945)",
+    "validity": "Newtonian viscous flow driven by surface tension. Over-predicts early necking for visco-elastic melts. [D] τs: LDPE film (R = 15 µm) about 40 s at 130 °C and 4 s at 200 °C. HDPE cap wall (R = 0.75 mm, 160 °C) about 11 min. A whole 75 mm HDPE piece at 160 °C about 9 h. So big pieces form necks (stick) but do not coalesce by sintering.",
+    "variables": "η zero-shear viscosity; γ surface tension; R radius; E modulus; δc adhesive cut-off; C1 fluidity"
+   },
+   {
+    "name": "PE stickiness criterion (melt initiation temperature)",
+    "expression": "MIT = 763.4 ρ − 1.7524 ln(MI) − 606.09 [°C] ; ΔMIT = T − MIT_R ; MIT_R = MIT − D (D up to 15-16 K from dissolved hydrocarbons) ; sticky if ΔMIT > 5-7 K",
+    "source": "US 7,774,178 B2 (Univation)",
+    "validity": "Fitted on first-melt DSC of LLDPE/LDPE granular resins (density ~0.91-0.93). Applying it to HDPE (0.95-0.96) and to waste pieces is an extrapolation [H].",
+    "variables": "ρ density [g/cc]; MI melt index I2 [dg/min]"
+   },
+   {
+    "name": "Surface tension of melts vs temperature",
+    "expression": "γ(t) = a − b·t [mN/m, t in °C]: LLDPE 39.05 − 0.0725t ; i-PP 44.46 − 0.1038t (42.94 − 0.1039t) ; PS(Mn 41k) 47.22 − 0.065t ; PET [S/D] γ ≈ 44.6 − 0.065(t − 20)",
+    "source": "Moreira et al. 2003 Polímeros 13:45 Table 4; PET from Wu 1971 via Accu Dyne plus an assumed −dγ/dT",
+    "validity": "Measured about 180-220 °C. Do not extrapolate far above about 260 °C. As the melt cracks (Mn drops) γ decreases further, so use about 20 mN/m for the pyrolysing melt [H].",
+    "variables": "t temperature [°C]"
+   },
+   {
+    "name": "Contact angle of polymer melt on steel vs zero-shear viscosity",
+    "expression": "θ[°] = 0.0086 η0 + 53.34 (PP) ; master: θ = 0.0077 η0 + 54.92 ; θ(T) = 0.0077 η0(T0)[a_T,η(T) − 1] + θ(T0), a_T,η = exp[(E0/R)(1/T − 1/T0)]",
+    "source": "Zitzenbacher et al. 2018 Polymers 10:38 Eqs.(7),(9),(16)",
+    "validity": "Polished steel under N2, η0 ≈ 1700-6000 Pa·s. Extrapolating to low η0 gives about 53-55°.",
+    "variables": "η0 [Pa·s]; E0 activation energy (PP 42.92 kJ/mol)"
+   },
+   {
+    "name": "Enthalpy-based liquid fraction",
+    "expression": "α_l = 0 (H ≤ Hs); (H − Hs)/(Hl − Hs) (Hs < H ≤ Hl); 1 (H > Hl)",
+    "source": "Madanikashani et al. 2022 Materials 15:4215 Eq.(3)",
+    "validity": "Mushy-zone melting. Use DSC onset and end (not ±8 K) for Hs and Hl.",
+    "variables": "H specific enthalpy"
+   },
+   {
+    "name": "Gravity slump time and Bond number of a molten piece [D]",
+    "expression": "t_slump ≈ η/(ρ g L) ;  Bo = ρ g L²/γ",
+    "source": "Derived here (dimensional analysis) [D]",
+    "validity": "Order of magnitude. For L = 37.5 mm and ρ = 750 kg/m3: Bo ≈ 410 (gravity beats surface tension). t_slump ≈ 36 s at η = 1e4 Pa·s and 6 min at 1e5 Pa·s. Pieces pool within one drum revolution (75 s at 0.8 rpm) when η ≲ 2e4 Pa·s.",
+    "variables": "η viscosity; L piece size"
+   }
+  ],
+  "parameter_table": "Assumptions: dry pieces heated slowly (1-5 K/min) in the drum. DSC values are at 10 K/min unless stated; at 1-5 K/min melting peaks sit about 1-3 K lower [H] and PET cold crystallisation about 8-11 K lower [TC-fig]. 'Sticky on' means pieces adhere on contact. 'Pool' means a molten piece slumps and merges within about one revolution (75 s); for L ≈ 37 mm that needs η ≲ 2e4 Pa·s [D]. Volume ratio = ρ_dense/ρ_loose.\n\n| Class (marine-litter form) | T_soft_onset (°C) | Shrink-back | T_melt_peak (°C) | T_fully_molten (°C) | Sticky window (°C) | Pool / flow (°C) | ρ_loose → ρ_dense (kg/m3), ratio | γ melt (mN/m) | θ on steel |\n|---|---|---|---|---|---|---|---|---|---|\n| LDPE/LLDPE films, bags | MIT 95-100 [D, US7774178 corr.; LLDPE ex. 97.4 TC] | Strong: 80% linear at 135 °C (shrink film, TC); films ball up 100-135 [H] | 106-116 [TC: grades 106/108/114; LLDPE 116.1] | 120-125 DSC end [D]; visual complete ≈ +15-25 K → 135-145 [D, from nets offset] | ≈101-103 (MIT+5-7) up to pooling; films fuse in seconds (τs ≈ 40 s at 130 °C, 4 s at 200 °C) [D] | ≈165-180 (η0 ≈ 2.7e4 → 7e3 Pa·s from 160 to 200 °C) [H/D] | 20 (WRAP loose film, TC) to 45 (model) → 740-760 melt [H]; ratio 17-38 | 28.2 at 150; 24.5 at 200 [TC LLDPE] | ≈70-85° at 185-220 °C (PP proxy, TC); → ≈55° as η0 → 0 [D] |\n| HDPE bottles, caps; PE nets | MIT ≈120-125 [D, extrapolated]; Kofler softening of oriented nets 140-145 [TC] | Small for moulded caps and bottles [H]; oriented net fibres shrink near Tm [H] | 126-132 [TC Rigaku 126, NETZSCH 132]; nets 2nd heat 133.7-137.4 [TC] | DSC end ≈140-146 (nets 1st-heat peak-end 142-146) [TC]; visual end 160-170 [TC] | ≈128-130 up to pooling | ≈180-200 (η0 ≈ 2.4e4 at 160, 1.3e4 at 200 Pa·s) [D] | bottles 23 (WRAP, TC) to 70 (model); caps ≈200-400 [H] → 750; ratio 11-33 (bottles), 2-4 (caps) | ≈27 at 160; 24.5 at 200 [TC, LLDPE values] | as LDPE |\n| PP caps, ropes, nets, packaging | DSC onset ≈150-155 [H]; Kofler softening 175 (nets) [TC]; minor partial melting from ≈30 [TC TM-DSC] | Oriented ropes and nets shrink near Tm [H] | 160-165 [TC Rigaku 164; Moplen 160; nets 2nd heat 163-166] | DSC end 171-173 (nets) [TC]; visual 190-200 [TC] | ≈160-165 up to pooling | ≈190-200 (η0 2.6e3 at 200, 1.7e3 at 220 Pa·s for MFR 8, TC) | ≈50-150 loose [H] (model 90) → 730-750; ratio 5-15 | 23.7 / 22.2 at 200 [TC]; ≈28 at 150 | 85.0° (185), 77.1° (200), 72.6° (210), 67.1° (220) [TC] |\n| PS / EPS (foam, cups) | Shrink from 80 [TC White Book]; soften and contract >100 (Tg ≈100) [TC] | Collapse: EPS 60-80x in 2.5 min at 149-177 °C hot air [TC]; slow drum: ≈100-130 within ≈10-20 min (conduction τ ≈ 11 min for 30 mm half-thickness) [D] | none (amorphous); 'melts' ≈160 [TC Gonzalez-Aguilar] | viscous flow ≈180-200 (η ≈ 1e4 Pa·s at 200 °C for Mw 250k) [D] | ≈110-115 (Tg+10-15) [D, analogy] up to pooling | ≈190-210 [D] | EPS 15-30 (range 8-55, TC) → 1040-1050 solid [TC]; ratio 35-70; (US5667746: 16 → 240 at 165-195 °C, partial) | 34.2 at 200 (Mn 41k); 31.5 (polydisperse) [TC] | not found [gap] |\n| PET bottles | Tg 65 (2.5 K/min) to 71 (10 K/min) [TC]; bottle wall Tg 76-83 [TC patents] | Strong shrink of oriented walls above 60; 65-100 controlled; 'considerable and rapid' at ≥85 [TC]; then cold crystallisation (whitening, stiffening) ≈109-112 at 2.5-5 K/min, 120 at 10 K/min [TC] | 251-255 [TC] | ≈260-265 [H] | Two windows: (i) ≈80-110 (amorphous, before cold crystallisation) [D/H]; (ii) ≥≈245 up to pooling | ≈265-280 [H] | 23-40 loose [TC WRAP bottles / model] → melt ≈1170-1200 [H]; ratio 30-50 | 36.2 at 270 (contact-angle extrapolation) [TC]; ≈28 (Wu-based) [D] | not found |\n| Rigid PVC (pipes, profiles) | DMA Tg 94.7 [TC]; Vicat ≈79-80 [S, unverified] | Minor [H] | no crystalline melt | rubbery 'melt' ≈180-200 (processing at 190-200) [TC] | ≈150-250 tacky [H]; HCl loss from T1% 250, T5% 266, T50% 316 (10 K/min) [TC], ≈10-20 K lower at 1-5 K/min [H]; then polyene crosslinks to char (18% residue at 700 °C) [TC] → non-sticky [H] | does not pool; chars [H] | dense ≈1380-1400 [H]; loose ≈100-300 [H] | 43.8 at 20 °C (melt-extrapolated, Wu) [S] | not found |\n| PA6 nets | ≈200 [H] | Oriented nets shrink near Tm [H] | 221-222 [TC Rigaku 221; nets 2nd heat 221.8] | 230 (1st-heat peak-end 230.1); no visual melting ≤230 [TC] | ≈215-235 [H] | ≈235-245 [H] | nets ≈50-150 [H] → melt ≈980 [H] | ≈30-35 at 250 [H, from PA66 46.5 at 20 °C (Wu)] | not found |\n| Rubber, cellulosics, sand, shells, salt | no melting | - | - | - | Become coated and wetted by the melt, then suspended in the pool | - | - | - | - |\n\nRegime numbers for DEM [D]: F_cap ≈ 2 mN (75 mm pieces) against a weight of 0.1-2 N. F_vis ≈ 3e3 N at η = 1e4 Pa·s. Ca ≈ 2e4. St ≈ 1e-4, so contacts are perfectly inelastic and stick. At η ≈ 1e-2 Pa·s (cracked melt, ≥380-400 °C) St ≈ 80, so solids bounce in a lubricating liquid. Bo ≈ 400, so gravity drives pooling.",
+  "recommendations": "1. Replace the symmetric ±8 K melt ramp in tamborkit/feed.py with DSC-like onset→end ramps applied through the enthalpy method (α_l = (H − Hs)/(Hl − Hs)). Values for slow heating: LDPE 95→125 °C (peak about 110); HDPE 115→145 (peak about 130); PP 145→175 (peak about 163); PET 240→262 (peak 253); PA6 (if added) 205→232. Keep the latent heats. For PS/EPS, separate geometric collapse (100→130 °C, volume only, no latent heat) from flow (viscosity-controlled, ≥ about 180-200 °C). For PET, add a shrink stage at 65-100 °C and a non-sticky cold-crystallised state from about 110 °C until melting.\n\n2. Give each DEM piece three states. (a) Loose and elastic. (b) Sticky: from T_stick = MIT + 5 K for PE (LDPE ≈101-103, HDPE ≈128-130), PP ≈160-165, PS ≈110-115 (Tg + 10-15), amorphous PET ≈80-90 until about 110, PVC ≈150 [H]. (c) Molten and pooling.\n   - In state (b), add the normal lubrication force 6πηR*²u_n/max(h, h_min) with h_min ≈ 0.1-1 mm, Popov tangential drag, and a bonded neck with a/R = (t/τs)^1/2, τs = ηR/γ, using η(T) from the Cross/Mw model already in the pirolise_cfd brief.\n   - Drop pure capillary cohesion for 60-90 mm pieces: it is about 1e-3 of their weight. Keep it only for film or fines sub-particles.\n   - Use the Ennis/Donahue St < St_c test to decide whether a contact merges (inelastic) or bounces.\n\n3. Merge criterion from discrete pieces to a continuum pool, per axial slice [H, physically argued]. A piece leaves the DEM and adds its volume to the slice melt pool when all three hold:\n   - α_l > 0.9;\n   - slump time η/(ρ g L) is shorter than the drum period (75 s at 0.8 rpm), i.e. η ≲ 2e4 Pa·s for L ≈ 37 mm;\n   - it is in contact with the pool or the wall.\n   Non-melting solids (rubber, cellulosics, inerts, char, PVC char) stay as particles. Make them buoyant or settling in the pool and apply a Krieger-Dougherty suspension viscosity. Use pool wetting of the wall with θ ≈ 70-85° at 185-220 °C, falling toward about 55° as η drops.\n\n4. Bed volume collapse. Use per-component ρ_loose from charge-form data:\n   - film 20-45 and bottles 23-70 kg/m3 (WRAP loose 20-25);\n   - EPS 15-30 kg/m3;\n   - caps 200-400 kg/m3 [H].\n   Use ρ_dense as melt density: about 740-760 for PE/PP at 150-250 °C, about 950-1000 for PS, about 1170-1200 for PET [H]. Expected order of collapse: EPS at 100-130 °C, then films (shrink-back 100-135 °C), then HDPE and PP (130-200 °C), then PET (245-265 °C). Validate against the SK Innovation batch kiln, where the whole charge was evenly melted only after holds of 50 min at 100 °C and 200 min at 150 °C (1.5 K/min ramps), and against the Lummus finding that pre-melting doubles reactor capacity.\n\n5. Surface tension: LLDPE γ = 39.05 − 0.0725t, PP 44.46 − 0.1038t, PS 47.22 − 0.065t (mN/m). Clamp at about 18-20 mN/m for t > 260 °C and for cracked melt [H].\n\n6. Sensitivity: include MIT depression of up to 15-16 K by dissolved wax and oil vapours (Univation patent), since the drum refluxes condensables [H]. Vary h_min, the sticky offset (+5 to +15 K) and the pooling viscosity threshold (1e3-1e5 Pa·s).\n\n7. Pieces thicker than about 4 mm have more than 10 K internal gradients (Zhang 2025). For 60-90 mm pieces, keep an internal conduction sub-model (two or three shells) or a Biot correction for melt onset, while thin films can stay lumped.",
+  "gaps": "1. No full-text numbers for defluidization temperatures of PE/PP in fluidized beds or the critical coating thickness: Arena & Mastellone 2000-2004 and Aguado 2005 were reachable only as abstracts or second-hand. The NETL slides give only a ~200 °C melt threshold.\n\n2. No measured data on how bulk density or volume evolves in a heated loose plastic bed, and no fill-ratio-before/after-melting data for tyre/plastic batch reactors. Volume collapse rests on WRAP loose densities, patent densifiers and derived ratios. The SK and Lummus process data are indirect.\n\n3. No DSC onset/end at 1-5 K/min for post-consumer LDPE film. LDPE onset comes from the Univation MIT correlation (fitted on LLDPE powders), and the HDPE MIT is extrapolated.\n\n4. Free (unconstrained) shrink magnitude of PET bottles and generic LDPE bags was not found. Only the onset (>60 °C) and the 80% shrink of collation film at 135 °C are available.\n\n5. The PVC Vicat value was not verified from a primary source. PVC dehydrochlorination onset comes from a stabilised compound at 10 K/min; unstabilised waste PVC at 1-5 K/min will differ.\n\n6. Melt surface tension is not measured for PET, PA6 or PVC at process temperature (only extrapolations). Contact angles exist only for PP and PMMA on polished steel, not for HDPE/LDPE on oxidised or coked carbon steel.\n\n7. Willett's closed-form capillary force (Willett 2000) and Lian 1993 were not read in the original; the formulas are taken from Grohn 2020/2023 full text. The exact grouping of the velocity term in Grohn 2023's velocity-dependent rupture length needs checking.\n\n8. Viscosity of the LDPE melt is assumed (η0 ≈ 1e4 Pa·s at 190 °C with Ea 55 kJ/mol). HDPE and PP values come from the earlier pirolise_cfd brief and Zitzenbacher (MFR-8 PP); weathered marine plastics (UV-degraded, lower Mw) will be less viscous and stickier.\n\n9. No direct observations of ball, ring or wall-coating formation in rotary kilns processing plastics were found in accessible full text (Hornung & Seifert's rotary-kiln chapter was not accessible).\n\n10. Search tooling: Semantic Scholar and OpenAlex were rate-limited, PMC HTML showed a captcha (Europe PMC REST worked), and two WebSearch queries on Downton's sticky-point viscosity were blocked. So the sticky-viscosity criterion (about 1e6-1e8 Pa·s) is not sourced and the T − Tg analogy is used instead.\n\nDownloads are in [cópia local] (plus the pet/, film/, bulk/, kit/, osti/, accu/ subfolders). The derivation script is [cópia local]"
+ },
+ {
+  "tema": "melt",
+  "topic": "THREAD P2: the molten polymer pool in a batch rotary pyrolysis drum (Beston BLJ-3 class, ID 1.4 m x 4.9 m, 0.8 rpm). Covers melt viscosity vs T and degradation (PE, PP, PS, PET, waxes), melt densities, solids immersed in the melt, rimming/pool flow and wall heat transfer, and coke deposition on the wall. Tags: [TC] full text read; [TC-fig] value digitised from a full-text figure; [abstract]; [S] secondary/vendor; [D] derived here; [H] hypothesis. Scripts: [cópia local] and model.py. Downloads: [cópia local]",
+  "findings": [
+   {
+    "parameter": "Viscosity of virgin and thermally degraded PP melts vs T (PD702N and PP6523)",
+    "value": "PD702N virgin: about 900 Pa s at 200 C, 330 at 250 C, 130 at 300 C. Measured during degradation in the rheometer: about 30 at 330 C, 8 at 350 C, 4 at 358 C. Degraded melt captured at 30 kW/m2 (surface about 373 C): about 1.0 Pa s at 373 C. At 40 kW/m2 (about 415 C): about 0.15 Pa s at 415 C. PP6523 virgin: about 8000 Pa s at 210 C, 1600 at 300 C, 15 at 358 C. Degraded melts: about 0.04 Pa s at 400 C and 0.011 Pa s at 425 C",
+    "units": "Pa s",
+    "context": "Parallel plate, N2 oven, ramp 1 C/min, shear rate about 0.1 1/s. Degraded-melt points are log-linear extrapolations of rheometry on melt that flowed off radiantly heated 10 cm slabs. The authors give an uncertainty of a factor 2-3. Digitised from Figs 8-9 [TC-fig]",
+    "source": "Ohlemiller T.J., Shields J.R. (2008) Aspects of the Fire Behavior of Thermoplastic Materials, NIST Technical Note 1493, Figs 8-9 and pp. 7-19",
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote1493.pdf",
+    "access": "full-text (values digitised from figures)",
+    "evidence": "'The melts from higher fluxes shown in Figs 8-11 drop by factors ranging up to a maximum of 30,000 (6523 polypropylene at 40 kW/m2). This corresponds to the weight-mean MW being cut by a factor of 21'; method: 'programmed upward in temperature at 1 ºC/min ... (typically 0.1 s-1)'; '...uncertain to at least a factor of two to three.'",
+    "confidence": "medium (figure digitisation ±20%; authors' extrapolation ×2-3)"
+   },
+   {
+    "parameter": "Viscosity of virgin and degraded PS melts vs T (PS 666D, PS 663)",
+    "value": "PS666D virgin: 1.5e4 Pa s at 200 C, about 1e3 at 260 C, 110 at 320 C (apparent Ea about 96 kJ/mol [D]). Degraded melts: 20 kW/m2 about 40 Pa s at 340 C; 30 kW/m2 about 4 Pa s at 390 C; 46 kW/m2 about 140 Pa s at 200 C, 5 at 320 C and about 1 at 425 C (Ea of the degraded melts 53-65 kJ/mol [D]). PS663 virgin: 5e4 Pa s at 200 C; 30 kW melt about 3 Pa s at 400 C",
+    "units": "Pa s",
+    "context": "Same method as the PP row. For PS, GPC showed all melt samples alike and lower in MW than the resin",
+    "source": "Ohlemiller & Shields (2008) NIST TN 1493, Figs 10-11 and p. 19",
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote1493.pdf",
+    "access": "full-text (figure digitised)",
+    "evidence": "'Interestingly, at this 20 kW/m2 flux, the viscosity of the polystyrene melt has dropped by only a factor of ten and that of the polypropylene by a factor of thirty.'",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Mn decay of PE in a stirred, vented N2 kettle at 380 and 415 C (scission clock)",
+    "value": "HDPE (Mn0 18,743, Mw0 57,695). At 415 C: Mn 3970 / 1674 / 1104 / 860 / 584 / 473 g/mol at 60 / 90 / 120 / 150 / 180 / 210 min, PDI 2.8-3.5. At 380 C: 7725 / 5868 / 5094 / 4099 / 3493 / 3967, PDI 3.4-4.6. LLDPE at 415 C: 3730 to 466. [D] per C-C bond scission constant from d(1/Mn)/dt: 2.9e-6 1/s at 415 C (HDPE and LLDPE); 2.3e-7 (HDPE) and 4.0e-7 (LLDPE) 1/s at 380 C. Apparent E about 240 kJ/mol",
+    "units": "g/mol; 1/s",
+    "context": "Resin kettle with impeller at 150 rpm and N2 purge; about 1 h heat-up. The 60 min sample is taken when the setpoint is reached. Mixing was impossible until the melt reached about 300 C (LLDPE) or 350 C (HDPE)",
+    "source": "D'Amato M.J. (2012) Thermal degradation of high molecular weight polyethylene to obtain low molecular weight polyethylene wax, MASc thesis, Ryerson Univ., Tables 3.2, 4.2, 4.8; Sec. 3.4",
+    "url": "https://rshare.library.torontomu.ca/articles/thesis/Thermal_Degradation_Of_High_Molecular_Weight_Polyethylene_To_Obtain_Low_Molecular_Weight_Polyethylene_Wax/14644326",
+    "access": "full-text",
+    "evidence": "Table 4.8: '60 7725 3970 3.41 3.08 / 90 5868 1674 / 120 5094 1104 / 150 4099 860 / 180 3493 584 / 210 3967 473'; 'The mixing could not be started until the temperature reached approximately 300°C for LLDPE and 350°C for HDPE because below these temperatures the viscosity of the material was too high for the mixer.'",
+    "confidence": "high (data); medium (derived k_b, E)"
+   },
+   {
+    "parameter": "Measured viscosity of waste polyolefin melt (84% HDPE / 14% PP) during stirred liquefaction at 340 C",
+    "value": "At 350 C and 10 rad/s: 206 Pa s (after 15 min, Mw 131k), 97 Pa s (1 h, Mw 72k), 49 Pa s (2 h, Mw 58k), 28 Pa s (3 h, Mw 66k). Melt initiated with pyrolysis oil from 400 C pyrolysis: 0.12 Pa s (Mw 12.6k, Mn 3.1k). [D] Raju-type law 3.4e-15 Mw^3.6 (Ea 27 kJ/mol) overpredicts these values by 1.6-7x (ratio measured/law 0.14-0.62). [D] The D'Amato scission clock predicts Mn 22.7k to 17.5k after 3 h at 340 C; measured 18.7k",
+    "units": "Pa s (1 poise = 0.1 Pa s)",
+    "context": "50 g, continuously stirred glass round-bottom tank under N2; Brookfield R/S rheometer with vane spindle at 350 C",
+    "source": "Eastman Chemical Co., US 12,668,677 B2 'Liquefying and dehalogenating waste plastics', Tables 2 and 4",
+    "url": "https://patents.google.com/patent/US12668677B2/en",
+    "access": "full-text (patent)",
+    "evidence": "'It has been observed that polyethylene (especially HDPE) does not readily degrade at 340° C. to a low viscosity as rapidly as other plastics. Plastics like polypropylene and polystyrene generally degrade quickly and undergo significant viscosity reduction at 340° C.' Table 2 row 5: '18,738 66,487 ... 3 Hours 319 284 239' (poise at 1/10/100 rad/s); 'reduced to 1.2 poise (at 350° C. and 10 rad/s)'",
+    "confidence": "high"
+   },
+   {
+    "parameter": "Viscosity of cracked mixed-plastic-waste melt (partly degraded) at 200-310 C",
+    "value": "Maximum 3700 cP at 225 C; 972 cP at 200 C falling to 188 cP at 310 C (after cracking at 360 C with Mg-ZSM-5); minimum 8 cP at 310 C (base ZSM-5). Thermal (no catalyst) melt viscosity fell 40.6% between 250 and 290 C at 1000 1/s",
+    "units": "mPa s",
+    "context": "Round-bottom flask cracking of MPW, then Brookfield viscometry while the melt is reheated. Catalytic, so it is a lower bound for a thermal drum",
+    "source": "SABIC Global Technologies, US 10,829,696 B2, Examples 2 and 4",
+    "url": "https://patents.google.com/patent/US10829696B2/en",
+    "access": "full-text (patent)",
+    "evidence": "'The minimum viscosity was observed to be 8 cP for RBF run 1 at ... 310° C. The maximum viscosity was observed to be 3700 cP for RBF run 3 at ... 225° C.'; 'The coke and wax formation was observed to be more severe in RBF runs 2 to 4.'",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "PE complex viscosity during a 10 K/min heating ramp (rheometer, N2)",
+    "value": "HDPE minimum 97.8 Pa s at 295 C and LDPE 192.8 Pa s at 275 C. Viscosity then rises, attributed to crosslinking; read from the figure, about 1e4 Pa s at about 400 C for HDPE. It collapses only above 405 C (HDPE) or 395 C (LDPE), to below about 10 Pa s near 460-500 C, together with the TGA mass loss (5% loss at 452-453 C). HDPE Mw goes from about 43k (185 C) to 26k (295 C) and 24k (405 C)",
+    "units": "Pa s",
+    "context": "10 rad/s, strain 1.25%. A fast ramp leaves no time for scission; trace O2 may cause the crosslinking. It warns that air left in the drum can stiffen the melt between 300 and 400 C",
+    "source": "Radhakrishnan H. et al. (Iowa State) 'Molten-phase unsaturation enhanced pyrolytic upcycling of polyolefins', DOE accepted manuscript, Fig. 1 and Sec. 3.1.1",
+    "url": "https://www.osti.gov/pages/servlets/purl/3020474",
+    "access": "full-text",
+    "evidence": "'The viscosity was 97.8 Pa.s for the HDPE heated to 295 ℃ and 192.8 Pa.s for the LDPE heated to 275 ℃.'; 'After that, their viscosity increased ... Later, the viscosity decreased again when the temperatures exceeded 405 ℃ for HDPE and 395 ℃ for LDPE.'",
+    "confidence": "medium (values above 300 C read from the figure)"
+   },
+   {
+    "parameter": "Viscosity of narrow-MWD PE waxes (POLYWAX) at 149 C",
+    "value": "Viscosity in cP at 149 C: POLYWAX 655: 7; 725: 10; 850: 10; 1000: 15; 2000: 55; 3000: 130. At 99 C: 500: 8.5; 600: 10. Mw/Mn = 1.08. [D] fit: eta149 = 15.6 cP x (Mn/1000)^1.88, exponent 1.96 for 1000-3000 (product number taken as Mn [S])",
+    "units": "cP = mPa s",
+    "context": "ASTM D-3236. Gives the low-Mw (unentangled) branch of the pool viscosity",
+    "source": "Baker Hughes POLYWAX Polyethylenes datasheet (Talas copy)",
+    "url": "https://www.talasonline.com/images/PDF/ProductDataSheet/Poly2000-datasheet.pdf",
+    "access": "full-text (vendor)",
+    "evidence": "'POLYWAX™ 1000 polyethylene 113 15 1.0 235'; 'POLYWAX™ 3000 polyethylene 129 130 0.5 260'; header 'Viscosity @ 149˚C/*99˚C (cP)'; 'typical polydispersity (Mw/Mn) of 1.08'",
+    "confidence": "high (data); medium (Mn identification)"
+   },
+   {
+    "parameter": "Flow activation energies Ea",
+    "value": "HDPE about 6 kcal/mol (25 kJ/mol). LDPE about 12 kcal/mol (50 kJ/mol) in one source; 18.1 kcal/mol (76 kJ/mol) measured and 9.1-13.2 kcal/mol (38-55 kJ/mol) quoted in another. iPP 10.4 kcal/mol (43.5 kJ/mol) measured; literature 9.3-10.0 kcal/mol (39-42 kJ/mol). [D] from TN1493: PP 38-44, degraded PP 38-55, degraded PS 53-65 kJ/mol; virgin PS apparent 96-102 kJ/mol (WLF region, 200-320 C). [D] n-dodecane liquid 16 kJ/mol (150-310 C)",
+    "units": "kJ/mol",
+    "context": "Arrhenius shift of zero-shear viscosity or relaxation time. LDPE Ea falls toward the HDPE value once long-chain branching is cut [H]",
+    "source": "Idemitsu Kosan US 5,747,620 A; Drozdov, Agarwal, Gupta (2003) arXiv cond-mat/0311322; NIST TN1493 [D]; NIST Webbook [D]",
+    "url": "https://patents.google.com/patent/US5747620A/en ; https://arxiv.org/abs/cond-mat/0311322",
+    "access": "full-text",
+    "evidence": "Idemitsu: 'Such a measured activation energy (Ea) of the HDPE is as small as 6 kcal/mol, and on the other hand, the Ea of the LDPE is as large as about 12 kcal/mol.' Drozdov: 'find E = 10.4 kcal/mol for iPP and E = 18.1 kcal/mol for LDPE ... polypropylene: E = 9.3 kcal/mol ... 9.7 − 10.0 kcal/mol ... low-density polyethylene: E = 9.1 − 13.2 kcal/mol'",
+    "confidence": "high (PE, PP); medium (PS high-T)"
+   },
+   {
+    "parameter": "PET melt viscosity, flow activation energy and stability",
+    "value": "Zero-shear viscosity of virgin PET about 1000 Pa s at extrusion temperatures. Rheology window 260-320 C; above 320 C the melt is quickly unstable. Degradation onset 380-420 C. Me 1450-2120 g/mol. Hydrolysis by residual moisture cuts the chains. Flow Ea 65 kJ/mol; Ea of the molar-mass change 120 kJ/mol. PET melt density about 1.15-1.16 g/cm3 near processing temperature [S]",
+    "units": "Pa s; kJ/mol; g/cm3",
+    "context": "With 15% moisture in the feed, PET hydrolyses during heat-up, so expect far lower viscosity than virgin [H]. Denser than the polyolefin melt, so it sinks to the wall [D]",
+    "source": "Cusano I. et al. (2023) Rheology of Recycled PET, Materials 16:3358; Härth M., Kaschta J., Schubert D.W. (2015) Polym. Degrad. Stab. 120:70; PETplanet Insider 2015/2023 (secondary)",
+    "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10179504/ ; https://cris.fau.de/publications/112659184",
+    "access": "full-text (Cusano); abstract (Härth); secondary (density)",
+    "evidence": "Cusano: 'the zero shear viscosity of virgin PET remains relatively low (around 1000 Pa s)'; 'a typical temperature range for measurements is between 260 and 320 °C. Above the latter temperature, the stability of the material rapidly decreases over time.' Härth: 'activation energy of flow (65 kJ mol(-1)) and ... molar mass maximum (120 kJ mol(-1))'",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Cross-WLF parameters for a fresh (recycled) PP melt",
+    "value": "n = 0.275; tau* = 38,004 Pa; D1 = 2.23e12 Pa s; D2 = 263.15 K; D3 = 0; A1 = 26.36; A2~ = 51.6 K (MFI 12.9 g/10 min). [D] eta0 = 1440 / 843 / 342 Pa s at 200 / 230 / 300 C. Do not extrapolate above about 300 C, where degradation dominates",
+    "units": "see value",
+    "context": "Capillary rheometry at 230-240 C (ISO 11443); fitted for Moldflow",
+    "source": "Ferrándiz S., López J., Navarro R., Parres F. (2011) J. Optoelectron. Adv. Mater. 13(7):902, Table 1",
+    "url": "https://joam.inoe.ro/articles/rheological-behavior-of-recycled-polypropylene-for-reuse-in-the-automotive-sector/fulltext",
+    "access": "full-text",
+    "evidence": "Table 1 'Cross-WLF parameters of PP recycled': '263,15 0 51,6 0,275 38004,35 2,23E+12 26,36'; 'We have obtained a value of 12.9 g/10 min of melt index flow'",
+    "confidence": "high (for fresh PP at 200-300 C)"
+   },
+   {
+    "parameter": "Polyolefin melt viscosity, stirring limits and turbulence transition in melt reactors",
+    "value": "HDPE (Mw 200 kDa) about 500 Pa s and PP (Mw 340 kDa) about 320 Pa s at the high-shear plateau. Magnetic stirrers work below about 1.5 Pa s; mechanical stirrers up to 1e5 Pa s. Viscosity spans 6 decades as chains are cut; the onset of turbulence corresponds to about 3-30 Pa s at 1000 rpm. Fits use the Carreau model",
+    "units": "Pa s",
+    "context": "Hydrogenolysis batch reactors at 200-300 C",
+    "source": "Jaydev S.D., Martín A.J., Garcia D., Chikri K., Pérez-Ramírez J. (2024) Nature Chemical Engineering 1:565-575",
+    "url": "https://www.nature.com/articles/s44286-024-00108-3",
+    "access": "full-text",
+    "evidence": "'converging toward a distinctive value for each polymer ( ~ 500 Pa s for HDPE 200 and ∼320 Pa s for PP 340 )'; 'As the average chain length of the hydrocarbons decreases due to cleavage, so does the viscosity, spanning six orders of magnitude until reaching values close to water'",
+    "confidence": "medium-high"
+   },
+   {
+    "parameter": "Melt density vs T (Tait, P -> 0)",
+    "value": "Specific volume v0 = b1m + b2m (T - b5). LPE: b1m 1.2532 cm3/g, b2m 9.57e-4 cm3/(g K), b5 405.47 K (data 313-493 K). iPP: 1.3082, 1.0e-3, 452.86 K (313-573 K). PS: 0.9767, 5.06e-4, 370.86 K (280-468 K). [D] density in g/cm3 at 200 / 300 / 400 / 450 C: LPE 0.759 / 0.707 / 0.663 / 0.642; iPP 0.753 / 0.700 / 0.654 / 0.634; PS 0.972 / 0.927 / 0.885 / 0.866",
+    "units": "g/cm3",
+    "context": "Values above 220 C (PE), 300 C (PP) and 195 C (PS) are linear extrapolations beyond the PVT data [D]. They match the design brief's feed melt (715 kg/m3 at 300 C)",
+    "source": "Padilha Júnior E.J., Soares R.P., Cardozo N.S.M. (2015) Analysis of equations of state for polymers, Polímeros 25(3):277, Tables 1-3, Eq. 4a",
+    "url": "https://doi.org/10.1590/0104-1428.1621",
+    "access": "full-text",
+    "evidence": "Table 3: 'Tait b1m (cm3/g) 1.3082 ... 1.2532'; 'b2m (cm3/gK) 0.0010 ... 0.000957'; 'b5 (K) 452.86 ... 405.47'; Table 1 temperature range '313-573' (iPP), '313-493' (LPE)",
+    "confidence": "high in range; medium extrapolated to 400-450 C"
+   },
+   {
+    "parameter": "Light-oil property anchor (n-dodecane liquid, 1 MPa)",
+    "value": "290 C: rho 519 kg/m3, mu 0.112 mPa s, k 0.082 W/(m K), cp 560 J/(mol K) = 3.29 kJ/(kg K). 150 C: 653 kg/m3, 0.329 mPa s. [D] Ea of viscosity 16 kJ/mol",
+    "units": "SI",
+    "context": "Lower bound for oil dissolved in the pool. The pool at 400-430 C holds mostly C25+ species (n-C25 boils at about 400 C), so expect about 0.3-10 mPa s and about 0.58-0.65 g/cm3 [H]",
+    "source": "NIST Chemistry WebBook, Thermophysical Properties of Fluid Systems (dodecane)",
+    "url": "https://webbook.nist.gov/cgi/fluid.cgi?ID=C112403&Type=IsoBar&P=1&TUnit=C",
+    "access": "full-text (database)",
+    "evidence": "'290.00 1.0000 519.11 ... 0.00011161 0.081920 liquid'",
+    "confidence": "high (for C12)"
+   },
+   {
+    "parameter": "Flow regimes of a viscous liquid in a partially filled rotating cylinder",
+    "value": "lambda = A^2 rho g R/(mu Omega), with A the filling fraction. lambda < about 2: nearly uniform film (the whole charge co-rotates). 2 < lambda < 5: accumulation on the rising side. lambda > about 5: flat pool at the bottom plus a thin film over the sides and top; flux q = 2/(3 sqrt(lambda)) in units of A Omega R^2. Film thickness scales as (mu Omega R)^(1/2) A^(-1/6) (rho g)^(-1/2) when the effective capillary number mu Omega R/(A gamma) >> 1. The pool is flat when R >> capillary length. [D] for the BLJ-3 at 0.8 rpm (Omega 0.0838 rad/s, R 0.7 m, rho 720): lambda = 2 at mu = 755 Pa s and lambda = 5 at 302 Pa s for A = 0.16 (A = 0.05: 74 and 30 Pa s)",
+    "units": "-",
+    "context": "Lubrication theory with A << 1; the drum has A about 0.1-0.25 of melt, so treat it as a regime map",
+    "source": "Ashmore J., Hosoi A.E., Stone H.A. (2003) J. Fluid Mech. 479:65-98",
+    "url": "https://www.princeton.edu/~stonelab/Publications/pdfs/From%20Howard/JFM/ashmore-hosoi-stoneJFM03.pdf",
+    "access": "full-text",
+    "evidence": "'Qualitatively different solutions have been reported ... 0 < λ ≲ 2 (fast rotation), 2 ≲ λ ≲ 5 (moderate rotation) and λ ≳ 5 (slow rotation)'; 'the solution always has the appearance of a pool of fluid lying in the bottom of the cylinder with a thin, almost uniform, film coating the sides and top ... film thickness scales as (µΩR)^1/2 A^−1/6 (ρg)^−1/2'; 'the flux q = 2/(3√λ) + O(A)'; 'a flat pool forms at the bottom of the cylinder'",
+    "confidence": "high (theory); medium (application to the drum)"
+   },
+   {
+    "parameter": "Rimming film thickness scale and maximum supportable load (Moffatt)",
+    "value": "h0 = sqrt(mu0 Omega r0/(rho g)) [TC]. [D] film on the wall outside the pool about (2/3) h0 at 0.8 rpm: 0.12 mm (3 mPa s), 0.21 mm (0.01 Pa s), 0.63 mm (0.1), 2.0 mm (1), 6.2 mm (10), 19.5 mm (100), 60 mm (1000 Pa s). [D] largest charge carried as a continuous film: mean thickness 0.731 h0, so A_max = 1.46 h0/R = 0.06 (100 Pa s), 0.19 (1000), 0.59 (1e4 Pa s). Shear thinning lowers the supportable load",
+    "units": "mm; -",
+    "context": "[D] uses the Newtonian flux h - h^3 sin(theta)/3 = 2/3, scaled by h0",
+    "source": "Arxiv 1509.05102 'Stability Analysis of Non-Newtonian Rimming Flow' (full text), citing Moffatt H.K. (1977) J. Mécanique 16:651 and Fomin et al.",
+    "url": "https://arxiv.org/abs/1509.05102",
+    "access": "full-text (Moffatt original not read)",
+    "evidence": "'Moffatt [10] first derived the value of the maximum amount of fluid a rotating cylinder can sustain. For masses above this critical value, gravitational forces overcome the cylinder's rotational drag and cause a fluid puddle to accumulate on the rising wall'; 'h0 = δr0 ... δ = √(μ0Ω/ρgr0)'; 'shear-thinning fluids described by the power-law, Ellis, and Carreau models lowered the maximal supportable load'",
+    "confidence": "high (scaling); medium (derived numbers)"
+   },
+   {
+    "parameter": "Pool surface inclination, pool geometry and contact time in the BLJ-3",
+    "value": "[D] Fill 0.16: pool half-angle 55.5 deg, depth 0.30 m, wetted arc 111 deg, wall contact time 23 s. Fill 0.05 / 0.10 / 0.25: 73 / 93 / 132 deg arc and 15 / 19 / 28 s. Surface tilt about atan(mu U/(rho g H^2)): <0.01 deg at 1 Pa s, 0.5 deg at 100 Pa s, about 5 deg at 1000 Pa s. Pool Reynolds number rho U H/mu = 12.5/mu, so laminar above about 0.01 Pa s and transitional at 3 mPa s",
+    "units": "deg; s; m",
+    "context": "Order-of-magnitude Stokes balance [D], consistent with the flat-pool result of Ashmore et al.",
+    "source": "Derived (calc/derive.py), using geometry from brief_tambor_batelada.md and Ashmore et al. 2003",
+    "url": "",
+    "access": "derived",
+    "evidence": "Ashmore 2003: 'Consequently the radius is large in comparison to the capillary length and a flat pool forms at the bottom of the cylinder.'",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Wall-to-melt heat transfer (pool, film and coat regimes)",
+    "value": "[D] Penetration h = 2k/sqrt(pi alpha t_c) with t_c = 23 s: 107-147 W/(m2 K) for k 0.12-0.20 W/(m K), alpha 0.7-1.0e-7 m2/s; thermal penetration depth 1.3-1.5 mm. Natural convection in the pool: about 160 W/(m2 K) (Ra about 2e10 at 3 mPa s) and about 50 W/(m2 K) at 0.1 Pa s. Film return path: Q = (2/3) Omega R h0 per m. At 1 Pa s the film (2.9 mm, diffusion time 83 s against 52 s out of the pool) carries about 5 kW/m at dT 50 K, about 36 W/(m2 K) over the non-pool arc. At 0.01 Pa s it carries about 1.2 kW/m. Coat regime (lambda < 2, about 58 mm uniform coat): conduction k/delta about 3-5 W/(m2 K), with time scale delta^2/alpha about 9 h",
+    "units": "W/(m2 K)",
+    "context": "For comparison, the granular-bed coefficient measured by Suzuki 2008 is 22-55 W/(m2 K) (brief). Vapour bubbling in the pool should raise h further [H]",
+    "source": "Derived (calc/derive.py)",
+    "url": "",
+    "access": "derived",
+    "evidence": "n/a (calculation)",
+    "confidence": "medium-low"
+   },
+   {
+    "parameter": "Settling and flotation of non-melting solids in the melt (Stokes) and soaking of char",
+    "value": "[D] v = drho g d^2/(18 mu). Sand 0.5 mm: 3e-4 / 0.027 / 2.7 mm/s at 1000 / 10 / 0.1 Pa s; at 5 mPa s about 55 mm/s (Re about 3). Sand 2 mm: 0.004 / 0.43 / 43 mm/s at 1000 / 10 / 0.1 Pa s. Shell or glass 10 mm: 0.1 mm/s at 1000 Pa s, about 10 mm/s at 10 Pa s; at 0.1 Pa s and below, Re > 50, so use non-Stokes drag (sinks through 0.3 m in under 1 s). Steel 10 mm: 0.39 / 39 mm/s at 1000 / 10 Pa s. Rubber 30 mm (1.15 g/cm3): 0.2 / 22 mm/s. Dry char 20 mm (0.35 g/cm3) rises 0.085 / 7.6 mm/s. Time for 0.5 mm sand to cross a 0.3 m pool: about 3 h at 10 Pa s, about 110 s at 0.1 Pa s. Washburn soak time for a 5 mm char/paper piece (pore 5 um, gamma 0.025 N/m): about 4 s / 400 s / 11 h at 0.01 / 1 / 100 Pa s",
+    "units": "mm/s; s",
+    "context": "Solids stay suspended in the fresh viscous melt and sediment onto the bottom wall once viscosity collapses below about 1 Pa s [D]",
+    "source": "Derived (calc/derive.py); densities [S]: quartz 2.65, calcite/aragonite 2.71-2.93, glass about 2.5, steel 7.85, tyre rubber about 1.15 g/cm3",
+    "url": "",
+    "access": "derived",
+    "evidence": "n/a",
+    "confidence": "medium (formula); low-medium (property inputs)"
+   },
+   {
+    "parameter": "Charcoal and biochar density (buoyancy of wood/paper char)",
+    "value": "Skeletal density > 1.0 g/cm3 and envelope density < 1.0 g/cm3; porosity approaching 80%. Pine wood at 900 C keeps 19% of its mass and 30% of its volume. [D] Envelope density about 0.63 of the initial wood density, i.e. about 0.3 g/cm3 for pine of about 0.5 g/cm3 [H]. [D] Dry char floats on a 0.62-0.70 g/cm3 melt. Melt-soaked char (skeletal about 1.5-2.0 with pores filled by melt) has about 1.0-1.1 g/cm3 and sinks",
+    "units": "g/cm3",
+    "context": "Masiello is an abstract; Ronewicz is a full-text study of pine cylinders heated to 25-900 C",
+    "source": "Masiello C.A. et al. (2012) EGU2012-830; Ronewicz K. et al. (2017) Drvna Industrija 68(1):29-36",
+    "url": "https://meetingorganizer.copernicus.org/EGU2012/EGU2012-830.pdf ; https://drvnaindustrija.com/site/assets/files/1843/drv_ind_vol_68_1_ronewicz.pdf",
+    "access": "abstract (Masiello); full-text (Ronewicz)",
+    "evidence": "Masiello: 'the skeletal density of charcoal is significantly greater than 1.0 g/cc, while the envelope density is significantly less than 1.0 g/cc'; Ronewicz: 'The final mass at 900 °C was 19 % of the initial mass of the pine wood cylinder samples, and the final volume at the same temperature was 30 %.'",
+    "confidence": "medium"
+   },
+   {
+    "parameter": "Coke and char fouling of hot walls in plastic pyrolysis vessels (qualitative industrial evidence)",
+    "value": "Melt-tank designers cap the wall skin temperature with thermal oil to avoid coke (melt tank about 232-250 C, exchanger about 325 C). Vendors fit 'triple anti-coking' and mechanical decoking to limit coking on the reactor inner wall. Chinese vendors cite 'low heat transfer efficiency and coking' as the known problem. Auger reactors add metal or ceramic spheres to avoid coke build-up. Inorganic additives cause char and fouling. The lab batch reactor for marine litter (wall 400±50 C) was cleaned after every 4 h cycle and gave 26 wt% solid residue. More coke and wax formed in hotter cracking runs (SABIC)",
+    "units": "-",
+    "context": "No quantitative deposition rate was found for batch drums",
+    "source": "Lummus Technology US 11,795,401 B2; Beston Group web page (vendor); Ma J., Zhong Q. (2018) Comparison of Chinese Pyrolysis Processes, Columbia/WTERT; Knauer K.M. et al., OSTI 1984227; Faussone G.C., Cecchi T. (2022) Sustainability 14:1235",
+    "url": "https://patents.google.com/patent/US11795401B2/en ; https://www.bestongroup.com/tyre-pyrolysis-plant/continuous/ ; https://wtert.org/wp-content/uploads/2019/07/Research-paper_MaZhong-May14.pdf ; https://www.osti.gov/servlets/purl/1984227 ; https://mdpi-res.com/d_attachment/sustainability/sustainability-14-01235/article_deploy/sustainability-14-01235-v2.pdf",
+    "access": "full-text (patent, review, paper); vendor (Beston, Ma & Zhong vendor quotes)",
+    "evidence": "Lummus: 'Use of the thermal fluid 330 limits the maximum skin temperature at any point in the melt tank, which may aid in minimizing or nullifying any coke formation'; Beston: 'They minimize coking on the inner wall of the reactor'; Ma & Zhong (Niutech): 'totally solving the problem of low heat transfer efficiency and coking'; Knauer: 'metal or ceramic spheres are added ... that help avoid coke build-up and improve the heat transfer'; Faussone: 'After every pyrolysis cycle, the reactor was cleaned and solid residues were removed.'",
+    "confidence": "high (that the problem exists); none (rates)"
+   },
+   {
+    "parameter": "Thermal conductivity of coke deposits",
+    "value": "Dense steam-cracking coke: 9.6 (ethane) and 8.7 (naphtha) W/(m K) at 1273 K, about 2-3x older values. [H] Porous char, carbon-black or sand crust in a plastic drum: 0.1-0.3 W/(m K). [D] A 1.2 mm crust per batch (10% of about 120 kg of solids spread over 24.6 m2 at 400 kg/m3) at k 0.15 gives R_f about 0.008 m2 K/W, about +30% on top of a bed resistance of 1/40 m2 K/W",
+    "units": "W/(m K); m2 K/W",
+    "context": "Run-length predictions are very sensitive to coke properties",
+    "source": "Geerts M. et al. (2020) Ind. Eng. Chem. Res. 59:22460 (abstract via OA.mg); deposit estimate [D/H]",
+    "url": "https://oa.mg/work/10.1021/acs.iecr.0c04727",
+    "access": "abstract",
+    "evidence": "'The measured thermal conductivity values for ethane and naphtha coke, that is, 9.6 and 8.7 W m–1 K–1 at 1273 K, respectively, are approximately twice and three times the values reported by Dente and co-workers.'",
+    "confidence": "high (steam-cracker coke); low (drum crust)"
+   },
+   {
+    "parameter": "Shear thinning of pyrolysed PP fractions (Tsuji laboratory)",
+    "value": "PP samples of lower MW made by pyrolysis (Mv 1.2e5-3.8e5) keep a non-Newtonian character at 260 C. d ln(fluidity)/d ln(stress) is 0.35-1.31 at 3e5 dyn/cm2 and rises with Mv and MWD breadth. Zero-shear viscosity follows about Mw^3.5",
+    "units": "-",
+    "context": "Capillary (Koka flow tester) at 240-280 C",
+    "source": "Kobayashi H., Kitamaru R., Tsuji W. (1965) The Viscous Flow of Molten Polypropylene, Bull. Inst. Chem. Res. Kyoto Univ., Table 5",
+    "url": "https://repository.kulib.kyoto-u.ac.jp/",
+    "access": "full-text",
+    "evidence": "'The samples of different molecular weights were obtained from Avison 1021 by pyrolysis'; 'the non-Newtonian character becomes larger with increasing of the viscosity average molecular weight'",
+    "confidence": "medium (qualitative)"
+   }
+  ],
+  "equations": [
+   {
+    "name": "Scission clock (random C-C scission) and Mn",
+    "expression": "Lambda(t) = ∫ k_b(T) dt ; k_b = 2.9e-6 s^-1 * exp[-(240 kJ/mol / R)(1/T - 1/688.15 K)] ; 1/Mn(t) = 1/Mn0 + Lambda/0.01403 kg/mol ; Mw = PDI*Mn with PDI about 2.5-3.5 (D'Amato) and 2 ideal",
+    "source": "[D] fitted to D'Amato 2012 Tables 4.2 and 4.8; checked against Eastman US12668677 (340 C, 3 h: predicted Mn 17.5k, measured 18.7k)",
+    "validity": "PE/PP melts at 340-450 C under N2. PP is about 20 K faster [H]. Does not include O2 crosslinking (Radhakrishnan)",
+    "variables": "k_b per-bond scission constant; Lambda broken-bond fraction; Mn0 initial number-average MW (kg/mol)"
+   },
+   {
+    "name": "Two-branch zero-shear viscosity eta0(T, Mw)",
+    "expression": "eta0 = max(eta_ent, eta_wax) * f_susp ; eta_ent = C_i * 3.4e-15 * Mw^3.6 * exp[(Ea_i/R)(1/T - 1/463.15)] (Mw in g/mol, Pa s) ; eta_wax = 15.6e-3 Pa s * (Mn/1000)^1.88 * exp[(Ea_w/R)(1/T - 1/422.15)] ; blend: ln eta = sum w_i ln eta_i",
+    "source": "Raju-type law (design brief [U]); POLYWAX datasheet fit [D]; Ea from Idemitsu US5747620, Drozdov 2003, TN1493",
+    "validity": "C_PE = 1 for virgin HDPE; 0.2-0.6 for waste PO blends (Eastman, at 10 rad/s). Ea: HDPE 25-27, LDPE 50 (falls to 27 once LCB is cut), PP 40-44, PS 55-65 (degraded), PET 65, wax Ea_w 20-25 kJ/mol [H]. Crossover Mw about 9 kg/mol at 400 C",
+    "variables": "Mw, Mn (g/mol); T (K); C_i calibration factor; f_susp suspension factor"
+   },
+   {
+    "name": "Residue MW vs mass-loss conversion (random scission, volatiles below N*)",
+    "expression": "(1+x) e^{-x} = 1 - alpha ; Mn_res = N*(1 + 1/x) ; Mw_res = N*(x^2 + 2x + 2)/(x(x+1)) ; x = p N*",
+    "source": "[D] most-probable distribution truncated at the volatility limit N*",
+    "validity": "Use when only alpha is tracked (RS-L2). N* about 420-560 g/mol (C30-C40) at 410-430 C [H]. alpha 0.05 gives Mw about 2.5-3.3 kg/mol; alpha 0.5 gives about 0.8-1.0 kg/mol",
+    "variables": "alpha mass-loss conversion; N* volatile cut (g/mol)"
+   },
+   {
+    "name": "Cross model for fresh melt and films",
+    "expression": "eta = eta0 / [1 + (eta0*gamma_dot/tau*)^(1-n)] ; Cross-WLF eta0 = D1 exp[-A1 (T - D2)/(A2 + T - D2)]",
+    "source": "Ferrándiz et al. 2011 (rPP: n 0.275, tau* 38,004 Pa, D1 2.23e12 Pa s, D2 263.15 K, A1 26.36, A2 51.6 K)",
+    "validity": "Only where eta0*gamma_dot > tau* (fresh melt, eta0 > about 1e3 Pa s, and films with gamma_dot about U/h = 2-20 1/s). Pool gamma_dot about 0.2 1/s, so Newtonian. Cross-WLF only up to about 300 C",
+    "variables": "gamma_dot shear rate; n power index; tau* transition stress"
+   },
+   {
+    "name": "Suspension viscosity (inert solids, char fines)",
+    "expression": "eta_r = (1 - phi/phi_m)^(-2.5 phi_m), phi_m about 0.6",
+    "source": "Krieger & Dougherty (1959) Trans. Soc. Rheol. 3:137 (standard; not re-read here)",
+    "validity": "phi < about 0.5; applies while the fines stay suspended (eta > about 10 Pa s)",
+    "variables": "phi solids volume fraction"
+   },
+   {
+    "name": "Melt density (Tait at zero pressure)",
+    "expression": "rho(T) = 1/[b1m + b2m (T - b5)]",
+    "source": "Padilha Jr et al. 2015",
+    "validity": "LPE 1.2532, 9.57e-4, 405.47 K; iPP 1.3082, 1.0e-3, 452.86 K; PS 0.9767, 5.06e-4, 370.86 K. Linear extrapolation above the data range",
+    "variables": "T (K); v in cm3/g"
+   },
+   {
+    "name": "Rimming/pool regime parameter and film thickness",
+    "expression": "lambda = A^2 rho g R/(mu Omega) ; h0 = sqrt(mu Omega R/(rho g)) ; film outside pool: h_film ≈ (2/3) h0 ; film flux Q = (2/3) Omega R h0 (m2/s per m of drum) ; largest coat fill A_max = 1.46 h0/R",
+    "source": "Ashmore, Hosoi & Stone 2003; arXiv 1509.05102 (Moffatt scaling); [D] integral",
+    "validity": "lambda < 2: uniform co-rotating coat. lambda > 5: horizontal pool plus thin film (needs mu Omega R/(A gamma) >> 1; otherwise LLD capillary film)",
+    "variables": "A melt filling fraction; R drum radius; Omega rad/s; mu Pa s"
+   },
+   {
+    "name": "Pool tilt (order of magnitude)",
+    "expression": "tan(beta) ≈ mu U/(rho g H^2), U = Omega R, H = R(1 - cos epsilon)",
+    "source": "[D] Stokes pressure-gradient balance",
+    "validity": "Creeping pool (Re < 1). Below about 100 Pa s the tilt is < 0.5 deg, i.e. horizontal",
+    "variables": "epsilon pool half-angle from (2 epsilon - sin 2 epsilon)/(2 pi) = A"
+   },
+   {
+    "name": "Wall to pool penetration heat transfer",
+    "expression": "h_pen = 2k/sqrt(pi alpha t_c), t_c = 2 epsilon/Omega ; 1/h_wall = 1/h_pen + R_coke ; film path q_film = rho cp Q (T_film - T_pool) f, f = 1 - exp(-pi^2 alpha t_exp/(4 h_film^2)) (approx.)",
+    "source": "[D] penetration theory with liquid properties",
+    "validity": "Pool regime. Natural convection and vapour bubbling can raise h_pen by about 1-2x [H]",
+    "variables": "k, alpha melt conductivity and diffusivity; t_exp = (2 pi - 2 epsilon)/Omega"
+   },
+   {
+    "name": "Particle settling and capillary soaking",
+    "expression": "v_s = (rho_p - rho_l) g d^2/(18 mu) for Re < 1 ; otherwise C_D = 24/Re (1 + 0.15 Re^0.687) ; Washburn t_soak = 2 mu L^2/(gamma r cos theta)",
+    "source": "Standard (Stokes; Schiller-Naumann; Washburn) [D]",
+    "validity": "Non-Newtonian yield effects neglected",
+    "variables": "d particle size; L soak depth; r pore radius; gamma melt surface tension (about 0.025 N/m [H])"
+   },
+   {
+    "name": "Coke layer resistance",
+    "expression": "R_f = delta_c/k_c ; d(delta_c)/dt = (m_dot_sed + m_dot_film_coke)/(rho_c A_wall)",
+    "source": "[H] (k_c 0.1-0.3 W/(m K) porous crust; 8.7-9.6 dense coke, Geerts 2020)",
+    "validity": "Sensitivity study only; no measured rates",
+    "variables": "delta_c thickness; rho_c about 300-600 kg/m3 [H]"
+   }
+  ],
+  "parameter_table": "| Quantity | Recommended value / model | Range / notes | Tag | Main source |\n|---|---|---|---|---|\n| Per-bond scission constant k_b(T) | 2.9e-6 1/s at 415 C, E = 240 kJ/mol | 380 C: 2.3-4.0e-7; 400 C: 1.1e-6; 420 C: 3.9e-6; 440 C: 1.3e-5 | D | D'Amato 2012 |\n| Time for Mn 30k to 5k / 1.5k | 2.1 / 8.1 h at 380 C; 0.57 / 2.2 h at 400 C; 0.17 / 0.63 h at 420 C | Viscosity collapse happens before mass loss | D | model.py |\n| eta0 entangled branch (PE) | C x 3.4e-15 Mw^3.6 exp[Ea/R(1/T - 1/463 K)], Ea 25-27 kJ/mol | C = 1 virgin; 0.2-0.6 waste PO (Eastman) | U/D | Raju via brief; Eastman |\n| eta0 PP fresh | Cross-WLF: n 0.275, tau* 3.8e4 Pa, D1 2.23e12 Pa s, D2 263.15 K, A1 26.36, A2 51.6 K; Ea 39-44 kJ/mol | 1440 / 843 / 342 Pa s at 200 / 230 / 300 C | TC/D | Ferrándiz 2011; Drozdov 2003 |\n| eta PS | Virgin 1.5e4 (200 C) to 110 Pa s (320 C); degraded melt about 40 (340 C), 4 (390 C), 1 (425 C); Ea 53-65 kJ/mol | Apparent Ea of virgin PS about 96-102 kJ/mol (WLF) | TC-fig/D | NIST TN1493 |\n| eta PET | About 1000 Pa s virgin at 280-300 C; Ea 65 kJ/mol; hydrolysis in a wet feed → much lower [H] | Unstable > 320 C; degradation onset 380-420 C | TC/abstract | Cusano 2023; Härth 2015 |\n| eta wax branch | 15.6 mPa s (Mn/1000)^1.88 at 149 C; Ea_w 20-25 kJ/mol | POLYWAX 655-3000: 7-130 cP at 149 C | TC/D/H | POLYWAX datasheet |\n| Branch crossover | Mw about 9 kg/mol at 400 C | 7.5-10 kg/mol | D | model.py |\n| Degraded PP melt at its formation T | 1.0 Pa s (373 C), 0.15 (415 C), 0.04 (400 C), 0.011 (425 C) | ×2-3 uncertainty | TC-fig | NIST TN1493 |\n| Stirred-tank waste-PO melt, 340 C, read at 350 C and 10 rad/s | 206 → 97 → 49 → 28 Pa s at 0.25 / 1 / 2 / 3 h; 0.12 Pa s at Mw 12.6k | | TC | Eastman US12668677 |\n| Pool viscosity in main pyrolysis (alpha 0.05-0.8, 410-430 C) | Central 3 mPa s | 0.4-9 mPa s (N* 420-560 g/mol) | D | model.py; design brief |\n| Melt density, Tait P→0 (g/cm3) | LPE 0.759 / 0.707 / 0.663 / 0.642 at 200 / 300 / 400 / 450 C | iPP 0.753 / 0.700 / 0.654 / 0.634; PS 0.972 / 0.927 / 0.885 / 0.866 | D (extrapolated) | Padilha 2015 |\n| PET melt density | 1.15-1.16 g/cm3 near 280 C | About 1.08 at 400 C [H] | S/H | PETplanet |\n| Pool liquid density (wax and oil, 400-430 C) | 0.62 g/cm3 | 0.58-0.66; n-C12 at 290 C is 0.519 | H | NIST Webbook anchor |\n| Regime parameter | lambda = A^2 rho g R/(mu Omega) | Coat if lambda < 2; pool + film if lambda > 5 | TC | Ashmore 2003 |\n| Critical melt viscosity (0.8 rpm, R 0.7 m) | A = 0.16: coat above 755 Pa s, pool below 302 Pa s | A = 0.05: 74 / 30 Pa s; A = 0.25: 1844 / 738 Pa s | D | derive.py |\n| Pool surface angle | Horizontal (0 deg) for mu < 100 Pa s | 0.5 deg at 100 Pa s; about 5 deg at 1000 Pa s; above that, the granular charge angle governs | D | Ashmore (flat pool); derive.py |\n| Pool geometry at fill 0.16 | Half-angle 55.5 deg, depth 0.30 m, wetted arc 111 deg, contact time 23 s | Fill 0.05 / 0.10 / 0.25: 15 / 19 / 28 s | D | derive.py |\n| Film on wall outside pool | (2/3) sqrt(mu Omega R/(rho g)) | 0.12 mm (3 mPa s), 0.21 (0.01 Pa s), 0.63 (0.1), 2.0 (1), 6.2 (10), 19.5 mm (100 Pa s) | D | Ashmore; Moffatt |\n| Largest fill carried as continuous coat | A_max = 1.46 h0/R | 0.06 (100 Pa s), 0.19 (1000), 0.59 (1e4 Pa s) | D | derive.py |\n| Wall-to-pool h | 120 W/(m2 K) | Penetration 107-147; natural convection 50-160; bubbling higher | D | derive.py |\n| Wall-to-coat h (lambda < 2) | 3-5 W/(m2 K) (conduction through a 50-60 mm coat) | Time scale about 9 h | D/H | derive.py |\n| Film return heat path | About 5 kW per m of drum at 1 Pa s, dT 50 K (about 36 W/(m2 K) over the non-pool arc) | About 1.2 kW/m at 0.01 Pa s | D | derive.py |\n| Shear rates in the drum | Pool about 0.2 1/s; film 2-200 1/s | Cross thinning only for fresh melt | D | |\n| Settling (Stokes) | 0.5 mm sand: 0.027 mm/s (10 Pa s), 2.7 mm/s (0.1 Pa s); 10 mm shell: 0.1 mm/s (1000 Pa s), 10 mm/s (10 Pa s) | Solids stay suspended until mu < about 1 Pa s, then sediment onto the bottom wall | D | derive.py |\n| Char buoyancy | Dry envelope density 0.3-0.5 g/cm3 (floats); soaked about 1.0-1.1 (sinks) | Soak time for 5 mm: 4 s / 400 s / 11 h at 0.01 / 1 / 100 Pa s | D/abstract | Masiello 2012; Ronewicz 2017 |\n| Coke/char crust conductivity | 0.15 W/(m K) | 0.1-0.3 for porous crust [H]; 8.7-9.6 for dense coke at 1273 K | H/abstract | Geerts 2020 |\n| Crust growth | About 1 mm per batch [H] | R_f about 0.008 m2 K/W per batch; accumulates if the drum is not decoked | H/D | derive (text) |",
+  "recommendations": "1. Replace any temperature-only melt viscosity with eta0(T, Mw) plus a scission clock. Track Lambda = ∫k_b(T)dt per bed slice, with k_b = 2.9e-6 1/s at 415 C and E = 240 kJ/mol (fitted to D'Amato; it reproduces Eastman's Mn after 3 h at 340 C). Then Mn = 1/(1/Mn0 + Lambda/0.01403) and Mw = 2.5-3·Mn. Use eta0 = max(C·3.4e-15·Mw^3.6·aT, 15.6 mPa s·(Mn/1000)^1.88·aT_w).\n   - Ea: 27 kJ/mol for HDPE; 50 kJ/mol for LDPE until Mw < 20k; 40-44 for PP; 55-65 for degraded PS; 65 for PET; 20-25 for the wax branch.\n   - C: 1 for virgin resin, 0.3-0.5 for waste polyolefin.\n   - Initial Mw: about 150k (HDPE), 300k (PP), 100-250k (PS); for PET, take Mw0 about 30k and halve it if wet [H].\n   - The RS-L2 mass-loss model can stay as is. The key effect it misses: viscosity collapses from 1e2-1e4 to about 1e-2 Pa s at 360-410 C, before significant mass loss (α < 5%). The timing depends on the heating history, not on temperature alone; at 10 K/min it collapses only at 450-500 C (Radhakrishnan).\n   - If only α is available, map it to residue Mw with the truncated most-probable relation (N* about 420-560 g/mol).\n2. Use the pool-viscosity values as defaults: 3 mPa s central (0.4-9) for α 0.05-0.8 at 410-430 C. Use 0.01-1 Pa s for melts just past the collapse (TN1493 PP: 0.011-1 Pa s at 373-425 C).\n3. Choose the flow regime with lambda = A²ρgR/(μΩ), computed with the suspension-corrected viscosity (Krieger–Dougherty).\n   - For the BLJ-3 at 0.8 rpm and melt fill 0.16: above about 750 Pa s, treat the melt plus fines as a co-rotating coat (thickness about R(1−sqrt(1−A)) ≈ 58 mm). Heat transfer is then conduction-limited (3-5 W/m²K). This is the 'sticky' stage at about 200-330 C, when unmelted pieces are glued to the wall and lifters mainly scoop solids.\n   - Below about 300 Pa s, use a horizontal pool (0° tilt; tilt < 0.5° below 100 Pa s) occupying arc 2ε from (2ε − sin2ε)/2π = A. Cover the rest of the circumference with a film of thickness (2/3)·sqrt(μΩR/(ρg)): about 2 mm at 1 Pa s and 0.1-0.2 mm at 3-10 mPa s.\n   - Interpolate between λ = 2 and 5. In the DEM, give the pool surface as a horizontal plane at the computed level, and represent lifters as scooping liquid volume = lifter cross-section × L per pass [H].\n   - Shear thinning matters only for fresh melt and films (Cross: n ≈ 0.28-0.35, τ* ≈ 2-4e4 Pa). The pool is Newtonian.\n4. Wall heat transfer for a molten charge:\n   - Pool contact (wetted arc 2ε, t_c = 2ε/Ω ≈ 23 s): use h_pen = 2k/sqrt(πα t_c) with liquid properties (k 0.12-0.20 W/mK, ρ 600-760, cp 2.6-2.9 kJ/kgK), giving about 110-150 W/m²K. Add a bubbling/natural-convection enhancement factor of 1-1.5 [H].\n   - Non-pool arc: add the film path q = ρ cp Q f (T_w − T_pool), with Q = (2/3)ΩR h0 per metre. It can rival the pool path at μ ≈ 1 Pa s.\n   - Expect the bed-side coefficient to rise from the 22-55 W/m²K of granular beds (Suzuki) to about 100-150 W/m²K once a low-viscosity pool exists. Before that, expect a heat-transfer dip in the coat stage.\n5. Solids immersed in the melt:\n   - Inerts (sand, shells, glass, metal) and rubber stay suspended while μ > about 10 Pa s. Once μ < 1 Pa s they settle onto the bottom wall within seconds to minutes, forming a sediment under the pool on the hottest wall.\n   - Dry char floats (envelope 0.3-0.5 g/cm³) until melt soaks in (Washburn time: seconds at 0.01 Pa s, hours at 100 Pa s), then sinks (about 1.0-1.1 g/cm³).\n   - PET (about 1.15 g/cm³) and PS (about 0.89-0.93) melts are denser than and immiscible with the polyolefin melt (0.63-0.70) and stratify toward the wall. PVC and PET char forms there.\n   - Model these as a sediment/crust state variable rather than DEM spheres once μ < 1 Pa s.\n6. Coke/fouling:\n   - Add a wall-deposit layer per sector with R_f = δ/k_c (k_c = 0.15 W/mK base; sensitivity 0.1-0.3, with 8.7-9.6 as an upper bound for dense coke).\n   - Feed it from: (i) the settled solids fraction under the pool; (ii) coke from dry-out of the thin film on the wall outside the pool, when the wall exceeds about 450 C and the film is < 0.3 mm [H]; (iii) PET and PVC char.\n   - Run sensitivity cases of 0.5-2 mm per batch with and without per-batch decoking. Report the hot-spot shell temperature rise and the batch-time penalty.\n   - For the furnace-side coupling: the deposit sits mostly in the pool arc at the bottom, which is also the flame-impingement zone, so the hot-spot risk compounds.\n7. Melt density in the bed model: use Tait linear extrapolation (LPE 0.663, iPP 0.654, PS 0.885 at 400 C), then blend toward 0.62 g/cm³ as the liquid becomes wax and oil. Use this for the bed volume collapse loose → dense and for the pool level.",
+  "gaps": "1. No source measures the viscosity of a degrading PE/PP melt inside a batch or rotary pyrolysis vessel at 380-450 C. The values come from captured melts (NIST TN1493), stirred-tank liquefaction at 340 C (Eastman), Mn histories at 380/415 C (D'Amato) and model closure. Japanese stirred-tank papers (Murata, Kodera, Ishihara) were not reachable: OpenAlex quota exhausted, Semantic Scholar rate-limited, ACS/Elsevier blocked. Sezgi et al. 1998 (IECR 37:2582; PE melt pyrolysis at 370-410 C with MWD) was identified, but its abstract is elided.\n2. Moffatt (1977), Deiber & Cerro (1976), Ridgway & Tarbuck (1967), Thoroddsen & Mahadevan (1997) and Olitskii et al. (1993) were not readable (Springer challenge page, ACS/Elsevier 403). Regimes and scalings come from Ashmore et al. 2003 and arXiv 1509.05102, which summarise them. The value 0.731 for the mean critical film and A_max = 1.46 h0/R are my integrals, not Moffatt's published constant.\n3. No open correlation was found for wall-to-liquid heat transfer in a partially filled rotating drum at low Re. The penetration and natural-convection values are derived.\n4. Wax/oil liquid density and viscosity at 400-450 C (C25-C60) were not found in full text. NIST Webbook lacks C16+. Values are [H] anchored on POLYWAX at 149 C and n-C12.\n5. PET melt density is secondary (trade magazine). Its value at 400 C and the behaviour of wet PET (hydrolysis kinetics in a drum) were not quantified.\n6. The 430 Pa s rPET value at 280 C (TA Instruments note) could not be opened (403) and was not used.\n7. Envelope density of wood/paper char at 400-500 C was not obtained in full text (Masiello abstract only; the Czech biochar study is restricted). Tyre-rubber behaviour in hot melt (swelling, oil uptake) has no source here.\n8. No quantitative coke/char deposition rate or crust conductivity was found for batch plastic or tyre drums; only qualitative vendor and patent evidence. Steam-cracker coke conductivity is an abstract-level upper bound.\n9. The PE η0–Mw prefactor 3.4e-15 (Raju 1979) remains [U]: not read in the original. Industrial patents use 2.29e-15·Mw^3.65 (search-result level only).\n10. The crosslinking rise of viscosity at 300-400 C (Radhakrishnan) conflicts with the monotonic Mn decay in N2-purged kettles (D'Amato, Eastman). Its relevance depends on residual O2 in the drum after loading."
+ }
+]

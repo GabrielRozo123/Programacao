@@ -41,7 +41,7 @@ Uma batelada inteira de **lixo marinho misto** (o resíduo pós-consumo que a UF
 
 **Antes de rodar:** *Ambiente de execução → Alterar o tipo de ambiente de execução → GPU T4*. Sem GPU use o preset `teste`.
 
-Hipóteses, equações e referências: `docs/brief_tambor_batelada.md` e `docs/pesquisa/` no repositório.
+Hipóteses, equações e referências: `docs/brief_tambor_batelada.md`, `docs/brief_mudanca_de_fase.md` e `docs/pesquisa/` no repositório.
 """
 
 SETUP = r"""

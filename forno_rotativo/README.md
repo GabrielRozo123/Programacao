@@ -80,12 +80,12 @@ O DEM percorre a batelada inteira com o relógio comprimido: algumas voltas repr
 | Material | O que acontece com o pedaço |
 |---|---|
 | Plásticos que fundem (PE, PP, PS, PET) | A fração fundida f_m(T) sai da faixa de fusão de cada polímero, com ±8 K de dispersão entre pedaços. O volume aparente desaba do solto para o denso (o isopor primeiro, ~1,2 h). O pedaço fica pegajoso (coesão crescente com f_m). Com f_m ≥ 0,85 ele sai do DEM e entra numa **poça de fundido**. |
-| Poça | Massa por polímero, com empuxo e arrasto de Stokes sobre os pedaços imersos. A viscosidade η(T, conversão) segue a cisão aleatória (M_n cai com a conversão, η ∝ M_n^3,4, com piso de cera): ~10³ Pa·s logo após a fusão, ~10⁻³ Pa·s depois do craqueamento. |
+| Poça | Massa por polímero, com empuxo e arrasto de Stokes sobre os pedaços imersos. A viscosidade η(T, conversão) segue a cisão aleatória (M_n cai com a conversão, η ∝ M_n^3,4, com piso de cera): ~10³ Pa·s logo após a fusão, ~3 mPa·s depois do craqueamento. A superfície inclina com a viscosidade, ~atan(μΩR/ρgH²): o fundido viscoso sobe com a parede, e o craqueado fica plano no fundo. |
 | Carvão | Grânulos nascem na poça conforme o rendimento de carvão de cada polímero. |
 | Papel e madeira, borracha, PVC | Não fundem: encolhem e escurecem até o carvão (rendimento e retração por material). |
 | Areia e conchas | Inertes. |
 
-A sequência que sai do modelo: o isopor desaba (~1,2 h), a poça se forma (2,2–2,6 h, η ~10³ Pa·s), o craqueamento afina o fundido (~3,6 h), e no fim sobram carvão e areia (~6 h). O PET é o último sólido a fundir.
+A sequência que sai do modelo: o isopor desaba (~1,2 h), a poça se forma (2,2–2,6 h, η ~10³ Pa·s, inclinada no lado que sobe), o craqueamento afina o fundido e a poça se aplaina (~3 h), e no fim sobram carvão e areia (~6 h). O PET é o último sólido a fundir. As fontes estão em `docs/brief_mudanca_de_fase.md`.
 
 A batelada também registra a **taxa de reação de cada componente** em kg/h (uma DTG no tempo da batelada). A ordem dos picos: água ~100 °C → PVC 263 → celulósicos 342 → borracha 359 → PS 381 → PET 385 → PP 393 → PE 406 °C.
 
@@ -116,6 +116,7 @@ Na rodada de referência (preset `teste`), **29 de 29** verificações ficam den
 | `tamborkit/` | Pacote: carga e cinética, batelada, fornalha (zonas e LES), DEM, validação, cena, time-lapse e vídeo |
 | `video_roteiro.json` | Textos do vídeo (editáveis), com campos `{...}` preenchidos pela rodada |
 | `docs/brief_tambor_batelada.md` | Base de projeto (pesquisa sintetizada); `docs/pesquisa/` traz os resultados brutos com fontes |
+| `docs/brief_mudanca_de_fase.md` | Base do DEM com mudança de fase: fusão, pegajosidade, poça, viscosidade do fundido e carvão, com fontes |
 | `tests/` | Testes (`pytest -q`, 10 testes, ~2 min em CPU) |
 | `build_notebook.py` | Regenera o notebook e `scripts/rodar_local.py` |
 
