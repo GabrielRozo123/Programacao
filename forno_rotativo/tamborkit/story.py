@@ -65,14 +65,20 @@ def render_dem_segment(drum, dem: dict, path, seconds=9.0, fps=30, size=(1920, 1
         if st:
             lines = [f"ângulo dinâmico do leito: {st['beta_deg']:.0f}°",
                      f"parede coberta pela carga: {100 * st['covered_frac']:.0f} % do perímetro",
-                     f"cada ponto do casco passa {st['passive_contact_s'] * dem['rpm'] / 0.8:.0f} s sob a carga por volta",
-                     f"em queda nas cortinas: {100 * st['airborne_frac']:.1f} % dos pedaços",
-                     f"mistura (índice de Lacey) no trecho mostrado: {dem.get('lacey', float('nan')):.2f}"]
-        for i, ln in enumerate(lines):
-            d.text((int(1090 * s), int(470 * s) + i * int(44 * s)), br(ln), font=_font(int(25 * s)), fill=(240, 240, 240))
+                     f"cada ponto do casco passa {st['passive_contact_s'] * dem['rpm'] / drum.rpm:.0f} s sob a carga "
+                     f"por volta",
+                     f"em queda nas cortinas: {100 * st['airborne_frac']:.1f} % dos pedaços"]
+            if np.isfinite(dem.get("lacey", float("nan"))):
+                lines.append(f"mistura (índice de Lacey) no trecho mostrado: {dem['lacey']:.2f}")
+        y = max(y + int(24 * s), int(470 * s))
+        for ln in lines:
+            d.text((int(1090 * s), y), br(ln), font=_font(int(25 * s)), fill=(240, 240, 240))
+            y += int(44 * s)
         if speed_label:
-            for i, ln in enumerate(_wrap(d, br(speed_label), _font(int(20 * s)), int(780 * s))):
-                d.text((int(1090 * s), int(740 * s) + i * int(26 * s)), ln, font=_font(int(20 * s)), fill=(170, 175, 185))
+            y += int(20 * s)
+            for ln in _wrap(d, br(speed_label), _font(int(20 * s)), int(780 * s)):
+                d.text((int(1090 * s), y), ln, font=_font(int(20 * s)), fill=(170, 175, 185))
+                y += int(26 * s)
         if caps:
             txt, a = _caption_alpha(caps, k / fps)
             draw_lower_third(canvas, txt, a, s * 0.85, y_bottom=int(1030 * s), max_w=int(760 * s), x0=int(1070 * s))
