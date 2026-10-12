@@ -350,13 +350,22 @@ class PhaseDEM(DrumDEM):
         eps, beta = self.pool["eps"], self.pool["beta"]
         nrm = np.array([-math.sin(beta), math.cos(beta)])
         d_surf = -R * math.cos(eps)
-        pts = []
-        while len(pts) < n:
-            y, z = gen.uniform(-R, R, 2)
-            dd = y * nrm[0] + z * nrm[1]
-            if math.hypot(y, z) < R - pc.char_d and d_surf - 0.25 * R * (1 - math.cos(eps)) < dd < d_surf - 0.5 * pc.char_d:
-                pts.append((gen.uniform(0, pc.slab), y, z))
-        P = torch.as_tensor(np.array(pts), dtype=self.ft, device=self.dev)
+        band = max(0.25 * R * (1 - math.cos(eps)), 1.5 * pc.char_d)
+        pts = np.zeros((0, 2))
+        for _ in range(50):                        # logo abaixo da superfície da poça
+            c = gen.uniform(-R, R, (8 * n, 2))
+            dd = c @ nrm
+            ok = (np.hypot(c[:, 0], c[:, 1]) < R - pc.char_d) & (dd > d_surf - band) & (dd < d_surf - 0.5 * pc.char_d)
+            pts = np.vstack([pts, c[ok]])[:n]
+            if len(pts) >= n:
+                break
+        if len(pts) < n:                           # poça rasa demais: no fundo do tambor
+            m = n - len(pts)
+            y = gen.uniform(-0.4 * R, 0.4 * R, m)
+            z = -np.sqrt((R - pc.char_d) ** 2 - y ** 2) + 0.6 * pc.char_d * gen.uniform(0, 1, m)
+            pts = np.vstack([pts, np.c_[y, z]])
+        pts = np.c_[gen.uniform(0, pc.slab, n), pts]
+        P = torch.as_tensor(pts, dtype=self.ft, device=self.dev)
         self.x[idx] = P
         Om = self.omega * pc.flow_frac
         self.v[idx] = torch.stack([torch.zeros(n, device=self.dev), -Om * P[:, 2], Om * P[:, 1]], -1)

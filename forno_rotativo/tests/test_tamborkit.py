@@ -106,7 +106,7 @@ def test_phase_dem_short():
     from tamborkit.batch import BatchDrum, BatchConfig
     from tamborkit.phasedem import PhaseDEM, PhaseConfig, melt_viscosity
     dr = Drum(R=0.70, L=4.9, rpm=0.8, n_lifters=6, lifter_h=0.12, lifter_t=0.012)
-    b = BatchDrum(dr, fd.Charge(mass=1000.0, fill=0.65), cfg=BatchConfig(t_max_h=10))
+    b = BatchDrum(dr, fd.Charge(mass=1000.0, fill=0.65), cfg=BatchConfig(t_max_h=10, nx=3, dt=4.0))   # grosso: rápido
     b.run(verbose=False)
     pd = PhaseDEM(dr, fd.Charge(mass=1000.0, fill=0.65), b.log,
                   PhaseConfig(slab=0.5, rpm=3.0, n_rev=0.08, pre_rev=0.01, frames=8, pre_frames=2,
@@ -117,7 +117,8 @@ def test_phase_dem_short():
         pd.update_state(t_h * 3600)
         pd.step(20)
     assert int(pd.active.sum()) < n0                    # fundidos saíram do DEM para a poça
-    m_bed = b.log[-1]["carga_kg"] * pd.pc.slab / dr.L
+    t_log = np.array([r["t_h"] for r in b.log])
+    m_bed = float(np.interp(6.0, t_log, [r["carga_kg"] for r in b.log])) * pd.pc.slab / dr.L
     m_dem = float(pd.m[pd.active > 0].sum()) + pd.pool.get("mass", 0.0)
     assert abs(m_dem - m_bed) / m_bed < 0.1
     assert melt_viscosity(473.15, 0.0) > 100 and melt_viscosity(693.15, 0.3) < 0.1
