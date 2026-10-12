@@ -155,7 +155,7 @@ pdem = PhaseDEM(drum, charge, b_rot.log, PhaseConfig(slab=P["dem_slab"], rpm=P["
                                                     contact_time=P["dem_tc"]))
 print(pdem.describe())
 recs = pdem.run_batch()
-st_pre = pdem.stats().as_dict()
+st_pre = pdem.pre_stats.as_dict()     # medidas no trecho frio, com a carga solta
 fase = dict(recs=recs, label=pdem.label.cpu().numpy(), names=NAMES)
 # trecho frio (antes do relógio da batelada): lixo solto girando com as aletas, para o segmento "dentro do tambor"
 pre = pdem.pre_records

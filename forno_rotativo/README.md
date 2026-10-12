@@ -100,7 +100,7 @@ A batelada também registra a **taxa de reação de cada componente** em kg/h (u
 
 ## Validação
 
-Na rodada de referência (preset `teste`), **29 de 29** verificações ficam dentro do alvo.
+Na rodada de referência (preset `teste`), **34 de 34** verificações ficam dentro do alvo.
 
 | Nível | Verificações |
 |---|---|

@@ -56,7 +56,8 @@ class PhaseConfig:
     slab: float = 0.5                # comprimento da fatia periódica [m]
     rpm: float = 3.0                 # rotação simulada (regime de rolamento; o real é 0,8 rpm)
     n_rev: float = 5.0               # voltas do DEM para a batelada inteira (relógio comprimido)
-    pre_rev: float = 1.0 / 3.0       # voltas frias antes de ligar o relógio (segmento "dentro do tambor")
+    pre_rev: float = 1.0             # voltas frias antes de ligar o relógio (segmento "dentro do tambor");
+                                     # a validação do DEM (ângulo, arco coberto) usa a 2ª metade
     contact_time: float = 6.0e-3     # duração do contato [s] (rigidez proporcional à massa)
     d_spread: float = 0.25
     phi_pack: float = 0.58
@@ -408,7 +409,11 @@ class PhaseDEM(DrumDEM):
         self.spin_up(pc.rpm)
         T_rev = 60.0 / pc.rpm
         t_pre = pc.pre_rev * T_rev
-        self.run(t_pre, frame_dt=t_pre / pc.pre_frames, on_frame=lambda d: self.pre_records.append(d.frame_state()))
+        rec = lambda d: self.pre_records.append(d.frame_state())  # noqa: E731
+        self.run(t_pre / 2, frame_dt=t_pre / pc.pre_frames, on_frame=rec)    # o leito desenvolve o ângulo
+        self.reset_stats()
+        self.run(t_pre / 2, frame_dt=t_pre / pc.pre_frames, on_frame=rec)
+        self.pre_stats = self.stats()              # carga solta (ângulo, arco coberto, contato): validação do DEM
         self.reset_stats()
         T_run = pc.n_rev * T_rev
         n_upd = max(int(round(pc.upd_dt / self.dt)), 1)

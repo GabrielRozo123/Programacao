@@ -456,6 +456,7 @@ class DrumDEM:
         dr = self.drum
         rho = np.hypot(x[:, 1], x[:, 2])
         inner = rho < dr.R - dr.lifter_h - self.d_max if dr.n_lifters else rho < dr.R
+        inner &= self.active.cpu().numpy() > 0              # partículas reservadas (inativas) não contam
         y, z = x[inner, 1], x[inner, 2]
         edges = np.linspace(-dr.R, dr.R, 41)
         k = np.digitize(y, edges)
