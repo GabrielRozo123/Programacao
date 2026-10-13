@@ -12,7 +12,7 @@ dados de cliente.
 |---|---|---|---|---|
 | 00 | [Passive Scalar](00_Passive_Scalar.md) | referência | escalar passivo, superposição, idade do ar | ✅ |
 | 01 | [Eulerian: Conjugate Heat Transfer Wall Boiling](01_Eulerian_CHT_Wall_Boiling.md) | Multiphase | ebulição na parede (RPI) + CHT | ✅ |
-| 02 | Eulerian: Wall Boiling | Multiphase | RPI em tubo de Bartolomei a 45 bar | a receber |
+| 02 | [Eulerian: Wall Boiling](02_Eulerian_Wall_Boiling.md) | Multiphase | RPI em tubo de Bartolomei a 45 bar, caso parametrizado por Field Functions | 🟡 seções 1–5 |
 | 03 | VOF: Boiling | Multiphase | ebulição com superfície livre | a receber |
 | 04 | Conjugate Heat Transfer: Heated Fin Introduction | Heat Transfer | CHT multi-região + convecção natural | a receber |
 | 05 | Parts-Based Shells: Exhaust Pipe | Heat Transfer | condução em parede fina (shells) | a receber |

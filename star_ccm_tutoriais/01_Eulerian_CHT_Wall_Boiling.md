@@ -82,10 +82,12 @@ para as duas:
    **Segregated Fluid Temperature**.
 4. Renomear o material para `H2O (l)` / `H2O (g)`.
 
-> ⚠️ **High y+ Wall Treatment é exigência do modelo de ebulição na parede** (o RPI trabalha com
-> funções de parede). Consequência prática para a malha: **não refinar demais junto à parede** —
-> a primeira célula tem de ficar na camada log (y+ ≳ 30). É o oposto do que se faz em CHT monofásico
-> com low-y+.
+> ⚠️ **Corrigido em 13/10/2026 (após o tutorial 02).** Aqui o tutorial usa **High y+ Wall
+> Treatment**, mas isso **não é exigência do RPI** — o tutorial 02 roda ebulição na parede com
+> **Two-Layer All y+**. O que vale: com High y+, a primeira célula tem de ficar na camada log
+> (y+ ≳ 30) — **não refinar demais junto à parede**; com All y+, há mais liberdade. Em qualquer caso,
+> **testar a sensibilidade do superaquecimento de parede ao tamanho da 1ª célula** (o RPI usa a
+> temperatura do líquido junto à parede). Ver `02_Eulerian_Wall_Boiling.md` §4.
 
 ### O truque do calor latente
 As propriedades são **constantes na saturação**, e o calor latente entra pela diferença dos
