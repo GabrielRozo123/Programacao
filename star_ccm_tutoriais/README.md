@@ -12,7 +12,7 @@ dados de cliente.
 |---|---|---|---|---|
 | 00 | [Passive Scalar](00_Passive_Scalar.md) | referência | escalar passivo, superposição, idade do ar | ✅ |
 | 01 | [Eulerian: Conjugate Heat Transfer Wall Boiling](01_Eulerian_CHT_Wall_Boiling.md) | Multiphase | ebulição na parede (RPI) + CHT | ✅ |
-| 02 | [Eulerian: Wall Boiling](02_Eulerian_Wall_Boiling.md) | Multiphase | RPI em tubo de Bartolomei a 45 bar, caso parametrizado por Field Functions | 🟡 seções 1–5 |
+| 02 | [Eulerian: Wall Boiling](02_Eulerian_Wall_Boiling.md) | Multiphase | RPI em tubo de Bartolomei a 45 bar, caso parametrizado por Field Functions | 🟡 seções 1–10 |
 | 03 | VOF: Boiling | Multiphase | ebulição com superfície livre | a receber |
 | 04 | Conjugate Heat Transfer: Heated Fin Introduction | Heat Transfer | CHT multi-região + convecção natural | a receber |
 | 05 | Parts-Based Shells: Exhaust Pipe | Heat Transfer | condução em parede fina (shells) | a receber |
@@ -25,7 +25,7 @@ dados de cliente.
 
 | arquivo | o que faz |
 |---|---|
-| [`props_agua_saturada.py`](props_agua_saturada.py) | Tabela de água/vapor saturados no formato do STAR (EMP com *Heat of Formation* para o calor latente), em qualquer pressão. Requer `pip install CoolProp`. |
+| [`props_agua_saturada.py`](props_agua_saturada.py) | Tabela de água/vapor saturados no formato do STAR (EMP com *Heat of Formation* para o calor latente), em qualquer pressão. Com `--tin` (e `--G`) aplica a receita do líquido sub-resfriado do tutorial 02: cp secante, ρ/μ/k na T média, velocidade de entrada. Requer `pip install CoolProp`. |
 
 ## Tutoriais já estudados em outros projetos
 - **Ciclone (Valgroup):** tutoriais de ciclone, Lagrangeano, CHT com FE Solid Energy — ver

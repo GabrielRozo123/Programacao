@@ -113,9 +113,11 @@ pressão (`python3 props_agua_saturada.py 30 40`). Exemplos:
 | 30 bar a | 507,00 K | 1 008 345 J/kg | 2 803 153 J/kg | 1 795 kJ/kg | 0,02962 N/m |
 | 40 bar a | 523,50 K | 1 087 492 J/kg | 2 800 821 J/kg | 1 713 kJ/kg | 0,02575 N/m |
 
-> O tutorial usa ρ_l = 745,65 e cp_l = 5 310, ligeiramente diferentes da saturação exata (736,7 e
-> 5 437) — provavelmente avaliados num líquido um pouco sub-resfriado, coerente com o caso. Para
-> ebulição saturada, use os valores de saturação.
+> O tutorial usa ρ_l = 745,65 e cp_l = 5 310, diferentes da saturação exata (736,7 e 5 437). **Explicado
+> pelo tutorial 02 (§6):** ρ, μ, k na **temperatura média** entre entrada (551,55 K) e Tsat, e cp
+> **secante** `(h_l,sat − h_l,in)/(Tsat − T_in)`. Conferido: 745,83 kg/m³ e 5 332 J/kg·K. Para ebulição
+> saturada (sem sub-resfriamento), use os valores de saturação; com entrada sub-resfriada,
+> `python3 props_agua_saturada.py <p> --tin <T_in>`.
 
 ## 5. Interação entre fases
 
