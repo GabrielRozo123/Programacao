@@ -39,6 +39,10 @@ parâmetros (`--l-ret --d-tubo --l-trans --l-tubo --dx-tubo --dz-tubo --t-tubo`)
    - Lagrangeano com os mesmos ajustes. Com ~1 200 parcelas, η = 96,25 % tem ruído de
      ±0,55 pp (1σ): diferenças < ~1 pp não são separáveis do ruído. Se precisar, mais parcelas.
    - Conferir MM, µ e T de entrada do gás antes de rodar.
+   - **Plano B de malha (só se precisar):** se o sólido de 4,75 mm der problema na transição
+     (faces estreitas, cunhas), a parede pode ir como **shell** — espessura como propriedade, uma
+     camada de células (tutorial STAR 05, `star_ccm_tutoriais/05_Parts_Based_Shells_Exhaust.md`).
+     O Simas receberia T na superfície média. Não trocar se o sólido continuar funcionando.
 
 ## Anteriores — confirmar com o Gabriel se já foram passados
 
