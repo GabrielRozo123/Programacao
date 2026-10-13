@@ -2,8 +2,9 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Heat Transfer*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–5 lidas (visão geral, Importing the Mesh, Converting to 2D, Renaming Regions and
-> Boundaries, Scaling the Mesh — 13/10/2026). Restante a receber.
+> Status: 🟡 seções 1–10 lidas (visão geral, Importing the Mesh, Converting to 2D, Renaming Regions and
+> Boundaries, Scaling the Mesh, Visualizing the Mesh, Models, Material Properties, Initial Conditions
+> and Reference Values, Creating Interfaces — 13/10/2026). Restante a receber.
 
 ---
 
@@ -86,13 +87,118 @@ x ∈ [0; 10], y ∈ [0; 10], z ∈ [0; 1] — e o STAR lê isso como **metros**
 > 💡 Segundo tutorial seguido com malha na unidade errada (03: ×0,1; 04: ×0,01). **A leitura da
 > extensão na Output da importação é o primeiro controle de qualidade** de qualquer simulação.
 
+## 6. Ver a malha interna
+
+`Scenes > Geometry Scene 1 > Surface 1` → marcar **Mesh**. Para ver uma região de cada vez, selecionar
+o nó da região (`Regions > Fluid`) — ela fica destacada na cena.
+
+## 7. Modelos — um contínuo por região
+
+A conversão para 2D já cria `Physics 1 2D` e `Physics 2 2D`: renomear para **Air** e **Aluminum Alloy**.
+
+### Air (fluido)
+| grupo | modelo |
+|---|---|
+| Espaço / Tempo | Two Dimensional · **Steady** |
+| Material | Gas |
+| Escoamento | **Coupled Flow** (+ Gradients) |
+| Equação de estado | **Ideal Gas** — ar **compressível**: a densidade varia com T, e é isso que gera o empuxo |
+| Regime | Turbulent → RANS → **Realizable K-Epsilon Two-Layer**, **Two-Layer All y+** |
+| Opcionais | **Gravity** |
+
+*(A energia do gás entra junto com Ideal Gas + Coupled Flow — conferir no nó `Models` que aparece
+**Coupled Energy**.)*
+
+### Aluminum Alloy (sólido)
+| grupo | modelo |
+|---|---|
+| Material | Solid |
+| Energia | **Coupled Solid Energy** (+ Gradients) |
+| Equação de estado | Constant Density |
+| Tempo | Steady |
+
+> 💡 **Par de solvers:** fluido com **Coupled Flow** ↔ sólido com **Coupled Solid Energy**; fluido
+> com **Segregated Flow** ↔ sólido com **Segregated Solid Energy** (tutorial 01 e nosso ciclone).
+> Manter o par coerente entre regiões acopladas por interface.
+
+> 💡 **Coupled × Segregated.** O acoplado resolve continuidade, quantidade de movimento e energia
+> **juntas**: mais robusto quando densidade, velocidade e temperatura estão fortemente ligadas
+> (compressível, **convecção natural**), ao custo de mais memória por célula. O segregado é o padrão
+> para escoamento forçado incompressível e para multifásico.
+
+> ⚠️ **Régua do regime — é mesmo turbulento?** Número de Rayleigh com ΔT ≈ 50 K (aleta ~343 K, ar
+> 293 K): `Ra = gβΔT·L³/(να)` ≈ **5×10⁵ (L = 5 cm) a 4×10⁶ (L = 10 cm)**. Convecção natural só
+> transiciona perto de **Ra ~ 10⁹** → o regime físico é **laminar**. O k-ε aqui é escolha didática. Em
+> caso real: **calcular Ra antes** e preferir laminar abaixo de ~10⁸.
+
+## 8. Propriedades
+
+| material | ρ [kg/m³] | cp [J/kg·K] | k [W/m·K] | μ [Pa·s] |
+|---|---|---|---|---|
+| **Al** (aleta) — editar | **2 800** | **880** | **180** | — |
+| Ar (default, Ideal Gas) | variável | 1 003,62 | 0,0260305 | 1,85508×10⁻⁵ |
+
+Massa molar do ar (default): 28,9664 kg/kmol.
+
+> ⚠️ **Ideal Gas só vale longe da saturação.** Para o ar, perfeito. Para **vapor d'água a 30–40 bar
+> na saturação**, o fator de compressibilidade é Z ≈ 0,83–0,86: Ideal Gas erra a densidade em
+> **−14 a −17 %** (−6 a −8 % com 90 K de superaquecimento). Para vapor em pressão alta: densidade
+> constante na condição de operação ou equação de estado de vapor real.
+
+## 9. Condições iniciais e valores de referência
+
+| nó | valor |
+|---|---|
+| Air → Gravity | `[0,0; −9,81]` m/s² (−y) |
+| Air → **Reference Density** | **1,27588 kg/m³** |
+| Air → Initial Static Temperature | **293 K** |
+| Aluminum Alloy → Initial Static Temperature | **343 K** — "perto da temperatura final esperada do sólido" |
+
+> 💡 **Inicializar o sólido perto da resposta.** Em regime permanente, o sólido não tem convecção para
+> "carregar" informação: a temperatura dele converge devagar, por difusão. Um chute inicial próximo
+> do resultado economiza muitas iterações. Em caso real, usar a **régua** (balanço 1D) para o chute,
+> até por Field Function se a temperatura variar por zona.
+
+> 📌 **Reference Density 1,27588 não é o ar a 293 K** (1,2048 kg/m³ — 1,27588 corresponde a ~277 K).
+> Com Ideal Gas a densidade de referência só define a **pressão piezométrica** (p − ρ_ref·g·h) e o
+> termo de empuxo (ρ − ρ_ref)·g; o resultado físico não depende dela. Boa prática: usar a densidade
+> do fluido **frio/ambiente**, que tira a hidrostática do campo resolvido (mesma lógica do líquido
+> nos tutoriais 01–02).
+
+## 10. Interfaces
+
+**Sem interface, as regiões não trocam nada** — massa e energia só passam entre regiões por uma
+interface.
+
+1. Selecionar (multi-seleção) `Fluid > Boundaries > Air-Interface` **e** `Solid > Boundaries >
+   Fin-Interface`.
+2. Botão direito → **Create Interface** → cria a interface *in-place*.
+   - Surgem `Air-Interface [Interface 1]` e `Fin-Interface [Interface 1]` nas fronteiras: na
+     inicialização, **substituem** as paredes originais.
+   - Surge a pasta `Interfaces` com `Interface 1`.
+3. `Interfaces > Interface 1`: **Type = Contact Interface**, **Topology = In-place**.
+
+> 💡 **Contact Interface** é o tipo para troca de calor **fluido–sólido** (e sólido–sólido). É nela
+> que entra a **resistência de contato** do tutorial 01 (folga, incrustação).
+
+> ⚠️ **Conferência pós-inicialização:** a interface só "existe" depois de inicializar. Conferir que as
+> fronteiras originais (`Air-Interface`, `Fin-Interface`) ficaram **vazias** (ou só com faces sem par)
+> e que as `[Interface 1]` têm a área esperada. Área que sobrou na parede original = calor que não
+> passa (§1).
+
 ---
 
 ## Checklist reaproveitável (até aqui)
 - [ ] Ler a extensão da malha na *Output* logo após importar; escalar **todas** as regiões juntas.
 - [ ] 2D multi-região: selecionar todas as regiões na conversão e apagar todos os contínuos 3D.
-- [ ] Renomear regiões e contornos **antes** do setup, no padrão `<região>-<função>`.
-- [ ] Interface não conforme: conferir na *Output* se a área foi casada por completo.
+- [ ] Renomear regiões, contornos **e contínuos** antes do setup, no padrão `<região>-<função>`.
+- [ ] Um contínuo por material; par de solvers coerente (Coupled ↔ Coupled Solid Energy).
+- [ ] **Calcular Ra** (natural) ou Re (forçada) antes de escolher laminar × turbulento.
+- [ ] Ideal Gas só longe da saturação; vapor em pressão alta → densidade constante ou vapor real.
+- [ ] Gravidade + Reference Density do fluido frio.
+- [ ] Inicializar o sólido **perto da resposta** (régua).
+- [ ] Interface *in-place* do tipo **Contact** entre cada par de regiões; conferir a área casada depois
+      de inicializar.
 - [ ] Radiação: estimar `h_rad` e comparar com a convecção antes de decidir desligá-la.
 
 ## Seções seguintes
