@@ -15,11 +15,11 @@ dados de cliente.
 | 02 | [Eulerian: Wall Boiling](02_Eulerian_Wall_Boiling.md) | Multiphase | RPI em tubo de Bartolomei a 45 bar, caso parametrizado por Field Functions | ✅ |
 | 03 | [VOF: Boiling](03_VOF_Boiling.md) | Multiphase | ebulição com interface resolvida (VOF), 2D, parede a temperatura fixa | ✅ |
 | 04 | [Conjugate Heat Transfer: Heated Fin Introduction](04_CHT_Heated_Fin.md) | Heat Transfer | CHT multi-região + convecção natural, interface não conforme | ✅ |
-| 05 | [Parts-Based Shells: Exhaust Pipe](05_Parts_Based_Shells_Exhaust.md) | Heat Transfer | parede fina como shell, limpeza de CAD no 3D-CAD, wrappers e interfaces (mapped, hub) | 🟡 seções 1–5 |
+| 05 | [Parts-Based Shells: Exhaust Pipe](05_Parts_Based_Shells_Exhaust.md) | Heat Transfer | parede fina como shell, limpeza de CAD no 3D-CAD, wrappers e interfaces (mapped, hub) | ✅ |
 
-**Lote 2 (se necessário):** Eulerian Multiple Flow Regimes (PWR) · **Eulerian: Aeration Tank Degassing**
-(saída de vapor por superfície livre) · Natural Convection: Concentric Cylinders · meio poroso
-(Incompressible Flow).
+**Lote 1 completo (13/10/2026).** **Lote 2, por prioridade:** (1) meio poroso (*Incompressible Flow*) ·
+(2) Eulerian Multiple Flow Regimes (PWR) · (3) Eulerian: Aeration Tank Degassing (saída de vapor por
+superfície livre). Natural Convection: Concentric Cylinders — dispensável.
 
 ## Ferramentas
 
