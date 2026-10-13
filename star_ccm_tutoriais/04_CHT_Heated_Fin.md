@@ -2,9 +2,9 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Heat Transfer*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–10 lidas (visão geral, Importing the Mesh, Converting to 2D, Renaming Regions and
-> Boundaries, Scaling the Mesh, Visualizing the Mesh, Models, Material Properties, Initial Conditions
-> and Reference Values, Creating Interfaces — 13/10/2026). Restante a receber.
+> Status: ✅ tutorial completo lido (seções 1–15: visão geral, importação, conversão 2D, nomes, escala,
+> malha interna, modelos, materiais, condições iniciais e referência, interfaces, contornos, cena,
+> relatórios, inicialização e execução, linhas de corrente — 13/10/2026).
 
 ---
 
@@ -186,9 +186,84 @@ interface.
 > e que as `[Interface 1]` têm a área esperada. Área que sobrou na parede original = calor que não
 > passa (§1).
 
+## 11. Condições de contorno
+
+A aleta é um **"T" invertido** numa caixa fechada. Só há condições térmicas de parede:
+
+| região | fronteira | condição |
+|---|---|---|
+| Fluid | **Vertical-Walls** | Thermal Specification = Temperature → **293 K** (paredes frias) |
+| Fluid | Horizontal-Walls | adiabática (default) |
+| Solid | **Fin-Bottom** | Thermal Specification = Temperature → **343 K** (fonte de calor) |
+| Fluid ↔ Solid | Interface 1 | Contact Interface (condutora) — §10 |
+
+**Caminho do calor:** base da aleta (343 K) → condução na aleta → interface → convecção natural no ar
+→ paredes verticais (293 K).
+
+> 💡 **Temperatura imposta na base = Dirichlet.** Fixa a resposta naquele ponto. Quando a fonte de
+> calor é **outro fluido** (trocador), o certo é **convecção (Robin)**: temperatura do fluido + h.
+> Impor a temperatura da parede seria impor justamente o que se quer calcular.
+
+## 12. Cena da solução
+
+1. Nova **Scalar Scene** (inclui as duas regiões) → `Scalar 1 > Scalar Field > Function = Temperature`.
+2. Botão direito na cena → `New Displayer > Vector` → em `Vector 1 > Parts` selecionar **só o
+   fluido**.
+
+Temperatura nas duas regiões + vetores de velocidade no ar, atualizando durante a solução.
+
+## 13. Relatório, monitor e gráfico
+
+Lógica do STAR em três camadas: **Report** (o que medir e onde) → **Monitor** (frequência,
+normalização) → **Plot** (gráfico X-Y).
+
+1. `Reports > New > Flow / Energy > Heat Transfer` → *Parts* = `Solid > Fin-Interface [Interface 1]`.
+2. *Create Monitor and Plot from Report*.
+
+> 💡 **Fechar o balanço, não só monitorar um número.** Em regime permanente, com paredes horizontais
+> adiabáticas:
+> `Q(Fin-Bottom) = Q(Fin-Interface) = −Q(Vertical-Walls)`.
+> Criar os três relatórios e um quarto com a **soma** (deve → 0). É o mesmo critério que usamos no
+> ciclone (Q da interface × Q externo). Monitor plano + balanço fechado = convergido. No 2D os valores
+> saem por metro de profundidade.
+
+> 📌 Reportar sempre na fronteira **`[Interface 1]`** (a que substituiu a parede original). A
+> fronteira original fica vazia depois da inicialização e daria zero.
+
+## 14. Inicializar, conferir, rodar
+
+1. **Initialize** (sem rodar) → olhar a cena: aleta a 343 K, ar a 293 K, velocidade zero em todas as
+   células.
+2. **Run** → acompanhar a cena e o monitor.
+3. Salvar ao final.
+
+> 💡 **Inicializar e olhar antes de rodar** é a conferência mais barata de condições iniciais,
+> regiões e interfaces. Pega região sem contínuo, valor inicial errado e interface que não foi criada.
+
+## 15. Linhas de corrente
+
+Linhas de corrente são uma **derived part** (como planos e isosuperfícies) e podem entrar em qualquer
+cena.
+
+1. Com a *Geometry Scene* ativa: nova **Streamline** derived part → *Input parts* = **só Fluid**.
+2. **Seed Mode = Line Seed**, ferramenta de exibição ligada, **resolução 15** (15 pontos de partida).
+3. Arrastar as esferas das pontas: linha **horizontal**, **meia célula acima do topo da aleta** →
+   *Create*.
+4. Nova *Scalar Scene 2* → Function = Temperature → em *Parts* **desmarcar as regiões e marcar só a
+   streamline** → escala **fixa: Min 300 K, Max 343 K**.
+
+Resultado: linhas de corrente coloridas pela temperatura local — mostra a **pluma** subindo da aleta
+e o ar descendo junto das paredes frias.
+
+> 💡 **Onde semear importa.** A semente logo acima da aleta pega a pluma. Para achar
+> **recirculação, estagnação e curto-circuito**, semear também nas entradas e nas regiões suspeitas.
+
+> 💡 **Escala de cor fixa** (Min/Max manuais) é obrigatória quando as figuras vão ser **comparadas**
+> entre si (cenários, malhas, alternativas). Escala automática muda a cada figura e engana o leitor.
+
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Ler a extensão da malha na *Output* logo após importar; escalar **todas** as regiões juntas.
 - [ ] 2D multi-região: selecionar todas as regiões na conversão e apagar todos os contínuos 3D.
 - [ ] Renomear regiões, contornos **e contínuos** antes do setup, no padrão `<região>-<função>`.
@@ -199,7 +274,10 @@ interface.
 - [ ] Inicializar o sólido **perto da resposta** (régua).
 - [ ] Interface *in-place* do tipo **Contact** entre cada par de regiões; conferir a área casada depois
       de inicializar.
+- [ ] Fonte de calor vinda de fluido = **convecção (Robin)**, não temperatura imposta.
+- [ ] Relatórios de calor em **todas** as fronteiras térmicas + soma → 0 (balanço).
+- [ ] Reportar na fronteira `[Interface]`, não na parede original.
+- [ ] **Initialize** e olhar a cena antes de rodar.
+- [ ] Streamlines semeadas onde está a pergunta (pluma, entradas, zonas suspeitas).
+- [ ] Escala de cor **fixa** em figuras que serão comparadas.
 - [ ] Radiação: estimar `h_rad` e comparar com a convecção antes de decidir desligá-la.
-
-## Seções seguintes
-*(a receber)*

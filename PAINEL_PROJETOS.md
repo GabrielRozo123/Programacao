@@ -49,7 +49,7 @@
 | P2 | Proposta formal pelo convite — incluir **quantidade de cenários**, **conjunto mínimo de dados** e **ART** | Marcus / Gabriel |
 | P3 | Lista de perguntas técnicas ao Rui (pronta, 20 itens) | Gabriel → Rui |
 | P4 | Pontos técnicos internos para alinhar com calma (seção 4 do bloquinho) | Gabriel ↔ Marcus |
-| P5 | Tutoriais de ebulição: 01 ✅ · 02 Wall Boiling ✅ · 03 VOF Boiling ✅ · 04 **CHT Heated Fin** 🟡 (seções 1–10) · depois Shells | Gabriel |
+| P5 | Tutoriais de ebulição: 01 ✅ · 02 Wall Boiling ✅ · 03 VOF Boiling ✅ · 04 CHT Heated Fin ✅ · próximo **Parts-Based Shells: Exhaust Pipe** (último do lote 1) | Gabriel |
 
 ### 🌊 Nexus — `nexus_misturador_hiperbolico/`
 | # | pendência | com quem |
