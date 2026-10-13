@@ -2,10 +2,10 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Multiphase Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–10 lidas (visão geral, Converting to a Two-Dimensional Mesh, Scaling the Mesh,
+> Status: ✅ tutorial completo lido (seções 1–10: visão geral, Converting to a Two-Dimensional Mesh, Scaling the Mesh,
 > Selecting the Physics Models, Setting the Material Properties, Defining the Phase Interactions,
 > Initial Conditions, Boundary Conditions, Solver Parameters and Stopping Criteria, Reporting/Monitoring
-> — 13/10/2026). Restante a receber.
+> — 13/10/2026).
 
 ---
 
@@ -218,7 +218,7 @@ quer mostrar.
 
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Antes de escolher o modelo: **qual a escala da interface?** Maior que a célula → VOF; menor →
       Euleriano.
 - [ ] Situar o caso na **curva de ebulição** (Rohsenow, CHF de Zuber, fluxo mínimo) antes de rodar.
@@ -234,5 +234,5 @@ quer mostrar.
       várias iterações internas e Courant controlado.
 - [ ] Monitorar **potência e fluxo médio** na parede aquecida, não só resíduos.
 
-## Seções seguintes
-*(a receber)*
+> O material recebido termina nos relatórios. Ao rodar, conferir o fluxo médio na parede contra o
+> CHF (~1,1 MW/m²) e o aquecimento médio da água contra a régua da §8 (≲ 5 K).
