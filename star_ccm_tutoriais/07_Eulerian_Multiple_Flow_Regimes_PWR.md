@@ -2,8 +2,8 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Multiphase Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–5 lidas (visão geral, Physics Models, Phases, Initial Conditions and Reference
-> Values, Multiple Flow Regime Phase Interaction — 13/10/2026). Restante a receber.
+> Status: ✅ tutorial completo lido (seções 1–10: visão geral, modelos, fases, condições iniciais e
+> referência, interação MFR, contornos, solver, monitor, cena, animação — 13/10/2026).
 
 ---
 
@@ -111,9 +111,71 @@ O tutorial **mantém os defaults** dos dois.
 > bolha controla o arrasto e a subida do gás no líquido; **gota controla quanto líquido o gás
 > carrega** (arraste). Em problema de arraste de líquido, o tamanho de gota merece **sensibilidade**.
 
+## 6. Condições de contorno
+
+| fronteira | fase | velocidade | fração volumétrica |
+|---|---|---|---|
+| **Air_Inlet** (topo do vaso) | Air | **15 m/s** | 1,0 |
+| **Water_Inlet** (fundo do gerador de vapor) | Water | **3 m/s** | 1,0 |
+
+Saídas no default.
+
+## 7. Solver e critérios de parada
+
+| nó | valor | por quê |
+|---|---|---|
+| Volume Fraction → AMG Linear Solver → **Cycle Type** | **Flex Cycle** (em vez de V) | campo de fração **mais nítido** que num contínuo-disperso comum → convergência melhor |
+| Implicit Unsteady → Time-Step | **0,01 s** | |
+| Segregated EMP Flow → Phase Coupled Velocity | URF implícito **0,1** · explícito 0,5 | |
+| Segregated EMP Flow → Pressure | URF **0,1** | |
+| Volume Fraction | URF implícito **0,2** · explícito 0,5 | |
+| K-Omega Turbulence / Turbulent Viscosity | URF **0,2** · razão máxima 10⁸ | |
+| **Maximum Inner Iterations** | **25** | |
+| Maximum Physical Time | **8 s** (800 passos) | Maximum Steps desligado |
+
+> 💡 **Transiente "de verdade" × pseudo-transiente.** Aqui são **25 iterações internas por passo**:
+> cada passo converge e o tempo tem significado físico (o bloqueio periódico do canal é o resultado).
+> No tutorial 03 (VOF) era **1** iteração por passo — o tempo era só relaxação até o permanente.
+> **URFs baixos (0,1–0,2) + muitas iterações internas** é a receita de robustez do EMP transiente.
+
+> ⚠️ **Courant do ar:** a 15 m/s e Δt = 0,01 s o ar anda **15 cm por passo** — da ordem da altura do
+> canal (25 cm). O implícito tolera, mas o detalhe da interface depende do passo. Em estudo real:
+> **teste de passo de tempo** (metade do Δt, mesma resposta estatística?).
+
+**Custo de referência:** 800 passos × 25 iterações = **20 000 iterações** para 8 s de um caso 2D.
+
+## 8. Monitor da altura da interface
+
+1. `Derived Parts > New > Section > Plane Section` → *Input* = região → origem **[2,15; 0; 0] m**
+   (no trecho horizontal) → *No Displayer*. No 2D, o "plano" é uma **linha vertical**.
+2. `Reports > New > Metrics > **Line Integral**` → renomear `Interface Height` → *Field Function* =
+   **Volume Fraction of Water** → *Parts* = a seção.
+3. *Create Monitor and Plot from Report*.
+
+> 💡 **∫ α_água dy ao longo de uma vertical = altura de água "colapsada"** — a altura que a água
+> teria se as bolhas fossem retiradas. Ideia poderosa: é **exatamente o que um transmissor de nível
+> por ΔP mede**. Comparando com a altura onde a mistura realmente chega, mede-se o **inchamento do
+> nível** dentro da simulação.
+
+## 9. Cena e imagens para animação
+
+*Scalar Scene* → **Volume Fraction of Water**, **Auto Range Off**, **0 a 1**, *Smooth Filled*,
+**64 níveis** na barra de cores. `Attributes > Update`: **Save To File** ligado, *Trigger* = **Time
+Step**, **frequência 5** → um `.png` a cada 5 passos. *Initialize Solution* para ver o nível inicial.
+
+## 10. Animação
+
+As imagens viram animação num programa externo (ex.: `animate`/ImageMagick no Linux; qualquer editor
+de vídeo). O que se vê: o **bloqueio periódico** do canal pelo acúmulo de água — comportamento típico
+de escoamento contracorrente.
+
+> 💡 Animação é o jeito de mostrar a um cliente um fenômeno **intermitente** que nenhuma imagem parada
+> captura (golfadas, oscilação de nível, arraste em rajadas). Definir a gravação **antes** de rodar —
+> não dá para gerar depois sem salvar a solução a cada passo.
+
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Equipamento com bolhas **e** superfície livre **e/ou** gotas → **MFR** (EMP + interação
       *Multiple Flow Regime*).
 - [ ] Transiente (*Implicit Unsteady*); convecção de fração volumétrica de **2ª ordem**.
@@ -123,6 +185,7 @@ O tutorial **mantém os defaults** dos dois.
 - [ ] Drag intermediário **Strubelj-Tiselj** se houver interface grande.
 - [ ] Tamanhos de bolha e de gota como parâmetros físicos, com sensibilidade quando importam.
 - [ ] Amortecimento de turbulência na interface (Egorov) ligado.
-
-## Seções seguintes
-*(a receber)*
+- [ ] AMG da fração volumétrica em **Flex Cycle**; URFs baixos (0,1–0,2) + ~25 iterações internas.
+- [ ] Teste de passo de tempo quando o Courant da fase rápida passa de ~1.
+- [ ] **Line Integral** da fração de líquido numa vertical = nível colapsado (o que o ΔP mede).
+- [ ] Escala de cor fixa 0–1 e gravação de `.png` por passo **antes** de rodar, para animação.
