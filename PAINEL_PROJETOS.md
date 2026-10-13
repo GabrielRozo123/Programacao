@@ -1,7 +1,78 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
-> **Torre de controle.** Bata o olho aqui pra saber onde está tudo. Atualizado: **2026-08-02**.
-> Cada projeto tem seu `STATUS.md`/`README.md` detalhado — este painel é o **resumo de uma olhada**.
+> **Torre de controle.** Bata o olho aqui para saber onde está tudo e **o que está pendente com quem**.
+> **Atualizado: 2026-10-13.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
+> 🔒 Projetos com material confidencial (Petrobras) aparecem aqui só em nível de status.
+
+## Semáforo
+| projeto | cliente | 🚦 | onde está |
+|---|---|---|---|
+| 🌀 **Ciclone — FEA/CHT** | Valgroup | 🟡 | CHT entregue (P, T na parede → Simas, que já mapeou). **Aguardando desenho** da transição redondo-retangular na entrada. Gerador de CAD já preparado. |
+| 💨 **Dispersão de O₃** | LD Celulose | 🟡 | Etapa 2 (premissas). Planilha meteorológica entregue (Marcus gostou). **Aguardando dados do cliente.** |
+| 🔥 **Resfriador + finos (DEM)** | Petrobras RNEST | 🟡 | Contratação em andamento (convite previsto para a semana de 20/10). Estudo de tutoriais de ebulição em curso. Detalhes no bloquinho privado. |
+| 🌊 **Misturador hiperbólico** | Nexus | ⚪ | E-mail de perguntas aguardando revisão do Marcus (desde 21/09). Sem resposta registrada. |
+| 🍺 **Tanque chiller** | GreyLogix | ✅ | Concluído. Post do blog entregue ao Otávio. Restam ajustes menores. |
+| 🧪 Aeração + ejetor | Ito | ⚪ | Sem atualização desde 02/08 (ver histórico abaixo). |
+| 🌴 Cristalização | FOXTERMO | ⚪ | Sem atualização desde 02/08 (ver histórico abaixo). |
+
+---
+
+## ✅ PENDÊNCIAS ABERTAS — o que não pode ser esquecido
+
+### 🌀 Valgroup — `valgroup_ciclone/` · notas internas em `BLOCO_NOTAS.md`
+| # | pendência | com quem |
+|---|---|---|
+| V1 | **Desenho da transição redondo-retangular** → gerar STEP (`gen_ciclone_cht.py --l-ret --d-tubo --l-trans`), rodar CHT, passar T e P ao Simas, avaliar eficiência | Valgroup → Gabriel |
+| V2 | **Comparar as duas cenas de erosão** (residência 60 s × 2 s) — pedido feito em 30/09, resultado nunca reportado | Gabriel |
+| V3 | **ΔP estático × total:** criar reports com `Pressure` em Inlet/Outlet_gas — fecha 3 400 × 2 910 Pa e o envelope em k-ω | Gabriel |
+| V4 | Opcional: rodada a 120 s para ver se η = 96,25 % ainda cai | Gabriel |
+| V5 | Particulado **10 ou 80 kg/h** (erosão escala linear) | Marcus / Valgroup |
+| V6 | Grau do aço **304 ou 304L** · **arranjo de apoios** do ciclone (dimensiona o FEA térmico) | Marcus / Valgroup |
+| V7 | 4º slide da apresentação (envelope de ΔP) — aprovação | Marcus |
+
+### 💨 LD Celulose — `ld_celulose_dispersao_o3/`
+| # | pendência | com quem |
+|---|---|---|
+| L1 | **Vazões de vazamento** pequeno e grande (Q_peq, Q_gr) — bloqueia os cenários | Cliente |
+| L2 | Desenhos **CVC00P0015 a P0018** (geometria de descarga dos exaustores) · quais ventiladores são contínuos | Cliente |
+| L3 | Estação Zeus: o **0° é norte verdadeiro?** · ângulo do norte de projeto da planta · altura do anemômetro | Cliente |
+| L4 | Densidades de projeto das curvas dos ventiladores (0,9002 × 1,0148 kg/m³) | Cliente |
+| L5 | Faltam **1 planilha e 1 PDF** do lote 1 | Cliente |
+| L6 | Aval dos **cenários 5–6** (vento fraco estável) | Marcus |
+| L7 | Modelo 3D da planta → **limpeza do CAD** (Etapa 1) | Cliente → Gabriel |
+| L8 | Decidir se o projeto migra para repositório privado | Marcus |
+
+### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
+| # | pendência | com quem |
+|---|---|---|
+| P1 | Reunião sobre o escopo DEM (14/10, tarde) | Marcus |
+| P2 | Proposta formal pelo convite — incluir **quantidade de cenários**, **conjunto mínimo de dados** e **ART** | Marcus / Gabriel |
+| P3 | Lista de perguntas técnicas ao Rui (pronta, 20 itens) | Gabriel → Rui |
+| P4 | Pontos técnicos internos para alinhar com calma (seção 4 do bloquinho) | Gabriel ↔ Marcus |
+| P5 | Tutoriais de ebulição: 01 ✅ · próximo **Eulerian: Wall Boiling** | Gabriel |
+
+### 🌊 Nexus — `nexus_misturador_hiperbolico/`
+| # | pendência | com quem |
+|---|---|---|
+| N1 | Revisão do e-mail de perguntas e envio ao Douglas | Marcus |
+
+### 🍺 GreyLogix — `cerveja_tanque_chiller/`
+| # | pendência | com quem |
+|---|---|---|
+| G1 | Parágrafo da "régua" reduzido + correção do "Volte à equação" → chegar ao Otávio | Gabriel |
+| G2 | Regerar `tres_casos_vs_cstr.png` (precisa do CSV bruto) | Gabriel |
+
+---
+
+## 📚 Biblioteca de tutoriais do STAR — `star_ccm_tutoriais/`
+Notas genéricas e reutilizáveis + ferramentas (ex.: `props_agua_saturada.py`).
+
+---
+
+# Histórico — painel de 02/08/2026
+> Ito, Cerveja e FOXTERMO abaixo estão **sem atualização desde 02/08**. As linhas do Valgroup abaixo
+> são da fase de dimensionamento e já foram superadas (ver pendências acima).
+
 
 ## Semáforo (uma linha por projeto)
 | Projeto | Cliente | 🚦 | Onde está |

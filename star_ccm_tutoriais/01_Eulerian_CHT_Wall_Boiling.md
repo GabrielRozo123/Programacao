@@ -2,8 +2,7 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Multiphase Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: seções 1–5 lidas (13/10/2026). Faltam: condições de contorno, interfaces, solver,
-> execução e pós.
+> Status: ✅ tutorial completo lido (seções 1–9, 13/10/2026).
 
 ---
 
@@ -138,9 +137,61 @@ Ajustes:
 | Multiphase Material → Surface Tension | 0,01725 N/m | |
 | Drag Force → Drag Coefficient | **Tomiyama** | bolha pequena, baixa viscosidade |
 
+## 6. Interface sólido–sólido: resistência de contato
+
+`Interfaces > Fuel-Cladding > Physics Values > Contact Resistance` = **1,761×10⁻⁴ m²·K/W** (constante).
+Equivale a um coeficiente de **~5 680 W/m²·K** através da folga.
+
+> 💡 **Mesma técnica para incrustação (fouling)** na interface fluido–tubo. Ordem de grandeza: fatores
+> TEMA para óleos e resíduos pesados ficam em **~10⁻³ m²·K/W** — 5 a 10× a folga do tutorial, e
+> comparáveis à própria resistência do filme de óleo. A incrustação entra **sem malhar a camada**.
+
+## 7. Fonte de calor e condições de contorno
+
+| onde | o quê | valor |
+|---|---|---|
+| Região do combustível | Energy Source Option → **Volumetric Heat Source** | 2,26412×10⁸ W/m³ |
+| Entrada — as duas fases | Velocity Magnitude | 2,0076 m/s (mesma nas duas) |
+| Entrada | Volume Fraction | líquido **0,9999** · vapor **1×10⁻⁴** |
+| Entrada | Static Temperature | líquido **551,55 K** (9,1 K sub-resfriado) · vapor **560,65 K** (Tsat) |
+| Entrada e saída | Turbulence Intensity / Viscosity Ratio | 0,05 / **400** (líquido) · 0,05 / **200** (vapor) |
+| Saída | Backflow Specification > Scalars | **Extrapolated** |
+
+Fluxo mássico na entrada: G = 745,65 × 2,0076 ≈ **1 500 kg/m²·s**.
+
+**Lições:**
+- **Fração de vapor nunca zero** na entrada (semente de 10⁻⁴): estabilidade numérica do EMP.
+- **Vapor entra na Tsat**, o líquido sub-resfriado — cada fase com sua temperatura.
+- **Backflow extrapolado na saída:** a fração volumétrica de um eventual refluxo vem do interior, não
+  é imposta.
+- Em equipamento onde o calor vem de **outro fluido** (trocador), a fonte não é volumétrica nem fluxo
+  fixo: é a região do fluido quente com sua própria entrada (vazão + temperatura).
+- Onde o vapor **sai por uma superfície livre** (piscina, kettle), a saída não é um *pressure outlet*
+  comum: o EMP tem condição de **degaseificação** — ver o tutorial *Eulerian: Aeration Tank Degassing*.
+
+## 8. Condições iniciais e valores de referência
+
+- **Condições iniciais = condições de entrada** em cada fase (velocidade, fração, temperatura,
+  turbulência).
+- No **axissimétrico do STAR o eixo é x**: velocidade `[2,0076, 0]` e **gravidade `[−9,81, 0]`**.
+- `Reference Values`: **Reference Pressure = 7 170 000 Pa** (pressão absoluta do sistema) ·
+  **Reference Density = 745,65 kg/m³** (densidade do **líquido**).
+
+> 📌 **Da nossa experiência (ciclone Valgroup):** *Reference Pressure* e *Reference Density* são os
+> dois campos mais fáceis de esquecer no default — e a pressão de referência errada desloca todo o
+> campo de pressão absoluta.
+
+## 9. Visualização
+
+Cena dupla (*Dual Scene*): **temperatura** nos sólidos (escala fixa 550–1 350 K) + **fração
+volumétrica de vapor** no fluido, monitoráveis durante a solução. Para geometria muito esbelta (1 m ×
+milímetros), aplicar **Transform → Resize Domain** em todos os displayers.
+
+> Útil também para tubos longos de trocador (6 m de comprimento × poucos centímetros de diâmetro).
+
 ---
 
-## 6. ⚠️ Limites ao transpor para outros equipamentos
+## 10. ⚠️ Limites ao transpor para outros equipamentos
 
 | tutorial | caso típico de feixe com ebulição externa (ex.: kettle) |
 |---|---|

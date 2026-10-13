@@ -11,14 +11,15 @@ dados de cliente.
 | # | tutorial | categoria | tema | status |
 |---|---|---|---|---|
 | 00 | [Passive Scalar](00_Passive_Scalar.md) | referência | escalar passivo, superposição, idade do ar | ✅ |
-| 01 | [Eulerian: Conjugate Heat Transfer Wall Boiling](01_Eulerian_CHT_Wall_Boiling.md) | Multiphase | ebulição na parede (RPI) + CHT | seções 1–5 |
+| 01 | [Eulerian: Conjugate Heat Transfer Wall Boiling](01_Eulerian_CHT_Wall_Boiling.md) | Multiphase | ebulição na parede (RPI) + CHT | ✅ |
 | 02 | Eulerian: Wall Boiling | Multiphase | RPI em tubo de Bartolomei a 45 bar | a receber |
 | 03 | VOF: Boiling | Multiphase | ebulição com superfície livre | a receber |
 | 04 | Conjugate Heat Transfer: Heated Fin Introduction | Heat Transfer | CHT multi-região + convecção natural | a receber |
 | 05 | Parts-Based Shells: Exhaust Pipe | Heat Transfer | condução em parede fina (shells) | a receber |
 
-**Lote 2 (se necessário):** Eulerian Multiple Flow Regimes (PWR) · Natural Convection: Concentric
-Cylinders · meio poroso (Incompressible Flow).
+**Lote 2 (se necessário):** Eulerian Multiple Flow Regimes (PWR) · **Eulerian: Aeration Tank Degassing**
+(saída de vapor por superfície livre) · Natural Convection: Concentric Cylinders · meio poroso
+(Incompressible Flow).
 
 ## Ferramentas
 
