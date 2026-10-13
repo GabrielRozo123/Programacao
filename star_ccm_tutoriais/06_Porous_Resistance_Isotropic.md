@@ -2,7 +2,7 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Incompressible Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções recebidas (13/10/2026): visão geral, Scaling the Mesh, Setting Up the Models,
+> Status: ✅ material recebido lido (13/10/2026): visão geral, Scaling the Mesh, Setting Up the Models,
 > Specifying Porosity Coefficients, Setting Boundary Conditions and Values.
 
 ---
@@ -111,7 +111,7 @@ Parede e saída ficam no default. Só a **entrada**:
 
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Meio poroso = **mesmo contínuo** do fluido, região do tipo *Porous Region*.
 - [ ] Coeficientes P_i, P_v a partir de **dados Δp × v** (`coef_poroso.py dados`) ou correlação
       (`coef_poroso.py ergun`); **v é a velocidade superficial**.
@@ -122,5 +122,5 @@ Parede e saída ficam no default. Só a **entrada**:
 - [ ] Relatório de **velocidade superficial média** e **Δp através da região porosa** para conferir
       contra a régua.
 
-## Seções seguintes
-*(a receber)*
+> O material recebido termina nos contornos. Ao rodar, conferir a velocidade superficial média e o Δp
+> através da região porosa contra a régua da §1.

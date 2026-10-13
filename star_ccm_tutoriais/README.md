@@ -16,7 +16,7 @@ dados de cliente.
 | 03 | [VOF: Boiling](03_VOF_Boiling.md) | Multiphase | ebulição com interface resolvida (VOF), 2D, parede a temperatura fixa | ✅ |
 | 04 | [Conjugate Heat Transfer: Heated Fin Introduction](04_CHT_Heated_Fin.md) | Heat Transfer | CHT multi-região + convecção natural, interface não conforme | ✅ |
 | 05 | [Parts-Based Shells: Exhaust Pipe](05_Parts_Based_Shells_Exhaust.md) | Heat Transfer | parede fina como shell, limpeza de CAD no 3D-CAD, wrappers e interfaces (mapped, hub) | ✅ |
-| 06 | [Porous Resistance: Isotropic Media](06_Porous_Resistance_Isotropic.md) | Incompressible Flow | região porosa, coeficientes inercial/viscoso | 🟡 seções recebidas |
+| 06 | [Porous Resistance: Isotropic Media](06_Porous_Resistance_Isotropic.md) | Incompressible Flow | região porosa, coeficientes inercial/viscoso | ✅ |
 | 07 | [Eulerian Multiple Flow Regimes: PWR](07_Eulerian_Multiple_Flow_Regimes_PWR.md) | Multiphase | bolhas + superfície livre + gotas num só modelo (MFR), contracorrente ar–água | ✅ |
 | 08 | [Eulerian: Aeration Tank Degassing](08_Eulerian_Aeration_Tank_Degassing.md) | Multiphase | contorno de degaseificação (parede permeável só ao gás), placa perfurada, Mixture Turbulence | ✅ |
 
