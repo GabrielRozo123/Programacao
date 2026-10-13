@@ -195,3 +195,45 @@ A gaussiana já dá as distâncias em terreno livre. **O CFD existe para os pré
 
 **É exatamente nesses lugares que os sensores têm que ir** — e é isso que justifica o estudo
 para o cliente.
+
+---
+
+## 9. Boas práticas de CFD atmosférico (pesquisa de 28/09/2026)
+
+### 9.1 Domínio e malha — COST Action 732
+| item | valor |
+|---|---|
+| a montante | 5H |
+| a jusante | 15H |
+| lateral | 5H de cada lado |
+| topo | 6H |
+| razão de bloqueio | < 3 % |
+| malha entre prédios | ≥ 10 células na separação |
+
+Referências: COST 732 *Best Practice Guideline* (Franke et al.); AIJ (Tominaga et al., 2008);
+Richards & Hoxey (1993) para os perfis de entrada; Blocken et al. (2007) para o problema das funções
+de parede rugosas.
+
+### 9.2 Camada limite atmosférica — não é opcional
+O perfil logarítmico de entrada sempre entra; os dados meteorológicos só definem os parâmetros:
+velocidade e altura do anemômetro → `U_ref`, `z_ref`; direção → vetor de entrada; hora + radiação →
+classe de estabilidade; uso do solo → `z₀`.
+
+### 9.3 ⚠️ Dois valores de z₀ — o erro clássico
+| onde | qual z₀ |
+|---|---|
+| **perfil de entrada** | do terreno **a montante, fora do domínio** (agrícola: ~0,03–0,10 m) |
+| **parede do solo dentro do domínio** | do **piso real** (asfalto, grama, brita: ~0,01–0,03 m) — os prédios já estão desenhados |
+
+Aplicar o z₀ de "sítio industrial" (~0,5 m) ao solo de um domínio com prédios modelados conta a
+rugosidade duas vezes. Tabela de referência: Davenport–Wieringa (Wieringa, 1992).
+
+**No STAR:** a parede recebe *Roughness Height* (grão de areia equivalente, `ks`), não `z₀`.
+Conversões de literatura: `ks ≈ 30·z₀` ou `ks = 9,793·z₀/Cs` (Blocken). Restrição: a primeira célula
+junto ao solo tem de ser maior que `ks`. **Não copiar constante de paper de outro código** — a mesma
+rugosidade física exige números diferentes em cada um.
+
+### 9.4 O teste do domínio vazio — rodar antes de qualquer cenário
+Domínio sem prédios, perfil de entrada aplicado. **O perfil na saída tem de ser igual ao da
+entrada** (homogeneidade horizontal). Se U ou k se deformarem ao longo do domínio, perfil e
+rugosidade estão inconsistentes e toda a dispersão sai errada. Calibrar a rugosidade por esse teste.
