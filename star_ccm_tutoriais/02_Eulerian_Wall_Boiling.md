@@ -2,9 +2,9 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Multiphase Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–10 lidas (visão geral, User Field Functions, Physics Models, Phases, Phase
-> Interactions, Material Properties, Phase Interaction Properties, Reference Values, Boundary
-> Conditions, Initial Conditions — 13/10/2026). Restante (malha, solver, resultados) a receber.
+> Status: ✅ tutorial completo lido (seções 1–10: visão geral, User Field Functions, Physics Models,
+> Phases, Phase Interactions, Material Properties, Phase Interaction Properties, Reference Values,
+> Boundary Conditions, Initial Conditions — 13/10/2026).
 
 ---
 
@@ -316,7 +316,7 @@ ajustados.
 
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Parâmetros do caso como Field Functions escalares; contornos referenciam os nomes.
 - [ ] Líquido sub-resfriado com propriedades constantes: **cp secante**, ρ/μ/k na **T média**
       (`props_agua_saturada.py --tin`).
@@ -333,5 +333,5 @@ ajustados.
 - [ ] Tratamento de parede coerente com a malha + teste da 1ª célula.
 - [ ] Régua 1D (CoolProp) antes de rodar: x = 0, OSV (Saha-Zuber), título de saída.
 
-## Seções seguintes
-*(a receber: malha, solver, execução e comparação com Bartolomei)*
+> O material recebido termina nas condições iniciais. Para validar, comparar a fração de vazio média
+> ao longo do tubo com os dados de Bartolomei e com a régua da §1 (OSV ≈ 1,11 m; x = 0 em ≈ 1,70 m).
