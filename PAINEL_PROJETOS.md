@@ -49,7 +49,7 @@
 | P2 | Proposta formal pelo convite — incluir **quantidade de cenários**, **conjunto mínimo de dados** e **ART** | Marcus / Gabriel |
 | P3 | Lista de perguntas técnicas ao Rui (pronta, 20 itens) | Gabriel → Rui |
 | P4 | Pontos técnicos internos para alinhar com calma (seção 4 do bloquinho) | Gabriel ↔ Marcus |
-| P5 | Tutoriais de ebulição: 01 ✅ · 02 Wall Boiling ✅ · 03 VOF Boiling ✅ · 05 Shells ✅ → **lote 1 completo**. Próximo: teste de bancada (1 tubo em shell) + lote 2 (poroso, Multiple Flow Regimes, Degassing) | Gabriel |
+| P5 | Tutoriais de ebulição: 01 ✅ · 02 Wall Boiling ✅ · 03 VOF Boiling ✅ · 05 Shells ✅ → **lote 1 completo**. Lote 2: 06 meio poroso 🟡 · faltam Multiple Flow Regimes, Degassing. Teste de bancada (1 tubo em shell) pendente | Gabriel |
 
 ### 🌊 Nexus — `nexus_misturador_hiperbolico/`
 | # | pendência | com quem |
