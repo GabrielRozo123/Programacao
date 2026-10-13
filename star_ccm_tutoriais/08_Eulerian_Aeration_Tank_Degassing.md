@@ -2,8 +2,8 @@
 
 > Fonte: *Simcenter STAR-CCM+ 2602 User Guide › Tutorials › Multiphase Flow*.
 > Notas e comentários de engenharia nossos — **resumo, não cópia** da documentação.
-> Status: 🟡 seções 1–5 lidas (visão geral, Loading and Meshing, Physics Models, Phases, Phase
-> Interactions — 13/10/2026). **A seção-chave (contorno de degaseificação) ainda não veio.**
+> Status: ✅ tutorial completo lido (seções 1–10: visão geral, malha, modelos, fases, interação,
+> condições iniciais e gravidade, contornos, cenas e relatórios, execução, resultados — 13/10/2026).
 
 ---
 
@@ -35,8 +35,8 @@ Este tutorial ensina o segundo jeito.
 >
 > Entrar com a velocidade superficial (0,2 m/s) em 100 % da área acertaria a vazão mas daria **25×
 > menos quantidade de movimento**. Vale para qualquer distribuidor perfurado: **preservar massa e
-> quantidade de movimento**, não só massa. *(A conferir na seção de contornos: que velocidade a água
-> recebe na entrada — para não injetar água junto, o esperado é velocidade zero para a fase água.)*
+> quantidade de movimento**, não só massa. A água entra com **velocidade zero** (§7), para não injetar
+> líquido junto.
 
 > 📌 **Régua de balanço:** em regime permanente, **vazão de ar que entra = vazão de ar no contorno de
 > degaseificação**, e a vazão de água pelo topo tem de ser zero. É o critério de convergência mais
@@ -95,17 +95,90 @@ ar disperso, **bolhas de 1 mm**.
 > bolha sobe mais rápido; contaminado (água de processo, industrial) → mais devagar, mais gás retido.
 > Escolha física que afeta a fração de vazio — anotar qual foi usada.
 
+## 6. Condições iniciais e gravidade
+
+| nó | valor |
+|---|---|
+| Water → Initial Volume Fraction | **1,0** (tanque cheio, sem ar) |
+| Gravity | `[0; −9,81; 0]` m/s² |
+| **Reference Density** | **997,561 kg/m³** = densidade da fase **contínua** (água) |
+
+> 📌 **Densidade de referência — a regra que fecha a série de tutoriais:**
+> - **Contínuo-disperso** (01, 02, 08): densidade da fase **contínua** (o líquido).
+> - **Multiple Flow Regimes** (07): **zero** — não há fase contínua definida.
+> - **Monofásico com empuxo** (04): densidade do fluido **frio/ambiente**.
+
+## 7. Contornos — o contorno de degaseificação
+
+### Topo: `Degassing Outlet`
+1. `Degassing Outlet > Phase Conditions > Air > Type = **Phase Permeable**` → o ar sai; **para a
+   água, o contorno é parede**.
+2. *Tangential Velocity Specification* = Vector → *Relative Velocity* = **[0; 0; 5] m/s** — uma
+   "tampa móvel" que **arrasta a água** em +z, para criar uma corrente no tanque (as bolhas são
+   levadas na direção do escoamento enquanto sobem).
+
+O STAR garante **gás que entra = gás que sai** e calcula a fração de gás interna pela continuidade.
+
+### Fundo: `Gas Inlet` (placa perfurada)
+| fase | velocidade | fração volumétrica |
+|---|---|---|
+| Water | **0,0 m/s** | 0,96 |
+| Air | **5,0 m/s** | **0,04** |
+
+✅ Confirma o truque da §1: velocidade do furo + fração = área aberta, e **velocidade zero para a
+água** para não injetar líquido.
+
+> ⚠️ **A água "vê" o contorno de degaseificação como parede.** O default de parede é **não
+> deslizamento**, e uma superfície livre real **não tem atrito**. Aqui o tutorial usa a parede para
+> impor uma corrente (tampa a 5 m/s). Em equipamento onde o contorno representa uma superfície livre
+> parada, conferir a opção de **deslizamento (slip)** para o líquido. Senão aparece uma camada-limite
+> artificial logo abaixo da "superfície" que freia a circulação.
+
+## 8. Cenas e relatórios
+
+| item | configuração |
+|---|---|
+| Cena *Volume Fraction of Air* | plano de corte, *Smooth Filled*, **máximo 0,2**, vista lateral (+X, Up +Y) |
+| Cena *Mass Flow Rate of Air* | no `Degassing Outlet`, vista de topo — **onde** o ar sai |
+| Relatórios **Phase Mass Flow** | `Air Mass Flow Out` e `Water Mass Flow Out` no `Degassing Outlet` → monitores num **gráfico único** |
+
+## 9. Solver e execução
+
+Regime **permanente**, **6 000 iterações**.
+
+| solver | URF | tolerância AMG |
+|---|---|---|
+| Segregated EMP Flow → Phase Coupled Velocity | implícito **0,3** · explícito 1,0 | **0,001** |
+| Segregated EMP Flow → Pressure | **0,1** | **0,001** |
+| Volume Fraction | implícito **0,1** · explícito 1,0 | **0,001** |
+
+> 💡 **Receita do EMP permanente:** relaxações baixas **e** tolerância do AMG mais apertada (0,001)
+> ajudam a convergir. Mesma família de ajustes do EMP transiente do tutorial 07.
+
+## 10. Resultados
+
+- As bolhas sobem e são **levadas pela corrente**; saem pela parede permeável. A água fica no tanque.
+- No topo, a saída de ar se concentra no **lado de jusante** da pluma.
+- **Vazão de ar que sai = 2,8×10⁻⁴ kg/s = vazão que entra**; **vazão de água pelo topo = 0**.
+
+> 💡 **Régua de volta:** 2,8×10⁻⁴ kg/s = ρ_ar·0,04·5·A → com ρ_ar = 1,184 kg/m³ (default),
+> **A ≈ 11,8 cm²** de placa perfurada (ex.: faixa de ~12 mm na largura de 0,1 m). Conferir a área da
+> entrada é o jeito de checar que o balanço reportado bate com o imposto.
+
 ---
 
-## Checklist reaproveitável (até aqui)
+## Checklist reaproveitável
 - [ ] Superfície livre com borbulhamento **sem** precisar da forma da superfície → **contorno de
-      degaseificação** (permanente, barato).
-- [ ] Distribuidor perfurado: **velocidade do furo + fração = área aberta** (massa **e** quantidade
-      de movimento corretas).
-- [ ] Balanço: gás que entra = gás que sai na degaseificação; líquido pelo topo = 0.
+      degaseificação** (*Phase Permeable* para o gás; parede para o líquido), regime permanente.
+- [ ] Contorno de degaseificação representando superfície livre parada → **deslizamento (slip) para
+      o líquido**, não parede com atrito.
+- [ ] Distribuidor perfurado: **velocidade do furo + fração = área aberta**, velocidade **zero** para
+      a outra fase.
+- [ ] Balanço: gás que entra = gás que sai na degaseificação (relatórios *Phase Mass Flow*); líquido
+      pelo topo = 0.
+- [ ] Reference Density = fase contínua (contínuo-disperso) · 0 (MFR) · fluido frio (monofásico).
 - [ ] Mixture Turbulence para bolhas dispersas em fração moderada; Phasic quando as fases divergem.
 - [ ] Tomiyama + gravidade; **tensão superficial do sistema real**; nível de contaminação declarado.
 - [ ] Massa virtual e dispersão turbulenta ligadas em escoamento de bolhas.
-
-## Seções seguintes
-*(a receber — inclusive o contorno de degaseificação)*
+- [ ] EMP permanente: URFs 0,1–0,3 e tolerância AMG 0,001.
+- [ ] Cena da vazão de gás **no** contorno de saída: mostra **onde** o gás sai.

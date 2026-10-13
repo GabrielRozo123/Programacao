@@ -122,7 +122,7 @@ Um contínuo, uma região (as duas fases ocupam o mesmo domínio). Renomear `Phy
 O tutorial diz que **as propriedades padrão servem** para este caso.
 
 > ⚠️ **Em projeto real, conferir sempre.** As propriedades padrão do banco são de uma condição de
-> referência (a água líquida padrão é da ordem de 997 kg/m³, típica de ~25 °C). Para água a 350–373 K
+> referência (a água líquida padrão tem 997,561 kg/m³ — confirmado no tutorial 08 —, típica de ~25 °C). Para água a 350–373 K
 > a densidade real é 958–974 kg/m³. Para pressão diferente da atmosférica, gerar as propriedades com
 > `props_agua_saturada.py` (receita do tutorial 02).
 
