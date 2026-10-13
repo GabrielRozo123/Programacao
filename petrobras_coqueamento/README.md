@@ -23,5 +23,8 @@ Barros; cc Marcus Castro Neves, Gabriel Rozo). Dois cronogramas propostos, **doi
   calibração de partícula, escoamento granular, obstrução. Reaproveita metodologia.
 
 ## Log
+- **2026-10-13** — Reunião de reabertura com o Rui (gravada). O material apresentado é
+  **confidencial** (documento de circulação interna da Petrobras) e **fica fora deste repositório**,
+  que é público. A extração do vídeo está com o Gabriel.
 - **2026-07-13** — Repo aberto. Dois cronogramas recebidos (e-mail João Rui). Briefing da reunião
   das 13h montado para o resfriador (nosso foco imediato). FEA fora do nosso escopo.
