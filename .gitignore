@@ -4,3 +4,6 @@ __pycache__/
 .eggs/
 dist/
 build/
+
+# material confidencial de cliente — nunca versionar (repositório público)
+_privado/
