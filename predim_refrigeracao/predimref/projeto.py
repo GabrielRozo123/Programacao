@@ -27,6 +27,10 @@ class EntradasProjeto:
     COP: capacidade frigorífica do evaporador / potência elétrica do compressor [W/W],
          na condição de projeto. ``None`` usa ``ParametrosCiclo.eta_global_sem_cop``.
     volume_interno_L ou n_garrafas: capacidade do refrigerador (garrafas de 600 mL por padrão).
+    eficacia_condensador / eficacia_evaporador: ε do lado do ar referida à saturação,
+         ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada). Define a vazão de ar e, com ela, a
+         geometria (fileiras, velocidade de face, comprimento). ``None`` usa a velocidade de face fixa
+         de ``ParametrosTrocador`` e a eficácia vira resultado.
     """
     COP: Optional[float]
     T_ambiente_C: float
@@ -35,6 +39,8 @@ class EntradasProjeto:
     n_garrafas: Optional[int] = None
     UR_ambiente: float = 0.60
     fluido: str = "R290"
+    eficacia_condensador: Optional[float] = 0.65
+    eficacia_evaporador: Optional[float] = 0.65
 
 
 @dataclass
@@ -109,7 +115,10 @@ def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjet
         raise ErroProjeto("sub-resfriamento ≥ ΔT do condensador: o ar não consegue sub-resfriar o líquido.")
 
     # 3) ciclo <-> trocadores (as quedas de pressão realimentam o ciclo) ------------------------
+    p.condensador.eficacia = entradas.eficacia_condensador
+    p.evaporador.eficacia = entradas.eficacia_evaporador
     dPc = dPe = 0.0
+    dica_c = dica_e = None
     it = 0
     for it in range(1, p.max_iter + 1):
         av_ciclo = Avisos()
@@ -119,9 +128,12 @@ def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjet
             raise ErroProjeto(str(err) + _sugestao_cop(fl, entradas, T_ar_evap, T_ar_cond, pc)) from None
         bal = balanco(ciclo, carga.Q_projeto, av_ciclo)
         e = ciclo.estados
-        cond = dimensionar_condensador(fl, bal.m, e["2"].P, e["2"].h, pc.subresfriamento, T_ar_cond, p.condensador)
+        cond = dimensionar_condensador(fl, bal.m, e["2"].P, e["2"].h, pc.subresfriamento, T_ar_cond, p.condensador,
+                                       dica_c)
         evap = dimensionar_evaporador(fl, bal.m, e["3i"].h, e["1"].P, pc.superaquecimento, T_ar_evap,
-                                      p.evaporador, carga.fator_umidade)
+                                      p.evaporador, carga.fator_umidade, dica_e)
+        dica_c = (cond.n_fileiras, cond.velocidade_face)
+        dica_e = (evap.n_fileiras, evap.velocidade_face)
         conv = abs(cond.dP_ref - dPc) < 20.0 and abs(evap.dP_ref - dPe) < 20.0
         dPc, dPe = cond.dP_ref, evap.dP_ref
         if conv:
@@ -174,8 +186,13 @@ def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjet
             av.atencao(r.tipo, f"potência estimada do ventilador ({r.potencia_ventilador_est:.1f} W para "
                        f"{r.vazao_ar_m3h:.0f} m³/h a {r.dP_ar:.0f} Pa) maior que a informada ({P_vent:.1f} W).")
     if evap.T_ar_out - 273.15 < -1.5:
-        av.atencao("evaporador", f"ar insuflado a {evap.T_ar_out - 273.15:.1f} °C: risco de congelar bebidas "
-                   "próximas da descarga (ponto de congelamento ≈ −1 a −2 °C).")
+        av.info("evaporador", f"ar insuflado a {evap.T_ar_out - 273.15:.1f} °C com o compressor ligado (comum em "
+                "visi-coolers); verificar na distribuição de ar o risco de congelar bebidas junto à descarga "
+                "(ponto de congelamento ≈ −1 a −2 °C).")
+    for r in (cond, evap):
+        if r.eficacia_alvo is not None and r.fileiras_escolhidas_automaticamente:
+            av.info(r.tipo, f"ε = {r.eficacia_alvo:.2f} atendida com {r.n_fileiras} fileira(s) a "
+                    f"{r.velocidade_face:.2f} m/s (escolha automática; ver alternativas_fileiras).")
     v_suc = bal.m / (e["1"].rho * evap.geometria.Di ** 2 * math.pi / 4.0 * evap.n_circuitos)
     if v_suc < 3.8:
         av.info("evaporador", f"velocidade do vapor na saída do evaporador {v_suc:.1f} m/s (< 3,8 m/s, regra "
@@ -224,21 +241,28 @@ def _sensibilidade(fl, bal, ciclo, carga, p: ParametrosProjeto, T_ar_cond, T_ar_
         pe = copy.deepcopy(p.evaporador)
         pe.correlacao_bifasico = ("liu_winterton_1991" if pe.correlacao_bifasico == "gungor_winterton_1987"
                                   else "gungor_winterton_1987")
+        pe.fileiras_automaticas = False
+        pe.geometria.n_fileiras = evap.n_fileiras
         r = dimensionar_evaporador(fl, bal.m, e["3i"].h, e["1"].P, p.ciclo.superaquecimento, T_ar_evap, pe,
-                                   carga.fator_umidade)
+                                   carga.fator_umidade, (evap.n_fileiras, evap.velocidade_face))
         out["evaporador"] = {"correlacao_base": p.evaporador.correlacao_bifasico, "L_base": evap.L_requerido,
                              "correlacao_alt": pe.correlacao_bifasico, "L_alt": r.L_requerido,
-                             "variacao": r.L_requerido / evap.L_requerido - 1.0}
+                             "variacao": r.L_requerido / evap.L_requerido - 1.0,
+                             "V_base": evap.velocidade_face, "V_alt": r.velocidade_face}
     except ErroProjeto:
         pass
     try:
         pq = copy.deepcopy(p.condensador)
         Re_GT = cond.G_ref * cond.geometria.Di / fl.sat(e["2"].P).muv
         pq.correlacao_bifasico = "chato_1962" if Re_GT < 35000 else "shah_1979"
-        r = dimensionar_condensador(fl, bal.m, e["2"].P, e["2"].h, p.ciclo.subresfriamento, T_ar_cond, pq)
+        pq.fileiras_automaticas = False
+        pq.geometria.n_fileiras = cond.n_fileiras
+        r = dimensionar_condensador(fl, bal.m, e["2"].P, e["2"].h, p.ciclo.subresfriamento, T_ar_cond, pq,
+                                    (cond.n_fileiras, cond.velocidade_face))
         out["condensador"] = {"correlacao_base": p.condensador.correlacao_bifasico, "L_base": cond.L_requerido,
                               "correlacao_alt": pq.correlacao_bifasico, "L_alt": r.L_requerido,
-                              "variacao": r.L_requerido / cond.L_requerido - 1.0}
+                              "variacao": r.L_requerido / cond.L_requerido - 1.0,
+                              "V_base": cond.velocidade_face, "V_alt": r.velocidade_face}
     except ErroProjeto:
         pass
     try:
@@ -253,3 +277,27 @@ def _sensibilidade(fl, bal, ciclo, carga, p: ParametrosProjeto, T_ar_cond, T_ar_
         pass
     return out
 
+
+
+def alternativas_fileiras(res: ResultadoProjeto, tipo: str, fileiras=range(1, 9)) -> list[dict]:
+    """Tabela de alternativas do condensador ou do evaporador para a eficácia pedida: para cada nº de
+    fileiras, a velocidade de face que atende ε, o comprimento de tubo, a vazão de ar e a ΔP do ar.
+    Acima de 6 fileiras a correlação de Wang (2000) é extrapolada."""
+    from .trocador import _condensador_fixo, _evaporador_fixo, alternativas_fileiras as _alt
+    fl = Fluido(res.entradas.fluido)
+    p, e, m = res.parametros, res.ciclo.estados, res.balanco.m
+    pc = p.ciclo
+    if tipo == "condensador":
+        pt = copy.deepcopy(p.condensador)
+        T_ar = C_para_K(res.entradas.T_ambiente_C) + pc.dT_recirculacao_cond
+        rodar = (lambda pp: _condensador_fixo(fl, m, e["2"].P, e["2"].h, pc.subresfriamento, T_ar, pp))
+    elif tipo == "evaporador":
+        pt = copy.deepcopy(p.evaporador)
+        T_ar = C_para_K(res.entradas.T_alvo_C) + pc.dT_retorno_evap
+        rodar = (lambda pp: _evaporador_fixo(fl, m, e["3i"].h, e["1"].P, pc.superaquecimento, T_ar, pp,
+                                             res.carga.fator_umidade))
+    else:
+        raise ValueError("tipo deve ser 'condensador' ou 'evaporador'")
+    if pt.eficacia is None:
+        raise ValueError("as alternativas por fileiras exigem a eficácia definida")
+    return _alt(rodar, pt, fileiras)

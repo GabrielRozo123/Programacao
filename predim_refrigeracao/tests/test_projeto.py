@@ -27,7 +27,7 @@ def test_faixas_realistas(res):
     assert 150 < res.carga.Q_projeto < 400
     assert 1.0 < res.compressor.deslocamento_cm3 < 5.0
     assert 0.5e-3 < res.capilar.escolhido.D < 1.2e-3
-    assert 0.02 < res.carga_refrigerante["total_kg"] < 0.15
+    assert 0.02 < res.carga_refrigerante["total_kg"] < 0.25
     assert 1.0 < res.energia["total_kWh_dia"] < 5.0
 
 
@@ -60,3 +60,31 @@ def test_ihx_melhora_capacidade_especifica():
     r1 = dimensionar(e, ParametrosProjeto(ciclo=ParametrosCiclo(eficacia_ihx=0.6), analise_sensibilidade=False))
     assert r1.ciclo.q_evap > r0.ciclo.q_evap
     assert r1.balanco.m < r0.balanco.m
+
+
+def test_eficacia_padrao_065(res):
+    assert res.entradas.eficacia_condensador == 0.65 and res.entradas.eficacia_evaporador == 0.65
+    for r in (res.condensador, res.evaporador):
+        assert r.eficacia == pytest.approx(0.65, abs=1e-3)
+    d = res.para_dict()
+    assert d["condensador"]["eficacia"]["obtida"] == pytest.approx(0.65, abs=1e-3)
+    assert d["amesim"]["evaporador"]["velocidade_face_m_s"] == pytest.approx(res.evaporador.velocidade_face)
+
+
+def test_eficacia_livre_reproduz_modo_antigo():
+    e = EntradasProjeto(COP=2.0, T_ambiente_C=32.0, T_alvo_C=2.5, volume_interno_L=200.0,
+                        eficacia_condensador=None, eficacia_evaporador=None)
+    r = dimensionar(e, ParametrosProjeto(analise_sensibilidade=False))
+    assert r.condensador.velocidade_face == 2.0 and r.evaporador.velocidade_face == 1.5
+    assert r.condensador.eficacia_alvo is None
+
+
+def test_alternativas_fileiras(res):
+    from predimref.projeto import alternativas_fileiras
+    tab = alternativas_fileiras(res, "condensador", range(2, 7))
+    viaveis = [t for t in tab if t["viavel"]]
+    assert viaveis, tab
+    Vs = [t["velocidade_face_m_s"] for t in viaveis]
+    assert Vs == sorted(Vs)   # mais fileiras -> mais velocidade para a mesma ε
+    escolhido = next(t for t in viaveis if t["fileiras"] == res.condensador.n_fileiras)
+    assert escolhido["velocidade_face_m_s"] == pytest.approx(res.condensador.velocidade_face, rel=2e-3)

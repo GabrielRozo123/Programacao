@@ -91,3 +91,89 @@ def test_correlacoes_alternativas(caso):
     pe = copy.deepcopy(evaporador_padrao())
     pe.correlacao_bifasico = "liu_winterton_1991"
     assert dimensionar_evaporador(fl, b.m, e["3i"].h, e["1"].P, 5.0, 275.65, pe).L_requerido > 0
+
+
+# ------------------------------------------------------------------ modo de eficácia
+def _cond(caso, **kw):
+    fl, c, b = caso
+    e = c.estados
+    p = condensador_padrao()
+    for k, v in kw.items():
+        setattr(p, k, v)
+    return dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, p)
+
+
+def _evap(caso, sa=5.0, **kw):
+    fl, c, b = caso
+    e = c.estados
+    p = evaporador_padrao()
+    for k, v in kw.items():
+        setattr(p, k, v)
+    return dimensionar_evaporador(fl, b.m, e["3i"].h, e["1"].P, sa, 275.65, p, 1.05)
+
+
+@pytest.mark.parametrize("eps, trocadores", [(0.4, "ce"), (0.65, "ce"), (0.8, "c")])
+def test_eficacia_atingida(caso, eps, trocadores):
+    rs = ([_cond(caso, eficacia=eps)] if "c" in trocadores else []) + (
+        [_evap(caso, eficacia=eps)] if "e" in trocadores else [])
+    for r in rs:
+        assert r.eficacia == pytest.approx(eps, abs=1e-3)
+        assert r.eficacia_alvo == eps
+        assert 0.3 <= r.velocidade_face <= 4.0 and 1 <= r.n_fileiras <= 6
+        # definição: ε = ΔT_ar / (T_sat − T_ar,entrada)
+        assert abs(r.T_ar_out - r.T_ar_in) / abs(r.T_sat_ref - r.T_ar_in) == pytest.approx(r.eficacia, rel=1e-12)
+        assert 0 < r.eficacia_Qmax <= 1.0
+
+
+def test_eficacia_monotona_em_V_e_N(caso):
+    eps = {}
+    for N in (2, 4):
+        for V in (0.8, 1.6):
+            pc = condensador_padrao()
+            pc.geometria.n_fileiras = N
+            pc.velocidade_face = V
+            fl, c, b = caso
+            e = c.estados
+            eps[(N, V)] = dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, pc).eficacia
+    assert eps[(2, 0.8)] > eps[(2, 1.6)] and eps[(4, 0.8)] > eps[(4, 1.6)]   # cai com V
+    assert eps[(4, 0.8)] > eps[(2, 0.8)] and eps[(4, 1.6)] > eps[(2, 1.6)]   # sobe com N
+
+
+def test_eficacia_menor_que_limite_ntu_uniforme(caso):
+    """Evaporador só bifásico (SA = 0): cada trecho tem ε = 1 − exp(−NTU_trecho); pela desigualdade
+    de Jensen a eficácia global não supera 1 − exp(−NTU_global) e fica próxima dela."""
+    r = _evap(caso, sa=0.0, eficacia=0.6)
+    lim = 1.0 - math.exp(-r.NTU)
+    assert r.eficacia <= lim + 1e-9
+    assert r.eficacia == pytest.approx(lim, rel=0.05)
+    assert set(r.zonas) == {"evaporação"}
+
+
+def test_eficacia_inviavel(caso):
+    # a 0,8 o evaporador (tubo 3/8", 1 circuito, G ≈ 14 kg/m²s) não chega com até 6 fileiras
+    with pytest.raises(ErroProjeto, match="inatingível"):
+        _evap(caso, eficacia=0.8)
+    with pytest.raises(ErroProjeto, match="inatingível"):
+        _evap(caso, eficacia=0.97)
+    with pytest.raises(ErroProjeto):
+        _cond(caso, eficacia=1.2)
+
+
+def test_fileiras_fixas(caso):
+    p = condensador_padrao()
+    p.eficacia, p.fileiras_automaticas = 0.65, False
+    p.geometria.n_fileiras = 4
+    fl, c, b = caso
+    e = c.estados
+    r = dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, p)
+    assert r.n_fileiras == 4 and not r.fileiras_escolhidas_automaticamente
+    assert r.eficacia == pytest.approx(0.65, abs=1e-3)
+    # a dica (N, V) de uma solução anterior leva à mesma solução
+    r2 = dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, p, (r.n_fileiras, r.velocidade_face))
+    assert r2.velocidade_face == pytest.approx(r.velocidade_face, rel=1e-3)
+
+
+def test_sem_eficacia_mantem_modo_velocidade(caso):
+    r = _cond(caso)
+    assert r.eficacia_alvo is None and r.velocidade_face == condensador_padrao().velocidade_face
+    assert 0 < r.eficacia < 1

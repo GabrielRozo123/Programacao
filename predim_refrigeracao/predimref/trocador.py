@@ -24,11 +24,31 @@ circuito de refrigerante. Em cada segmento:
 O comprimento requerido é a soma dos segmentos; depois aplica-se a margem de área e o
 arranjo é arredondado para tubos inteiros (fileiras × tubos por fileira × comprimento do passe).
 Curvas de retorno (U) não entram na perda de carga (pequenas aos fluxos mássicos destes sistemas).
+
+Modo de eficácia (``ParametrosTrocador.eficacia``)
+--------------------------------------------------
+A eficácia é a do lado do ar, referida à temperatura de saturação do refrigerante (definição usual de
+condensadores e evaporadores, em que o refrigerante bifásico tem C → ∞ e C_min = Ċ_ar):
+
+    ε = (T_ar,saída − T_ar,entrada) / (T_sat − T_ar,entrada) = Q_sens / [Ċ_ar (T_sat − T_ar,entrada)]
+
+com T_sat = T_cond (entrada do condensador) ou T_evap (saída do evaporador) e Q_sens = Q/ξ.
+Dados Q (do ciclo), ε e as temperaturas, a vazão de ar fica determinada (Ċ_ar = Q_sens/(ε ΔT)).
+Na distribuição paralela de ar, ε depende só da velocidade de face V e do número de fileiras N
+(e do coeficiente interno), e decresce monotonamente com V: para cada N resolve-se V tal que
+ε(V, N) = ε_alvo; com ``fileiras_automaticas`` escolhe-se o N (≤ ``fileiras_max``) cuja V fica mais
+perto da ``velocidade_face`` preferida. O comprimento de tubo sai da marcha segmentada nessa (V, N).
+Também se reporta a eficácia "estrita" Q/Q_max com o Q_max termodinâmico (calores específicos
+variáveis): Q_max = min[ṁ |h_ref,entrada − h(P, T_ar,entrada)|, ξ Ċ_ar |T_ref,entrada − T_ar,entrada|],
+útil se o componente do Amesim usar essa definição.
 """
 from __future__ import annotations
 
+import copy
+import dataclasses
 import math
 from dataclasses import dataclass, field
+from typing import Optional
 
 from scipy.optimize import brentq
 
@@ -54,6 +74,12 @@ class ParametrosTrocador:
     #                                          ebulição: gungor_winterton_1987|liu_winterton_1991
     x_secagem: float = 0.90
     eficiencia_ventilador: float = 0.20    # elétrica total de ventiladores axiais pequenos
+    # modo de eficácia: ε alvo referido à saturação; None -> velocidade_face fixa (geometria livre)
+    eficacia: Optional[float] = None
+    fileiras_automaticas: bool = True      # com ε: escolhe N ≤ fileiras_max com V mais perto de velocidade_face
+    fileiras_max: int = 6                  # limite da base de dados de Wang et al. (2000)
+    velocidade_min: float = 0.3            # m/s (Re_Dc ≈ 300–400, limite inferior de Wang)
+    velocidade_max: float = 4.0            # m/s
 
 
 def condensador_padrao() -> ParametrosTrocador:
@@ -65,9 +91,9 @@ def condensador_padrao() -> ParametrosTrocador:
 
 
 def evaporador_padrao() -> ParametrosTrocador:
-    """Evaporador de ar forçado para média temperatura com degelo natural (passo largo, 4 fileiras)."""
+    """Evaporador de ar forçado para média temperatura com degelo natural (6 FPI, 4 fileiras)."""
     return ParametrosTrocador(
-        geometria=GeometriaAletada(Do=9.52e-3, esp_parede=0.35e-3, esp_aleta=0.15e-3, passo_aleta=5.0e-3,
+        geometria=GeometriaAletada(Do=9.52e-3, esp_parede=0.35e-3, esp_aleta=0.15e-3, passo_aleta=4.23e-3,
                                    Pt=25.4e-3, Pl=22.0e-3, n_fileiras=4),
         velocidade_face=1.5, comprimento_passe_m=0.35, correlacao_bifasico="gungor_winterton_1987")
 
@@ -132,6 +158,16 @@ class ResultadoTrocador:
     geometria: GeometriaAletada
     UA_adotado: float = 0.0
     avisos: list = field(default_factory=list)
+    velocidade_face: float = 0.0     # m/s (entrada; resolvida no modo de eficácia)
+    T_sat_ref: float = 0.0           # temperatura de saturação de referência da eficácia [K]
+    eficacia: float = 0.0            # obtida, referida à saturação (ver docstring do módulo)
+    eficacia_alvo: Optional[float] = None
+    eficacia_Qmax: float = 0.0       # Q / Q_max termodinâmico (ver _consolidar)
+    C_ar: float = 0.0                # capacidade térmica sensível do ar na serpentina requerida [W/K]
+    UA_requerido: float = 0.0        # Σ UA' L dos segmentos (sem margem) [W/K]
+    NTU: float = 0.0                 # UA_requerido / (ξ C_ar)
+    fileiras_escolhidas_automaticamente: bool = False
+    vazao_ar_requerida_m3h: float = 0.0  # Ċ_ar/(ρ c_p) da serpentina requerida (a adotada é maior)
 
     @property
     def dP_ref(self) -> float:
@@ -287,7 +323,7 @@ def _segmento_bifasico(ctx: _Ctx, zona: str, P_in: float, x_in: float, x_out: fl
 
 
 def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: ParametrosTrocador,
-                T_ar_in: float) -> ResultadoTrocador:
+                T_ar_in: float, T_sat_ref: float) -> ResultadoTrocador:
     g = p.geometria
     Nc = p.n_circuitos
     zonas: dict = {}
@@ -318,19 +354,30 @@ def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: Param
         av.append(f"Re_Dc do ar = {ctx.ar.Re_Dc:.0f} fora da faixa usual da correlação de Wang")
     if dTsat > 1.5:
         av.append(f"queda de pressão do refrigerante equivale a {dTsat:.2f} K de saturação: considere mais circuitos")
-    UA_adot = sum(s.UA_m * s.L for s in segs) / sum(s.L for s in segs) * L_adot
+    UA_req = sum(s.UA_m * s.L for s in segs) * Nc
+    UA_adot = UA_req / L_req * L_adot
+    C_ar = ctx.Ca_seco * L_req                       # sensível, serpentina requerida
+    eps = abs(T_out - T_ar_in) / abs(T_sat_ref - T_ar_in)
+    # eficácia "estrita" com o Q_max termodinâmico (calores específicos variáveis, Shah & Sekulic 2003):
+    # refrigerante levado à temperatura de entrada do ar, ou ar levado à temperatura de entrada do refrigerante
+    T_ref_in = segs[0].T_in
+    h_ref_lim = fl.estado_PT(P_out, T_ar_in).h
+    Qmax_ref = m * abs(segs[0].h_in - h_ref_lim)
+    Qmax_ar = ctx.xi * C_ar * abs(T_ref_in - T_ar_in)
+    eps_Qmax = Q / min(Qmax_ref, Qmax_ar)
     return ResultadoTrocador(
         tipo, fl.nome, m, Q, segs, zonas, L_req, L_adot, Nc, g.n_fileiras, tpf, n_tubos, p.comprimento_passe_m,
         altura, A_face, g.area_externa_por_m * L_adot, g.area_interna_por_m * L_adot,
         math.pi * g.Di ** 2 / 4.0 * L_adot, int(p.comprimento_passe_m / g.passo_aleta), Vdot * 3600.0,
         T_ar_in, T_out, dP_ar, Vdot * dP_ar, Vdot * dP_ar / p.eficiencia_ventilador, P_in, P_out, dTsat,
-        ctx.G, ctx.ar, ctx.xi, g, UA_adot, av)
+        ctx.G, ctx.ar, ctx.xi, g, UA_adot, av, p.velocidade_face, T_sat_ref, eps, p.eficacia, eps_Qmax, C_ar,
+        UA_req, UA_req / (ctx.xi * C_ar), False, C_ar / (ctx.rho_ar_in * ctx.cp_ar) * 3600.0)
 
 
 # ============================================================================ condensador
-def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
-                            T_ar_in: float, p: ParametrosTrocador) -> ResultadoTrocador:
-    """Comprimento de tubo para levar o vapor de descarga (P_in, h_in) a líquido sub-resfriado."""
+def _condensador_fixo(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
+                      T_ar_in: float, p: ParametrosTrocador) -> ResultadoTrocador:
+    """Marcha do condensador para geometria e velocidade de face fixas."""
     n = p.n_segmentos
     T_ar_m = T_ar_in + 5.0
     for _ in range(3):   # propriedades do ar na temperatura média
@@ -367,15 +414,14 @@ def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subr
         if abs(T_novo - T_ar_m) < 0.05:
             break
         T_ar_m = T_novo
-    return _consolidar("condensador", fl, m, segs, ctx, p, T_ar_in)
+    return _consolidar("condensador", fl, m, segs, ctx, p, T_ar_in, fl.Tsat(P_in))
 
 
 # ============================================================================ evaporador
-def dimensionar_evaporador(fl: Fluido, m: float, h_in: float, P_out_alvo: float, superaquecimento: float,
-                           T_ar_in: float, p: ParametrosTrocador, fator_umidade: float = 1.0) -> ResultadoTrocador:
-    """Comprimento de tubo do evaporador: entrada (h_in, pressão a determinar), saída na pressão
-    de sucção ``P_out_alvo`` com o superaquecimento pedido. A pressão de entrada (= saída do
-    capilar) é obtida iterando a queda de pressão."""
+def _evaporador_fixo(fl: Fluido, m: float, h_in: float, P_out_alvo: float, superaquecimento: float,
+                     T_ar_in: float, p: ParametrosTrocador, fator_umidade: float = 1.0) -> ResultadoTrocador:
+    """Marcha do evaporador para geometria e velocidade de face fixas. A pressão de entrada
+    (= saída do capilar) é obtida iterando a queda de pressão."""
     n = p.n_segmentos
     T_sat_out = fl.Tsat(P_out_alvo)
     h_fim = fl.estado_PT(P_out_alvo, T_sat_out + superaquecimento).h if superaquecimento > 0 else fl.sat(P_out_alvo).hv
@@ -409,4 +455,126 @@ def dimensionar_evaporador(fl: Fluido, m: float, h_in: float, P_out_alvo: float,
         dP_tot = segs[0].P_in - segs[-1].P_out
         if abs(erro) < 1.0:
             break
-    return _consolidar("evaporador", fl, m, segs, ctx, p, T_ar_in)
+    return _consolidar("evaporador", fl, m, segs, ctx, p, T_ar_in, T_sat_out)
+
+
+# ============================================================================ modo de eficácia
+def _com(p: ParametrosTrocador, N: int, V: float) -> ParametrosTrocador:
+    pp = copy.copy(p)
+    pp.geometria = dataclasses.replace(p.geometria, n_fileiras=int(N))
+    pp.velocidade_face = float(V)
+    return pp
+
+
+class _Solucionador:
+    """Resolve a velocidade de face (e, se pedido, o nº de fileiras) para uma eficácia alvo."""
+
+    def __init__(self, rodar, p: ParametrosTrocador, tipo: str):
+        if not 0.0 < p.eficacia < 1.0:
+            raise ErroProjeto(f"eficácia do {tipo} deve estar entre 0 e 1 (recebido {p.eficacia}).")
+        self.rodar, self.p, self.tipo, self.alvo = rodar, p, tipo, p.eficacia
+        self._cache: dict = {}
+
+    def resultado(self, N: int, V: float) -> ResultadoTrocador:
+        k = (int(N), round(V, 7))
+        if k not in self._cache:
+            self._cache[k] = self.rodar(_com(self.p, N, V))
+        return self._cache[k]
+
+    def eps(self, N: int, V: float) -> float:
+        return self.resultado(N, V).eficacia
+
+    def velocidade(self, N: int, V_dica: Optional[float] = None) -> Optional[float]:
+        """V tal que ε(V, N) = ε_alvo, ou None se o alvo é inatingível com N fileiras na faixa de V."""
+        p = self.p
+        f = (lambda V: self.eps(N, V) - self.alvo)
+        lo, hi = p.velocidade_min, p.velocidade_max
+        if V_dica is not None:   # intervalo estreito em torno da solução anterior (iterações do ciclo)
+            a, b = max(lo, 0.85 * V_dica), min(hi, 1.15 * V_dica)
+            if a < b and f(a) >= 0.0 >= f(b):
+                return brentq(f, a, b, xtol=1e-4, rtol=1e-6)
+        if f(lo) < 0.0 or f(hi) > 0.0:
+            return None
+        return brentq(f, lo, hi, xtol=1e-4, rtol=1e-6)
+
+    def resolver(self, dica: Optional[tuple] = None) -> ResultadoTrocador:
+        p = self.p
+        if not p.fileiras_automaticas:
+            N = p.geometria.n_fileiras
+            V = self.velocidade(N, dica[1] if dica and dica[0] == N else None)
+            if V is None:
+                raise ErroProjeto(self._mensagem_inviavel([N]))
+            return self._final(N, V, False)
+        if dica is not None and 1 <= dica[0] <= p.fileiras_max:
+            V = self.velocidade(dica[0], dica[1])
+            if V is not None:
+                return self._final(dica[0], V, True)
+        Vp = min(max(p.velocidade_face, p.velocidade_min), p.velocidade_max)
+        Ns = list(range(1, p.fileiras_max + 1))
+        N_alto = next((N for N in Ns if self.eps(N, Vp) >= self.alvo), None)   # ε cresce com N
+        cand = [Ns[-1]] if N_alto is None else [N_alto] + ([N_alto - 1] if N_alto > 1 else [])
+        sols = [(N, V) for N in cand if (V := self.velocidade(N)) is not None]
+        if not sols:
+            raise ErroProjeto(self._mensagem_inviavel(Ns))
+        N, V = min(sols, key=lambda s: abs(math.log(s[1] / Vp)))
+        return self._final(N, V, True)
+
+    def _final(self, N: int, V: float, auto: bool) -> ResultadoTrocador:
+        r = self.rodar(_com(self.p, N, V))
+        r.fileiras_escolhidas_automaticamente = auto
+        if abs(r.eficacia - self.alvo) > 2e-3:
+            r.avisos.append(f"eficácia obtida {r.eficacia:.3f} difere do alvo {self.alvo:.3f}")
+        return r
+
+    def _mensagem_inviavel(self, Ns: list) -> str:
+        p = self.p
+        N = max(Ns)
+        e_max = self.eps(N, p.velocidade_min)
+        return (f"eficácia {self.alvo:.2f} inatingível no {self.tipo} com até {N} fileira(s): o máximo é "
+                f"{e_max:.2f} a {p.velocidade_min} m/s. Reduza a eficácia, aumente fileiras_max, diminua o passo "
+                "de aleta ou use mais área por fileira (o lado do refrigerante limita o NTU a fluxos mássicos baixos).")
+
+
+def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
+                            T_ar_in: float, p: ParametrosTrocador, dica: Optional[tuple] = None) -> ResultadoTrocador:
+    """Comprimento de tubo para levar o vapor de descarga (P_in, h_in) a líquido sub-resfriado.
+    Com ``p.eficacia`` definido, resolve velocidade de face e fileiras para essa eficácia
+    (``dica`` = (N, V) de uma solução anterior acelera as iterações do ciclo)."""
+    def rodar(pp):
+        return _condensador_fixo(fl, m, P_in, h_in, subresfriamento, T_ar_in, pp)
+    if p.eficacia is None:
+        return rodar(p)
+    return _Solucionador(rodar, p, "condensador").resolver(dica)
+
+
+def dimensionar_evaporador(fl: Fluido, m: float, h_in: float, P_out_alvo: float, superaquecimento: float,
+                           T_ar_in: float, p: ParametrosTrocador, fator_umidade: float = 1.0,
+                           dica: Optional[tuple] = None) -> ResultadoTrocador:
+    """Comprimento de tubo do evaporador: entrada (h_in, pressão a determinar), saída na pressão
+    de sucção ``P_out_alvo`` com o superaquecimento pedido. Com ``p.eficacia`` definido, resolve
+    velocidade de face e fileiras para essa eficácia."""
+    def rodar(pp):
+        return _evaporador_fixo(fl, m, h_in, P_out_alvo, superaquecimento, T_ar_in, pp, fator_umidade)
+    if p.eficacia is None:
+        return rodar(p)
+    return _Solucionador(rodar, p, "evaporador").resolver(dica)
+
+
+def alternativas_fileiras(rodar_fixo, p: ParametrosTrocador, fileiras=range(1, 7)) -> list[dict]:
+    """Para a eficácia alvo de ``p``, a solução (V, comprimento, vazão de ar, ΔP do ar) de cada nº de
+    fileiras — o compromisso área × ventilador que o projetista escolhe."""
+    sol = _Solucionador(rodar_fixo, p, "trocador")
+    linhas = []
+    for N in fileiras:
+        V = sol.velocidade(N)
+        if V is None:
+            linhas.append({"fileiras": N, "viavel": False, "eficacia_max": sol.eps(N, p.velocidade_min)})
+            continue
+        r = sol.rodar(_com(p, N, V))
+        linhas.append({"fileiras": N, "viavel": True, "velocidade_face_m_s": V, "L_requerido_m": r.L_requerido,
+                       "L_adotado_m": r.L_adotado, "tubos_por_fileira": r.tubos_por_fileira,
+                       "altura_face_m": r.altura_face, "area_externa_m2": r.area_externa,
+                       "vazao_ar_requerida_m3_h": r.vazao_ar_requerida_m3h, "vazao_ar_face_adotada_m3_h": r.vazao_ar_m3h,
+                       "dP_ar_Pa": r.dP_ar,
+                       "potencia_ventilador_W": r.potencia_ventilador_est, "Re_Dc": r.ar.Re_Dc})
+    return linhas

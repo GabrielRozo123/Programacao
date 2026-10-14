@@ -1,9 +1,12 @@
 # Pré-dimensionamento de ciclos de refrigeração — visi-coolers (CAExperts × IMBERA)
 
 Rotina em Python (Google Colab) que pré-dimensiona o sistema de refrigeração de um refrigerador comercial de
-bebidas a partir de **COP, capacidade (litros ou garrafas de 600 mL), temperatura ambiente e temperatura alvo**.
-As saídas (compressor, condensador, evaporador, capilar, carga de fluido) são as entradas do modelo de sistema
-no **Simcenter Amesim**.
+bebidas a partir de **COP, capacidade (litros ou garrafas de 600 mL), temperatura ambiente e temperatura alvo**,
+com a **eficácia dos trocadores** como entrada ajustável (padrão 0,65). As saídas (compressor, condensador,
+evaporador, capilar, carga de fluido) são as entradas do modelo de sistema no **Simcenter Amesim**.
+
+A rotina é o *step-down* do modelo do Amesim: gera, em regime permanente, parâmetros físicos e coerentes entre si
+para montar o modelo. As curvas de pull-down, consumo, fuga térmica e água drenada saem do próprio Amesim.
 
 ## Como usar
 
@@ -16,7 +19,8 @@ e instala o CoolProp.
 ```python
 from predimref import EntradasProjeto, dimensionar
 
-res = dimensionar(EntradasProjeto(COP=2.0, T_ambiente_C=32, T_alvo_C=2.5, volume_interno_L=200))
+res = dimensionar(EntradasProjeto(COP=2.0, T_ambiente_C=32, T_alvo_C=2.5, volume_interno_L=200,
+                                  eficacia_condensador=0.65, eficacia_evaporador=0.65))
 print(res.resumo())                      # relatório legível
 amesim = res.para_dict()["amesim"]       # parâmetros em SI por componente
 res.exportar_json("resultado.json")
@@ -24,7 +28,7 @@ res.exportar_json("resultado.json")
 
 Dependências do núcleo: `numpy`, `scipy`, `CoolProp` (matplotlib só para gráficos, pandas só no notebook).
 
-## Exemplo — 200 L, 32 °C, alvo 2,5 °C, COP 2,0, R290 (premissas padrão)
+## Exemplo — 200 L, 32 °C, alvo 2,5 °C, COP 2,0, R290, ε = 0,65 nos dois trocadores (premissas padrão)
 
 | Item | Resultado |
 |---|---|
@@ -32,11 +36,31 @@ Dependências do núcleo: `numpy`, `scipy`, `CoolProp` (matplotlib só para grá
 | Carga térmica de projeto | 218 W (743 Btu/h); governa o regime de uso diário |
 | Ciclo | T_evap −7,5 °C / T_cond 45 °C, razão de pressão 4,09, η_global implícito 0,52 |
 | Compressor | 109 W elétricos, 2,21 cm³ a 3500 rpm; ≈ 198 W em EN 12900 MBP |
-| Condensador | 3 fileiras × 5 tubos × 0,30 m (tubo 3/8"), 4,5 m de tubo, 1,87 m² externos |
-| Evaporador | 4 fileiras × 5 tubos × 0,35 m (tubo 3/8"), 7,0 m de tubo, 1,56 m² externos |
+| Condensador (ε = 0,65) | 6 fileiras a 1,28 m/s; 5,6 m de tubo 3/8" requeridos (6 × 4 tubos × 0,30 m adotados); 108 m³/h de ar |
+| Evaporador (ε = 0,65) | 6 fileiras a 0,51 m/s; 11,6 m de tubo 3/8" requeridos (6 × 7 tubos × 0,35 m adotados); 89 m³/h; ar insuflado −4 °C |
 | Capilar | 0,028" (0,711 mm) × 2,17 m, não blocado |
-| Carga de R290 | ≈ 109 g |
+| Carga de R290 | ≈ 165 g (acima de 150 g: o aviso é emitido) |
 | Consumo estimado | ≈ 2,2 kWh/dia |
+
+### Eficácia dos trocadores
+
+ε é a do lado do ar referida à saturação (definição usual para condensadores e evaporadores, refrigerante
+bifásico com C → ∞): ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada). Com a carga e o ΔT de aproximação
+fixados pelo ciclo, ε define a vazão de ar (Ċ_ar = Q_sens/(ε ΔT)) e o NTU necessário (≈ −ln(1−ε)). A rotina resolve a
+velocidade de face e escolhe o nº de fileiras (≤ 6) e calcula o comprimento de tubo. ε não muda o ciclo: troca
+ventilador por trocador. Efeito no exemplo acima:
+
+| ε | Condensador (fileiras × V, tubo, ar) | Evaporador (fileiras × V, tubo, ar, ar insuflado) | Carga R290 |
+|---|---|---|---|
+| 0,45 | 5 × 2,07 m/s, 4,1 m, 157 m³/h | 6 × 1,23 m/s, 6,9 m, 129 m³/h, −2,0 °C | 132 g |
+| 0,55 | 6 × 1,80 m/s, 4,7 m, 128 m³/h | 6 × 0,79 m/s, 8,8 m, 106 m³/h, −3,0 °C | 130 g |
+| 0,65 | 6 × 1,28 m/s, 5,6 m, 108 m³/h | 6 × 0,51 m/s, 11,6 m, 89 m³/h, −4,0 °C | 165 g |
+| 0,75 | 6 × 0,89 m/s, 6,9 m, 94 m³/h | 6 × 0,31 m/s, 16,5 m, 78 m³/h, −5,0 °C | 199 g |
+
+Com tubo 3/8" e um circuito, o fluxo mássico de refrigerante é baixo (G ≈ 14 kg/m²s) e o lado interno limita o NTU
+por fileira; por isso ε alto pede serpentinas fundas e face lenta. `alternativas_fileiras(res, "condensador")`
+mostra todas as opções (fileiras × velocidade × comprimento × ventilador). A eficácia estrita Q/Q_max
+(Q_max termodinâmico) também é exportada, caso o componente do Amesim use essa definição.
 
 ## Estrutura
 
@@ -55,7 +79,7 @@ predim_refrigeracao/
 │   ├── projeto.py             orquestração (ciclo ↔ trocadores ↔ capilar)
 │   ├── relatorio.py           resumo, JSON, bloco "amesim"
 │   └── graficos.py            P-h, T-s, perfis, mapa de COP
-├── tests/                     56 testes (pytest)
+├── tests/                     testes automatizados (pytest)
 ├── validacao/                 capilar × Li et al. (1990)
 └── ferramentas/gerar_notebook.py
 ```
@@ -81,7 +105,8 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 ## Verificação e validação
 
 * Balanço de energia e de exergia fecham a 10⁻⁹; destruição de exergia ≥ 0 em todos os componentes.
-* Trocadores: independência de malha (< 1 % entre 20 e 60 segmentos por zona); balanço do ar trecho a trecho.
+* Trocadores: independência de malha (< 1 % entre 20 e 60 segmentos por zona); balanço do ar trecho a trecho;
+  eficácia alvo atingida a 10⁻³; ε ≤ 1 − e^(−NTU) (desigualdade de Jensen) no evaporador só bifásico.
 * Eficiência de aleta de Schmidt dentro de 3 % da solução exata (Bessel) da aleta anular.
 * Capilar contra Li et al. (1990), R12, D = 0,66 mm, L = 1,5 m (`python validacao/validacao_capilar_li1990.py`):
 
@@ -107,12 +132,13 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 | | reposição | 50 % das garrafas/dia | |
 | | pull-down | carga cheia em 24 h | |
 | | utilização máx. | 70 % | folga para degelo/controle |
+| Trocadores | eficácia ε (cond. e evap.) | 0,65 | definida pela equipe (ajustável pelo usuário) |
 | Ciclo | ΔT evaporador / condensador | 10 K / 13 K | prática de visi-coolers |
 | | SA / SR | 5 K / 3 K | sistemas com capilar |
 | | η_eletromecânica | 0,72 | motor × mecânico de herméticos pequenos |
 | Compressor | rotação | 3500 rpm | 2 polos, 60 Hz (México, Colômbia) |
-| Trocadores | condensador | 3/8", 3 fileiras, aleta 2,5 mm, 2 m/s | |
-| | evaporador | 3/8", 4 fileiras, aleta 5 mm, 1,5 m/s | passo largo para geada |
+| Trocadores | condensador | 3/8", aleta 2,5 mm, V preferida 2 m/s | fileiras e V resolvidas para ε |
+| | evaporador | 3/8", aleta 4,23 mm (6 FPI), V preferida 1,5 m/s | passo largo para geada |
 | Capilar | série | polegadas (0,026"–0,080") | mercado latino-americano |
 
 ## Limitações conhecidas
@@ -121,5 +147,6 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 * O compressor é um modelo genérico (espaço morto + η constante). Substituir pelo mapa do compressor escolhido.
 * O capilar é adiabático e sem metaestabilidade. Com trocador interno (capilar soldado à sucção), ajustar em protótipo.
 * Correlações de tubo liso, sem óleo. Geada só como resistência de incrustação.
-* A carga térmica depende fortemente das premissas de uso: **calibrar com ensaio de um produto IMBERA existente**
-  (fuga térmica reversa, pull-down e consumo) antes de usar comercialmente.
+* A carga térmica depende fortemente das premissas de uso. A conferência é feita contra o modelo do Amesim:
+  rodado no ponto de projeto, ele deve reproduzir `amesim.alvo_validacao` (Q_evap, W_el, ṁ, T_evap, T_cond);
+  diferença grande indica parâmetro mapeado de forma diferente, em especial a definição de eficácia do componente.

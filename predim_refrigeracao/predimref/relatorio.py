@@ -58,7 +58,8 @@ def _trocador_dict(r) -> dict:
         "volume_interno_L": r.volume_interno * 1e3,
         "face": {"altura_m": r.altura_face, "largura_m": r.comprimento_passe, "area_m2": r.area_face},
         "n_aletas": r.n_aletas,
-        "ar": {"velocidade_face_m_s": r.vazao_ar_m3h / 3600.0 / r.area_face, "vazao_m3_h": r.vazao_ar_m3h,
+        "ar": {"velocidade_face_m_s": r.velocidade_face, "vazao_m3_h": r.vazao_ar_m3h,
+               "vazao_requerida_m3_h": r.vazao_ar_requerida_m3h,
                "T_entrada_C": _c(r.T_ar_in), "T_saida_C": _c(r.T_ar_out), "queda_pressao_Pa": r.dP_ar,
                "h_W_m2K": r.ar.h, "eficiencia_superficie": r.ar.eta_superficie, "Re_Dc": r.ar.Re_Dc,
                "j": r.ar.j, "f": r.ar.f, "fator_umidade": r.fator_umidade,
@@ -67,6 +68,11 @@ def _trocador_dict(r) -> dict:
                          "P_saida_bar": r.P_out / 1e5, "queda_pressao_kPa": r.dP_ref / 1e3,
                          "queda_T_saturacao_K": r.dT_sat_queda},
         "UA_adotado_W_K": r.UA_adotado,
+        "UA_requerido_W_K": r.UA_requerido,
+        "eficacia": {"alvo": r.eficacia_alvo, "obtida": r.eficacia, "estrita_Q_Qmax": r.eficacia_Qmax,
+                     "NTU": r.NTU, "C_ar_W_K": r.C_ar, "T_sat_referencia_C": _c(r.T_sat_ref),
+                     "definicao": "ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada)",
+                     "fileiras_automaticas": r.fileiras_escolhidas_automaticamente},
     }
 
 
@@ -80,7 +86,9 @@ def para_dict(res) -> dict:
     d = {
         "entradas": {"COP": ent.COP, "T_ambiente_C": ent.T_ambiente_C, "T_alvo_C": ent.T_alvo_C,
                      "UR_ambiente": ent.UR_ambiente, "volume_interno_L": res.capacidade.volume_interno_L,
-                     "n_garrafas": res.capacidade.n_garrafas, "fluido": ent.fluido},
+                     "n_garrafas": res.capacidade.n_garrafas, "fluido": ent.fluido,
+                     "eficacia_condensador": ent.eficacia_condensador,
+                     "eficacia_evaporador": ent.eficacia_evaporador},
         "gabinete": {"largura_int_m": res.capacidade.largura_m, "profundidade_int_m": res.capacidade.profundidade_m,
                      "altura_int_m": res.capacidade.altura_m, "volume_ar_livre_L": res.capacidade.volume_ar_livre_L,
                      "massa_produto_kg": res.capacidade.massa_produto_kg,
@@ -140,8 +148,11 @@ def _bloco_amesim(res) -> dict:
                 "comprimento_passe_m": r.comprimento_passe, "comprimento_total_tubo_m": r.L_adotado,
                 "area_externa_m2": r.area_externa, "area_interna_m2": r.area_interna,
                 "volume_interno_m3": r.volume_interno, "vazao_ar_m3_s": r.vazao_ar_m3h / 3600,
-                "T_ar_entrada_K": r.T_ar_in, "k_aleta_W_mK": g.k_aleta, "k_tubo_W_mK": g.k_tubo,
-                "rugosidade_m": g.rugosidade_int}
+                "vazao_ar_requerida_m3_s": r.vazao_ar_requerida_m3h / 3600,
+                "T_ar_entrada_K": r.T_ar_in, "velocidade_face_m_s": r.velocidade_face,
+                "k_aleta_W_mK": g.k_aleta, "k_tubo_W_mK": g.k_tubo, "rugosidade_m": g.rugosidade_int,
+                "eficacia_saturacao": r.eficacia, "eficacia_Q_Qmax": r.eficacia_Qmax, "NTU": r.NTU,
+                "UA_W_K": r.UA_adotado}
 
     return {
         "fluido": c.fluido,
@@ -192,8 +203,11 @@ def resumo_texto(res) -> str:
     w("PRÉ-DIMENSIONAMENTO DO CICLO DE REFRIGERAÇÃO")
     w("=" * 78)
     cop_txt = "não informado" if ent.COP is None else f"{ent.COP:.2f}"
+    def _e(v):
+        return "livre" if v is None else f"{v:.2f}"
     w(f"Entradas: COP {cop_txt} | T_amb {ent.T_ambiente_C:.1f} °C, UR {ent.UR_ambiente:.0%} | "
-      f"T_alvo {ent.T_alvo_C:.1f} °C | {ent.fluido}")
+      f"T_alvo {ent.T_alvo_C:.1f} °C | {ent.fluido} | ε cond {_e(ent.eficacia_condensador)}, "
+      f"ε evap {_e(ent.eficacia_evaporador)}")
     k = res.capacidade
     w(f"Gabinete: {k.volume_interno_L:.0f} L internos ({k.largura_m * 1e3:.0f} × {k.profundidade_m * 1e3:.0f} × "
       f"{k.altura_m * 1e3:.0f} mm), {k.n_garrafas} garrafas, {k.massa_produto_kg:.1f} kg de produto")
@@ -237,8 +251,13 @@ def resumo_texto(res) -> str:
           f"{r.L_adotado:.2f} m, {r.n_circuitos} circuito(s)")
         w(f"  face {r.comprimento_passe * 1e3:.0f} × {r.altura_face * 1e3:.0f} mm | A_ext {r.area_externa:.3f} m² | "
           f"A_int {r.area_interna:.4f} m² | V_int {r.volume_interno * 1e6:.0f} cm³")
-        w(f"  ar: {r.vazao_ar_m3h:.0f} m³/h, {_c(r.T_ar_in):.1f} → {_c(r.T_ar_out):.1f} °C, ΔP {r.dP_ar:.1f} Pa, "
-          f"h_ar {r.ar.h:.1f} W/m²K, η_sup {r.ar.eta_superficie:.3f}")
+        alvo = "" if r.eficacia_alvo is None else f" (alvo {r.eficacia_alvo:.2f})"
+        auto = ", fileiras escolhidas automaticamente" if r.fileiras_escolhidas_automaticamente else ""
+        w(f"  eficácia ε = {r.eficacia:.3f}{alvo}, ε estrita Q/Q_max = {r.eficacia_Qmax:.3f}, NTU = {r.NTU:.3f}, "
+          f"UA = {r.UA_requerido:.1f} W/K (adotado {r.UA_adotado:.1f}){auto}")
+        w(f"  ar: {r.vazao_ar_requerida_m3h:.0f} m³/h requeridos ({r.vazao_ar_m3h:.0f} m³/h na face adotada) a "
+          f"{r.velocidade_face:.2f} m/s, {_c(r.T_ar_in):.1f} → "
+          f"{_c(r.T_ar_out):.1f} °C, ΔP {r.dP_ar:.1f} Pa, h_ar {r.ar.h:.1f} W/m²K, η_sup {r.ar.eta_superficie:.3f}")
         w(f"  refrigerante: G {r.G_ref:.1f} kg/m²s, ΔP {r.dP_ref / 1e3:.2f} kPa ({r.dT_sat_queda:.2f} K de saturação)")
     w("")
     w("CAPILAR")
@@ -265,8 +284,8 @@ def resumo_texto(res) -> str:
         for nome in ("evaporador", "condensador"):
             if nome in res.sensibilidade:
                 d = res.sensibilidade[nome]
-                w(f"  {nome}: {d['correlacao_base']} {d['L_base']:.2f} m vs {d['correlacao_alt']} {d['L_alt']:.2f} m "
-                  f"({d['variacao']:+.1%})")
+                w(f"  {nome}: {d['correlacao_base']} {d['L_base']:.2f} m @ {d['V_base']:.2f} m/s vs "
+                  f"{d['correlacao_alt']} {d['L_alt']:.2f} m @ {d['V_alt']:.2f} m/s ({d['variacao']:+.1%} no comprimento)")
         if "capilar_viscosidade" in res.sensibilidade:
             w("  capilar (viscosidade): " + ", ".join(f"{k} {v:.2f} m" for k, v in res.sensibilidade["capilar_viscosidade"].items()))
     if len(res.avisos):

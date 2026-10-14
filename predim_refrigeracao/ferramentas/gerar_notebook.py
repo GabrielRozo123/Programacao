@@ -40,12 +40,16 @@ INTRO = r"""
 **CAExperts × IMBERA** — rotina de pré-dimensionamento termodinâmico de refrigeradores comerciais de
 bebidas (porta de vidro), cujas saídas alimentam o modelo de sistema no **Simcenter Amesim**.
 
-| Entradas do cliente | Saídas (entradas do Amesim) |
+| Entradas do usuário | Saídas (entradas do Amesim) |
 |---|---|
 | COP desejado (capacidade / potência elétrica do compressor) | potência elétrica e deslocamento do compressor, η_v, η_is |
 | Capacidade: litros **ou** nº de garrafas de 600 mL | condensador e evaporador: área, comprimento de tubo, diâmetros, fileiras, tubos, face, vazão de ar |
 | Temperatura ambiente T∞ | tubo capilar: diâmetro interno e comprimento |
 | Temperatura alvo interna (ex.: 2,5 °C) | carga de refrigerante, estados do ciclo, balanços de energia e exergia |
+| Eficácia ε do condensador e do evaporador (padrão 0,65) | velocidade de face e nº de fileiras que atendem ε, UA, NTU |
+
+**Papel da rotina:** é o *step-down* do modelo do Amesim. Gera parâmetros físicos e coerentes entre si para montar
+o modelo de sistema; as curvas de pull-down, consumo, fuga térmica e água drenada saem depois do próprio Amesim.
 
 **Fluxo de cálculo:** capacidade do gabinete → carga térmica → ciclo (equação de estado de referência via
 CoolProp) → verificação do COP contra Carnot e contra o compressor real → compressor → trocadores tubo-aleta
@@ -54,8 +58,8 @@ capilar pelo **modelo homogêneo com blocagem crítica** → carga de fluido →
 
 > **Natureza do resultado.** É um *pré-dimensionamento*: as correlações empíricas têm incerteza típica de
 > ±15–30 % no coeficiente local e as premissas de uso (aberturas de porta, reposição de produto) dominam a
-> carga térmica. O notebook mostra essa incerteza (seção 7) e deve ser **calibrado com ensaios de um produto
-> IMBERA existente** (fuga térmica reversa, pull-down, consumo) antes de ser usado comercialmente.
+> carga térmica. O notebook mostra essa incerteza (seção 7); a conferência em regime permanente é feita contra o
+> modelo do Amesim (bloco `amesim.alvo_validacao`, seção 6).
 
 **Como usar:** `Ambiente de execução → Executar tudo`. Altere as entradas na seção 3 e rode de novo da seção 4
 em diante. Para premissas avançadas (geometria dos trocadores, fluido, perfil de uso), edite a célula
@@ -162,6 +166,18 @@ $$\frac{1}{UA'} = \frac{1}{\xi\,h_o\,\eta_o A_o'} + \frac{R_{f,o}}{A_o'} + \frac
   a pressão é atualizada ao longo do tubo e realimenta o ciclo até convergir.
 * **Desumidificação** (evaporador): fator de umidade $\xi = Q_{total}/Q_{sens}$ (analogia de Lewis, Threlkeld).
 
+**Eficácia como entrada (padrão 0,65).** A eficácia é a do lado do ar referida à saturação — a definição usual para
+condensadores e evaporadores, em que o refrigerante bifásico tem $C\to\infty$ e $C_{min}=\dot C_{ar}$:
+$$\varepsilon = \frac{T_{ar,s}-T_{ar,e}}{T_{sat}-T_{ar,e}} = \frac{Q_{sens}}{\dot C_{ar}\,(T_{sat}-T_{ar,e})}
+\quad\Rightarrow\quad \dot C_{ar} = \frac{Q/\xi}{\varepsilon\,\Delta T_{aprox}},\qquad NTU \approx -\ln(1-\varepsilon)$$
+Com $Q$ e $\Delta T_{aprox}$ fixados pelo ciclo, ε define a **vazão de ar**; a geometria precisa então entregar o NTU
+correspondente. Na distribuição paralela de ar, ε depende só da velocidade de face $V$ e do nº de fileiras $N$
+(e decresce com $V$): para cada $N$ resolve-se $V$ com $\varepsilon(V,N)=\varepsilon_{alvo}$ e escolhe-se o $N\le 6$ (faixa de
+Wang) cuja $V$ fica mais perto da velocidade preferida. O comprimento sai da marcha segmentada nessa $(V,N)$.
+Também se reporta a eficácia estrita $Q/Q_{max}$ com o $Q_{max}$ termodinâmico, caso o componente do Amesim use essa
+definição. ε **não** altera o ciclo (as temperaturas de evaporação e condensação vêm de $\Delta T_{evap}$ e $\Delta T_{cond}$):
+ela troca vazão de ar (ventilador) por área (trocador).
+
 ### 2.6 Tubo capilar — modelo homogêneo de equilíbrio (HEM)
 $$G=\dot m/A,\qquad h+\tfrac12 G^2v^2 = h_0,\qquad -dP = \frac{f\,G^2 v}{2D}\,dL + G^2\,dv$$
 O líquido escoa isentalpicamente até o ponto de flash $h_l(P_{flash})+\tfrac12G^2v_l^2=h_0$ (para o propano a ~40 °C,
@@ -208,6 +224,10 @@ tipo_capacidade = "litros"  #@param ["litros", "garrafas de 600 mL"]
 capacidade = 200  #@param {type:"number"}
 UR_ambiente = 0.60  #@param {type:"slider", min:0.2, max:0.95, step:0.05}
 fluido = "R290"  #@param ["R290", "R600a", "R1270", "R134a", "R1234yf", "R152a", "R404A", "R507A"]
+#@markdown **Eficácia dos trocadores** — ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada); desmarque para usar velocidade de face fixa
+usar_eficacia = True  #@param {type:"boolean"}
+eficacia_condensador = 0.65  #@param {type:"slider", min:0.30, max:0.90, step:0.01}
+eficacia_evaporador = 0.65  #@param {type:"slider", min:0.30, max:0.90, step:0.01}
 
 from predimref import EntradasProjeto
 entradas = EntradasProjeto(
@@ -215,6 +235,8 @@ entradas = EntradasProjeto(
     T_ambiente_C=T_ambiente_C, T_alvo_C=T_alvo_C, UR_ambiente=UR_ambiente, fluido=fluido,
     volume_interno_L=capacidade if tipo_capacidade == "litros" else None,
     n_garrafas=int(capacidade) if tipo_capacidade != "litros" else None,
+    eficacia_condensador=eficacia_condensador if usar_eficacia else None,
+    eficacia_evaporador=eficacia_evaporador if usar_eficacia else None,
 )
 entradas
 """
@@ -243,8 +265,11 @@ params = ParametrosProjeto(
     capilar=ParametrosCapilar(serie="polegada", L_min=1.0, L_max=5.0, L_alvo=2.5),
 )
 # Exemplos de ajuste:
-# params.condensador.geometria.n_fileiras = 2
+# params.condensador.velocidade_face = 1.5          # velocidade preferida (com ε, guia a escolha de fileiras)
+# params.condensador.fileiras_automaticas = False   # com ε, fixa o nº de fileiras e resolve só a velocidade
+# params.condensador.geometria.n_fileiras = 4
 # params.condensador.comprimento_passe_m = 0.25
+# params.evaporador.geometria.passo_aleta = 5.0e-3
 # params.evaporador.n_circuitos = 2
 print("parâmetros prontos")
 """
@@ -269,6 +294,18 @@ if res is not None:
     for nome, fig in painel(res).items():
         display(fig)
         plt.close(fig)
+"""
+
+ALTERNATIVAS = r"""
+#@title Alternativas de geometria para a eficácia escolhida (nº de fileiras × velocidade de face)
+import pandas as pd
+from predimref.projeto import alternativas_fileiras
+if res is not None and entradas.eficacia_condensador is not None:
+    for tipo in ("condensador", "evaporador"):
+        tab = pd.DataFrame(alternativas_fileiras(res, tipo, range(1, 9)))
+        print(f"\n{tipo.upper()} — ε = {getattr(res, tipo).eficacia_alvo:.2f}; escolhido: {getattr(res, tipo).n_fileiras} fileiras"
+              " (acima de 6 fileiras a correlação de Wang é extrapolada)")
+        display(tab.round(3))
 """
 
 MAPA = r"""
@@ -364,6 +401,25 @@ pd.set_option("display.precision", 2)
 pd.DataFrame(linhas)
 """
 
+SENS_EPS = r"""
+#@title Efeito da eficácia escolhida (mesma eficácia nos dois trocadores)
+linhas = []
+for eps in (0.45, 0.55, 0.65, 0.75):
+    e = copy.deepcopy(entradas); e.eficacia_condensador = e.eficacia_evaporador = eps
+    try:
+        r = dimensionar(e, p_rapido)
+        linhas.append({"ε": eps,
+                       "cond: fileiras × V [m/s]": f"{r.condensador.n_fileiras} × {r.condensador.velocidade_face:.2f}",
+                       "cond: L [m]": r.condensador.L_requerido, "cond: ar [m³/h]": r.condensador.vazao_ar_requerida_m3h,
+                       "evap: fileiras × V [m/s]": f"{r.evaporador.n_fileiras} × {r.evaporador.velocidade_face:.2f}",
+                       "evap: L [m]": r.evaporador.L_requerido, "evap: ar [m³/h]": r.evaporador.vazao_ar_requerida_m3h,
+                       "T ar insuflado [°C]": r.evaporador.T_ar_out - 273.15,
+                       "carga R [g]": r.carga_refrigerante["total_kg"] * 1e3})
+    except ErroProjeto as err:
+        linhas.append({"ε": eps, "cond: fileiras × V [m/s]": "inviável: " + str(err)[:70]})
+pd.DataFrame(linhas)
+"""
+
 SENS2 = r"""
 #@title Efeito das premissas de uso (aberturas de porta e reposição de produto)
 linhas = []
@@ -385,7 +441,7 @@ VALID_MD = r"""
 
 **Verificação** (o código resolve certo as equações): fechamento dos balanços de energia e de exergia, 2ª lei por
 componente, independência de malha dos trocadores e do capilar, consistência do problema inverso do capilar,
-eficiência de aleta de Schmidt contra a solução exata (Bessel). O repositório tem 56 testes automatizados
+eficiência de aleta de Schmidt contra a solução exata (Bessel), eficácia alvo atingida e limite ε ≤ 1 − e^(−NTU). O repositório tem testes automatizados
 (`pytest`) com essas e outras verificações.
 
 **Validação** (as equações certas): capilar contra os dados experimentais de Li et al. (1990). O próximo passo
@@ -423,14 +479,18 @@ LIMITES = r"""
   (polinômio AHRI 540 / EN 12900) assim que o compressor candidato for escolhido;
 * geada no evaporador tratada só por resistência de incrustação (padrão zero) e pelo fator de umidade.
 
-**Para levar à IMBERA com segurança (recomendação):**
-1. **Calibrar com um produto existente**: ensaio de fuga térmica reversa (UA do gabinete), pull-down e consumo
-   segundo a norma que a IMBERA usa (ISO 23953 / ASHRAE 72 / NOM-022-ENER/SCFI no México). Ajustar k da espuma, ψ da
-   gaxeta e fator de pontes térmicas até reproduzir o UA medido.
-2. **Comparar o ciclo** com pressões e temperaturas medidas do mesmo produto (termopares e transdutores).
-3. **Trocar o modelo genérico de compressor** pelo mapa do compressor real.
-4. **Fechar o laço com o Amesim**: o modelo de sistema (Diego e Pedro) deve reproduzir os alvos do bloco
-   `amesim.alvo_validacao`; depois, o Amesim passa a ser a referência para transitórios (pull-down, ciclagem, degelo).
+**Relação com o Amesim (a rotina é o *step-down* do modelo de sistema):**
+1. Esta rotina gera, em regime permanente, parâmetros coerentes entre si (balanços fechados, 2ª lei, COP viável)
+   para montar o modelo do Amesim: compressor, trocadores com a eficácia escolhida, capilar e carga de fluido.
+2. As curvas de **pull-down, consumo, fuga térmica e água drenada** vêm do Amesim. Primeiro passo de conferência:
+   o modelo do Amesim, rodado no ponto de projeto, deve reproduzir os alvos de `amesim.alvo_validacao`
+   (Q_evap, W_el, ṁ, T_evap, T_cond). Diferenças grandes indicam um parâmetro mapeado de forma diferente — em
+   especial a **definição de eficácia** do componente do Amesim (aqui: referida à saturação; a estrita Q/Q_max
+   também é exportada).
+3. Quando o compressor for escolhido, troque o modelo genérico (espaço morto + η constante) pelo mapa de catálogo
+   nos dois lados (aqui e no Amesim).
+4. Se mais tarde houver ensaio de um produto IMBERA, ele calibra os dois modelos ao mesmo tempo (UA do gabinete,
+   ΔT dos trocadores, rendimentos do compressor).
 """
 
 
@@ -443,9 +503,10 @@ def main():
     cells.append(code("import importlib, predimref\nprint('predimref', predimref.__version__, 'pronto')"))
     cells += [md(TEORIA), md("## 3. Entradas"), code(ENTRADAS, True), code(AVANCADOS, True),
               md("## 4. Dimensionamento"), code(RODAR, True),
-              md("## 5. Gráficos"), code(GRAFICOS, True), code(MAPA, True),
+              md("## 5. Gráficos e alternativas de geometria"), code(GRAFICOS, True), code(ALTERNATIVAS, True),
+              code(MAPA, True),
               md(AMESIM_MD), code(EXPORTAR, True),
-              md(SENS_MD), code(SENS, True), code(SENS2, True),
+              md(SENS_MD), code(SENS, True), code(SENS_EPS, True), code(SENS2, True),
               md(VALID_MD), code(VALID, True), md(LIMITES)]
     nb = {"cells": cells, "metadata": {"colab": {"provenance": [], "toc_visible": True},
                                        "kernelspec": {"display_name": "Python 3", "name": "python3"},
