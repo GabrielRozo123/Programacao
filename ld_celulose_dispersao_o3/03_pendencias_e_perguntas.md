@@ -73,10 +73,13 @@ set e vazão de alívio. Se descarregam para chaminé ou direto para a atmosfera
 
 ## 🟢 Geometria e contexto
 
-### 9. Modelo 3D da planta
-Na reunião apareceu um modelo 3D navegável (Navisworks). Se o cliente liberar, economiza a
-Etapa 1 inteira. Precisamos do prédio de O₃ e de **todas as estruturas num raio de ~300 m**
-(§6 do `02`) — as que ficam fora não afetam o campo próximo.
+### 9. Modelo 3D da planta — ✅ recebido em 15/10 (montagem completa, Solid Edge)
+Veio a **planta inteira** (inclui guindastes e estacas). Critérios de limpeza em
+`05_limpeza_CAD_criterios.md`. Para executar a limpeza, falta confirmar com o cliente:
+- **onde está o prédio de O₃ e os 4 exaustores** dentro da montagem (nomes das ocorrências);
+- se os **guindastes** são só de montagem (temporários) — esperado: sim, removê-los;
+- **cota do solo acabado** (para cortar tudo que está abaixo);
+- se possível, a **lista de peças (BOM)** exportada em Excel — acelera a classificação.
 
 ### 10. Onde estão as pessoas
 Áreas ocupadas, passarelas, salas de controle e **tomadas de ar de HVAC**. O critério do
@@ -93,3 +96,4 @@ que já existe antes de recomendar.
 | data | item | resposta |
 |---|---|---|
 | — | — | *(aguardando)* |
+- **15/10/2026** — CAD da planta inteira recebido (Solid Edge). Critérios de limpeza: `05`.

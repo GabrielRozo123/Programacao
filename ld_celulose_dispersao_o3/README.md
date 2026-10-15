@@ -15,6 +15,7 @@ Cliente **LD Celulose** (via CAEXPERTS).
 | [`02_metodo_e_analise_previa.md`](02_metodo_e_analise_previa.md) | Escolhas de modelagem + **a régua analítica feita antes de simular** |
 | [`03_pendencias_e_perguntas.md`](03_pendencias_e_perguntas.md) | O que falta do cliente + log datado de respostas |
 | [`04_dados_recebidos.md`](04_dados_recebidos.md) | **Dados recebidos**, o que foi extraído deles e o que ainda falta |
+| [`05_limpeza_CAD_criterios.md`](05_limpeza_CAD_criterios.md) | **Limpeza do CAD da planta**: zonas de detalhe, critério de tamanho pela malha, critério por categoria, blocos porosos, verificação e fluxo no Solid Edge (com referências) |
 
 ## Resumo em uma frase
 Mapear até onde e em que concentração o O₃ liberado pelo prédio de geração se dispersa pela

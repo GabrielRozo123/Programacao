@@ -39,7 +39,7 @@
 | L4 | Densidades de projeto das curvas dos ventiladores (0,9002 × 1,0148 kg/m³) | Cliente |
 | L5 | Faltam **1 planilha e 1 PDF** do lote 1 | Cliente |
 | L6 | Aval dos **cenários 5–6** (vento fraco estável) | Marcus |
-| L7 | Modelo 3D da planta → **limpeza do CAD** (Etapa 1) | Cliente → Gabriel |
+| L7 | ✅ CAD recebido (15/10, planta inteira) → **limpeza no Solid Edge** pelos critérios de `05_limpeza_CAD_criterios.md` · confirmar com o cliente: prédio de O₃/exaustores na montagem, guindastes temporários, cota do solo, BOM | Gabriel + Otávio |
 | L8 | Decidir se o projeto migra para repositório privado | Marcus |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
