@@ -6,6 +6,7 @@ import math
 from dataclasses import asdict, is_dataclass
 
 from .constantes import W_PARA_BTUH
+from .propriedades import ar_umido
 
 
 def _c(T: float) -> float:
@@ -35,6 +36,16 @@ def perfil_trocador(r) -> list[dict]:
     return out
 
 
+def _serp_dict(sp, r) -> dict:
+    return {"descricao": sp.descricao, "comprimento_total_tubo_m": sp.comprimento_tubo,
+            "comprimento_por_circuito_m": sp.comprimento_tubo / r.n_circuitos,
+            "comprimento_passe_m": sp.comprimento_passe, "tubos_por_fileira": sp.tubos_por_fileira,
+            "n_tubos": sp.n_tubos, "face_altura_m": sp.altura_face, "face_largura_m": sp.comprimento_passe,
+            "face_area_m2": sp.area_face, "area_externa_m2": sp.area_externa, "area_interna_m2": sp.area_interna,
+            "volume_interno_L": sp.volume_interno * 1e3, "n_aletas": sp.n_aletas,
+            "vazao_ar_m3_h": sp.vazao_ar_m3h, "UA_W_K": sp.UA, "UA_seco_W_K": sp.UA_seco}
+
+
 def _trocador_dict(r) -> dict:
     g = r.geometria
     return {
@@ -45,33 +56,29 @@ def _trocador_dict(r) -> dict:
             "tubo_espessura_mm": g.esp_parede * 1e3, "aleta_espessura_mm": g.esp_aleta * 1e3,
             "passo_aleta_mm": g.passo_aleta * 1e3, "aletas_por_polegada": 25.4e-3 / g.passo_aleta,
             "passo_transversal_mm": g.Pt * 1e3, "passo_longitudinal_mm": g.Pl * 1e3,
-            "n_fileiras": r.n_fileiras, "tubos_por_fileira": r.tubos_por_fileira, "n_tubos": r.n_tubos,
-            "n_circuitos": r.n_circuitos, "comprimento_passe_m": r.comprimento_passe,
-            "arranjo": "escalonado", "material_tubo": "cobre", "material_aleta": "alumínio",
-            "k_aleta_W_mK": g.k_aleta, "rugosidade_interna_um": g.rugosidade_int * 1e6,
+            "n_fileiras": r.n_fileiras, "n_circuitos": r.n_circuitos,
+            "arranjo": "escalonado", "tipo_aleta": "plana contínua", "material_tubo": "cobre",
+            "material_aleta": "alumínio", "k_aleta_W_mK": g.k_aleta, "rugosidade_interna_um": g.rugosidade_int * 1e6,
         },
-        "comprimento_tubo_requerido_m": r.L_requerido,
-        "comprimento_tubo_adotado_m": r.L_adotado,
-        "comprimento_por_circuito_m": r.L_adotado / r.n_circuitos,
-        "zonas": {z: {"comprimento_m": v["L"], "calor_W": v["Q"]} for z, v in r.zonas.items()},
-        "area_externa_m2": r.area_externa, "area_interna_m2": r.area_interna,
-        "volume_interno_L": r.volume_interno * 1e3,
-        "face": {"altura_m": r.altura_face, "largura_m": r.comprimento_passe, "area_m2": r.area_face},
-        "n_aletas": r.n_aletas,
-        "ar": {"velocidade_face_m_s": r.velocidade_face, "vazao_m3_h": r.vazao_ar_m3h,
-               "vazao_requerida_m3_h": r.vazao_ar_requerida_m3h,
-               "T_entrada_C": _c(r.T_ar_in), "T_saida_C": _c(r.T_ar_out), "queda_pressao_Pa": r.dP_ar,
+        "serpentina_projeto": _serp_dict(r.projeto, r),
+        "serpentina_construtiva": _serp_dict(r.construtiva, r),
+        "zonas": {z: {"comprimento_m": v["L"], "calor_W": v["Q"], "UA_W_K": v["UA"], "UA_seco_W_K": v["UA_seco"],
+                      "eficacia_saturacao": v["eficacia"], "NTU": v["NTU"]} for z, v in r.zonas.items()},
+        "ar": {"velocidade_face_m_s": r.velocidade_face, "vazao_requerida_m3_h": r.vazao_ar_requerida_m3h,
+               "vazao_serpentina_construtiva_m3_h": r.vazao_ar_m3h, "T_entrada_C": _c(r.T_ar_in),
+               "T_saida_ponto_projeto_C": _c(r.T_ar_out), "queda_pressao_Pa": r.dP_ar,
                "h_W_m2K": r.ar.h, "eficiencia_superficie": r.ar.eta_superficie, "Re_Dc": r.ar.Re_Dc,
                "j": r.ar.j, "f": r.ar.f, "fator_umidade": r.fator_umidade,
-               "potencia_ventilador_aerodinamica_W": r.potencia_ventilador_aero},
+               "potencia_ventilador_aerodinamica_W": r.potencia_ventilador_aero,
+               "nota": "T_saida e vazao_requerida valem para a serpentina de projeto; a construtiva, na mesma "
+                       "velocidade de face, passa a vazão indicada e tem a mesma eficácia, com mais capacidade."},
         "refrigerante": {"fluxo_massico_kg_m2s": r.G_ref, "P_entrada_bar": r.P_in / 1e5,
                          "P_saida_bar": r.P_out / 1e5, "queda_pressao_kPa": r.dP_ref / 1e3,
                          "queda_T_saturacao_K": r.dT_sat_queda},
-        "UA_adotado_W_K": r.UA_adotado,
-        "UA_requerido_W_K": r.UA_requerido,
         "eficacia": {"alvo": r.eficacia_alvo, "obtida": r.eficacia, "estrita_Q_Qmax": r.eficacia_Qmax,
-                     "NTU": r.NTU, "C_ar_W_K": r.C_ar, "T_sat_referencia_C": _c(r.T_sat_ref),
-                     "definicao": "ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada)",
+                     "NTU": r.NTU, "C_ar_sensivel_W_K": r.C_ar, "T_sat_referencia_C": _c(r.T_sat_ref),
+                     "definicao": "ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada), bulbo seco; "
+                                  "NTU = UA/(ξ·Ċ_ar,sensível)",
                      "fileiras_automaticas": r.fileiras_escolhidas_automaticamente},
     }
 
@@ -134,42 +141,87 @@ def para_dict(res) -> dict:
     return _limpar(d)
 
 
+def _ar_entrada(res, tipo: str) -> dict:
+    """Estado do ar na entrada do trocador (para submodelos de ar úmido)."""
+    import CoolProp.CoolProp as CP
+    ent, pc = res.entradas, res.parametros.ciclo
+    if tipo == "condensador":
+        W = ar_umido(ent.T_ambiente_C + 273.15, ent.UR_ambiente)["W"]
+        T = ent.T_ambiente_C + 273.15 + pc.dT_recirculacao_cond
+    else:
+        T = ent.T_alvo_C + 273.15 + pc.dT_retorno_evap
+        W = ar_umido(T, res.parametros.uso.UR_interna)["W"]
+    UR = CP.HAPropsSI("R", "T", T, "P", 101325.0, "W", W)
+    return {"T_K": T, "umidade_relativa": UR, "umidade_absoluta_kg_kg": W, "P_Pa": 101325.0}
+
+
 def _bloco_amesim(res) -> dict:
     """Parâmetros em SI, agrupados por componente, prontos para mapear nos submodelos.
     O mapeamento para os nomes de parâmetro de cada submodelo do Amesim fica com a equipe de
-    integração; aqui os nomes são descritivos e as unidades explícitas."""
+    integração; aqui os nomes são descritivos e as unidades explícitas.
+
+    Cada trocador traz duas serpentinas com a mesma seção (fileiras, tubos por fileira, aletas):
+    ``projeto_sem_margem`` reproduz ``alvo_validacao`` com a vazão de ar requerida; a
+    ``construtiva_com_margem`` é a que se fabrica (mais área e, na mesma velocidade de face, mais
+    vazão): num modelo de sistema ela leva a T_cond menor e T_evap maior que o alvo — é a folga."""
     c, cap = res.ciclo, res.capilar.escolhido
+    pcf = res.parametros.carga_fluido
+
+    def serp(sp, Vdot_m3h):
+        return {"comprimento_passe_m": sp.comprimento_passe, "comprimento_total_tubo_m": sp.comprimento_tubo,
+                "area_face_m2": sp.area_face, "area_externa_m2": sp.area_externa, "area_interna_m2": sp.area_interna,
+                "volume_interno_m3": sp.volume_interno, "vazao_ar_m3_s": Vdot_m3h / 3600.0,
+                "UA_W_K": sp.UA, "UA_seco_W_K": sp.UA_seco}
 
     def hx(r):
         g = r.geometria
-        return {"Do_m": g.Do, "Di_m": g.Di, "esp_parede_m": g.esp_parede, "esp_aleta_m": g.esp_aleta,
-                "passo_aleta_m": g.passo_aleta, "Pt_m": g.Pt, "Pl_m": g.Pl, "n_fileiras": r.n_fileiras,
-                "tubos_por_fileira": r.tubos_por_fileira, "n_circuitos": r.n_circuitos,
-                "comprimento_passe_m": r.comprimento_passe, "comprimento_total_tubo_m": r.L_adotado,
-                "area_externa_m2": r.area_externa, "area_interna_m2": r.area_interna,
-                "volume_interno_m3": r.volume_interno, "vazao_ar_m3_s": r.vazao_ar_m3h / 3600,
-                "vazao_ar_requerida_m3_s": r.vazao_ar_requerida_m3h / 3600,
-                "T_ar_entrada_K": r.T_ar_in, "velocidade_face_m_s": r.velocidade_face,
-                "k_aleta_W_mK": g.k_aleta, "k_tubo_W_mK": g.k_tubo, "rugosidade_m": g.rugosidade_int,
+        return {"geometria": {"Do_m": g.Do, "Di_m": g.Di, "esp_parede_m": g.esp_parede, "esp_aleta_m": g.esp_aleta,
+                              "passo_aleta_m": g.passo_aleta, "Pt_m": g.Pt, "Pl_m": g.Pl,
+                              "n_fileiras": r.n_fileiras, "tubos_por_fileira": r.tubos_por_fileira,
+                              "n_circuitos": r.n_circuitos, "arranjo": "escalonado", "tipo_aleta": "plana contínua",
+                              "k_aleta_W_mK": g.k_aleta, "k_tubo_W_mK": g.k_tubo, "rugosidade_m": g.rugosidade_int},
+                "projeto_sem_margem": serp(r.projeto, r.projeto.vazao_ar_m3h),
+                "construtiva_com_margem": serp(r.construtiva, r.construtiva.vazao_ar_m3h),
+                "margem_area": res.parametros.condensador.margem_area if r.tipo == "condensador"
+                else res.parametros.evaporador.margem_area,
+                "velocidade_face_m_s": r.velocidade_face, "ar_entrada": _ar_entrada(res, r.tipo),
                 "eficacia_saturacao": r.eficacia, "eficacia_Q_Qmax": r.eficacia_Qmax, "NTU": r.NTU,
-                "UA_W_K": r.UA_adotado}
+                "fator_umidade": r.fator_umidade,
+                "notas": "eficacia_saturacao é de bulbo seco (sensível); UA_W_K inclui ξ (analogia de Lewis no "
+                         "filme de ar e na aleta) e UA_seco_W_K usa ξ = 1 — use o seco se o submodelo calcular a "
+                         "condensação de umidade por conta própria; NTU = UA/(ξ·Ċ_ar,sensível)."}
 
+    partes = res.carga_refrigerante["partes_kg"]
+    circuito = sum(v for k, v in partes.items() if k not in ("gás na carcaça", "dissolvido no óleo"))
     return {
         "fluido": c.fluido,
         "compressor": {"deslocamento_m3": res.compressor.deslocamento_cm3 * 1e-6,
                        "rotacao_rpm": res.compressor.rotacao_rpm, "eta_volumetrica": res.compressor.eta_v,
                        "eta_isentropica": c.eta_is, "eta_eletromecanica": c.eta_em,
-                       "eta_global": c.eta_global, "potencia_eletrica_W": res.balanco.W_el},
+                       "eta_global": c.eta_global, "potencia_eletrica_W": res.balanco.W_el,
+                       "volume_livre_carcaca_m3": pcf.volume_livre_carcaca_L * 1e-3,
+                       "massa_oleo_kg": pcf.massa_oleo_kg, "solubilidade_oleo_kg_kg": pcf.solubilidade_oleo},
         "condensador": hx(res.condensador),
         "evaporador": hx(res.evaporador),
         "capilar": {"diametro_interno_m": cap.D, "comprimento_m": cap.L,
                     "rugosidade_m": res.parametros.capilar.rugosidade_m},
+        "linhas": {"liquido": {"comprimento_m": pcf.linha_liquido_L_m, "Di_m": pcf.linha_liquido_Di_m},
+                   "filtro_secador_volume_m3": pcf.filtro_secador_cm3 * 1e-6,
+                   "succao": {"comprimento_m": pcf.linha_succao_L_m, "Di_m": pcf.linha_succao_Di_m},
+                   "descarga": {"comprimento_m": pcf.linha_descarga_L_m, "Di_m": pcf.linha_descarga_Di_m}},
         "condicoes_iniciais": {"P_alta_Pa": c.estados["2"].P, "P_baixa_Pa": c.estados["1"].P,
-                               "carga_refrigerante_kg": res.carga_refrigerante["total_kg"],
+                               "carga_refrigerante_total_kg": res.carga_refrigerante["total_kg"],
+                               "carga_circuito_kg": circuito,
+                               "carga_gas_carcaca_kg": partes.get("gás na carcaça", 0.0),
+                               "carga_dissolvida_oleo_kg": partes.get("dissolvido no óleo", 0.0),
                                "superaquecimento_K": res.parametros.ciclo.superaquecimento,
-                               "subresfriamento_K": res.parametros.ciclo.subresfriamento},
+                               "subresfriamento_K": res.parametros.ciclo.subresfriamento,
+                               "nota": "carga do circuito = trocadores (serpentina construtiva) + capilar + linhas + "
+                                       "filtro; somar carcaça e óleo se o modelo não os representar."},
         "alvo_validacao": {"Q_evap_W": res.balanco.Q_evap, "W_el_W": res.balanco.W_el,
-                           "vazao_massica_kg_s": res.balanco.m, "T_evap_K": c.T_evap, "T_cond_K": c.T_cond},
+                           "vazao_massica_kg_s": res.balanco.m, "T_evap_K": c.T_evap, "T_cond_K": c.T_cond,
+                           "nota": "reproduzido com as serpentinas 'projeto_sem_margem' e a vazão de ar requerida; "
+                                   "com as 'construtiva_com_margem', T_cond fica menor e T_evap maior (folga)."},
     }
 
 
@@ -246,18 +298,21 @@ def resumo_texto(res) -> str:
         w(f"  {r.Q:.1f} W | tubo Ø{g.Do * 1e3:.2f} × {g.esp_parede * 1e3:.2f} mm (Di {g.Di * 1e3:.2f} mm), "
           f"aleta {g.esp_aleta * 1e3:.2f} mm @ {g.passo_aleta * 1e3:.2f} mm ({25.4e-3 / g.passo_aleta:.1f} FPI)")
         zonas = ", ".join(f"{z} {v['L']:.2f} m" for z, v in r.zonas.items())
-        w(f"  comprimento requerido {r.L_requerido:.2f} m ({zonas})")
-        w(f"  adotado: {r.n_fileiras} fileiras × {r.tubos_por_fileira} tubos × {r.comprimento_passe:.3f} m = "
-          f"{r.L_adotado:.2f} m, {r.n_circuitos} circuito(s)")
-        w(f"  face {r.comprimento_passe * 1e3:.0f} × {r.altura_face * 1e3:.0f} mm | A_ext {r.area_externa:.3f} m² | "
-          f"A_int {r.area_interna:.4f} m² | V_int {r.volume_interno * 1e6:.0f} cm³")
+        pj, ct = r.projeto, r.construtiva
+        w(f"  serpentina de projeto (sem margem): {pj.comprimento_tubo:.2f} m de tubo ({zonas})")
+        w(f"  serpentina construtiva (+{(ct.comprimento_tubo / pj.comprimento_tubo - 1):.0%}): {r.n_fileiras} fileiras × "
+          f"{ct.tubos_por_fileira} tubos × {ct.comprimento_passe:.3f} m = {ct.comprimento_tubo:.2f} m, "
+          f"{r.n_circuitos} circuito(s)")
+        w(f"  face {ct.comprimento_passe * 1e3:.0f} × {ct.altura_face * 1e3:.0f} mm | A_ext {ct.area_externa:.3f} m² | "
+          f"A_int {ct.area_interna:.4f} m² | V_int {ct.volume_interno * 1e6:.0f} cm³")
         alvo = "" if r.eficacia_alvo is None else f" (alvo {r.eficacia_alvo:.2f})"
         auto = ", fileiras escolhidas automaticamente" if r.fileiras_escolhidas_automaticamente else ""
+        seco = f", seco {pj.UA_seco:.1f}" if r.fator_umidade > 1.0 else ""
         w(f"  eficácia ε = {r.eficacia:.3f}{alvo}, ε estrita Q/Q_max = {r.eficacia_Qmax:.3f}, NTU = {r.NTU:.3f}, "
-          f"UA = {r.UA_requerido:.1f} W/K (adotado {r.UA_adotado:.1f}){auto}")
-        w(f"  ar: {r.vazao_ar_requerida_m3h:.0f} m³/h requeridos ({r.vazao_ar_m3h:.0f} m³/h na face adotada) a "
-          f"{r.velocidade_face:.2f} m/s, {_c(r.T_ar_in):.1f} → "
-          f"{_c(r.T_ar_out):.1f} °C, ΔP {r.dP_ar:.1f} Pa, h_ar {r.ar.h:.1f} W/m²K, η_sup {r.ar.eta_superficie:.3f}")
+          f"UA projeto {pj.UA:.1f} W/K{seco} (construtiva {ct.UA:.1f}){auto}")
+        w(f"  ar no ponto de projeto: {pj.vazao_ar_m3h:.0f} m³/h, {_c(r.T_ar_in):.1f} → {_c(r.T_ar_out):.1f} °C | "
+          f"face a {r.velocidade_face:.2f} m/s (construtiva passa {ct.vazao_ar_m3h:.0f} m³/h), ΔP {r.dP_ar:.1f} Pa, "
+          f"h_ar {r.ar.h:.1f} W/m²K, η_sup {r.ar.eta_superficie:.3f}")
         w(f"  refrigerante: G {r.G_ref:.1f} kg/m²s, ΔP {r.dP_ref / 1e3:.2f} kPa ({r.dT_sat_queda:.2f} K de saturação)")
     w("")
     w("CAPILAR")
@@ -282,11 +337,13 @@ def resumo_texto(res) -> str:
         w("")
         w("INCERTEZA DE MODELO (correlações alternativas)")
         for nome in ("evaporador", "condensador"):
-            if nome in res.sensibilidade:
+            if nome in res.sensibilidade and "erro" in res.sensibilidade[nome]:
+                w(f"  {nome}: correlação alternativa sem solução ({res.sensibilidade[nome]['erro'][:120]})")
+            elif nome in res.sensibilidade:
                 d = res.sensibilidade[nome]
                 w(f"  {nome}: {d['correlacao_base']} {d['L_base']:.2f} m @ {d['V_base']:.2f} m/s vs "
                   f"{d['correlacao_alt']} {d['L_alt']:.2f} m @ {d['V_alt']:.2f} m/s ({d['variacao']:+.1%} no comprimento)")
-        if "capilar_viscosidade" in res.sensibilidade:
+        if "capilar_viscosidade" in res.sensibilidade and "erro" not in res.sensibilidade["capilar_viscosidade"]:
             w("  capilar (viscosidade): " + ", ".join(f"{k} {v:.2f} m" for k, v in res.sensibilidade["capilar_viscosidade"].items()))
     if len(res.avisos):
         w("")

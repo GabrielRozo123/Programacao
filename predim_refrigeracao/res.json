@@ -1,0 +1,539 @@
+{
+ "entradas": {
+  "COP": 2.0,
+  "T_ambiente_C": 32,
+  "T_alvo_C": 2.5,
+  "UR_ambiente": 0.6,
+  "volume_interno_L": 200.0,
+  "n_garrafas": 108,
+  "fluido": "R290",
+  "eficacia_condensador": 0.65,
+  "eficacia_evaporador": 0.65
+ },
+ "gabinete": {
+  "largura_int_m": 0.4611051180875028,
+  "profundidade_int_m": 0.3919393503743774,
+  "altura_int_m": 1.1066522834100068,
+  "volume_ar_livre_L": 128.72,
+  "massa_produto_kg": 70.092,
+  "UA_gabinete_W_K": 2.1500429617795285
+ },
+ "carga_termica_W": {
+  "paredes isoladas": 24.447963422626742,
+  "porta de vidro": 30.106698877590972,
+  "gaxeta": 9.249768668835307,
+  "infiltração (média)": 11.313187108877376,
+  "cargas internas": 18.0,
+  "reposição diária de produto": 45.5151098650279,
+  "pull-down do produto": 91.0302197300558,
+  "regime": 138.6327279429583,
+  "requerida_regime": 198.04675420422615,
+  "pull_down": 172.8346506991088,
+  "caso_governante": "regime (uso diário / fator de utilização)",
+  "projeto": 217.85142962464877,
+  "latente_projeto": 9.66756659017134,
+  "fator_umidade": 1.0464376366604855,
+  "agua_removida_kg_dia": 0.21304365906202272
+ },
+ "ciclo": {
+  "T_evap_C": -7.5,
+  "T_cond_C": 45.0,
+  "P_evap_bar": 3.747360223288754,
+  "P_cond_bar": 15.343140684910491,
+  "razao_pressao": 4.094386386864367,
+  "COP": 2.0,
+  "COP_ciclo_ideal": 3.8533250117145066,
+  "COP_carnot_ciclo": 5.06,
+  "eta_global": 0.5190322627652204,
+  "eta_isentropica": 0.7208781427294728,
+  "eta_eletromecanica": 0.72,
+  "estados": [
+   {
+    "ponto": "1",
+    "descricao": "saída do evaporador",
+    "P_bar": 3.747360223288754,
+    "T_C": -2.5,
+    "h_kJ_kg": 574.8827390987093,
+    "s_kJ_kgK": 2.4125613695704295,
+    "rho_kg_m3": 8.046075998099285,
+    "titulo": null
+   },
+   {
+    "ponto": "1s",
+    "descricao": "sucção do compressor",
+    "P_bar": 3.747360223288754,
+    "T_C": -2.499999999978172,
+    "h_kJ_kg": 574.882739098746,
+    "s_kJ_kgK": 2.4125613695705646,
+    "rho_kg_m3": 8.046075998098416,
+    "titulo": null
+   },
+   {
+    "ponto": "2s",
+    "descricao": "descarga isentrópica",
+    "P_bar": 15.343140684910491,
+    "T_C": 55.73181066975235,
+    "h_kJ_kg": 642.8740676069426,
+    "s_kJ_kgK": 2.412561369576009,
+    "rho_kg_m3": 31.545329123063958,
+    "titulo": null
+   },
+   {
+    "ponto": "2",
+    "descricao": "descarga real",
+    "P_bar": 15.343140684910491,
+    "T_C": 67.54118795534896,
+    "h_kJ_kg": 669.2001063181207,
+    "s_kJ_kgK": 2.491209960776536,
+    "rho_kg_m3": 29.33870802303881,
+    "titulo": null
+   },
+   {
+    "ponto": "3",
+    "descricao": "saída do condensador",
+    "P_bar": 15.34278813394259,
+    "T_C": 41.99897403355152,
+    "h_kJ_kg": 312.89005272211807,
+    "s_kJ_kgK": 1.3765063494422785,
+    "rho_kg_m3": 464.35817672548103,
+    "titulo": null
+   },
+   {
+    "ponto": "3i",
+    "descricao": "entrada do capilar",
+    "P_bar": 15.34278813394259,
+    "T_C": 41.99897391653775,
+    "h_kJ_kg": 312.8900523783776,
+    "s_kJ_kgK": 1.3765063483515538,
+    "rho_kg_m3": 464.358176952517,
+    "titulo": null
+   },
+   {
+    "ponto": "4",
+    "descricao": "entrada do evaporador",
+    "P_bar": 3.75237377104852,
+    "T_C": -7.458745801271789,
+    "h_kJ_kg": 312.8900523783776,
+    "s_kJ_kgK": 1.426542405818074,
+    "rho_kg_m3": 23.521643149998827,
+    "titulo": 0.34116122032306473
+   }
+  ]
+ },
+ "balanco_W": {
+  "vazao_massica_kg_h": 2.993461979669349,
+  "Q_evaporador": 217.85142962464877,
+  "W_eletrica_compressor": 108.92571481232439,
+  "Q_condensador": 296.27794400377275,
+  "Q_carcaca": 30.499200147404807,
+  "Q_trocador_interno": 0.0,
+  "erro_relativo": 2.623766319343113e-09
+ },
+ "compressor": {
+  "potencia_eletrica_W": 108.92571481232439,
+  "capacidade_W": 217.85142962464877,
+  "capacidade_Btuh": 743.3400127823082,
+  "deslocamento_cm3": 2.211333069799245,
+  "rotacao_rpm": 3500.0,
+  "eficiencia_volumetrica": 0.8011542865780248,
+  "vazao_volumetrica_succao_m3_h": 0.3720399832634957,
+  "T_descarga_C": 67.54118795534896,
+  "ponto_catalogo": {
+   "condicao": "EN12900_MBP",
+   "T_evap_C": -10.0,
+   "T_cond_C": 45.0,
+   "T_retorno_C": 20.0,
+   "Q_W": 197.90891492371475,
+   "Q_Btuh": 675.2933207856338,
+   "W_el_W": 105.69815837814532,
+   "COP": 1.872397002563437,
+   "m_kg_h": 2.435622570719647,
+   "eta_v": 0.7887102224887425
+  }
+ },
+ "condensador": {
+  "tipo": "condensador",
+  "capacidade_W": 296.2777483587402,
+  "geometria": {
+   "tubo_diametro_externo_mm": 9.520000000000001,
+   "tubo_diametro_interno_mm": 8.820000000000002,
+   "tubo_espessura_mm": 0.35,
+   "aleta_espessura_mm": 0.12000000000000001,
+   "passo_aleta_mm": 2.5,
+   "aletas_por_polegada": 10.16,
+   "passo_transversal_mm": 25.4,
+   "passo_longitudinal_mm": 22.0,
+   "n_fileiras": 6,
+   "tubos_por_fileira": 4,
+   "n_tubos": 24,
+   "n_circuitos": 1,
+   "comprimento_passe_m": 0.3,
+   "arranjo": "escalonado",
+   "material_tubo": "cobre",
+   "material_aleta": "alumínio",
+   "k_aleta_W_mK": 222.0,
+   "rugosidade_interna_um": 1.5
+  },
+  "comprimento_tubo_requerido_m": 5.571243550732526,
+  "comprimento_tubo_adotado_m": 7.199999999999999,
+  "comprimento_por_circuito_m": 7.199999999999999,
+  "zonas": {
+   "dessuperaquecimento": {
+    "comprimento_m": 0.9132166880289764,
+    "calor_W": 42.47638116744198
+   },
+   "condensação": {
+    "comprimento_m": 3.90540709315537,
+    "calor_W": 246.40370562127268
+   },
+   "sub-resfriamento": {
+    "comprimento_m": 0.7526197695481802,
+    "calor_W": 7.397661570025564
+   }
+  },
+  "area_externa_m2": 2.997922001046937,
+  "area_interna_m2": 0.19950369987356623,
+  "volume_interno_L": 0.4399056582212137,
+  "face": {
+   "altura_m": 0.1016,
+   "largura_m": 0.3,
+   "area_m2": 0.030479999999999997
+  },
+  "n_aletas": 120,
+  "ar": {
+   "velocidade_face_m_s": 1.276212032097332,
+   "vazao_m3_h": 140.03619385797603,
+   "vazao_requerida_m3_h": 108.35774193060816,
+   "T_entrada_C": 32.0,
+   "T_saida_C": 40.4499993792013,
+   "queda_pressao_Pa": 24.137803487028293,
+   "h_W_m2K": 40.738276248931896,
+   "eficiencia_superficie": 0.8890921861210358,
+   "Re_Dc": 1294.965821762007,
+   "j": 0.012735146611451791,
+   "f": 0.05152317017111458,
+   "fator_umidade": 1.0,
+   "potencia_ventilador_aerodinamica_W": 0.9389350356708955
+  },
+  "refrigerante": {
+   "fluxo_massico_kg_m2s": 13.609563431275705,
+   "P_entrada_bar": 15.343140684910491,
+   "P_saida_bar": 15.342788139988135,
+   "queda_pressao_kPa": 0.03525449223560281,
+   "queda_T_saturacao_K": 0.0010259488547603723
+  },
+  "UA_adotado_W_K": 51.10772701294981,
+  "UA_requerido_W_K": 39.54633257131877,
+  "eficacia": {
+   "alvo": 0.65,
+   "obtida": 0.6499999522462682,
+   "estrita_Q_Qmax": 0.925767427659069,
+   "NTU": 1.1278824938034662,
+   "C_ar_W_K": 35.06245800301404,
+   "T_sat_referencia_C": 44.999999999999716,
+   "definicao": "ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada)",
+   "fileiras_automaticas": true
+  }
+ },
+ "evaporador": {
+  "tipo": "evaporador",
+  "capacidade_W": 217.85142962464877,
+  "geometria": {
+   "tubo_diametro_externo_mm": 9.520000000000001,
+   "tubo_diametro_interno_mm": 8.820000000000002,
+   "tubo_espessura_mm": 0.35,
+   "aleta_espessura_mm": 0.15,
+   "passo_aleta_mm": 4.23,
+   "aletas_por_polegada": 6.004728132387706,
+   "passo_transversal_mm": 25.4,
+   "passo_longitudinal_mm": 22.0,
+   "n_fileiras": 6,
+   "tubos_por_fileira": 7,
+   "n_tubos": 42,
+   "n_circuitos": 1,
+   "comprimento_passe_m": 0.35,
+   "arranjo": "escalonado",
+   "material_tubo": "cobre",
+   "material_aleta": "alumínio",
+   "k_aleta_W_mK": 222.0,
+   "rugosidade_interna_um": 1.5
+  },
+  "comprimento_tubo_requerido_m": 11.59087963280146,
+  "comprimento_tubo_adotado_m": 14.7,
+  "comprimento_por_circuito_m": 14.7,
+  "zonas": {
+   "evaporação": {
+    "comprimento_m": 10.799609042170381,
+    "calor_W": 210.87393754883945
+   },
+   "superaquecimento": {
+    "comprimento_m": 0.7912705906310792,
+    "calor_W": 6.977492075809301
+   }
+  },
+  "area_externa_m2": 3.794873234820204,
+  "area_interna_m2": 0.4073200539085311,
+  "volume_interno_L": 0.8981407188683113,
+  "face": {
+   "altura_m": 0.17779999999999999,
+   "largura_m": 0.35,
+   "area_m2": 0.062229999999999994
+  },
+  "n_aletas": 82,
+  "ar": {
+   "velocidade_face_m_s": 0.5065518757105096,
+   "vazao_m3_h": 113.48180361167404,
+   "vazao_requerida_m3_h": 89.47985892354612,
+   "T_entrada_C": 2.5,
+   "T_saida_C": -4.000061097198454,
+   "queda_pressao_Pa": 2.9886220060929154,
+   "h_W_m2K": 20.629408286252392,
+   "eficiencia_superficie": 0.9517191573126834,
+   "Re_Dc": 627.0295949381398,
+   "j": 0.014894849319511112,
+   "f": 0.06279286263810892,
+   "fator_umidade": 1.0464376366604855,
+   "potencia_ventilador_aerodinamica_W": 0.09420950432360098
+  },
+  "refrigerante": {
+   "fluxo_massico_kg_m2s": 13.609563431275705,
+   "P_entrada_bar": 3.7523737672987827,
+   "P_saida_bar": 3.747360210176939,
+   "queda_pressao_kPa": 0.5013557121843333,
+   "queda_T_saturacao_K": 0.041254275834091914
+  },
+  "UA_adotado_W_K": 46.652313510438916,
+  "UA_requerido_W_K": 36.785125883756116,
+  "eficacia": {
+   "alvo": 0.65,
+   "obtida": 0.6500061097198454,
+   "estrita_Q_Qmax": 0.9687897009744567,
+   "NTU": 1.09756252747353,
+   "C_ar_W_K": 32.02798557142871,
+   "T_sat_referencia_C": -7.5,
+   "definicao": "ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada)",
+   "fileiras_automaticas": true
+  }
+ },
+ "capilar": {
+  "diametro_interno_mm": 0.7111999999999999,
+  "diametro_interno_pol": 0.027999999999999997,
+  "comprimento_m": 2.1684296710165722,
+  "comprimento_liquido_m": 0.49448759177754426,
+  "rugosidade_um": 0.75,
+  "blocado": false,
+  "P_entrada_bar": 15.34278813394259,
+  "P_saida_bar": 3.75237377104852,
+  "titulo_saida": 0.33145513881441485,
+  "modelo": "HEM, viscosidade mcadams",
+  "sensibilidade_tolerancia_D": {
+   "D_menos_tol": 1.9709652031548461,
+   "D_mais_tol": 2.380316994562368,
+   "vazao_rel_D_menos_tol": -0.046308680607015096,
+   "vazao_rel_D_mais_tol": 0.04763839695849281
+  },
+  "alternativas": [
+   {
+    "D_mm": 0.6603999999999999,
+    "L_m": 1.4580821350743596,
+    "blocado": false
+   },
+   {
+    "D_mm": 0.7111999999999999,
+    "L_m": 2.1684296710165722,
+    "blocado": false
+   },
+   {
+    "D_mm": 0.7874,
+    "L_m": 3.6827040764758316,
+    "blocado": false
+   },
+   {
+    "D_mm": 0.9143999999999999,
+    "L_m": 7.847343603710722,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.016,
+    "L_m": 13.237265421933028,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.0668000000000002,
+    "L_m": 16.829169544294565,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.2446,
+    "L_m": 35.704492293956186,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.3716,
+    "L_m": 57.14276222878755,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.4986,
+    "L_m": 87.54876889257639,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.6256000000000002,
+    "L_m": 129.37974764049196,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.778,
+    "L_m": 198.68475667865172,
+    "blocado": false
+   },
+   {
+    "D_mm": 1.9049999999999998,
+    "L_m": 276.21795670093394,
+    "blocado": false
+   },
+   {
+    "D_mm": 2.032,
+    "L_m": 375.7162486729841,
+    "blocado": false
+   }
+  ]
+ },
+ "carga_refrigerante": {
+  "total_g": 164.6140207591491,
+  "partes_g": {
+   "condensador": 88.57952709669665,
+   "evaporador": 46.74073756426825,
+   "linha de líquido + filtro": 5.835076462526546,
+   "capilar": 0.24345271338121968,
+   "linha de sucção": 0.34124615881899045,
+   "linha de descarga": 0.4159183415293633,
+   "gás na carcaça": 6.458062421928094,
+   "dissolvido no óleo": 16.0
+  },
+  "limites_g": {
+   "IEC 60335-2-89:2010 (150 g)": 150.0,
+   "8×LFL (304 g)": 304.0,
+   "13×LFL (494 g)": 494.0
+  }
+ },
+ "exergia_W": {
+  "compressor": 50.455295378423564,
+  "condensador": 13.435860235361204,
+  "trocador interno": 0.0,
+  "capilar": 12.69602306253118,
+  "evaporador": 9.0241259186027,
+  "util": 23.314410208333555,
+  "eficiencia_2a_lei": 0.2140395428986035
+ },
+ "energia": {
+  "fracao_ligado": 0.6363636363636364,
+  "kWh_dia": {
+   "compressor": 1.6635927353154996,
+   "ventilador do condensador": 0.0717004936330502,
+   "ventilador do evaporador": 0.192,
+   "iluminação": 0.24,
+   "anti-embaçante": 0.0
+  },
+  "total_kWh_dia": 2.16729322894855,
+  "COP_sistema": 1.791241005240529
+ },
+ "sensibilidade_modelos": {},
+ "avisos": [
+  "[INFO] infiltração: Gosney-Olama trocaria 6.6× o ar livre por abertura; troca limitada a 1 renovação(ões) do volume livre.",
+  "[ATENCAO] carga de fluido: carga estimada 165 g acima de 150 g; verificar a norma aplicável ao produto.",
+  "[INFO] condensador: potência do ventilador estimada em 4.7 W (140 m³/h, 24 Pa, η = 0.20).",
+  "[INFO] evaporador: ar insuflado a -4.0 °C com o compressor ligado (comum em visi-coolers); verificar na distribuição de ar o risco de congelar bebidas junto à descarga (ponto de congelamento ≈ −1 a −2 °C).",
+  "[INFO] condensador: ε = 0.65 atendida com 6 fileira(s) a 1.28 m/s (escolha automática; ver alternativas_fileiras).",
+  "[INFO] evaporador: ε = 0.65 atendida com 6 fileira(s) a 0.51 m/s (escolha automática; ver alternativas_fileiras).",
+  "[INFO] evaporador: velocidade do vapor na saída do evaporador 1.7 m/s (< 3,8 m/s, regra prática ASHRAE para arraste de óleo em linhas horizontais); com HC + óleo miscível em sistemas pequenos isso costuma ser aceitável, mas avalie no protótipo."
+ ],
+ "amesim": {
+  "fluido": "R290",
+  "compressor": {
+   "deslocamento_m3": 2.2113330697992445e-06,
+   "rotacao_rpm": 3500.0,
+   "eta_volumetrica": 0.8011542865780248,
+   "eta_isentropica": 0.7208781427294728,
+   "eta_eletromecanica": 0.72,
+   "eta_global": 0.5190322627652204,
+   "potencia_eletrica_W": 108.92571481232439
+  },
+  "condensador": {
+   "Do_m": 0.00952,
+   "Di_m": 0.008820000000000001,
+   "esp_parede_m": 0.00035,
+   "esp_aleta_m": 0.00012,
+   "passo_aleta_m": 0.0025,
+   "Pt_m": 0.0254,
+   "Pl_m": 0.022,
+   "n_fileiras": 6,
+   "tubos_por_fileira": 4,
+   "n_circuitos": 1,
+   "comprimento_passe_m": 0.3,
+   "comprimento_total_tubo_m": 7.199999999999999,
+   "area_externa_m2": 2.997922001046937,
+   "area_interna_m2": 0.19950369987356623,
+   "volume_interno_m3": 0.0004399056582212137,
+   "vazao_ar_m3_s": 0.038898942738326676,
+   "vazao_ar_requerida_m3_s": 0.030099372758502267,
+   "T_ar_entrada_K": 305.15,
+   "velocidade_face_m_s": 1.276212032097332,
+   "k_aleta_W_mK": 222.0,
+   "k_tubo_W_mK": 390.0,
+   "rugosidade_m": 1.5e-06,
+   "eficacia_saturacao": 0.6499999522462682,
+   "eficacia_Q_Qmax": 0.925767427659069,
+   "NTU": 1.1278824938034662,
+   "UA_W_K": 51.10772701294981
+  },
+  "evaporador": {
+   "Do_m": 0.00952,
+   "Di_m": 0.008820000000000001,
+   "esp_parede_m": 0.00035,
+   "esp_aleta_m": 0.00015,
+   "passo_aleta_m": 0.00423,
+   "Pt_m": 0.0254,
+   "Pl_m": 0.022,
+   "n_fileiras": 6,
+   "tubos_por_fileira": 7,
+   "n_circuitos": 1,
+   "comprimento_passe_m": 0.35,
+   "comprimento_total_tubo_m": 14.7,
+   "area_externa_m2": 3.794873234820204,
+   "area_interna_m2": 0.4073200539085311,
+   "volume_interno_m3": 0.0008981407188683113,
+   "vazao_ar_m3_s": 0.03152272322546501,
+   "vazao_ar_requerida_m3_s": 0.0248555163676517,
+   "T_ar_entrada_K": 275.65,
+   "velocidade_face_m_s": 0.5065518757105096,
+   "k_aleta_W_mK": 222.0,
+   "k_tubo_W_mK": 390.0,
+   "rugosidade_m": 1.5e-06,
+   "eficacia_saturacao": 0.6500061097198454,
+   "eficacia_Q_Qmax": 0.9687897009744567,
+   "NTU": 1.09756252747353,
+   "UA_W_K": 46.652313510438916
+  },
+  "capilar": {
+   "diametro_interno_m": 0.0007111999999999999,
+   "comprimento_m": 2.1684296710165722,
+   "rugosidade_m": 7.5e-07
+  },
+  "condicoes_iniciais": {
+   "P_alta_Pa": 1534314.068491049,
+   "P_baixa_Pa": 374736.02232887544,
+   "carga_refrigerante_kg": 0.1646140207591491,
+   "superaquecimento_K": 5.0,
+   "subresfriamento_K": 3.0
+  },
+  "alvo_validacao": {
+   "Q_evap_W": 217.85142962464877,
+   "W_el_W": 108.92571481232439,
+   "vazao_massica_kg_s": 0.0008315172165748192,
+   "T_evap_K": 265.65,
+   "T_cond_K": 318.15
+  }
+ }
+}

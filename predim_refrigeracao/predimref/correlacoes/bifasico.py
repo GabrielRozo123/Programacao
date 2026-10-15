@@ -233,4 +233,7 @@ def fluxo_momento_especifico(x: float, alpha: float, sat) -> float:
         return 1.0 / sat.rhol
     if x >= 1.0:
         return 1.0 / sat.rhov
-    return x * x / (sat.rhov * alpha) + (1.0 - x) ** 2 / (sat.rhol * (1.0 - alpha))
+    # limites α → 0 e α → 1 (títulos a um arredondamento de 0 ou 1): o termo da fase ausente se anula
+    vap = x * x / (sat.rhov * alpha) if alpha > 1e-12 else 0.0
+    liq = (1.0 - x) ** 2 / (sat.rhol * (1.0 - alpha)) if alpha < 1.0 - 1e-12 else 0.0
+    return vap + liq

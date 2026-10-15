@@ -147,7 +147,7 @@ class Fluido:
         return _sat_cache(self.nome, round(P, 1))
 
     # ------------------------------------------------------------------ estados
-    def _estado_atual(self, P: float) -> Estado:
+    def _estado_atual(self, P: float, transporte: bool = True) -> Estado:
         a = self._as
         T, h, s, rho = a.T(), a.hmass(), a.smass(), a.rhomass()
         if P < self.Pc:
@@ -155,7 +155,7 @@ class Fluido:
             x = (h - sat.hl) / sat.hlv
         else:
             x = -1.0 if T < self.Tc else 2.0
-        if 0.0 < x < 1.0:
+        if 0.0 < x < 1.0 or not transporte:
             return Estado(P, T, h, s, rho, x)
         try:
             cp, mu, k = a.cpmass(), a.viscosity(), a.conductivity()
@@ -163,9 +163,10 @@ class Fluido:
             cp = mu = k = None
         return Estado(P, T, h, s, rho, x, cp, mu, k)
 
-    def estado_PH(self, P: float, h: float) -> Estado:
+    def estado_PH(self, P: float, h: float, transporte: bool = True) -> Estado:
+        """Estado por (P, h). ``transporte=False`` pula viscosidade, condutividade e c_p (mais rápido)."""
         self._as.update(CoolProp.HmassP_INPUTS, h, P)
-        return self._estado_atual(P)
+        return self._estado_atual(P, transporte)
 
     def estado_PT(self, P: float, T: float) -> Estado:
         """Estado monofásico por (P, T). Na saturação exata use ``estado_PQ``."""

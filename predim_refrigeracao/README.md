@@ -36,31 +36,40 @@ Dependências do núcleo: `numpy`, `scipy`, `CoolProp` (matplotlib só para grá
 | Carga térmica de projeto | 218 W (743 Btu/h); governa o regime de uso diário |
 | Ciclo | T_evap −7,5 °C / T_cond 45 °C, razão de pressão 4,09, η_global implícito 0,52 |
 | Compressor | 109 W elétricos, 2,21 cm³ a 3500 rpm; ≈ 198 W em EN 12900 MBP |
-| Condensador (ε = 0,65) | 6 fileiras a 1,28 m/s; 5,6 m de tubo 3/8" requeridos (6 × 4 tubos × 0,30 m adotados); 108 m³/h de ar |
-| Evaporador (ε = 0,65) | 6 fileiras a 0,51 m/s; 11,6 m de tubo 3/8" requeridos (6 × 7 tubos × 0,35 m adotados); 89 m³/h; ar insuflado −4 °C |
+| Condensador (ε = 0,65) | 6 fileiras a 1,28 m/s; 5,57 m de tubo 3/8" no projeto; construtiva (+10 %) 6 × 4 tubos × 0,255 m = 6,13 m; 108 m³/h de ar no projeto |
+| Evaporador (ε = 0,65) | 6 fileiras a 0,51 m/s; 11,6 m de tubo 3/8" no projeto; construtiva 6 × 7 tubos × 0,304 m = 12,75 m; 89 m³/h; ar insuflado −4 °C |
 | Capilar | 0,028" (0,711 mm) × 2,17 m, não blocado |
-| Carga de R290 | ≈ 165 g (acima de 150 g: o aviso é emitido) |
+| Carga de R290 | ≈ 145 g |
 | Consumo estimado | ≈ 2,2 kWh/dia |
 
 ### Eficácia dos trocadores
 
 ε é a do lado do ar referida à saturação (definição usual para condensadores e evaporadores, refrigerante
 bifásico com C → ∞): ε = (T_ar,saída − T_ar,entrada)/(T_sat − T_ar,entrada). Com a carga e o ΔT de aproximação
-fixados pelo ciclo, ε define a vazão de ar (Ċ_ar = Q_sens/(ε ΔT)) e o NTU necessário (≈ −ln(1−ε)). A rotina resolve a
-velocidade de face e escolhe o nº de fileiras (≤ 6) e calcula o comprimento de tubo. ε não muda o ciclo: troca
-ventilador por trocador. Efeito no exemplo acima:
+fixados pelo ciclo, ε define a vazão de ar (Ċ_ar = Q_sens/(ε ΔT)) e, com ela, o NTU que a geometria precisa ter
+(na zona bifásica ε_zona ≤ 1 − e^(−NTU_zona); no condensador a ε global inclui o ar aquecido no dessuperaquecimento e
+não segue essa relação — UA, NTU e ε por zona também são exportados). A rotina resolve a velocidade de face, escolhe o
+nº de fileiras (≤ 6) e calcula o comprimento de tubo. ε não muda o ciclo: troca ventilador por trocador. Efeito no
+exemplo acima (vazões e comprimentos da serpentina de projeto):
 
 | ε | Condensador (fileiras × V, tubo, ar) | Evaporador (fileiras × V, tubo, ar, ar insuflado) | Carga R290 |
 |---|---|---|---|
-| 0,45 | 5 × 2,07 m/s, 4,1 m, 157 m³/h | 6 × 1,23 m/s, 6,9 m, 129 m³/h, −2,0 °C | 132 g |
-| 0,55 | 6 × 1,80 m/s, 4,7 m, 128 m³/h | 6 × 0,79 m/s, 8,8 m, 106 m³/h, −3,0 °C | 130 g |
-| 0,65 | 6 × 1,28 m/s, 5,6 m, 108 m³/h | 6 × 0,51 m/s, 11,6 m, 89 m³/h, −4,0 °C | 165 g |
-| 0,75 | 6 × 0,89 m/s, 6,9 m, 94 m³/h | 6 × 0,31 m/s, 16,5 m, 78 m³/h, −5,0 °C | 199 g |
+| 0,45 | 5 × 2,07 m/s, 4,1 m, 157 m³/h | 6 × 1,23 m/s, 6,9 m, 129 m³/h, −2,0 °C | 111 g |
+| 0,55 | 6 × 1,80 m/s, 4,7 m, 128 m³/h | 6 × 0,79 m/s, 8,8 m, 106 m³/h, −3,0 °C | 124 g |
+| 0,65 | 6 × 1,28 m/s, 5,6 m, 108 m³/h | 6 × 0,51 m/s, 11,6 m, 89 m³/h, −4,0 °C | 145 g |
+| 0,75 | 6 × 0,89 m/s, 6,9 m, 94 m³/h | 6 × 0,31 m/s, 16,5 m, 78 m³/h, −5,0 °C | 179 g |
 
 Com tubo 3/8" e um circuito, o fluxo mássico de refrigerante é baixo (G ≈ 14 kg/m²s) e o lado interno limita o NTU
 por fileira; por isso ε alto pede serpentinas fundas e face lenta. `alternativas_fileiras(res, "condensador")`
 mostra todas as opções (fileiras × velocidade × comprimento × ventilador). A eficácia estrita Q/Q_max
 (Q_max termodinâmico) também é exportada, caso o componente do Amesim use essa definição.
+
+**Duas serpentinas por trocador.** A *de projeto* (sem margem), com a vazão de ar requerida, entrega exatamente a
+capacidade e as temperaturas do ciclo: é a que reproduz `amesim.alvo_validacao`. A *construtiva* tem a margem de área
+(10 %), o mesmo nº de fileiras e de tubos por fileira e o comprimento do passe ajustado; na mesma velocidade de face tem
+a mesma ε com 10 % mais vazão e UA, e num modelo de sistema condensa abaixo de T_cond e evapora acima de T_evap
+(é a folga). O bloco `amesim` traz as duas, além da umidade do ar de entrada, do UA úmido e seco do evaporador, das
+linhas, do óleo e da carga separada em circuito, gás na carcaça e refrigerante dissolvido no óleo.
 
 ## Estrutura
 
@@ -105,8 +114,10 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 ## Verificação e validação
 
 * Balanço de energia e de exergia fecham a 10⁻⁹; destruição de exergia ≥ 0 em todos os componentes.
-* Trocadores: independência de malha (< 1 % entre 20 e 60 segmentos por zona); balanço do ar trecho a trecho;
-  eficácia alvo atingida a 10⁻³; ε ≤ 1 − e^(−NTU) (desigualdade de Jensen) no evaporador só bifásico.
+* Trocadores: independência de malha (< 0,2 % entre 20 e 60 segmentos na zona bifásica; zonas monofásicas convergem
+  com 5); balanço do ar trecho a trecho; eficácia alvo atingida a 10⁻³; ε ≤ 1 − e^(−NTU) (desigualdade de Jensen) no
+  evaporador só bifásico; pinch por perda de carga e alvo de ε inatingível (acima ou abaixo) rejeitados com mensagem
+  própria; Q = ε Ċ_ar ΔT na serpentina de projeto exportada.
 * Eficiência de aleta de Schmidt dentro de 3 % da solução exata (Bessel) da aleta anular.
 * Capilar contra Li et al. (1990), R12, D = 0,66 mm, L = 1,5 m (`python validacao/validacao_capilar_li1990.py`):
 
@@ -147,6 +158,6 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 * O compressor é um modelo genérico (espaço morto + η constante). Substituir pelo mapa do compressor escolhido.
 * O capilar é adiabático e sem metaestabilidade. Com trocador interno (capilar soldado à sucção), ajustar em protótipo.
 * Correlações de tubo liso, sem óleo. Geada só como resistência de incrustação.
-* A carga térmica depende fortemente das premissas de uso. A conferência é feita contra o modelo do Amesim:
-  rodado no ponto de projeto, ele deve reproduzir `amesim.alvo_validacao` (Q_evap, W_el, ṁ, T_evap, T_cond);
-  diferença grande indica parâmetro mapeado de forma diferente, em especial a definição de eficácia do componente.
+* A carga térmica depende fortemente das premissas de uso. A conferência é feita contra o modelo do Amesim: com as
+  serpentinas `projeto_sem_margem` e a vazão requerida ele deve reproduzir `amesim.alvo_validacao` (Q_evap, W_el, ṁ,
+  T_evap, T_cond); com as `construtiva_com_margem`, T_cond menor e T_evap maior são esperados (folga de área).

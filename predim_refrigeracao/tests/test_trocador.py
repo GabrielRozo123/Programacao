@@ -151,9 +151,9 @@ def test_eficacia_menor_que_limite_ntu_uniforme(caso):
 
 def test_eficacia_inviavel(caso):
     # a 0,8 o evaporador (tubo 3/8", 1 circuito, G ≈ 14 kg/m²s) não chega com até 6 fileiras
-    with pytest.raises(ErroProjeto, match="inatingível"):
+    with pytest.raises(ErroProjeto, match="acima do máximo"):
         _evap(caso, eficacia=0.8)
-    with pytest.raises(ErroProjeto, match="inatingível"):
+    with pytest.raises(ErroProjeto, match="acima do máximo"):
         _evap(caso, eficacia=0.97)
     with pytest.raises(ErroProjeto):
         _cond(caso, eficacia=1.2)
@@ -177,3 +177,67 @@ def test_sem_eficacia_mantem_modo_velocidade(caso):
     r = _cond(caso)
     assert r.eficacia_alvo is None and r.velocidade_face == condensador_padrao().velocidade_face
     assert 0 < r.eficacia < 1
+
+
+def test_eficacia_baixa_com_fileiras_fixas_da_mensagem_certa(caso):
+    """ε alvo abaixo do que 6 fileiras dão mesmo a 4 m/s: a mensagem deve pedir menos fileiras."""
+    p = condensador_padrao()
+    p.eficacia, p.fileiras_automaticas = 0.30, False
+    p.geometria.n_fileiras = 6
+    fl, c, b = caso
+    e = c.estados
+    with pytest.raises(ErroProjeto, match="abaixo do mínimo"):
+        dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, p)
+    p.fileiras_automaticas = True   # no modo automático a mesma ε é atendida com menos fileiras
+    r = dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, p)
+    assert r.eficacia == pytest.approx(0.30, abs=1e-3) and r.n_fileiras < 6
+
+
+def test_serpentinas_projeto_e_construtiva(caso):
+    r = _cond(caso, eficacia=0.65)
+    pj, ct = r.projeto, r.construtiva
+    assert ct.comprimento_tubo == pytest.approx(pj.comprimento_tubo * 1.10, rel=1e-9)   # passe ajustado
+    assert ct.tubos_por_fileira == pj.tubos_por_fileira and ct.comprimento_passe <= condensador_padrao().comprimento_passe_m
+    assert ct.vazao_ar_m3h == pytest.approx(pj.vazao_ar_m3h * 1.10, rel=1e-6)
+    # a serpentina de projeto com a vazão requerida fecha a capacidade: Q = ε Ċ_ar ΔT
+    assert r.eficacia * r.C_ar * abs(r.T_sat_ref - r.T_ar_in) == pytest.approx(r.Q, rel=1e-9)
+    pf = condensador_padrao()
+    pf.eficacia, pf.ajustar_comprimento_passe = 0.65, False
+    fl, c, b = caso
+    e = c.estados
+    r2 = dimensionar_condensador(fl, b.m, e["2"].P, e["2"].h, 3.0, 305.15, pf)
+    assert r2.comprimento_passe == pf.comprimento_passe_m and r2.L_adotado >= r2.L_requerido * 1.10
+
+
+def test_ua_seco_menor_ou_igual_ao_umido(caso):
+    r = _evap(caso, eficacia=0.65)
+    assert r.projeto.UA_seco < r.projeto.UA          # ξ > 1 aumenta o coeficiente equivalente do ar
+    for z in r.zonas.values():
+        assert z["eficacia"] <= 1.0 - math.exp(-z["NTU"]) + 1e-9 or z is r.zonas.get("superaquecimento")
+
+
+def test_titulo_final_exato_sem_divisao_por_zero(caso):
+    """x_in baixo (trocador interno forte) e malha fina: o último título é 1,0 exato."""
+    fl, c, b = caso
+    e = c.estados
+    for x_in in (0.12, 0.17, 0.21, 0.24):
+        P = e["1"].P
+        sat = fl.sat(P)
+        h_in = sat.hl + x_in * sat.hlv
+        for n in (20, 60):
+            p = evaporador_padrao()
+            p.n_segmentos = n
+            r = dimensionar_evaporador(fl, b.m, h_in, P, 5.0, 275.65, p, 1.05)
+            ultimo = [s for s in r.segmentos if s.zona == "evaporação"][-1]
+            assert ultimo.x_out == 1.0
+
+
+def test_pinch_por_perda_de_carga_vira_erro_de_projeto(caso):
+    """Tubo fino e vazão alta: a queda de pressão leva a saturação para o lado errado do ar; deve
+    sair ErroProjeto (pinch/queda excessiva), não um resultado com calor no sentido contrário."""
+    fl, c, b = caso
+    e = c.estados
+    p = evaporador_padrao()
+    p.geometria.Do, p.geometria.esp_parede = 5.0e-3, 0.5e-3
+    with pytest.raises(ErroProjeto):
+        dimensionar_evaporador(fl, b.m * 8, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.0)

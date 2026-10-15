@@ -19,10 +19,17 @@ circuito de refrigerante. Em cada segmento:
   consistente com o UA e a vazão de ar totais da serpentina;
 * queda de pressão: atrito (Müller-Steinhagen & Heck no bifásico; Churchill no monofásico)
   + aceleração com fração de vazio de Rouhani-Axelsson; a pressão é atualizada ao longo do
-  circuito e a temperatura de saturação acompanha.
+  circuito e a temperatura de saturação acompanha. A diferença de temperatura refrigerante-ar
+  é verificada com sinal em cada trecho: se a queda de pressão levar a saturação para o "lado
+  errado" do ar (pinch), o ponto é rejeitado em vez de produzir calor no sentido contrário.
 
-O comprimento requerido é a soma dos segmentos; depois aplica-se a margem de área e o
-arranjo é arredondado para tubos inteiros (fileiras × tubos por fileira × comprimento do passe).
+Duas serpentinas são reportadas:
+* **de projeto (sem margem)** — o comprimento requerido; com a vazão de ar requerida ela entrega
+  exatamente a capacidade e as temperaturas do ciclo (é a que reproduz ``alvo_validacao``);
+* **construtiva (com margem)** — comprimento × (1 + margem_area), com o mesmo nº de fileiras,
+  tubos por fileira inteiros e o comprimento do passe ajustado (padrão) ou com tubos inteiros
+  num passe fixo. Na mesma velocidade de face ela tem a mesma ε, porém mais vazão de ar e mais
+  UA: num modelo de sistema ela condensa abaixo de T_cond e evapora acima de T_evap (é a folga).
 Curvas de retorno (U) não entram na perda de carga (pequenas aos fluxos mássicos destes sistemas).
 
 Modo de eficácia (``ParametrosTrocador.eficacia``)
@@ -34,10 +41,15 @@ condensadores e evaporadores, em que o refrigerante bifásico tem C → ∞ e C_
 
 com T_sat = T_cond (entrada do condensador) ou T_evap (saída do evaporador) e Q_sens = Q/ξ.
 Dados Q (do ciclo), ε e as temperaturas, a vazão de ar fica determinada (Ċ_ar = Q_sens/(ε ΔT)).
-Na distribuição paralela de ar, ε depende só da velocidade de face V e do número de fileiras N
-(e do coeficiente interno), e decresce monotonamente com V: para cada N resolve-se V tal que
-ε(V, N) = ε_alvo; com ``fileiras_automaticas`` escolhe-se o N (≤ ``fileiras_max``) cuja V fica mais
-perto da ``velocidade_face`` preferida. O comprimento de tubo sai da marcha segmentada nessa (V, N).
+Na distribuição paralela de ar, ε independe do comprimento: depende da velocidade de face V, do nº
+de fileiras N, do coeficiente interno e, no condensador, também da temperatura de descarga (o ar
+que passa pelo dessuperaquecimento sai acima de T_sat; por isso no condensador ε não segue
+1 − e^(−NTU) e, a velocidades muito baixas, pode até passar de 1). Na zona bifásica vale
+ε_zona ≤ 1 − e^(−NTU_zona) (desigualdade de Jensen) e os valores por zona são exportados.
+Com perda de carga relevante ε(V) pode deixar de ser monotônica; por isso, para cada N, a busca de V
+percorre uma grade logarítmica de velocidade_max para velocidade_min, refina por Brent a primeira
+troca de sinal encontrada e adota essa raiz, a de maior V (menos tubo e menos perda de carga). Com ``fileiras_automaticas`` escolhe-se
+o N (≤ ``fileiras_max``) cuja V fica mais perto da ``velocidade_face`` preferida.
 Também se reporta a eficácia "estrita" Q/Q_max com o Q_max termodinâmico (calores específicos
 variáveis): Q_max = min[ṁ |h_ref,entrada − h(P, T_ar,entrada)|, ξ Ċ_ar |T_ref,entrada − T_ar,entrada|],
 útil se o componente do Amesim usar essa definição.
@@ -50,6 +62,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Optional
 
+import numpy as np
 from scipy.optimize import brentq
 
 from .avisos import ErroProjeto
@@ -59,15 +72,21 @@ from .correlacoes.lado_ar import (DesempenhoAr, GeometriaAletada, desempenho_lad
 from .correlacoes.monofasico import gradiente_pressao_monofasico, h_interno_monofasico
 from .propriedades import Fluido, ar_seco
 
+FOLGA_PINCH_K = 0.2          # diferença mínima refrigerante-ar aceita num trecho [K]
+FRACAO_DP_MAX = 0.5          # queda de pressão máxima admitida, fração da pressão de entrada
+N_GRADE_VELOCIDADE = 10      # pontos da grade logarítmica de V no modo de eficácia
+
 
 @dataclass
 class ParametrosTrocador:
     geometria: GeometriaAletada
-    velocidade_face: float = 2.0           # m/s, na entrada
+    velocidade_face: float = 2.0           # m/s, na entrada (preferida, no modo de eficácia)
     n_circuitos: int = 1
     comprimento_passe_m: float = 0.40      # comprimento aletado de cada tubo (largura da face)
+    ajustar_comprimento_passe: bool = True  # serpentina construtiva com L = L_req (1 + margem) exato
     margem_area: float = 0.10
-    n_segmentos: int = 20                  # por zona
+    n_segmentos: int = 20                  # por zona bifásica
+    n_segmentos_monofasico: int = 8        # por zona monofásica (perfis suaves: converge com poucos)
     R_incrustacao_ar: float = 0.0          # m²K/W, sobre a área externa (pó, geada)
     R_incrustacao_ref: float = 0.0         # m²K/W, sobre a área interna (óleo)
     correlacao_bifasico: str = "shah_2022"  # condensação: shah_2022|shah_2013|shah_2009|shah_1979|chato_1962
@@ -83,7 +102,7 @@ class ParametrosTrocador:
 
 
 def condensador_padrao() -> ParametrosTrocador:
-    """Condensador de ar forçado típico de visi-cooler (tubo 3/8", 3 fileiras, ~10 FPI)."""
+    """Condensador de ar forçado típico de visi-cooler (tubo 3/8", aleta 2,5 mm ≈ 10 FPI)."""
     return ParametrosTrocador(
         geometria=GeometriaAletada(Do=9.52e-3, esp_parede=0.35e-3, esp_aleta=0.12e-3, passo_aleta=2.5e-3,
                                    Pt=25.4e-3, Pl=22.0e-3, n_fileiras=3),
@@ -112,7 +131,7 @@ class Segmento:
     x_in: float
     x_out: float
     h_int: float          # coeficiente interno [W/m²K]
-    UA_m: float           # UA por metro [W/mK]
+    UA_m: float           # UA por metro [W/mK] (no evaporador, base úmida: ξ no filme de ar e na aleta)
     eps: float
     T_ar_out: float       # temperatura de bulbo seco do ar que deixa o trecho
     alpha: float          # fração de vazio média (0 no líquido, 1 no vapor)
@@ -120,6 +139,26 @@ class Segmento:
     dP_atrito: float
     dP_acel: float
     regime: str = ""
+    UA_m_seco: float = 0.0  # UA por metro com ξ = 1 (superfície seca)
+
+
+@dataclass
+class Serpentina:
+    """Uma realização geométrica da serpentina (de projeto ou construtiva)."""
+    descricao: str
+    comprimento_tubo: float      # total, todos os circuitos [m]
+    comprimento_passe: float     # comprimento aletado de cada tubo [m]
+    tubos_por_fileira: int
+    n_tubos: int
+    altura_face: float
+    area_face: float
+    area_externa: float
+    area_interna: float
+    volume_interno: float
+    n_aletas: int
+    vazao_ar_m3h: float          # na velocidade de face de projeto
+    UA: float                    # base úmida no evaporador (ver Segmento.UA_m)
+    UA_seco: float
 
 
 @dataclass
@@ -130,25 +169,15 @@ class ResultadoTrocador:
     Q: float
     segmentos: list
     zonas: dict
-    L_requerido: float        # total (todos os circuitos), sem margem
-    L_adotado: float
+    projeto: Serpentina          # sem margem: reproduz o ponto de projeto do ciclo
+    construtiva: Serpentina      # com margem e tubos inteiros
     n_circuitos: int
     n_fileiras: int
-    tubos_por_fileira: int
-    n_tubos: int
-    comprimento_passe: float
-    altura_face: float
-    area_face: float
-    area_externa: float
-    area_interna: float
-    volume_interno: float
-    n_aletas: int
-    vazao_ar_m3h: float
     T_ar_in: float
-    T_ar_out: float
-    dP_ar: float
-    potencia_ventilador_aero: float
-    potencia_ventilador_est: float
+    T_ar_out: float              # serpentina de projeto, vazão requerida
+    dP_ar: float                 # depende só de V e N (igual nas duas serpentinas)
+    potencia_ventilador_aero: float   # serpentina construtiva
+    potencia_ventilador_est: float    # serpentina construtiva
     P_in: float
     P_out: float
     dT_sat_queda: float
@@ -156,28 +185,86 @@ class ResultadoTrocador:
     ar: DesempenhoAr
     fator_umidade: float
     geometria: GeometriaAletada
-    UA_adotado: float = 0.0
+    velocidade_face: float
+    T_sat_ref: float             # temperatura de saturação de referência da eficácia [K]
+    eficacia: float              # obtida, referida à saturação (ver docstring do módulo)
+    eficacia_alvo: Optional[float]
+    eficacia_Qmax: float         # Q / Q_max termodinâmico
+    C_ar: float                  # capacidade térmica sensível do ar na serpentina de projeto [W/K]
+    NTU: float                   # UA_projeto / (ξ C_ar)
     avisos: list = field(default_factory=list)
-    velocidade_face: float = 0.0     # m/s (entrada; resolvida no modo de eficácia)
-    T_sat_ref: float = 0.0           # temperatura de saturação de referência da eficácia [K]
-    eficacia: float = 0.0            # obtida, referida à saturação (ver docstring do módulo)
-    eficacia_alvo: Optional[float] = None
-    eficacia_Qmax: float = 0.0       # Q / Q_max termodinâmico (ver _consolidar)
-    C_ar: float = 0.0                # capacidade térmica sensível do ar na serpentina requerida [W/K]
-    UA_requerido: float = 0.0        # Σ UA' L dos segmentos (sem margem) [W/K]
-    NTU: float = 0.0                 # UA_requerido / (ξ C_ar)
     fileiras_escolhidas_automaticamente: bool = False
-    vazao_ar_requerida_m3h: float = 0.0  # Ċ_ar/(ρ c_p) da serpentina requerida (a adotada é maior)
 
+    # ----------------------------------------------------- atalhos (serpentina construtiva)
     @property
     def dP_ref(self) -> float:
         return self.P_in - self.P_out
+
+    @property
+    def L_requerido(self) -> float:
+        return self.projeto.comprimento_tubo
+
+    @property
+    def L_adotado(self) -> float:
+        return self.construtiva.comprimento_tubo
+
+    @property
+    def UA_requerido(self) -> float:
+        return self.projeto.UA
+
+    @property
+    def UA_adotado(self) -> float:
+        return self.construtiva.UA
+
+    @property
+    def vazao_ar_requerida_m3h(self) -> float:
+        return self.projeto.vazao_ar_m3h
+
+    @property
+    def vazao_ar_m3h(self) -> float:
+        return self.construtiva.vazao_ar_m3h
+
+    @property
+    def tubos_por_fileira(self) -> int:
+        return self.construtiva.tubos_por_fileira
+
+    @property
+    def n_tubos(self) -> int:
+        return self.construtiva.n_tubos
+
+    @property
+    def comprimento_passe(self) -> float:
+        return self.construtiva.comprimento_passe
+
+    @property
+    def altura_face(self) -> float:
+        return self.construtiva.altura_face
+
+    @property
+    def area_face(self) -> float:
+        return self.construtiva.area_face
+
+    @property
+    def area_externa(self) -> float:
+        return self.construtiva.area_externa
+
+    @property
+    def area_interna(self) -> float:
+        return self.construtiva.area_interna
+
+    @property
+    def volume_interno(self) -> float:
+        return self.construtiva.volume_interno
+
+    @property
+    def n_aletas(self) -> int:
+        return self.construtiva.n_aletas
 
 
 # ============================================================================ utilidades
 class _Ctx:
     def __init__(self, fl: Fluido, m: float, p: ParametrosTrocador, T_ar_in: float, T_ar_m: float,
-                 xi: float = 1.0):
+                 xi: float, sentido: float):
         self.fl, self.p, self.geo = fl, p, p.geometria
         g = self.geo
         self.m_c = m / p.n_circuitos
@@ -189,18 +276,42 @@ class _Ctx:
         self.rho_ar_in = a_in.rho
         self.cp_ar = a_m.cp
         self.ar = desempenho_lado_ar(p.velocidade_face, a_in.rho, a_m.cp, a_m.mu, a_m.Pr, g, xi)
+        self.ar_seco = (self.ar if xi == 1.0 else
+                        desempenho_lado_ar(p.velocidade_face, a_in.rho, a_m.cp, a_m.mu, a_m.Pr, g, 1.0))
         self.xi = xi
         self.Ca_seco = a_in.rho * p.velocidade_face * g.Pt * a_m.cp / g.n_fileiras  # W/(K·m)
         self.Ca = xi * self.Ca_seco
         self.T_ar_in = T_ar_in
+        self.sentido = sentido          # +1: refrigerante mais quente que o ar (condensador); −1: evaporador
         self.M_kmol = fl.M * 1000.0
         self.hidrocarboneto = fl.hidrocarboneto
 
-    def UA_m(self, h_i: float) -> float:
-        R = (1.0 / (self.xi * self.ar.h * self.ar.eta_superficie * self.Ao)
-             + self.p.R_incrustacao_ar / self.Ao + self.Rw
+    def _UA(self, h_i: float, h_ar_eq: float, eta_o: float) -> float:
+        R = (1.0 / (h_ar_eq * eta_o * self.Ao) + self.p.R_incrustacao_ar / self.Ao + self.Rw
              + 1.0 / (h_i * self.Ai) + self.p.R_incrustacao_ref / self.Ai)
         return 1.0 / R
+
+    def UA_m(self, h_i: float) -> float:
+        """UA por metro na base úmida (ξ no filme de ar e na eficiência de aleta)."""
+        return self._UA(h_i, self.xi * self.ar.h, self.ar.eta_superficie)
+
+    def UA_m_seco(self, h_i: float) -> float:
+        return self._UA(h_i, self.ar_seco.h, self.ar_seco.eta_superficie)
+
+    def dT_motriz(self, T_ref: float, zona: str) -> float:
+        """Diferença refrigerante-ar no sentido esperado; rejeita pinch (inclusive o causado pela
+        queda de pressão, que leva a saturação para o lado errado do ar)."""
+        dT = self.sentido * (T_ref - self.T_ar_in)
+        if dT <= FOLGA_PINCH_K:
+            raise ErroProjeto(f"pinch no {zona}: diferença refrigerante-ar de {dT:.2f} K "
+                              "(perda de carga alta demais? aumente n_circuitos ou o diâmetro do tubo)")
+        return dT
+
+
+def _checar_pressao(P_entrada: float, P: float, zona: str) -> None:
+    if not (P > (1.0 - FRACAO_DP_MAX) * P_entrada) or not math.isfinite(P):
+        raise ErroProjeto(f"queda de pressão excessiva no {zona} (> {FRACAO_DP_MAX:.0%} da pressão de entrada): "
+                          "aumente n_circuitos ou o diâmetro do tubo")
 
 
 def _eps_cruzado(NTU: float, C_ref: float, C_ar: float) -> float:
@@ -236,27 +347,36 @@ def _L_monofasico(Q: float, C_ref: float, UA_m: float, Ca_m: float, dT_in: float
 
 def _segmento_monofasico(ctx: _Ctx, zona: str, P_in: float, h_in: float, h_out: float) -> Segmento:
     fl, g = ctx.fl, ctx.geo
-    e_in = fl.estado_PH(P_in, h_in)
+    e_in = fl.estado_PH(P_in, h_in, transporte=False)
+    dT_in = ctx.dT_motriz(e_in.T, zona)
     dP = 0.0
-    for _ in range(3):
-        e_out = fl.estado_PH(P_in - dP, h_out)
+    for it in range(4):
+        _checar_pressao(P_in, P_in - dP, zona)
+        e_out = fl.estado_PH(P_in - dP, h_out, transporte=False)
         e_m = fl.estado_PH(P_in - 0.5 * dP, 0.5 * (h_in + h_out))
+        if e_m.mu is None:
+            raise ErroProjeto(f"estado médio bifásico num trecho de {zona} (queda de pressão excessiva)")
         Q = ctx.m_c * abs(h_in - h_out)
         dT_r = abs(e_in.T - e_out.T)
         C_ref = Q / dT_r if dT_r > 1e-9 else 1e12
         h_i = h_interno_monofasico(ctx.G, g.Di, e_m.mu, e_m.k, e_m.Pr)
         UA = ctx.UA_m(h_i)
-        L = _L_monofasico(Q, C_ref, UA, ctx.Ca, abs(e_in.T - ctx.T_ar_in))
+        L = _L_monofasico(Q, C_ref, UA, ctx.Ca, dT_in)
         dP_f = gradiente_pressao_monofasico(ctx.G, g.Di, e_m.rho, e_m.mu, g.rugosidade_int) * L
         dP_a = ctx.G ** 2 * (1.0 / e_out.rho - 1.0 / e_in.rho)
-        dP = dP_f + dP_a
+        dP_novo = dP_f + dP_a
+        conv = abs(dP_novo - dP) <= 1e-6 * P_in + 1e-3 * abs(dP_novo)
+        dP = dP_novo
+        if conv and it > 0:
+            break
+    _checar_pressao(P_in, P_in - dP, zona)
     Cmin = min(ctx.Ca * L, C_ref)
-    eps = Q / (Cmin * abs(e_in.T - ctx.T_ar_in))
-    sinal = 1.0 if e_in.T > ctx.T_ar_in else -1.0
-    T_ar_out = ctx.T_ar_in + sinal * Q / (ctx.Ca * L)
+    eps = Q / (Cmin * dT_in)
+    T_ar_out = ctx.T_ar_in + ctx.sentido * Q / (ctx.Ca * L)
     alpha = 1.0 if e_in.x >= 1.0 else 0.0
     return Segmento(zona, L, Q, P_in, P_in - dP, h_in, h_out, e_in.T, e_out.T, e_in.x, e_out.x, h_i, UA, eps,
-                    T_ar_out, alpha, e_m.rho, dP_f, dP_a, "laminar" if ctx.G * g.Di / e_m.mu < 2300 else "turbulento")
+                    T_ar_out, alpha, e_m.rho, dP_f, dP_a,
+                    "laminar" if ctx.G * g.Di / e_m.mu < 2300 else "turbulento", ctx.UA_m_seco(h_i))
 
 
 def _h_bifasico(ctx: _Ctx, x_m: float, sat, q: float, condensando: bool) -> tuple[float, str]:
@@ -289,15 +409,17 @@ def _segmento_bifasico(ctx: _Ctx, zona: str, P_in: float, x_in: float, x_out: fl
                        condensando: bool) -> Segmento:
     fl, g = ctx.fl, ctx.geo
     sat_in = fl.sat(P_in)
+    ctx.dT_motriz(sat_in.T, zona)
     h_in = sat_in.hl + x_in * sat_in.hlv
     dP, q = 0.0, 5000.0
-    for _ in range(4):
+    for _ in range(6):
+        _checar_pressao(P_in, P_in - dP, zona)
         P_out = P_in - dP
         sat_m, sat_out = fl.sat(P_in - 0.5 * dP), fl.sat(P_out)
         x_m = 0.5 * (x_in + x_out)
         h_out = sat_out.hl + x_out * sat_out.hlv
         Q = ctx.m_c * abs(h_in - h_out)
-        dT = abs(sat_m.T - ctx.T_ar_in)
+        dT = ctx.dT_motriz(sat_m.T, zona)
         for _k in range(30):   # ponto fixo no fluxo de calor (correlações dependentes de q)
             h_i, regime = _h_bifasico(ctx, x_m, sat_m, q, condensando)
             UA = ctx.UA_m(h_i)
@@ -313,37 +435,74 @@ def _segmento_bifasico(ctx: _Ctx, zona: str, P_in: float, x_in: float, x_out: fl
         a_out = bf.fracao_vazio_rouhani_axelsson(x_out, ctx.G, sat_out)
         dP_a = ctx.G ** 2 * (bf.fluxo_momento_especifico(x_out, a_out, sat_out)
                              - bf.fluxo_momento_especifico(x_in, a_in, sat_in))
-        dP = dP_f + dP_a
+        dP_novo = dP_f + dP_a
+        conv = abs(dP_novo - dP) <= 1e-6 * P_in + 1e-3 * abs(dP_novo)
+        dP = dP_novo
+        if conv:
+            break
+    _checar_pressao(P_in, P_in - dP, zona)
+    ctx.dT_motriz(fl.sat(P_in - dP).T, zona)   # a saturação na saída do trecho também precisa de folga
     alpha = 0.5 * (a_in + a_out)
     rho_m = 0.5 * (a_in * sat_in.rhov + (1 - a_in) * sat_in.rhol + a_out * sat_out.rhov + (1 - a_out) * sat_out.rhol)
-    sinal = 1.0 if sat_m.T > ctx.T_ar_in else -1.0
-    T_ar_out = ctx.T_ar_in + sinal * Q / (ctx.Ca * L)
+    T_ar_out = ctx.T_ar_in + ctx.sentido * Q / (ctx.Ca * L)
     return Segmento(zona, L, Q, P_in, P_in - dP, h_in, h_out, sat_in.T, sat_out.T, x_in, x_out, h_i, UA, eps,
-                    T_ar_out, alpha, rho_m, dP_f, dP_a, regime)
+                    T_ar_out, alpha, rho_m, dP_f, dP_a, regime, ctx.UA_m_seco(h_i))
+
+
+def _serpentina(descricao: str, L_total: float, N: int, Nc: int, p: ParametrosTrocador, UA_m_medio: float,
+                UA_m_seco_medio: float, ajustar: bool) -> Serpentina:
+    """Arranjo de tubos inteiros para um comprimento total de tubo."""
+    g = p.geometria
+    if ajustar:
+        tpf = max(1, math.ceil(L_total / (N * p.comprimento_passe_m) - 1e-9))
+        while (tpf * N) % Nc:
+            tpf += 1
+        L_passe = L_total / (N * tpf)
+    else:
+        tpf = max(1, math.ceil(math.ceil(L_total / p.comprimento_passe_m - 1e-9) / N))
+        while (tpf * N) % Nc:
+            tpf += 1
+        L_passe = p.comprimento_passe_m
+    n_tubos = tpf * N
+    L = n_tubos * L_passe
+    altura = tpf * g.Pt
+    A_face = altura * L_passe
+    return Serpentina(descricao, L, L_passe, tpf, n_tubos, altura, A_face, g.area_externa_por_m * L,
+                      g.area_interna_por_m * L, math.pi * g.Di ** 2 / 4.0 * L, int(L_passe / g.passo_aleta),
+                      p.velocidade_face * A_face * 3600.0, UA_m_medio * L, UA_m_seco_medio * L)
 
 
 def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: ParametrosTrocador,
                 T_ar_in: float, T_sat_ref: float) -> ResultadoTrocador:
     g = p.geometria
     Nc = p.n_circuitos
+    N = g.n_fileiras
     zonas: dict = {}
     for s in segs:
-        z = zonas.setdefault(s.zona, {"L": 0.0, "Q": 0.0})
+        z = zonas.setdefault(s.zona, {"L": 0.0, "Q": 0.0, "UA": 0.0, "UA_seco": 0.0})
         z["L"] += s.L * Nc
         z["Q"] += s.Q * Nc
+        z["UA"] += s.UA_m * s.L * Nc
+        z["UA_seco"] += s.UA_m_seco * s.L * Nc
+    for z in zonas.values():
+        C_z = ctx.Ca_seco * z["L"]
+        z["eficacia"] = z["Q"] / (ctx.xi * C_z * abs(T_sat_ref - T_ar_in))
+        z["NTU"] = z["UA"] / (ctx.xi * C_z)
     L_req = sum(s.L for s in segs) * Nc
     Q = sum(s.Q for s in segs) * Nc
-    L_proj = L_req * (1.0 + p.margem_area)
-    n_tubos = math.ceil(L_proj / p.comprimento_passe_m - 1e-9)
-    tpf = math.ceil(n_tubos / g.n_fileiras)
-    while (tpf * g.n_fileiras) % Nc:
-        tpf += 1
-    n_tubos = tpf * g.n_fileiras
-    L_adot = n_tubos * p.comprimento_passe_m
-    altura = tpf * g.Pt
-    A_face = altura * p.comprimento_passe_m
-    Vdot = p.velocidade_face * A_face
-    # temperatura média de mistura do ar na saída (ponderada pela capacidade de cada trecho)
+    UA_req = sum(s.UA_m * s.L for s in segs) * Nc
+    UA_seco_req = sum(s.UA_m_seco * s.L for s in segs) * Nc
+    UA_m, UA_m_s = UA_req / L_req, UA_seco_req / L_req
+    # serpentina de projeto (sem margem): comprimento exato, passe ajustado ao arranjo da construtiva
+    construtiva = _serpentina("construtiva (com margem)", L_req * (1.0 + p.margem_area), N, Nc, p, UA_m, UA_m_s,
+                              p.ajustar_comprimento_passe)
+    proj = Serpentina("projeto (sem margem)", L_req, L_req / (N * construtiva.tubos_por_fileira),
+                      construtiva.tubos_por_fileira, construtiva.n_tubos, construtiva.altura_face,
+                      construtiva.altura_face * L_req / (N * construtiva.tubos_por_fileira),
+                      g.area_externa_por_m * L_req, g.area_interna_por_m * L_req,
+                      math.pi * g.Di ** 2 / 4.0 * L_req,
+                      int(L_req / (N * construtiva.tubos_por_fileira) / g.passo_aleta),
+                      ctx.Ca_seco * L_req / (ctx.rho_ar_in * ctx.cp_ar) * 3600.0, UA_req, UA_seco_req)
     T_out = sum(s.T_ar_out * s.L for s in segs) / sum(s.L for s in segs)
     rho_out = ar_seco(T_out).rho
     dP_ar = queda_pressao_ar(ctx.ar.G_max, ctx.ar.f, g, ctx.rho_ar_in, rho_out)
@@ -354,10 +513,11 @@ def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: Param
         av.append(f"Re_Dc do ar = {ctx.ar.Re_Dc:.0f} fora da faixa usual da correlação de Wang")
     if dTsat > 1.5:
         av.append(f"queda de pressão do refrigerante equivale a {dTsat:.2f} K de saturação: considere mais circuitos")
-    UA_req = sum(s.UA_m * s.L for s in segs) * Nc
-    UA_adot = UA_req / L_req * L_adot
-    C_ar = ctx.Ca_seco * L_req                       # sensível, serpentina requerida
+    C_ar = ctx.Ca_seco * L_req                       # sensível, serpentina de projeto
     eps = abs(T_out - T_ar_in) / abs(T_sat_ref - T_ar_in)
+    if eps > 1.0:
+        av.append(f"eficácia referida à saturação = {eps:.3f} > 1: o ar sai acima de T_sat por causa do "
+                  "dessuperaquecimento (velocidade de face muito baixa)")
     # eficácia "estrita" com o Q_max termodinâmico (calores específicos variáveis, Shah & Sekulic 2003):
     # refrigerante levado à temperatura de entrada do ar, ou ar levado à temperatura de entrada do refrigerante
     T_ref_in = segs[0].T_in
@@ -365,46 +525,61 @@ def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: Param
     Qmax_ref = m * abs(segs[0].h_in - h_ref_lim)
     Qmax_ar = ctx.xi * C_ar * abs(T_ref_in - T_ar_in)
     eps_Qmax = Q / min(Qmax_ref, Qmax_ar)
+    Vdot_c = construtiva.vazao_ar_m3h / 3600.0
     return ResultadoTrocador(
-        tipo, fl.nome, m, Q, segs, zonas, L_req, L_adot, Nc, g.n_fileiras, tpf, n_tubos, p.comprimento_passe_m,
-        altura, A_face, g.area_externa_por_m * L_adot, g.area_interna_por_m * L_adot,
-        math.pi * g.Di ** 2 / 4.0 * L_adot, int(p.comprimento_passe_m / g.passo_aleta), Vdot * 3600.0,
-        T_ar_in, T_out, dP_ar, Vdot * dP_ar, Vdot * dP_ar / p.eficiencia_ventilador, P_in, P_out, dTsat,
-        ctx.G, ctx.ar, ctx.xi, g, UA_adot, av, p.velocidade_face, T_sat_ref, eps, p.eficacia, eps_Qmax, C_ar,
-        UA_req, UA_req / (ctx.xi * C_ar), False, C_ar / (ctx.rho_ar_in * ctx.cp_ar) * 3600.0)
+        tipo, fl.nome, m, Q, segs, zonas, proj, construtiva, Nc, N, T_ar_in, T_out, dP_ar, Vdot_c * dP_ar,
+        Vdot_c * dP_ar / p.eficiencia_ventilador, P_in, P_out, dTsat, ctx.G, ctx.ar, ctx.xi, g,
+        p.velocidade_face, T_sat_ref, eps, p.eficacia, eps_Qmax, C_ar, UA_req / (ctx.xi * C_ar), av)
+
+
+def _blindar(tipo: str, funcao, *args):
+    """Converte falhas numéricas de propriedades (estados fora do domínio do CoolProp, divisão por
+    zero) em ErroProjeto, para que o solucionador trate o ponto como inválido."""
+    try:
+        return funcao(*args)
+    except ErroProjeto:
+        raise
+    except (ValueError, TypeError, ZeroDivisionError, OverflowError) as e:
+        raise ErroProjeto(f"falha numérica na marcha do {tipo}: {e}") from None
 
 
 # ============================================================================ condensador
 def _condensador_fixo(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
                       T_ar_in: float, p: ParametrosTrocador) -> ResultadoTrocador:
     """Marcha do condensador para geometria e velocidade de face fixas."""
-    n = p.n_segmentos
+    return _blindar("condensador", _condensador_marcha, fl, m, P_in, h_in, subresfriamento, T_ar_in, p)
+
+
+def _condensador_marcha(fl, m, P_in, h_in, subresfriamento, T_ar_in, p):
+    n, n1 = p.n_segmentos, p.n_segmentos_monofasico
     T_ar_m = T_ar_in + 5.0
     for _ in range(3):   # propriedades do ar na temperatura média
-        ctx = _Ctx(fl, m, p, T_ar_in, T_ar_m)
+        ctx = _Ctx(fl, m, p, T_ar_in, T_ar_m, 1.0, +1.0)
         segs: list = []
         P, h = P_in, h_in
         sat = fl.sat(P)
         if h > sat.hv:   # dessuperaquecimento
-            for k in range(1, n + 1):
-                h_t = h_in + (sat.hv - h_in) * k / n
+            for k in range(1, n1 + 1):
+                h_t = h_in + (sat.hv - h_in) * k / n1
                 s = _segmento_monofasico(ctx, "dessuperaquecimento", P, h, h_t)
                 segs.append(s)
                 P, h = s.P_out, s.h_out
+        _checar_pressao(P_in, P, "condensador")
         sat = fl.sat(P)
         x0 = min((h - sat.hl) / sat.hlv, 1.0)
         for k in range(n):   # condensação
             x_a = x0 * (1.0 - k / n)
-            x_b = x0 * (1.0 - (k + 1) / n)
+            x_b = 0.0 if k == n - 1 else x0 * (1.0 - (k + 1) / n)
             s = _segmento_bifasico(ctx, "condensação", P, x_a, x_b, True)
             segs.append(s)
             P = s.P_out
+            _checar_pressao(P_in, P, "condensador")
         h = fl.sat(P).hl
         if subresfriamento > 0:
             T_sat = fl.Tsat(P)
             h_fim = fl.estado_PT(P, T_sat - subresfriamento).h
-            for k in range(1, n + 1):
-                h_t = h + (h_fim - h) * k / n if k < n else h_fim
+            for k in range(1, n1 + 1):
+                h_t = h + (h_fim - h) * k / n1 if k < n1 else h_fim
                 h_a = segs[-1].h_out if segs[-1].zona == "sub-resfriamento" else h
                 s = _segmento_monofasico(ctx, "sub-resfriamento", P, h_a, h_t)
                 segs.append(s)
@@ -422,14 +597,23 @@ def _evaporador_fixo(fl: Fluido, m: float, h_in: float, P_out_alvo: float, super
                      T_ar_in: float, p: ParametrosTrocador, fator_umidade: float = 1.0) -> ResultadoTrocador:
     """Marcha do evaporador para geometria e velocidade de face fixas. A pressão de entrada
     (= saída do capilar) é obtida iterando a queda de pressão."""
-    n = p.n_segmentos
+    return _blindar("evaporador", _evaporador_marcha, fl, m, h_in, P_out_alvo, superaquecimento, T_ar_in, p,
+                    fator_umidade)
+
+
+def _evaporador_marcha(fl, m, h_in, P_out_alvo, superaquecimento, T_ar_in, p, fator_umidade):
+    n, n1 = p.n_segmentos, p.n_segmentos_monofasico
     T_sat_out = fl.Tsat(P_out_alvo)
     h_fim = fl.estado_PT(P_out_alvo, T_sat_out + superaquecimento).h if superaquecimento > 0 else fl.sat(P_out_alvo).hv
     dP_tot = 0.0
     T_ar_m = T_ar_in - 2.0
+    erro = math.inf
     for _ in range(12):
-        ctx = _Ctx(fl, m, p, T_ar_in, T_ar_m, fator_umidade)
+        ctx = _Ctx(fl, m, p, T_ar_in, T_ar_m, fator_umidade, -1.0)
         P = P_out_alvo + dP_tot
+        if P >= fl.Pc:
+            raise ErroProjeto("queda de pressão do evaporador incompatível (pressão de entrada ≥ crítica)")
+        P_ent = P
         sat = fl.sat(P)
         x_in = (h_in - sat.hl) / sat.hlv
         if not 0.0 < x_in < 1.0:
@@ -437,14 +621,15 @@ def _evaporador_fixo(fl: Fluido, m: float, h_in: float, P_out_alvo: float, super
         segs: list = []
         for k in range(n):
             x_a = x_in + (1.0 - x_in) * k / n
-            x_b = x_in + (1.0 - x_in) * (k + 1) / n
+            x_b = 1.0 if k == n - 1 else x_in + (1.0 - x_in) * (k + 1) / n   # último ponto exato
             s = _segmento_bifasico(ctx, "evaporação", P, x_a, x_b, False)
             segs.append(s)
             P = s.P_out
+            _checar_pressao(P_ent, P, "evaporador")
         if superaquecimento > 0:
             h = fl.sat(P).hv
-            for k in range(1, n + 1):
-                h_t = h + (h_fim - h) * k / n
+            for k in range(1, n1 + 1):
+                h_t = h + (h_fim - h) * k / n1 if k < n1 else h_fim
                 h_a = segs[-1].h_out if segs[-1].zona == "superaquecimento" else h
                 s = _segmento_monofasico(ctx, "superaquecimento", P, h_a, h_t)
                 segs.append(s)
@@ -455,6 +640,9 @@ def _evaporador_fixo(fl: Fluido, m: float, h_in: float, P_out_alvo: float, super
         dP_tot = segs[0].P_in - segs[-1].P_out
         if abs(erro) < 1.0:
             break
+    if abs(erro) > max(100.0, 0.01 * P_out_alvo):
+        raise ErroProjeto("a pressão de entrada do evaporador não convergiu (queda de pressão instável): "
+                          "aumente n_circuitos")
     return _consolidar("evaporador", fl, m, segs, ctx, p, T_ar_in, T_sat_out)
 
 
@@ -466,73 +654,153 @@ def _com(p: ParametrosTrocador, N: int, V: float) -> ParametrosTrocador:
     return pp
 
 
+class _PontoInvalido(Exception):
+    pass
+
+
+@dataclass
+class BuscaVelocidade:
+    """Resultado da busca de V para um nº de fileiras."""
+    N: int
+    V: Optional[float]
+    motivo: str                 # "ok" | "alvo acima do maximo" | "alvo abaixo do minimo" | "sem ponto valido"
+    eps_max: Optional[float] = None
+    V_eps_max: Optional[float] = None
+    eps_min: Optional[float] = None
+    V_eps_min: Optional[float] = None
+    erro: str = ""
+
+
 class _Solucionador:
     """Resolve a velocidade de face (e, se pedido, o nº de fileiras) para uma eficácia alvo."""
 
     def __init__(self, rodar, p: ParametrosTrocador, tipo: str):
-        if not 0.0 < p.eficacia < 1.0:
+        if p.eficacia is None or not 0.0 < p.eficacia < 1.0:
             raise ErroProjeto(f"eficácia do {tipo} deve estar entre 0 e 1 (recebido {p.eficacia}).")
+        if not 0.0 < p.velocidade_min < p.velocidade_max:
+            raise ErroProjeto("faixa de velocidade de face inválida")
         self.rodar, self.p, self.tipo, self.alvo = rodar, p, tipo, p.eficacia
         self._cache: dict = {}
 
-    def resultado(self, N: int, V: float) -> ResultadoTrocador:
-        k = (int(N), round(V, 7))
+    def resultado(self, N: int, V: float) -> Optional[ResultadoTrocador]:
+        k = (int(N), round(float(V), 7))
         if k not in self._cache:
-            self._cache[k] = self.rodar(_com(self.p, N, V))
-        return self._cache[k]
+            try:
+                self._cache[k] = self.rodar(_com(self.p, N, V))
+            except ErroProjeto as e:
+                self._cache[k] = e
+        r = self._cache[k]
+        return None if isinstance(r, ErroProjeto) else r
 
-    def eps(self, N: int, V: float) -> float:
-        return self.resultado(N, V).eficacia
+    def eps(self, N: int, V: float) -> Optional[float]:
+        r = self.resultado(N, V)
+        return None if r is None else r.eficacia
 
-    def velocidade(self, N: int, V_dica: Optional[float] = None) -> Optional[float]:
-        """V tal que ε(V, N) = ε_alvo, ou None se o alvo é inatingível com N fileiras na faixa de V."""
+    def _f(self, N: int, V: float) -> float:
+        e = self.eps(N, V)
+        if e is None:
+            raise _PontoInvalido()
+        return e - self.alvo
+
+    def _brent(self, N: int, a: float, b: float) -> Optional[float]:
+        try:
+            return brentq(lambda V: self._f(N, V), a, b, xtol=1e-4, rtol=1e-6)
+        except (_PontoInvalido, ValueError):
+            return None
+
+    def velocidade(self, N: int, V_dica: Optional[float] = None) -> BuscaVelocidade:
         p = self.p
-        f = (lambda V: self.eps(N, V) - self.alvo)
         lo, hi = p.velocidade_min, p.velocidade_max
         if V_dica is not None:   # intervalo estreito em torno da solução anterior (iterações do ciclo)
             a, b = max(lo, 0.85 * V_dica), min(hi, 1.15 * V_dica)
-            if a < b and f(a) >= 0.0 >= f(b):
-                return brentq(f, a, b, xtol=1e-4, rtol=1e-6)
-        if f(lo) < 0.0 or f(hi) > 0.0:
-            return None
-        return brentq(f, lo, hi, xtol=1e-4, rtol=1e-6)
+            fa, fb = self.eps(N, a), self.eps(N, b)
+            if a < b and fa is not None and fb is not None and fa >= self.alvo >= fb:
+                V = self._brent(N, a, b)
+                if V is not None:
+                    return BuscaVelocidade(N, V, "ok")
+        # varredura de V_max para baixo: a primeira troca de sinal encontrada é a raiz de maior V
+        # (ramo de operação normal: menos tubo e menos perda de carga); para no primeiro achado.
+        grade = np.geomspace(lo, hi, N_GRADE_VELOCIDADE)[::-1]
+        validos: list = []
+        for V in grade:
+            e = self.eps(N, float(V))
+            if e is None:
+                continue
+            if e == self.alvo:
+                return BuscaVelocidade(N, float(V), "ok")
+            if validos and (validos[-1][1] - self.alvo) * (e - self.alvo) < 0.0:
+                Vr = self._brent(N, float(V), validos[-1][0])
+                if Vr is not None:
+                    return BuscaVelocidade(N, Vr, "ok")
+            validos.append((float(V), e))
+        if not validos:
+            ult = self._cache.get((int(N), round(float(grade[0]), 7)))
+            return BuscaVelocidade(N, None, "sem ponto valido", erro=str(ult) if ult is not None else "")
+        V_emax, e_max = max(validos, key=lambda t: t[1])
+        V_emin, e_min = min(validos, key=lambda t: t[1])
+        motivo = "alvo acima do maximo" if e_max < self.alvo else "alvo abaixo do minimo"
+        return BuscaVelocidade(N, None, motivo, e_max, V_emax, e_min, V_emin)
 
     def resolver(self, dica: Optional[tuple] = None) -> ResultadoTrocador:
         p = self.p
         if not p.fileiras_automaticas:
             N = p.geometria.n_fileiras
-            V = self.velocidade(N, dica[1] if dica and dica[0] == N else None)
-            if V is None:
-                raise ErroProjeto(self._mensagem_inviavel([N]))
-            return self._final(N, V, False)
+            b = self.velocidade(N, dica[1] if dica and dica[0] == N else None)
+            if b.V is None:
+                raise ErroProjeto(self._mensagem([b]))
+            return self._final(N, b.V, False)
         if dica is not None and 1 <= dica[0] <= p.fileiras_max:
-            V = self.velocidade(dica[0], dica[1])
-            if V is not None:
-                return self._final(dica[0], V, True)
+            b = self.velocidade(dica[0], dica[1])
+            if b.V is not None:
+                return self._final(dica[0], b.V, True)
         Vp = min(max(p.velocidade_face, p.velocidade_min), p.velocidade_max)
         Ns = list(range(1, p.fileiras_max + 1))
-        N_alto = next((N for N in Ns if self.eps(N, Vp) >= self.alvo), None)   # ε cresce com N
-        cand = [Ns[-1]] if N_alto is None else [N_alto] + ([N_alto - 1] if N_alto > 1 else [])
-        sols = [(N, V) for N in cand if (V := self.velocidade(N)) is not None]
+        e_Vp = {N: self.eps(N, Vp) for N in Ns}
+        N_alto = next((N for N in Ns if e_Vp[N] is not None and e_Vp[N] >= self.alvo), None)
+        if N_alto is None:
+            cand = [Ns[-1]] if any(e is not None for e in e_Vp.values()) else Ns[::-1]
+        else:
+            cand = [N_alto] + ([N_alto - 1] if N_alto > 1 else [])
+        buscas = [self.velocidade(N) for N in cand]
+        sols = [b for b in buscas if b.V is not None]
+        if not sols and N_alto is None and Ns[-1] in cand and len(cand) == 1:
+            buscas += [self.velocidade(N) for N in Ns[-2::-1]]   # máx. de fileiras inválido: tenta as demais
+            sols = [b for b in buscas if b.V is not None]
         if not sols:
-            raise ErroProjeto(self._mensagem_inviavel(Ns))
-        N, V = min(sols, key=lambda s: abs(math.log(s[1] / Vp)))
-        return self._final(N, V, True)
+            raise ErroProjeto(self._mensagem(buscas))
+        b = min(sols, key=lambda s: (abs(math.log(s.V / Vp)), -s.V))
+        return self._final(b.N, b.V, True)
 
     def _final(self, N: int, V: float, auto: bool) -> ResultadoTrocador:
-        r = self.rodar(_com(self.p, N, V))
+        r = self.resultado(N, V)
+        if r is None:
+            raise ErroProjeto(f"ponto final do {self.tipo} inválido ({N} fileiras, {V:.3f} m/s)")
+        r = copy.copy(r)
+        r.avisos = list(r.avisos)
         r.fileiras_escolhidas_automaticamente = auto
         if abs(r.eficacia - self.alvo) > 2e-3:
             r.avisos.append(f"eficácia obtida {r.eficacia:.3f} difere do alvo {self.alvo:.3f}")
         return r
 
-    def _mensagem_inviavel(self, Ns: list) -> str:
+    def _mensagem(self, buscas: list) -> str:
         p = self.p
-        N = max(Ns)
-        e_max = self.eps(N, p.velocidade_min)
-        return (f"eficácia {self.alvo:.2f} inatingível no {self.tipo} com até {N} fileira(s): o máximo é "
-                f"{e_max:.2f} a {p.velocidade_min} m/s. Reduza a eficácia, aumente fileiras_max, diminua o passo "
-                "de aleta ou use mais área por fileira (o lado do refrigerante limita o NTU a fluxos mássicos baixos).")
+        acima = [b for b in buscas if b.motivo == "alvo acima do maximo"]
+        abaixo = [b for b in buscas if b.motivo == "alvo abaixo do minimo"]
+        if acima:
+            b = max(acima, key=lambda t: t.N)
+            return (f"eficácia {self.alvo:.2f} acima do máximo atingível no {self.tipo} com {b.N} fileira(s): "
+                    f"ε máx. = {b.eps_max:.3f} a {b.V_eps_max:.2f} m/s (faixa {p.velocidade_min}–{p.velocidade_max} m/s). "
+                    "Reduza a eficácia, aumente fileiras_max, diminua o passo de aleta ou aumente a área por fileira "
+                    "(com fluxo mássico baixo o lado do refrigerante limita o NTU).")
+        if abaixo:
+            b = min(abaixo, key=lambda t: t.N)
+            return (f"eficácia {self.alvo:.2f} abaixo do mínimo atingível no {self.tipo} com {b.N} fileira(s) na "
+                    f"faixa de velocidade: ε mín. = {b.eps_min:.3f} a {b.V_eps_min:.2f} m/s. Use menos fileiras, "
+                    "aumente velocidade_max ou aumente a eficácia.")
+        erros = "; ".join(b.erro for b in buscas if b.erro)[:300]
+        return (f"nenhum ponto de operação válido no {self.tipo} para as fileiras testadas "
+                f"({', '.join(str(b.N) for b in buscas)}): {erros or 'pinch ou perda de carga excessiva'}. "
+                "Aumente n_circuitos ou o diâmetro do tubo.")
 
 
 def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
@@ -566,15 +834,17 @@ def alternativas_fileiras(rodar_fixo, p: ParametrosTrocador, fileiras=range(1, 7
     sol = _Solucionador(rodar_fixo, p, "trocador")
     linhas = []
     for N in fileiras:
-        V = sol.velocidade(N)
-        if V is None:
-            linhas.append({"fileiras": N, "viavel": False, "eficacia_max": sol.eps(N, p.velocidade_min)})
+        b = sol.velocidade(N)
+        if b.V is None:
+            linhas.append({"fileiras": N, "viavel": False, "motivo": b.motivo, "eficacia_max": b.eps_max,
+                           "eficacia_min": b.eps_min})
             continue
-        r = sol.rodar(_com(p, N, V))
-        linhas.append({"fileiras": N, "viavel": True, "velocidade_face_m_s": V, "L_requerido_m": r.L_requerido,
-                       "L_adotado_m": r.L_adotado, "tubos_por_fileira": r.tubos_por_fileira,
+        r = sol.resultado(N, b.V)
+        linhas.append({"fileiras": N, "viavel": True, "motivo": "ok", "velocidade_face_m_s": b.V,
+                       "L_requerido_m": r.L_requerido, "L_adotado_m": r.L_adotado,
+                       "tubos_por_fileira": r.tubos_por_fileira, "comprimento_passe_m": r.comprimento_passe,
                        "altura_face_m": r.altura_face, "area_externa_m2": r.area_externa,
-                       "vazao_ar_requerida_m3_h": r.vazao_ar_requerida_m3h, "vazao_ar_face_adotada_m3_h": r.vazao_ar_m3h,
-                       "dP_ar_Pa": r.dP_ar,
+                       "vazao_ar_requerida_m3_h": r.vazao_ar_requerida_m3h,
+                       "vazao_ar_construtiva_m3_h": r.vazao_ar_m3h, "dP_ar_Pa": r.dP_ar,
                        "potencia_ventilador_W": r.potencia_ventilador_est, "Re_Dc": r.ar.Re_Dc})
     return linhas

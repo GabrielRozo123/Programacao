@@ -249,8 +249,8 @@ def _sensibilidade(fl, bal, ciclo, carga, p: ParametrosProjeto, T_ar_cond, T_ar_
                              "correlacao_alt": pe.correlacao_bifasico, "L_alt": r.L_requerido,
                              "variacao": r.L_requerido / evap.L_requerido - 1.0,
                              "V_base": evap.velocidade_face, "V_alt": r.velocidade_face}
-    except ErroProjeto:
-        pass
+    except (ErroProjeto, ValueError, TypeError, ZeroDivisionError) as err:   # análise secundária
+        out["evaporador"] = {"erro": str(err)}
     try:
         pq = copy.deepcopy(p.condensador)
         Re_GT = cond.G_ref * cond.geometria.Di / fl.sat(e["2"].P).muv
@@ -263,8 +263,8 @@ def _sensibilidade(fl, bal, ciclo, carga, p: ParametrosProjeto, T_ar_cond, T_ar_
                               "correlacao_alt": pq.correlacao_bifasico, "L_alt": r.L_requerido,
                               "variacao": r.L_requerido / cond.L_requerido - 1.0,
                               "V_base": cond.velocidade_face, "V_alt": r.velocidade_face}
-    except ErroProjeto:
-        pass
+    except (ErroProjeto, ValueError, TypeError, ZeroDivisionError) as err:   # análise secundária
+        out["condensador"] = {"erro": str(err)}
     try:
         from .capilar import comprimento_capilar
         Ls = {}
@@ -273,8 +273,8 @@ def _sensibilidade(fl, bal, ciclo, carga, p: ParametrosProjeto, T_ar_cond, T_ar_
             pcap.modelo_viscosidade = mod
             Ls[mod] = comprimento_capilar(fl, bal.m, D_cap, e["3i"].P, e["3i"].h, e["4"].P, pcap).L
         out["capilar_viscosidade"] = Ls
-    except ErroProjeto:
-        pass
+    except (ErroProjeto, ValueError, TypeError, ZeroDivisionError) as err:   # análise secundária
+        out["capilar_viscosidade"] = {"erro": str(err)}
     return out
 
 

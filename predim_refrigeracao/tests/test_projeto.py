@@ -84,7 +84,51 @@ def test_alternativas_fileiras(res):
     tab = alternativas_fileiras(res, "condensador", range(2, 7))
     viaveis = [t for t in tab if t["viavel"]]
     assert viaveis, tab
+    assert all(t["motivo"] in ("ok", "alvo acima do maximo", "alvo abaixo do minimo", "sem ponto valido") for t in tab)
     Vs = [t["velocidade_face_m_s"] for t in viaveis]
     assert Vs == sorted(Vs)   # mais fileiras -> mais velocidade para a mesma ε
     escolhido = next(t for t in viaveis if t["fileiras"] == res.condensador.n_fileiras)
     assert escolhido["velocidade_face_m_s"] == pytest.approx(res.condensador.velocidade_face, rel=2e-3)
+
+
+def test_amesim_bloco_coerente(res):
+    """ε × ρ c_p V̇_projeto × ΔT = Q_sens com a serpentina de projeto; a construtiva tem a margem."""
+    import CoolProp.CoolProp as CP
+    d = res.para_dict()["amesim"]
+    for tipo, r in (("condensador", res.condensador), ("evaporador", res.evaporador)):
+        a = d[tipo]
+        T = a["ar_entrada"]["T_K"]
+        rho, cp = CP.PropsSI("D", "T", T, "P", 101325, "Air"), CP.PropsSI("C", "T", T, "P", 101325, "Air")
+        Tsat = d["alvo_validacao"]["T_cond_K" if tipo == "condensador" else "T_evap_K"]
+        Q_sens = r.Q / r.fator_umidade
+        Q_exp = a["eficacia_saturacao"] * rho * cp * a["projeto_sem_margem"]["vazao_ar_m3_s"] * abs(Tsat - T)
+        assert Q_exp == pytest.approx(Q_sens, rel=2e-3)
+        razao = a["construtiva_com_margem"]["comprimento_total_tubo_m"] / a["projeto_sem_margem"]["comprimento_total_tubo_m"]
+        assert razao == pytest.approx(1.0 + a["margem_area"], rel=1e-9)
+        assert 0 < a["ar_entrada"]["umidade_relativa"] <= 1.0
+    ci = d["condicoes_iniciais"]
+    assert ci["carga_circuito_kg"] + ci["carga_gas_carcaca_kg"] + ci["carga_dissolvida_oleo_kg"] == pytest.approx(
+        ci["carga_refrigerante_total_kg"], rel=1e-12)
+    assert "linhas" in d and d["compressor"]["massa_oleo_kg"] > 0
+
+
+@pytest.mark.parametrize("kw", [
+    dict(volume_interno_L=1500.0, T_ambiente_C=38.0),
+    dict(volume_interno_L=200.0, T_ambiente_C=32.0, eficacia_condensador=0.85, eficacia_evaporador=0.3),
+    dict(volume_interno_L=120.0, T_ambiente_C=20.0, eficacia_condensador=0.3, eficacia_evaporador=0.75),
+])
+def test_sem_excecao_crua(kw):
+    """Casos que antes quebravam com exceção do CoolProp: agora resolvem ou dão ErroProjeto claro."""
+    base = dict(COP=2.0, T_alvo_C=2.5)
+    base.update(kw)
+    try:
+        r = dimensionar(EntradasProjeto(**base), ParametrosProjeto(analise_sensibilidade=False))
+        assert r.condensador.L_requerido > 0 and r.evaporador.L_requerido > 0
+    except ErroProjeto as err:
+        assert str(err)
+
+
+def test_ihx_forte_nao_quebra():
+    e = EntradasProjeto(COP=2.0, T_ambiente_C=32.0, T_alvo_C=2.5, volume_interno_L=200.0)
+    r = dimensionar(e, ParametrosProjeto(ciclo=ParametrosCiclo(eficacia_ihx=0.8)))
+    assert r.ciclo.estados["4"].x < 0.25 and r.evaporador.eficacia == pytest.approx(0.65, abs=1e-3)

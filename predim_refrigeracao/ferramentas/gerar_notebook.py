@@ -169,11 +169,23 @@ $$\frac{1}{UA'} = \frac{1}{\xi\,h_o\,\eta_o A_o'} + \frac{R_{f,o}}{A_o'} + \frac
 **Eficácia como entrada (padrão 0,65).** A eficácia é a do lado do ar referida à saturação — a definição usual para
 condensadores e evaporadores, em que o refrigerante bifásico tem $C\to\infty$ e $C_{min}=\dot C_{ar}$:
 $$\varepsilon = \frac{T_{ar,s}-T_{ar,e}}{T_{sat}-T_{ar,e}} = \frac{Q_{sens}}{\dot C_{ar}\,(T_{sat}-T_{ar,e})}
-\quad\Rightarrow\quad \dot C_{ar} = \frac{Q/\xi}{\varepsilon\,\Delta T_{aprox}},\qquad NTU \approx -\ln(1-\varepsilon)$$
+\quad\Rightarrow\quad \dot C_{ar} = \frac{Q/\xi}{\varepsilon\,\Delta T_{aprox}}$$
 Com $Q$ e $\Delta T_{aprox}$ fixados pelo ciclo, ε define a **vazão de ar**; a geometria precisa então entregar o NTU
-correspondente. Na distribuição paralela de ar, ε depende só da velocidade de face $V$ e do nº de fileiras $N$
-(e decresce com $V$): para cada $N$ resolve-se $V$ com $\varepsilon(V,N)=\varepsilon_{alvo}$ e escolhe-se o $N\le 6$ (faixa de
-Wang) cuja $V$ fica mais perto da velocidade preferida. O comprimento sai da marcha segmentada nessa $(V,N)$.
+correspondente. Na zona bifásica $\varepsilon_{zona} \le 1-e^{-NTU_{zona}}$ (igualdade com coeficiente uniforme); no
+**condensador** a ε global referida a $T_{sat}$ inclui o ar aquecido no dessuperaquecimento (acima de $T_{sat}$) e
+**não** segue $1-e^{-NTU}$ — por isso os valores por zona (UA, NTU, ε) também são exportados.
+Na distribuição paralela de ar, ε independe do comprimento; depende da velocidade de face $V$, do nº de fileiras $N$,
+do coeficiente interno e, no condensador, da temperatura de descarga. Para cada $N$ a busca de $V$ percorre uma grade
+de $V_{max}$ para $V_{min}$ e refina por Brent a primeira troca de sinal (a raiz de maior $V$: menos tubo e menos perda de
+carga — com perda de carga relevante ε(V) pode não ser monotônica); escolhe-se o $N\le 6$ (faixa de Wang) cuja $V$ fica
+mais perto da velocidade preferida. O comprimento sai da marcha segmentada nessa $(V,N)$. Pontos com pinch (a perda de
+carga levando a saturação para o lado errado do ar) ou queda de pressão excessiva são rejeitados.
+
+**Duas serpentinas.** A *de projeto* (sem margem) com a vazão de ar requerida entrega exatamente $Q$, $T_{cond}$ e
+$T_{evap}$ do ciclo — é a que reproduz `amesim.alvo_validacao`. A *construtiva* tem a margem de área (padrão 10 %), o
+mesmo nº de fileiras e de tubos por fileira e o comprimento do passe ajustado; na mesma velocidade de face tem a mesma ε,
+mas 10 % mais vazão de ar e UA — num modelo de sistema ela condensa abaixo de $T_{cond}$ e evapora acima de $T_{evap}$
+(é a folga, não um erro).
 Também se reporta a eficácia estrita $Q/Q_{max}$ com o $Q_{max}$ termodinâmico, caso o componente do Amesim use essa
 definição. ε **não** altera o ciclo (as temperaturas de evaporação e condensação vêm de $\Delta T_{evap}$ e $\Delta T_{cond}$):
 ela troca vazão de ar (ventilador) por área (trocador).
@@ -260,8 +272,8 @@ params = ParametrosProjeto(
     ciclo=ParametrosCiclo(dT_evap=10.0, dT_cond=13.0, superaquecimento=5.0, subresfriamento=3.0,
                           eficacia_ihx=0.0, eta_eletromecanica=0.72),
     compressor=ParametrosCompressor(rotacao_rpm=3500, condicao_catalogo="EN12900_MBP"),
-    condensador=condensador_padrao(),   # tubo 3/8", 3 fileiras, aleta 2,5 mm, 2 m/s
-    evaporador=evaporador_padrao(),     # tubo 3/8", 4 fileiras, aleta 5 mm, 1,5 m/s
+    condensador=condensador_padrao(),   # tubo 3/8", aleta 2,5 mm (10 FPI), V preferida 2 m/s
+    evaporador=evaporador_padrao(),     # tubo 3/8", aleta 4,23 mm (6 FPI), V preferida 1,5 m/s
     capilar=ParametrosCapilar(serie="polegada", L_min=1.0, L_max=5.0, L_alvo=2.5),
 )
 # Exemplos de ajuste:
@@ -441,7 +453,9 @@ VALID_MD = r"""
 
 **Verificação** (o código resolve certo as equações): fechamento dos balanços de energia e de exergia, 2ª lei por
 componente, independência de malha dos trocadores e do capilar, consistência do problema inverso do capilar,
-eficiência de aleta de Schmidt contra a solução exata (Bessel), eficácia alvo atingida e limite ε ≤ 1 − e^(−NTU). O repositório tem testes automatizados
+eficiência de aleta de Schmidt contra a solução exata (Bessel), eficácia alvo atingida, limite ε ≤ 1 − e^(−NTU) no
+evaporador só bifásico, coerência do bloco do Amesim (ε·Ċ_ar·ΔT = Q na serpentina de projeto) e casos-limite (título final
+exato, pinch por perda de carga, alvo de ε acima/abaixo do atingível). O repositório tem testes automatizados
 (`pytest`) com essas e outras verificações.
 
 **Validação** (as equações certas): capilar contra os dados experimentais de Li et al. (1990). O próximo passo
@@ -483,10 +497,12 @@ LIMITES = r"""
 1. Esta rotina gera, em regime permanente, parâmetros coerentes entre si (balanços fechados, 2ª lei, COP viável)
    para montar o modelo do Amesim: compressor, trocadores com a eficácia escolhida, capilar e carga de fluido.
 2. As curvas de **pull-down, consumo, fuga térmica e água drenada** vêm do Amesim. Primeiro passo de conferência:
-   o modelo do Amesim, rodado no ponto de projeto, deve reproduzir os alvos de `amesim.alvo_validacao`
-   (Q_evap, W_el, ṁ, T_evap, T_cond). Diferenças grandes indicam um parâmetro mapeado de forma diferente — em
-   especial a **definição de eficácia** do componente do Amesim (aqui: referida à saturação; a estrita Q/Q_max
-   também é exportada).
+   montado com as serpentinas `projeto_sem_margem` e a vazão de ar requerida, o modelo do Amesim deve reproduzir
+   `amesim.alvo_validacao` (Q_evap, W_el, ṁ, T_evap, T_cond). Com as `construtiva_com_margem` (a geometria que se
+   fabrica), T_cond fica abaixo e T_evap acima do alvo — é a folga de área, não um erro de mapeamento. Fora isso,
+   diferenças grandes indicam parâmetro mapeado de forma diferente: definição de eficácia (aqui referida à saturação,
+   de bulbo seco; a estrita Q/Q_max também é exportada), UA úmido × seco no evaporador (ambos exportados) e a carga
+   (o bloco separa circuito, gás na carcaça e refrigerante dissolvido no óleo).
 3. Quando o compressor for escolhido, troque o modelo genérico (espaço morto + η constante) pelo mapa de catálogo
    nos dois lados (aqui e no Amesim).
 4. Se mais tarde houver ensaio de um produto IMBERA, ele calibra os dois modelos ao mesmo tempo (UA do gabinete,
