@@ -37,6 +37,10 @@ FLUIDOS_SUPORTADOS = {
     "R12": "CFC, legado (apenas validação com dados históricos)",
 }
 
+# Classe de segurança (ISO 817 / ASHRAE 34).
+CLASSE_SEGURANCA = {"R290": "A3", "R600a": "A3", "R1270": "A3", "R152a": "A2", "R1234yf": "A2L",
+                    "R1234ze(E)": "A2L", "R134a": "A1", "R404A": "A1", "R507A": "A1", "R22": "A1", "R12": "A1"}
+
 # Limite inferior de inflamabilidade [kg/m³] (ISO 817 / ASHRAE 34), usado nos limites de carga.
 LFL_KG_M3 = {"R290": 0.038, "R600a": 0.043, "R1270": 0.046, "R152a": 0.130,
              "R1234yf": 0.289, "R1234ze(E)": 0.303}
@@ -194,9 +198,16 @@ class Fluido:
         sat = self.sat(P)
         return self.estado_PH(P, sat.hl + x * sat.hlv)
 
-    def kappa(self, P: float, T: float) -> float:
-        """Razão cp/cv do vapor (expoente isentrópico de gás ideal equivalente)."""
-        self._as.update(CoolProp.PT_INPUTS, P, T)
+    def kappa(self, P: float, T: float, rho: Optional[float] = None) -> float:
+        """Razão cp/cv do vapor (expoente isentrópico de gás ideal equivalente). Com ``rho`` usa
+        (ρ, T), que vale também para vapor saturado (onde a entrada (P, T) é ambígua)."""
+        if rho is not None:
+            self._as.update(CoolProp.DmassT_INPUTS, rho, T)
+        else:
+            try:
+                self._as.update(CoolProp.PT_INPUTS, P, T)
+            except ValueError:            # (P, T) na saturação: vapor saturado
+                self._as.update(CoolProp.PQ_INPUTS, P, 1.0)
         return self._as.cpmass() / self._as.cvmass()
 
     def __repr__(self) -> str:

@@ -184,15 +184,26 @@ def exergia(ciclo: Ciclo, b: BalancoSistema, T0: float, T_frio: float) -> dict:
 def escala_dT_para_cop(fl: Fluido, cop_alvo: float, T_ar_evap: float, T_ar_cond: float,
                        p: ParametrosCiclo, eta_global: float) -> Optional[float]:
     """Fator s que multiplica (dT_evap, dT_cond) para que um compressor de η_global dado atinja
-    o COP alvo. s < 1 => trocadores maiores. Retorna None se inatingível em s ∈ [0,02; 3]."""
+    o COP alvo. s < 1 => trocadores maiores. Retorna None se inatingível mesmo com s = 0,02.
+    O limite superior de s respeita T_cond < T_c − 5 K (validade do ciclo subcrítico)."""
+    q = ParametrosCiclo(**{**p.__dict__, "eta_global_sem_cop": eta_global})
+
     def resid(s):
-        q = ParametrosCiclo(**{**p.__dict__, "eta_global_sem_cop": eta_global})
         c = resolver_ciclo(fl, T_ar_evap - s * p.dT_evap, T_ar_cond + s * p.dT_cond, q, None)
         return c.COP - cop_alvo
+
+    s_min = 0.02
+    s_max = min(3.0, (fl.Tc - 5.1 - T_ar_cond) / p.dT_cond, (T_ar_evap - fl.Ttriplo - 5.1) / p.dT_evap)
     try:
-        a, b = resid(0.02), resid(3.0)
+        a = resid(s_min)
     except ErroProjeto:
         return None
-    if a * b > 0:
+    if a < 0.0 or s_max <= s_min:
         return None
-    return brentq(resid, 0.02, 3.0, xtol=1e-4)
+    try:
+        b = resid(s_max)
+    except ErroProjeto:
+        return None
+    if b >= 0.0:
+        return s_max
+    return brentq(resid, s_min, s_max, xtol=1e-4)

@@ -239,5 +239,35 @@ def test_pinch_por_perda_de_carga_vira_erro_de_projeto(caso):
     e = c.estados
     p = evaporador_padrao()
     p.geometria.Do, p.geometria.esp_parede = 5.0e-3, 0.5e-3
+    p.circuitos_automaticos = False
     with pytest.raises(ErroProjeto):
         dimensionar_evaporador(fl, b.m * 8, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.0)
+    p.circuitos_automaticos = True    # com circuitos automáticos o mesmo caso é resolvido com mais circuitos
+    r = dimensionar_evaporador(fl, b.m * 8, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.0)
+    assert r.n_circuitos > 1 and all(s.T_out < 275.65 for s in r.segmentos)
+
+
+def test_malha_evaporador_modo_eficacia(caso):
+    fl, c, b = caso
+    e = c.estados
+    Ls = {}
+    for n in (40, 160):
+        p = evaporador_padrao()
+        p.eficacia, p.n_segmentos = 0.65, n
+        Ls[n] = dimensionar_evaporador(fl, b.m, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.05).L_requerido
+    assert Ls[40] == pytest.approx(Ls[160], rel=2e-3)
+
+
+def test_mensagem_limite_por_perda_de_carga(caso):
+    """Vazão alta num circuito só: o limite de ε vem da perda de carga, e a mensagem diz isso."""
+    from predimref.trocador import ErroPerdaCarga
+    fl, c, b = caso
+    e = c.estados
+    p = evaporador_padrao()
+    p.eficacia, p.circuitos_automaticos = 0.65, False
+    p.geometria.Do, p.geometria.esp_parede = 6.35e-3, 0.4e-3
+    with pytest.raises(ErroPerdaCarga, match="n_circuitos"):
+        dimensionar_evaporador(fl, b.m * 6, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.05)
+    p.circuitos_automaticos = True
+    r = dimensionar_evaporador(fl, b.m * 6, e["3i"].h, e["1"].P, 5.0, 275.65, p, 1.05)
+    assert r.n_circuitos > 1 and r.eficacia == pytest.approx(0.65, abs=1e-3)

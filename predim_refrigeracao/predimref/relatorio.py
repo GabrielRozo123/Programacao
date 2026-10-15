@@ -104,7 +104,8 @@ def para_dict(res) -> dict:
                             "requerida_regime": car.Q_requerida_regime, "pull_down": car.Q_pulldown,
                             "caso_governante": car.caso_governante, "projeto": car.Q_projeto,
                             "latente_projeto": car.Q_latente_projeto, "fator_umidade": car.fator_umidade,
-                            "agua_removida_kg_dia": car.infiltracao.get("agua_kg_dia", 0.0)},
+                            "agua_removida_kg_dia": car.infiltracao.get("agua_kg_dia", 0.0),
+                            "umidade_interna": car.infiltracao.get("umidade")},
         "ciclo": {"T_evap_C": _c(c.T_evap), "T_cond_C": _c(c.T_cond), "P_evap_bar": c.estados["1"].P / 1e5,
                   "P_cond_bar": c.estados["2"].P / 1e5, "razao_pressao": c.razao_pressao,
                   "COP": c.COP, "COP_ciclo_ideal": c.COP_ciclo_ideal, "COP_carnot_ciclo": c.COP_carnot_ciclo,
@@ -129,6 +130,8 @@ def para_dict(res) -> dict:
                     "alternativas": [{"D_mm": a.D * 1e3, "L_m": a.L, "blocado": a.blocado}
                                      for a in res.capilar.candidatos]},
         "carga_refrigerante": {"total_g": res.carga_refrigerante["total_kg"] * 1e3,
+                               "total_serpentinas_projeto_g": res.carga_refrigerante["total_projeto_kg"] * 1e3,
+                               "classe_seguranca": res.carga_refrigerante["classe"],
                                "partes_g": {k: v * 1e3 for k, v in res.carga_refrigerante["partes_kg"].items()},
                                "limites_g": {k: v * 1e3 for k, v in res.carga_refrigerante["limites_kg"].items()}},
         "exergia_W": {**res.exergia["destruicao_W"], "util": res.exergia["Ex_util_W"],
@@ -192,7 +195,10 @@ def _bloco_amesim(res) -> dict:
                          "condensação de umidade por conta própria; NTU = UA/(ξ·Ċ_ar,sensível)."}
 
     partes = res.carga_refrigerante["partes_kg"]
-    circuito = sum(v for k, v in partes.items() if k not in ("gás na carcaça", "dissolvido no óleo"))
+    fora = partes.get("gás na carcaça", 0.0) + partes.get("dissolvido no óleo", 0.0)
+    circuito = res.carga_refrigerante["total_kg"] - fora
+    circuito_proj = res.carga_refrigerante["total_projeto_kg"] - fora
+    umid = res.carga.infiltracao.get("umidade") or {}
     return {
         "fluido": c.fluido,
         "compressor": {"deslocamento_m3": res.compressor.deslocamento_cm3 * 1e-6,
@@ -212,16 +218,28 @@ def _bloco_amesim(res) -> dict:
         "condicoes_iniciais": {"P_alta_Pa": c.estados["2"].P, "P_baixa_Pa": c.estados["1"].P,
                                "carga_refrigerante_total_kg": res.carga_refrigerante["total_kg"],
                                "carga_circuito_kg": circuito,
+                               "carga_refrigerante_total_projeto_kg": res.carga_refrigerante["total_projeto_kg"],
+                               "carga_circuito_projeto_kg": circuito_proj,
                                "carga_gas_carcaca_kg": partes.get("gás na carcaça", 0.0),
                                "carga_dissolvida_oleo_kg": partes.get("dissolvido no óleo", 0.0),
                                "superaquecimento_K": res.parametros.ciclo.superaquecimento,
                                "subresfriamento_K": res.parametros.ciclo.subresfriamento,
-                               "nota": "carga do circuito = trocadores (serpentina construtiva) + capilar + linhas + "
-                                       "filtro; somar carcaça e óleo se o modelo não os representar."},
+                               "nota": "carga do circuito = trocadores + capilar + linhas + filtro; '_projeto' usa as "
+                                       "serpentinas sem margem (para conferir alvo_validacao num modelo de carga fixa), "
+                                       "a outra as construtivas; somar carcaça e óleo se o modelo não os representar."},
+        "ar_interno": {"T_K": res.entradas.T_alvo_C + 273.15, "umidade_relativa": res.parametros.uso.UR_interna,
+                       "umidade_absoluta_kg_kg": umid.get("W_interno"),
+                       "modo": res.parametros.uso.umidade_interna,
+                       "T_superficie_efetiva_evaporador_K": umid.get("T_superficie_efetiva_K"),
+                       "nota": "no modo 'equilibrio' a umidade interna fecha o balanço água da infiltração = água "
+                               "removida pela serpentina (superfície efetiva, Lewis = 1); ξ do evaporador e "
+                               "ar_entrada são coerentes com ela. No caso governante de pull-down (portas fechadas) "
+                               "o evaporador é dimensionado seco (ξ = 1)."},
         "alvo_validacao": {"Q_evap_W": res.balanco.Q_evap, "W_el_W": res.balanco.W_el,
                            "vazao_massica_kg_s": res.balanco.m, "T_evap_K": c.T_evap, "T_cond_K": c.T_cond,
-                           "nota": "reproduzido com as serpentinas 'projeto_sem_margem' e a vazão de ar requerida; "
-                                   "com as 'construtiva_com_margem', T_cond fica menor e T_evap maior (folga)."},
+                           "nota": "reproduzido com as serpentinas 'projeto_sem_margem', a vazão de ar requerida e "
+                                   "a carga 'carga_*_projeto_kg'; com as 'construtiva_com_margem', T_cond fica menor "
+                                   "e T_evap maior (folga)."},
     }
 
 
@@ -271,6 +289,11 @@ def resumo_texto(res) -> str:
     w(f"  pull-down (100 % ligado)           {car.Q_pulldown:8.1f}")
     w(f"  >> projeto ({car.caso_governante}, +{res.parametros.uso.margem_seguranca:.0%}): {car.Q_projeto:.1f} W "
       f"({car.Q_projeto * W_PARA_BTUH:.0f} Btu/h), ξ = {car.fator_umidade:.3f}")
+    um = car.infiltracao.get("umidade")
+    if um:
+        w(f"  umidade interna ({res.parametros.uso.umidade_interna}): UR {res.parametros.uso.UR_interna:.0%} a "
+          f"{ent.T_alvo_C:.1f} °C (W = {um['W_interno'] * 1e3:.2f} g/kg); superfície efetiva do evaporador "
+          f"{_c(um['T_superficie_efetiva_K']):.1f} °C; água removida {car.infiltracao.get('agua_kg_dia', 0.0) * 1e3:.0f} g/dia")
     w("")
     w("CICLO")
     w(f"  T_evap {_c(c.T_evap):6.1f} °C ({c.estados['1'].P / 1e5:.3f} bar) | T_cond {_c(c.T_cond):5.1f} °C "
@@ -325,7 +348,8 @@ def resumo_texto(res) -> str:
     w(f"  alternativas: {alts}")
     w("")
     cr = res.carga_refrigerante
-    w(f"CARGA DE REFRIGERANTE ≈ {cr['total_kg'] * 1e3:.0f} g  (" +
+    w(f"CARGA DE REFRIGERANTE ≈ {cr['total_kg'] * 1e3:.0f} g ({cr['classe']}; com as serpentinas de projeto "
+      f"{cr['total_projeto_kg'] * 1e3:.0f} g)  (" +
       ", ".join(f"{k} {v * 1e3:.0f} g" for k, v in cr["partes_kg"].items()) + ")")
     ex = res.exergia
     w(f"EXERGIA: η_II = {ex['eta_II']:.3f}; destruição [W]: " +

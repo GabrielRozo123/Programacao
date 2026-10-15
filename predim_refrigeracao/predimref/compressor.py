@@ -60,7 +60,7 @@ class ResultadoCompressor:
 
 def dimensionar_compressor(fl: Fluido, m: float, suc: Estado, P_desc: float, W_el: float,
                            T_desc: float, eta_global: float, p: ParametrosCompressor) -> ResultadoCompressor:
-    n = p.expoente_reexpansao or fl.kappa(suc.P, suc.T)
+    n = p.expoente_reexpansao or fl.kappa(suc.P, suc.T, suc.rho)
     eta_v = eficiencia_volumetrica(P_desc / suc.P, p, n)
     Vdot = m / suc.rho
     desloc = Vdot / eta_v / (p.rotacao_rpm / 60.0)
@@ -76,7 +76,7 @@ def ponto_catalogo(fl: Fluido, deslocamento_m3: float, p: ParametrosCompressor, 
     Pe, Pc = fl.Psat(Te), fl.Psat(Tc)
     suc = fl.estado_PT(Pe, Tr)
     liq = fl.estado_PQ(Pc, 0.0) if Tl is None else fl.estado_PT(Pc, Tl + 273.15)
-    n = p.expoente_reexpansao or fl.kappa(Pe, Tr)
+    n = p.expoente_reexpansao or fl.kappa(Pe, Tr, suc.rho)
     eta_v = eficiencia_volumetrica(Pc / Pe, p, n)
     m = deslocamento_m3 * p.rotacao_rpm / 60.0 * eta_v * suc.rho
     q = suc.h - liq.h

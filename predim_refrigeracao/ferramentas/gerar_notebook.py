@@ -125,6 +125,14 @@ fisicamente impossível. Por isso a massa trocada por abertura é
 $m = \min\left(\rho_i \dot V D_f t_{ab},\; n_{ren}\,V_{livre}/v_e\right)$, e a carga é $m\,(h_e-h_i)$ com entalpias
 de ar úmido (sensível + latente).
 
+**Umidade interna (equilíbrio).** A UR interna não é arbitrada: em regime, a água que entra pelas aberturas é a que a
+serpentina remove. Com o modelo de superfície efetiva e Lewis = 1 (Braun, Klein & Mitchell 1989):
+$T_{s,ef} = T_e - (T_e-T_s)/(1-e^{-NTU_o})$, $NTU_o = h_o\eta_o A_o/(\dot m_{ar}c_p)$ e, em média diária, com o compressor
+ligado a fração $f$:
+$$A\,(W_e - W_i) = f\,\dot m_{ar}\,(1-e^{-NTU_o})\,(W_i - W_{sat}(T_{s,ef}))\;\Rightarrow\;W_i = \frac{A W_e + B W_s}{A+B}$$
+com $A$ = aberturas/dia × massa de ar por abertura / 86 400. Isso é resolvido junto com o ciclo e o evaporador (a
+carga latente, o fator ξ e a umidade exportada ao Amesim saem da mesma $W_i$).
+
 **Produto:** $c_p$ da bebida por Choi & Okos (1986) (água + carboidrato), integrado entre a temperatura de entrada
 e a alvo. **Casos de projeto:**
 $$Q_{proj} = (1+m_s)\,\max\!\left(\frac{Q_{regime}}{f_{util}},\;Q_{transm}+Q_{int}+\frac{E_{carga\ cheia}}{t_{pull\text{-}down}}\right)$$
@@ -180,6 +188,10 @@ de $V_{max}$ para $V_{min}$ e refina por Brent a primeira troca de sinal (a raiz
 carga — com perda de carga relevante ε(V) pode não ser monotônica); escolhe-se o $N\le 6$ (faixa de Wang) cuja $V$ fica
 mais perto da velocidade preferida. O comprimento sai da marcha segmentada nessa $(V,N)$. Pontos com pinch (a perda de
 carga levando a saturação para o lado errado do ar) ou queda de pressão excessiva são rejeitados.
+
+**Malha e circuitos.** 40 segmentos por zona bifásica (≤ 0,15 % do resultado com 240) e 8 por zona monofásica. Se a
+perda de carga impedir o projeto (pinch ou ε inatingível por ela), o nº de circuitos é aumentado automaticamente
+(até 4), com aviso.
 
 **Duas serpentinas.** A *de projeto* (sem margem) com a vazão de ar requerida entrega exatamente $Q$, $T_{cond}$ e
 $T_{evap}$ do ciclo — é a que reproduz `amesim.alvo_validacao`. A *construtiva* tem a margem de área (padrão 10 %), o

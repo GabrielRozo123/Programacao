@@ -132,3 +132,71 @@ def test_ihx_forte_nao_quebra():
     e = EntradasProjeto(COP=2.0, T_ambiente_C=32.0, T_alvo_C=2.5, volume_interno_L=200.0)
     r = dimensionar(e, ParametrosProjeto(ciclo=ParametrosCiclo(eficacia_ihx=0.8)))
     assert r.ciclo.estados["4"].x < 0.25 and r.evaporador.eficacia == pytest.approx(0.65, abs=1e-3)
+
+
+def test_superaquecimento_zero_sem_ihx():
+    p = ParametrosProjeto(ciclo=ParametrosCiclo(superaquecimento=0.0), analise_sensibilidade=False)
+    r = dimensionar(EntradasProjeto(COP=2.0, T_ambiente_C=32.0, T_alvo_C=2.5, volume_interno_L=200.0), p)
+    assert r.ciclo.estados["1"].x == 1.0 and r.compressor.eta_v > 0
+
+
+def test_sugestao_cop_r404a_respeita_ponto_critico():
+    """COP acima do ciclo ideal (inviável com os ΔT padrão), mas atingível com trocadores maiores: a
+    sugestão deve trazer os ΔT necessários, e não 'mesmo com trocadores muito grandes...' (o limite
+    superior da busca respeita T_cond < T_c − 5 K do R404A)."""
+    from predimref.ciclo import resolver_ciclo
+    from predimref.propriedades import Fluido
+    fl = Fluido("R404A")
+    pc = ParametrosCiclo()
+    c = resolver_ciclo(fl, 276.15 - pc.dT_evap, 305.15 + pc.dT_cond, pc, None)
+    with pytest.raises(ErroProjeto) as exc:
+        dimensionar(EntradasProjeto(COP=1.05 * c.COP_ciclo_ideal, T_ambiente_C=32.0, T_alvo_C=3.0,
+                                    volume_interno_L=300.0, fluido="R404A"))
+    assert "seriam necessários" in str(exc.value) and "muito grandes" not in str(exc.value)
+
+
+def test_limites_carga_a2l():
+    r = dimensionar(EntradasProjeto(COP=1.6, T_ambiente_C=32.0, T_alvo_C=3.0, volume_interno_L=300.0,
+                                    fluido="R1234yf"), ParametrosProjeto(analise_sensibilidade=False))
+    cr = r.carga_refrigerante
+    assert cr["classe"] == "A2L" and cr["limites_kg"]
+    assert max(cr["limites_kg"].values()) <= 1.2
+    if cr["total_kg"] > 0.150:
+        assert any("A2L" in a.mensagem for a in r.avisos)
+
+
+def test_balanco_umidade_lewis(res):
+    """No equilíbrio, a água removida pela serpentina (superfície efetiva, Lewis = 1) em média diária
+    é a que entra por infiltração, e o ξ de projeto é o latente dessa remoção com o compressor ligado."""
+    import math as m
+    from predimref.propriedades import ar_seco, calor_latente_agua
+    u = res.carga.infiltracao["umidade"]
+    ev = res.evaporador
+    m_ar = ev.C_ar / ar_seco(ev.T_ar_in).cp
+    remov_lig = m_ar * (1 - m.exp(-u["NTU_ar"])) * (u["W_interno"] - u["W_superficie"])   # kg/s, ligado
+    agua_inf = res.carga.infiltracao["agua_kg_dia"] / 86400.0
+    assert remov_lig * u["fracao_ligado"] == pytest.approx(agua_inf, rel=2e-2)
+    Q_lat_lig = remov_lig * calor_latente_agua(ev.T_ar_in)
+    assert Q_lat_lig == pytest.approx(res.carga.Q_latente_projeto, rel=3e-2)
+    assert u["W_interno"] > u["W_superficie"] and 0.3 < res.parametros.uso.UR_interna < 0.95
+
+
+def test_umidade_fixa_avisa_incoerencia():
+    from predimref.gabinete import Uso
+    p = ParametrosProjeto(uso=Uso(UR_interna=0.95, umidade_interna="fixa"), analise_sensibilidade=False)
+    r = dimensionar(EntradasProjeto(COP=2.0, T_ambiente_C=32.0, T_alvo_C=2.5, volume_interno_L=200.0), p)
+    assert any("incompatível" in a.mensagem for a in r.avisos)
+
+
+def test_circuitos_automaticos_por_perda_de_carga():
+    e = EntradasProjeto(COP=2.0, T_ambiente_C=38.0, T_alvo_C=2.5, volume_interno_L=1500.0)
+    r = dimensionar(e, ParametrosProjeto(analise_sensibilidade=False))
+    assert r.evaporador.n_circuitos >= 1
+    if r.evaporador.n_circuitos > 1:
+        assert any("n_circuitos aumentado" in a.mensagem for a in r.avisos)
+    p = ParametrosProjeto(analise_sensibilidade=False)
+    p.evaporador.circuitos_automaticos = False
+    try:
+        dimensionar(e, p)
+    except ErroProjeto as err:
+        assert "n_circuitos" in str(err)

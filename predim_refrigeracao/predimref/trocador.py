@@ -72,6 +72,11 @@ from .correlacoes.lado_ar import (DesempenhoAr, GeometriaAletada, desempenho_lad
 from .correlacoes.monofasico import gradiente_pressao_monofasico, h_interno_monofasico
 from .propriedades import Fluido, ar_seco
 
+class ErroPerdaCarga(ErroProjeto):
+    """Inviabilidade causada pela perda de carga do refrigerante (pinch ou queda excessiva):
+    resolvida com mais circuitos ou tubo de maior diâmetro."""
+
+
 FOLGA_PINCH_K = 0.2          # diferença mínima refrigerante-ar aceita num trecho [K]
 FRACAO_DP_MAX = 0.5          # queda de pressão máxima admitida, fração da pressão de entrada
 N_GRADE_VELOCIDADE = 10      # pontos da grade logarítmica de V no modo de eficácia
@@ -85,7 +90,7 @@ class ParametrosTrocador:
     comprimento_passe_m: float = 0.40      # comprimento aletado de cada tubo (largura da face)
     ajustar_comprimento_passe: bool = True  # serpentina construtiva com L = L_req (1 + margem) exato
     margem_area: float = 0.10
-    n_segmentos: int = 20                  # por zona bifásica
+    n_segmentos: int = 40                  # por zona bifásica (≤ 0,15 % de diferença para 240)
     n_segmentos_monofasico: int = 8        # por zona monofásica (perfis suaves: converge com poucos)
     R_incrustacao_ar: float = 0.0          # m²K/W, sobre a área externa (pó, geada)
     R_incrustacao_ref: float = 0.0         # m²K/W, sobre a área interna (óleo)
@@ -99,6 +104,8 @@ class ParametrosTrocador:
     fileiras_max: int = 6                  # limite da base de dados de Wang et al. (2000)
     velocidade_min: float = 0.3            # m/s (Re_Dc ≈ 300–400, limite inferior de Wang)
     velocidade_max: float = 4.0            # m/s
+    circuitos_automaticos: bool = True     # se a perda de carga impedir o projeto, tenta n_circuitos + 1
+    circuitos_max: int = 4
 
 
 def condensador_padrao() -> ParametrosTrocador:
@@ -194,6 +201,7 @@ class ResultadoTrocador:
     NTU: float                   # UA_projeto / (ξ C_ar)
     avisos: list = field(default_factory=list)
     fileiras_escolhidas_automaticamente: bool = False
+    ar_seco: Optional[DesempenhoAr] = None   # lado do ar com ξ = 1 (coeficiente sensível)
 
     # ----------------------------------------------------- atalhos (serpentina construtiva)
     @property
@@ -303,14 +311,14 @@ class _Ctx:
         queda de pressão, que leva a saturação para o lado errado do ar)."""
         dT = self.sentido * (T_ref - self.T_ar_in)
         if dT <= FOLGA_PINCH_K:
-            raise ErroProjeto(f"pinch no {zona}: diferença refrigerante-ar de {dT:.2f} K "
+            raise ErroPerdaCarga(f"pinch no {zona}: diferença refrigerante-ar de {dT:.2f} K "
                               "(perda de carga alta demais? aumente n_circuitos ou o diâmetro do tubo)")
         return dT
 
 
 def _checar_pressao(P_entrada: float, P: float, zona: str) -> None:
     if not (P > (1.0 - FRACAO_DP_MAX) * P_entrada) or not math.isfinite(P):
-        raise ErroProjeto(f"queda de pressão excessiva no {zona} (> {FRACAO_DP_MAX:.0%} da pressão de entrada): "
+        raise ErroPerdaCarga(f"queda de pressão excessiva no {zona} (> {FRACAO_DP_MAX:.0%} da pressão de entrada): "
                           "aumente n_circuitos ou o diâmetro do tubo")
 
 
@@ -355,7 +363,7 @@ def _segmento_monofasico(ctx: _Ctx, zona: str, P_in: float, h_in: float, h_out: 
         e_out = fl.estado_PH(P_in - dP, h_out, transporte=False)
         e_m = fl.estado_PH(P_in - 0.5 * dP, 0.5 * (h_in + h_out))
         if e_m.mu is None:
-            raise ErroProjeto(f"estado médio bifásico num trecho de {zona} (queda de pressão excessiva)")
+            raise ErroPerdaCarga(f"estado médio bifásico num trecho de {zona} (queda de pressão excessiva)")
         Q = ctx.m_c * abs(h_in - h_out)
         dT_r = abs(e_in.T - e_out.T)
         C_ref = Q / dT_r if dT_r > 1e-9 else 1e12
@@ -529,7 +537,8 @@ def _consolidar(tipo: str, fl: Fluido, m: float, segs: list, ctx: _Ctx, p: Param
     return ResultadoTrocador(
         tipo, fl.nome, m, Q, segs, zonas, proj, construtiva, Nc, N, T_ar_in, T_out, dP_ar, Vdot_c * dP_ar,
         Vdot_c * dP_ar / p.eficiencia_ventilador, P_in, P_out, dTsat, ctx.G, ctx.ar, ctx.xi, g,
-        p.velocidade_face, T_sat_ref, eps, p.eficacia, eps_Qmax, C_ar, UA_req / (ctx.xi * C_ar), av)
+        p.velocidade_face, T_sat_ref, eps, p.eficacia, eps_Qmax, C_ar, UA_req / (ctx.xi * C_ar), av,
+        ar_seco=ctx.ar_seco)
 
 
 def _blindar(tipo: str, funcao, *args):
@@ -669,6 +678,20 @@ class BuscaVelocidade:
     eps_min: Optional[float] = None
     V_eps_min: Optional[float] = None
     erro: str = ""
+    invalidos: list = field(default_factory=list)   # velocidades rejeitadas (pinch, ΔP, falha numérica)
+    dTsat_no_max: Optional[float] = None             # queda de saturação no ponto de ε máxima [K]
+
+    @property
+    def limitado_perda_carga(self) -> bool:
+        """ε máxima limitada pela perda de carga: há pontos rejeitados abaixo da V de ε máxima, o máximo
+        é interior (ε cai ao reduzir V) ou a queda de saturação nesse ponto é relevante."""
+        if self.V_eps_max is None:
+            return bool(self.invalidos)
+        interior = self.V_eps_min is not None and self.eps_min is not None and any(
+            V < self.V_eps_max for V in self.invalidos)
+        return interior or (self.dTsat_no_max or 0.0) > 1.5 or self._max_interior
+
+    _max_interior: bool = False
 
 
 class _Solucionador:
@@ -722,9 +745,11 @@ class _Solucionador:
         # (ramo de operação normal: menos tubo e menos perda de carga); para no primeiro achado.
         grade = np.geomspace(lo, hi, N_GRADE_VELOCIDADE)[::-1]
         validos: list = []
+        invalidos: list = []
         for V in grade:
             e = self.eps(N, float(V))
             if e is None:
+                invalidos.append(float(V))
                 continue
             if e == self.alvo:
                 return BuscaVelocidade(N, float(V), "ok")
@@ -735,11 +760,16 @@ class _Solucionador:
             validos.append((float(V), e))
         if not validos:
             ult = self._cache.get((int(N), round(float(grade[0]), 7)))
-            return BuscaVelocidade(N, None, "sem ponto valido", erro=str(ult) if ult is not None else "")
+            return BuscaVelocidade(N, None, "sem ponto valido", erro=str(ult) if ult is not None else "",
+                                   invalidos=invalidos)
         V_emax, e_max = max(validos, key=lambda t: t[1])
         V_emin, e_min = min(validos, key=lambda t: t[1])
         motivo = "alvo acima do maximo" if e_max < self.alvo else "alvo abaixo do minimo"
-        return BuscaVelocidade(N, None, motivo, e_max, V_emax, e_min, V_emin)
+        r_max = self.resultado(N, V_emax)
+        b = BuscaVelocidade(N, None, motivo, e_max, V_emax, e_min, V_emin, invalidos=invalidos,
+                            dTsat_no_max=r_max.dT_sat_queda if r_max is not None else None)
+        b._max_interior = V_emax > min(V for V, _ in validos) * (1.0 + 1e-9)
+        return b
 
     def resolver(self, dica: Optional[tuple] = None) -> ResultadoTrocador:
         p = self.p
@@ -747,7 +777,7 @@ class _Solucionador:
             N = p.geometria.n_fileiras
             b = self.velocidade(N, dica[1] if dica and dica[0] == N else None)
             if b.V is None:
-                raise ErroProjeto(self._mensagem([b]))
+                self._levantar([b], fixo=True)
             return self._final(N, b.V, False)
         if dica is not None and 1 <= dica[0] <= p.fileiras_max:
             b = self.velocidade(dica[0], dica[1])
@@ -767,7 +797,7 @@ class _Solucionador:
             buscas += [self.velocidade(N) for N in Ns[-2::-1]]   # máx. de fileiras inválido: tenta as demais
             sols = [b for b in buscas if b.V is not None]
         if not sols:
-            raise ErroProjeto(self._mensagem(buscas))
+            self._levantar(buscas, fixo=False)
         b = min(sols, key=lambda s: (abs(math.log(s.V / Vp)), -s.V))
         return self._final(b.N, b.V, True)
 
@@ -782,25 +812,61 @@ class _Solucionador:
             r.avisos.append(f"eficácia obtida {r.eficacia:.3f} difere do alvo {self.alvo:.3f}")
         return r
 
-    def _mensagem(self, buscas: list) -> str:
+    def _levantar(self, buscas: list, fixo: bool) -> None:
+        msg, por_dp = self._mensagem(buscas, fixo)
+        raise (ErroPerdaCarga if por_dp else ErroProjeto)(msg)
+
+    def _mensagem(self, buscas: list, fixo: bool) -> tuple:
         p = self.p
+        Nc = p.n_circuitos
         acima = [b for b in buscas if b.motivo == "alvo acima do maximo"]
         abaixo = [b for b in buscas if b.motivo == "alvo abaixo do minimo"]
         if acima:
             b = max(acima, key=lambda t: t.N)
-            return (f"eficácia {self.alvo:.2f} acima do máximo atingível no {self.tipo} com {b.N} fileira(s): "
-                    f"ε máx. = {b.eps_max:.3f} a {b.V_eps_max:.2f} m/s (faixa {p.velocidade_min}–{p.velocidade_max} m/s). "
-                    "Reduza a eficácia, aumente fileiras_max, diminua o passo de aleta ou aumente a área por fileira "
-                    "(com fluxo mássico baixo o lado do refrigerante limita o NTU).")
+            base = (f"eficácia {self.alvo:.2f} acima do máximo atingível no {self.tipo} com {b.N} fileira(s) e "
+                    f"{Nc} circuito(s): ε máx. = {b.eps_max:.3f} a {b.V_eps_max:.2f} m/s "
+                    f"(faixa {p.velocidade_min}–{p.velocidade_max} m/s). ")
+            if any(t.limitado_perda_carga for t in acima):
+                dT = max((t.dTsat_no_max or 0.0) for t in acima)
+                return base + (f"O limite vem da perda de carga do refrigerante (queda de saturação de {dT:.1f} K no "
+                               "ponto de ε máxima; abaixo dessa velocidade há pinch ou queda excessiva): aumente "
+                               "n_circuitos ou o diâmetro do tubo antes de reduzir a eficácia."), True
+            if fixo:
+                return base + ("Aumente geometria.n_fileiras (ou ative fileiras_automaticas), diminua o passo de aleta "
+                               "ou reduza a eficácia."), False
+            return base + ("Reduza a eficácia, aumente fileiras_max, diminua o passo de aleta ou aumente a área por "
+                           "fileira (com fluxo mássico baixo o lado do refrigerante limita o NTU)."), False
         if abaixo:
             b = min(abaixo, key=lambda t: t.N)
-            return (f"eficácia {self.alvo:.2f} abaixo do mínimo atingível no {self.tipo} com {b.N} fileira(s) na "
-                    f"faixa de velocidade: ε mín. = {b.eps_min:.3f} a {b.V_eps_min:.2f} m/s. Use menos fileiras, "
-                    "aumente velocidade_max ou aumente a eficácia.")
+            base = (f"eficácia {self.alvo:.2f} abaixo do mínimo atingível no {self.tipo} com {b.N} fileira(s) na "
+                    f"faixa de velocidade: ε mín. = {b.eps_min:.3f} a {b.V_eps_min:.2f} m/s. ")
+            if fixo:
+                return base + ("Use menos fileiras (geometria.n_fileiras) ou ative fileiras_automaticas, aumente "
+                               "velocidade_max ou aumente a eficácia."), False
+            return base + "Aumente velocidade_max ou a eficácia.", False
         erros = "; ".join(b.erro for b in buscas if b.erro)[:300]
         return (f"nenhum ponto de operação válido no {self.tipo} para as fileiras testadas "
-                f"({', '.join(str(b.N) for b in buscas)}): {erros or 'pinch ou perda de carga excessiva'}. "
-                "Aumente n_circuitos ou o diâmetro do tubo.")
+                f"({', '.join(str(b.N) for b in buscas)}) com {Nc} circuito(s): "
+                f"{erros or 'pinch ou perda de carga excessiva'}. Aumente n_circuitos ou o diâmetro do tubo."), True
+
+
+def _com_circuitos(resolver, p: ParametrosTrocador, tipo: str):
+    """Tenta resolver; se a perda de carga impedir (ErroPerdaCarga) e ``circuitos_automaticos``,
+    repete com mais circuitos (até ``circuitos_max``) e registra o aviso."""
+    pp, nc0 = p, p.n_circuitos
+    while True:
+        try:
+            r = resolver(pp)
+        except ErroPerdaCarga:
+            if not p.circuitos_automaticos or pp.n_circuitos >= p.circuitos_max:
+                raise
+            pp = copy.copy(pp)
+            pp.n_circuitos += 1
+            continue
+        if pp.n_circuitos != nc0:
+            r.avisos.append(f"n_circuitos aumentado de {nc0} para {pp.n_circuitos}: com {nc0} a perda de carga do "
+                            f"refrigerante impedia o projeto do {tipo}")
+        return r
 
 
 def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subresfriamento: float,
@@ -808,11 +874,14 @@ def dimensionar_condensador(fl: Fluido, m: float, P_in: float, h_in: float, subr
     """Comprimento de tubo para levar o vapor de descarga (P_in, h_in) a líquido sub-resfriado.
     Com ``p.eficacia`` definido, resolve velocidade de face e fileiras para essa eficácia
     (``dica`` = (N, V) de uma solução anterior acelera as iterações do ciclo)."""
-    def rodar(pp):
-        return _condensador_fixo(fl, m, P_in, h_in, subresfriamento, T_ar_in, pp)
-    if p.eficacia is None:
-        return rodar(p)
-    return _Solucionador(rodar, p, "condensador").resolver(dica)
+    def resolver(pc):
+        def rodar(pp):
+            return _condensador_fixo(fl, m, P_in, h_in, subresfriamento, T_ar_in, pp)
+        if pc.eficacia is None:
+            return rodar(pc)
+        d = dica if (dica is None or pc.n_circuitos == p.n_circuitos) else None
+        return _Solucionador(rodar, pc, "condensador").resolver(d)
+    return _com_circuitos(resolver, p, "condensador")
 
 
 def dimensionar_evaporador(fl: Fluido, m: float, h_in: float, P_out_alvo: float, superaquecimento: float,
@@ -821,11 +890,14 @@ def dimensionar_evaporador(fl: Fluido, m: float, h_in: float, P_out_alvo: float,
     """Comprimento de tubo do evaporador: entrada (h_in, pressão a determinar), saída na pressão
     de sucção ``P_out_alvo`` com o superaquecimento pedido. Com ``p.eficacia`` definido, resolve
     velocidade de face e fileiras para essa eficácia."""
-    def rodar(pp):
-        return _evaporador_fixo(fl, m, h_in, P_out_alvo, superaquecimento, T_ar_in, pp, fator_umidade)
-    if p.eficacia is None:
-        return rodar(p)
-    return _Solucionador(rodar, p, "evaporador").resolver(dica)
+    def resolver(pc):
+        def rodar(pp):
+            return _evaporador_fixo(fl, m, h_in, P_out_alvo, superaquecimento, T_ar_in, pp, fator_umidade)
+        if pc.eficacia is None:
+            return rodar(pc)
+        d = dica if (dica is None or pc.n_circuitos == p.n_circuitos) else None
+        return _Solucionador(rodar, pc, "evaporador").resolver(d)
+    return _com_circuitos(resolver, p, "evaporador")
 
 
 def alternativas_fileiras(rodar_fixo, p: ParametrosTrocador, fileiras=range(1, 7)) -> list[dict]:
@@ -837,7 +909,7 @@ def alternativas_fileiras(rodar_fixo, p: ParametrosTrocador, fileiras=range(1, 7
         b = sol.velocidade(N)
         if b.V is None:
             linhas.append({"fileiras": N, "viavel": False, "motivo": b.motivo, "eficacia_max": b.eps_max,
-                           "eficacia_min": b.eps_min})
+                           "eficacia_min": b.eps_min, "limitado_perda_carga": b.limitado_perda_carga})
             continue
         r = sol.resultado(N, b.V)
         linhas.append({"fileiras": N, "viavel": True, "motivo": "ok", "velocidade_face_m_s": b.V,

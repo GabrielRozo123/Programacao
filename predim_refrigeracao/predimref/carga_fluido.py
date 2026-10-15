@@ -6,17 +6,17 @@ que o modelo homogêneo, que subestima a massa de líquido. No capilar usa-se o 
 Inclui linhas, filtro secador, gás na carcaça do compressor e refrigerante dissolvido no óleo
 (hidrocarbonetos são muito solúveis em óleo mineral/POE — premissa a calibrar).
 
-Referências de limite de carga (apenas indicativas; consultar a edição vigente da
-IEC 60335-2-89 e a regulamentação local, p. ex. NOM no México e NTC na Colômbia):
-150 g (IEC 60335-2-89:2010); 8×LFL e 13×LFL (≈ 304 g e 494 g para R290) nas edições
-recentes, conforme o tipo de aparelho e requisitos adicionais.
+Referências de limite de carga para refrigerantes inflamáveis (A2L, A2 e A3; apenas indicativas —
+consultar a edição vigente da IEC 60335-2-89 e a regulamentação local, p. ex. NOM no México e NTC
+na Colômbia): 150 g (IEC 60335-2-89:2010); 8×LFL e 13×LFL limitado a 1,2 kg (≈ 304 g e 494 g para
+R290) nas edições recentes, sempre com teto de 1,2 kg, conforme o tipo de aparelho e requisitos adicionais.
 """
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
 
-from .propriedades import LFL_KG_M3, Fluido
+from .propriedades import CLASSE_SEGURANCA, LFL_KG_M3, Fluido
 
 
 @dataclass
@@ -34,9 +34,12 @@ class ParametrosCargaFluido:
     solubilidade_oleo: float = 0.08        # kg de refrigerante / kg de óleo
 
 
-def _massa_trocador(res) -> float:
+def _massa_trocador(res, construtiva: bool = True) -> float:
+    """Massa no trocador. A distribuição de fases é a da marcha (serpentina de projeto); a
+    construtiva é escalada pelo comprimento (aproximação: a folga de área em operação real
+    redistribui as zonas)."""
     A = math.pi * res.geometria.Di ** 2 / 4.0
-    fator = res.L_adotado / res.L_requerido   # o arranjo adotado tem mais tubo que o requerido
+    fator = res.L_adotado / res.L_requerido if construtiva else 1.0
     return sum(s.rho_media * A * s.L for s in res.segmentos) * res.n_circuitos * fator
 
 
@@ -68,11 +71,15 @@ def estimar_carga(fl: Fluido, ciclo, cond, evap, cap, p: ParametrosCargaFluido) 
         "dissolvido no óleo": p.massa_oleo_kg * p.solubilidade_oleo,
     }
     total = sum(partes.values())
+    # mesma conta com as serpentinas de projeto (sem margem), coerente com alvo_validacao
+    total_proj = total - partes["condensador"] - partes["evaporador"] + _massa_trocador(cond, False) + \
+        _massa_trocador(evap, False)
     limites = {}
     lfl = LFL_KG_M3.get(fl.nome)
-    if fl.hidrocarboneto and lfl is not None:   # A3: limites de carga de aparelhos autocontidos
+    classe = CLASSE_SEGURANCA.get(fl.nome, "?")
+    if lfl is not None:   # inflamáveis (A2L, A2, A3): limites de aparelhos autocontidos
         limites = {"IEC 60335-2-89:2010 (150 g)": 0.150,
-                   f"8×LFL ({8 * lfl * 1e3:.0f} g)": 8 * lfl,
-                   f"13×LFL ({13 * lfl * 1e3:.0f} g)": 13 * lfl}
-    return {"partes_kg": partes, "total_kg": total, "limites_kg": limites,
-            "inflamavel": lfl is not None, "A3": fl.hidrocarboneto}
+                   f"8×LFL limitado a 1,2 kg ({min(8 * lfl, 1.2) * 1e3:.0f} g)": min(8 * lfl, 1.2),
+                   f"13×LFL limitado a 1,2 kg ({min(13 * lfl, 1.2) * 1e3:.0f} g)": min(13 * lfl, 1.2)}
+    return {"partes_kg": partes, "total_kg": total, "total_projeto_kg": total_proj, "limites_kg": limites,
+            "inflamavel": lfl is not None, "A3": fl.hidrocarboneto, "classe": classe}

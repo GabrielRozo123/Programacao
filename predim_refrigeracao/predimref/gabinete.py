@@ -106,7 +106,8 @@ class Gabinete:
 @dataclass
 class Uso:
     """Perfil de uso e premissas de carga."""
-    UR_interna: float = 0.75
+    UR_interna: float = 0.75                      # ponto de partida (ou valor fixo, ver umidade_interna)
+    umidade_interna: str = "equilibrio"           # "equilibrio": fecha o balanço infiltração × serpentina
     aberturas_por_dia: float = 100.0
     tempo_abertura_s: float = 8.0
     fator_fluxo_porta: Optional[float] = None   # D_f; None -> 0,8 (ΔT > 11 K) ou 1,1

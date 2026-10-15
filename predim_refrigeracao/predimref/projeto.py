@@ -15,7 +15,7 @@ from .compressor import ParametrosCompressor, ResultadoCompressor, dimensionar_c
 from .constantes import C_para_K
 from .gabinete import (Capacidade, CargaTermica, Gabinete, Garrafa, Uso, calcular_carga,
                        resolver_capacidade)
-from .propriedades import Fluido
+from .propriedades import Fluido, ar_seco
 from .trocador import (ParametrosTrocador, ResultadoTrocador, condensador_padrao,
                        dimensionar_condensador, dimensionar_evaporador, evaporador_padrao)
 
@@ -92,34 +92,23 @@ class ResultadoProjeto:
 
 
 def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjeto] = None) -> ResultadoProjeto:
-    """Pré-dimensiona o sistema completo. Lança ``ErroProjeto`` para entradas impossíveis."""
-    p = copy.deepcopy(parametros) if parametros is not None else ParametrosProjeto()
-    av = Avisos()
-    fl = Fluido(entradas.fluido)
-    if entradas.COP is not None and entradas.COP <= 0:
-        raise ErroProjeto("COP deve ser positivo.")
+    """Pré-dimensiona o sistema completo. Lança ``ErroProjeto`` para entradas impossíveis (e também,
+    com a causa original encadeada, para falhas numéricas não previstas)."""
+    try:
+        return _dimensionar(entradas, parametros)
+    except ErroProjeto:
+        raise
+    except (ValueError, TypeError, ZeroDivisionError, OverflowError) as err:
+        raise ErroProjeto(f"falha numérica não prevista ({type(err).__name__}: {err}); revise as entradas "
+                          "(e reporte o caso se elas forem razoáveis)") from err
 
-    # 1) capacidade e carga térmica ---------------------------------------------------------
-    cap = resolver_capacidade(entradas.volume_interno_L, entradas.n_garrafas, p.garrafa, p.gabinete, av)
-    carga = calcular_carga(cap, p.gabinete, p.uso, p.garrafa, entradas.T_ambiente_C, entradas.UR_ambiente,
-                           entradas.T_alvo_C, av)
 
-    # 2) temperaturas de projeto -------------------------------------------------------------
+def _acoplar(fl, entradas, p, carga, T_evap, T_cond, T_ar_evap, T_ar_cond, dicas):
+    """Ciclo <-> trocadores: as quedas de pressão realimentam o ciclo até convergir."""
     pc = p.ciclo
-    T_ar_evap = C_para_K(entradas.T_alvo_C) + pc.dT_retorno_evap
-    T_ar_cond = C_para_K(entradas.T_ambiente_C) + pc.dT_recirculacao_cond
-    T_evap, T_cond = T_ar_evap - pc.dT_evap, T_ar_cond + pc.dT_cond
-    if pc.superaquecimento >= pc.dT_evap:
-        raise ErroProjeto("superaquecimento ≥ ΔT do evaporador: o ar não consegue superaquecer o vapor.")
-    if pc.subresfriamento >= pc.dT_cond:
-        raise ErroProjeto("sub-resfriamento ≥ ΔT do condensador: o ar não consegue sub-resfriar o líquido.")
-
-    # 3) ciclo <-> trocadores (as quedas de pressão realimentam o ciclo) ------------------------
-    p.condensador.eficacia = entradas.eficacia_condensador
-    p.evaporador.eficacia = entradas.eficacia_evaporador
     dPc = dPe = 0.0
-    dica_c = dica_e = None
-    it = 0
+    dica_c, dica_e = dicas
+    it, conv = 0, False
     for it in range(1, p.max_iter + 1):
         av_ciclo = Avisos()
         try:
@@ -132,13 +121,101 @@ def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjet
                                        dica_c)
         evap = dimensionar_evaporador(fl, bal.m, e["3i"].h, e["1"].P, pc.superaquecimento, T_ar_evap,
                                       p.evaporador, carga.fator_umidade, dica_e)
+        # o nº de circuitos escolhido (automático por perda de carga) passa a valer nas iterações seguintes
+        p.condensador.n_circuitos, p.evaporador.n_circuitos = cond.n_circuitos, evap.n_circuitos
         dica_c = (cond.n_fileiras, cond.velocidade_face)
         dica_e = (evap.n_fileiras, evap.velocidade_face)
         conv = abs(cond.dP_ref - dPc) < 20.0 and abs(evap.dP_ref - dPe) < 20.0
         dPc, dPe = cond.dP_ref, evap.dP_ref
         if conv:
             break
+    return ciclo, bal, cond, evap, av_ciclo, it, conv, (dica_c, dica_e)
+
+
+def umidade_equilibrio(entradas: EntradasProjeto, p: ParametrosProjeto, carga: CargaTermica, bal: BalancoSistema,
+                       evap: ResultadoTrocador) -> dict:
+    """Umidade interna de regime: a água que entra por infiltração é removida pela serpentina.
+
+    Serpentina úmida pelo modelo de superfície efetiva com Lewis = 1 (Braun, Klein & Mitchell 1989,
+    ASHRAE Trans. 95(2); ASHRAE Handbook—Fundamentals, cap. "Psychrometrics"/"Air-cooling coils"):
+        T_s,ef = T_e − (T_e − T_s)/(1 − e^(−NTU_o)),  NTU_o = h_o η_o A_o / (ṁ_ar c_p)
+        ṁ_água,serp = ṁ_ar (1 − e^(−NTU_o)) (W_i − W_sat(T_s,ef))
+    Em média diária, com o compressor ligado a fração f = Q_regime/Q_evap:
+        A (W_e − W_i) = f ṁ_ar (1 − e^(−NTU_o)) (W_i − W_s)  →  W_i = (A W_e + B W_s)/(A + B)
+    com A = aberturas/dia × m_ar,abertura / 86400 [kg_as/s] e B = f ṁ_ar (1 − e^(−NTU_o))."""
+    import CoolProp.CoolProp as CP
+    from .propriedades import ar_umido
+    T_int = C_para_K(entradas.T_alvo_C)
+    W_e = ar_umido(C_para_K(entradas.T_ambiente_C), entradas.UR_ambiente)["W"]
+    cp = ar_seco(evap.T_ar_in).cp
+    m_ar = evap.C_ar / cp
+    NTU_o = evap.ar.h * evap.ar.eta_superficie * evap.projeto.area_externa / (m_ar * cp)
+    eps_o = 1.0 - math.exp(-NTU_o)
+    T_s = evap.T_ar_in - (evap.T_ar_in - evap.T_ar_out) / eps_o
+    W_s = CP.HAPropsSI("W", "T", T_s, "P", 101325.0, "R", 1.0)
+    f_on = min(carga.Q_regime / bal.Q_evap, 1.0)
+    A = p.uso.aberturas_por_dia * carga.infiltracao.get("m_ar_abertura", 0.0) / 86400.0
+    B = f_on * m_ar * eps_o
+    W_i = (A * W_e + B * W_s) / (A + B) if A + B > 0 else W_s
+    UR = min(CP.HAPropsSI("R", "T", T_int, "P", 101325.0, "W", W_i), 1.0)
+    return {"W_interno": W_i, "UR_interna": UR, "T_superficie_efetiva_K": T_s, "W_superficie": W_s,
+            "NTU_ar": NTU_o, "fracao_ligado": f_on}
+
+
+def _dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjeto]) -> ResultadoProjeto:
+    p = copy.deepcopy(parametros) if parametros is not None else ParametrosProjeto()
+    av = Avisos()
+    fl = Fluido(entradas.fluido)
+    if entradas.COP is not None and entradas.COP <= 0:
+        raise ErroProjeto("COP deve ser positivo.")
+
+    # 1) capacidade --------------------------------------------------------------------------
+    cap = resolver_capacidade(entradas.volume_interno_L, entradas.n_garrafas, p.garrafa, p.gabinete, av)
+
+    # 2) temperaturas de projeto -------------------------------------------------------------
+    pc = p.ciclo
+    T_ar_evap = C_para_K(entradas.T_alvo_C) + pc.dT_retorno_evap
+    T_ar_cond = C_para_K(entradas.T_ambiente_C) + pc.dT_recirculacao_cond
+    T_evap, T_cond = T_ar_evap - pc.dT_evap, T_ar_cond + pc.dT_cond
+    if pc.superaquecimento >= pc.dT_evap:
+        raise ErroProjeto("superaquecimento ≥ ΔT do evaporador: o ar não consegue superaquecer o vapor.")
+    if pc.subresfriamento >= pc.dT_cond:
+        raise ErroProjeto("sub-resfriamento ≥ ΔT do condensador: o ar não consegue sub-resfriar o líquido.")
+    p.condensador.eficacia = entradas.eficacia_condensador
+    p.evaporador.eficacia = entradas.eficacia_evaporador
+
+    # 3) carga térmica <-> ciclo <-> trocadores, fechando o balanço de umidade do gabinete -----------
+    equilibrio = p.uso.umidade_interna == "equilibrio"
+    nc0 = {"condensador": p.condensador.n_circuitos, "evaporador": p.evaporador.n_circuitos}
+    dicas = (None, None)
+    umid = None
+    for it_u in range(1, 5 if equilibrio else 2):
+        av_carga = Avisos()
+        carga = calcular_carga(cap, p.gabinete, p.uso, p.garrafa, entradas.T_ambiente_C, entradas.UR_ambiente,
+                               entradas.T_alvo_C, av_carga)
+        ciclo, bal, cond, evap, av_ciclo, it, conv, dicas = _acoplar(fl, entradas, p, carga, T_evap, T_cond,
+                                                                     T_ar_evap, T_ar_cond, dicas)
+        umid = umidade_equilibrio(entradas, p, carga, bal, evap)
+        if not equilibrio:
+            break
+        UR_ant = p.uso.UR_interna
+        p.uso.UR_interna = umid["UR_interna"]
+        if abs(umid["UR_interna"] - UR_ant) < 0.003:
+            break
     else:
+        av.atencao("umidade", "o balanço de umidade do gabinete não convergiu em 4 passos")
+    av.itens.extend(av_carga.itens)
+    carga.infiltracao["umidade"] = umid
+    for r in (cond, evap):
+        r.avisos = [a for a in r.avisos if not a.startswith("n_circuitos aumentado")]
+        if r.n_circuitos != nc0[r.tipo]:
+            r.avisos.append(f"n_circuitos aumentado de {nc0[r.tipo]} para {r.n_circuitos}: com {nc0[r.tipo]} a perda de "
+                            f"carga do refrigerante impedia o projeto do {r.tipo} (pinch ou ε inatingível)")
+    if not equilibrio and abs(umid["UR_interna"] - p.uso.UR_interna) > 0.05:
+        av.atencao("umidade", f"UR interna fixa de {p.uso.UR_interna:.0%} incompatível com a serpentina: o equilíbrio "
+                   f"entre infiltração e remoção daria {umid['UR_interna']:.0%} (o ξ do evaporador e a umidade "
+                   "exportada ao Amesim ficam incoerentes).")
+    if not conv:
         av.atencao("iteração", "acoplamento ciclo-trocadores não convergiu dentro de max_iter")
     av.itens.extend(av_ciclo.itens)
     if entradas.COP is not None and ciclo.eta_global > pc.eta_global_faixa[1]:
@@ -163,8 +240,9 @@ def dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjet
     if carga_ref["limites_kg"]:
         lim = carga_ref["limites_kg"]
         if carga_ref["total_kg"] > min(lim.values()):
-            av.atencao("carga de fluido", f"carga estimada {carga_ref['total_kg'] * 1e3:.0f} g acima de "
-                       f"{min(lim.values()) * 1e3:.0f} g; verificar a norma aplicável ao produto.")
+            av.atencao("carga de fluido", f"carga estimada {carga_ref['total_kg'] * 1e3:.0f} g de {fl.nome} "
+                       f"(classe {carga_ref['classe']}) acima de {min(lim.values()) * 1e3:.0f} g; verificar a norma "
+                       "aplicável ao produto (IEC 60335-2-89 vigente e regulamentação local).")
     T0, Tf = C_para_K(entradas.T_ambiente_C), C_para_K(entradas.T_alvo_C)
     ex = exergia(ciclo, bal, T0, Tf)
     if p.potencia_ventilador_cond_W is None:

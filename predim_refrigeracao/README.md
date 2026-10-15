@@ -33,13 +33,13 @@ Dependências do núcleo: `numpy`, `scipy`, `CoolProp` (matplotlib só para grá
 | Item | Resultado |
 |---|---|
 | Garrafas de 600 mL que cabem | 108 (não 333: 333 garrafas exigem ≈ 611 L) |
-| Carga térmica de projeto | 218 W (743 Btu/h); governa o regime de uso diário |
+| Carga térmica de projeto | 218 W (745 Btu/h); governa o regime de uso diário; UR interna de equilíbrio 57 % |
 | Ciclo | T_evap −7,5 °C / T_cond 45 °C, razão de pressão 4,09, η_global implícito 0,52 |
-| Compressor | 109 W elétricos, 2,21 cm³ a 3500 rpm; ≈ 198 W em EN 12900 MBP |
-| Condensador (ε = 0,65) | 6 fileiras a 1,28 m/s; 5,57 m de tubo 3/8" no projeto; construtiva (+10 %) 6 × 4 tubos × 0,255 m = 6,13 m; 108 m³/h de ar no projeto |
-| Evaporador (ε = 0,65) | 6 fileiras a 0,51 m/s; 11,6 m de tubo 3/8" no projeto; construtiva 6 × 7 tubos × 0,304 m = 12,75 m; 89 m³/h; ar insuflado −4 °C |
-| Capilar | 0,028" (0,711 mm) × 2,17 m, não blocado |
-| Carga de R290 | ≈ 145 g |
+| Compressor | 109 W elétricos, 2,22 cm³ a 3500 rpm; ≈ 198 W em EN 12900 MBP |
+| Condensador (ε = 0,65) | 6 fileiras a 1,28 m/s; 5,58 m de tubo 3/8" no projeto; construtiva (+10 %) 6 × 4 tubos × 0,256 m = 6,14 m; 109 m³/h de ar no projeto |
+| Evaporador (ε = 0,65) | 6 fileiras a 0,50 m/s; 11,6 m de tubo 3/8" no projeto; construtiva 6 × 7 tubos × 0,305 m = 12,79 m; 89 m³/h; ar insuflado −4 °C |
+| Capilar | 0,028" (0,711 mm) × 2,16 m, não blocado |
+| Carga de R290 | ≈ 145 g (135 g com as serpentinas de projeto) |
 | Consumo estimado | ≈ 2,2 kWh/dia |
 
 ### Eficácia dos trocadores
@@ -56,8 +56,8 @@ exemplo acima (vazões e comprimentos da serpentina de projeto):
 |---|---|---|---|
 | 0,45 | 5 × 2,07 m/s, 4,1 m, 157 m³/h | 6 × 1,23 m/s, 6,9 m, 129 m³/h, −2,0 °C | 111 g |
 | 0,55 | 6 × 1,80 m/s, 4,7 m, 128 m³/h | 6 × 0,79 m/s, 8,8 m, 106 m³/h, −3,0 °C | 124 g |
-| 0,65 | 6 × 1,28 m/s, 5,6 m, 108 m³/h | 6 × 0,51 m/s, 11,6 m, 89 m³/h, −4,0 °C | 145 g |
-| 0,75 | 6 × 0,89 m/s, 6,9 m, 94 m³/h | 6 × 0,31 m/s, 16,5 m, 78 m³/h, −5,0 °C | 179 g |
+| 0,65 | 6 × 1,28 m/s, 5,6 m, 109 m³/h | 6 × 0,50 m/s, 11,6 m, 89 m³/h, −4,0 °C | 145 g |
+| 0,75 | 6 × 0,89 m/s, 6,9 m, 94 m³/h | 6 × 0,31 m/s, 16,6 m, 78 m³/h, −5,0 °C | 179 g |
 
 Com tubo 3/8" e um circuito, o fluxo mássico de refrigerante é baixo (G ≈ 14 kg/m²s) e o lado interno limita o NTU
 por fileira; por isso ε alto pede serpentinas fundas e face lenta. `alternativas_fileiras(res, "condensador")`
@@ -102,6 +102,7 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 | Propriedades | Equações de estado de referência via CoolProp/HEOS; ar úmido ASHRAE RP-1485 |
 | Transmissão | Resistências em série + fatores de forma de arestas/cantos (Incropera, Tab. 4.1) + pontes térmicas |
 | Infiltração | Gosney & Olama (1975)/ASHRAE, limitada ao volume de ar livre do gabinete |
+| Umidade interna | balanço água da infiltração = água removida pela serpentina (superfície efetiva, Lewis = 1; Braun, Klein & Mitchell 1989) |
 | Produto | c_p de Choi & Okos (1986); pull-down e reposição diária |
 | Ciclo | COP verificado contra Carnot e contra o ciclo com compressão isentrópica; η_global, η_is, calor de carcaça |
 | Condensação | Shah (2022) → Shah (2013) para hidrocarbonetos (regimes I/II/III); alternativa Chato (1962) |
@@ -113,11 +114,15 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 
 ## Verificação e validação
 
-* Balanço de energia e de exergia fecham a 10⁻⁹; destruição de exergia ≥ 0 em todos os componentes.
-* Trocadores: independência de malha (< 0,2 % entre 20 e 60 segmentos na zona bifásica; zonas monofásicas convergem
-  com 5); balanço do ar trecho a trecho; eficácia alvo atingida a 10⁻³; ε ≤ 1 − e^(−NTU) (desigualdade de Jensen) no
-  evaporador só bifásico; pinch por perda de carga e alvo de ε inatingível (acima ou abaixo) rejeitados com mensagem
-  própria; Q = ε Ċ_ar ΔT na serpentina de projeto exportada.
+* Balanço de energia e de exergia fecham a ~10⁻⁸ (arredondamento do CoolProp); destruição de exergia ≥ 0 em todos os
+  componentes.
+* Trocadores: malha — com o padrão de 40 segmentos na zona bifásica o comprimento fica a ≤ 0,15 % do obtido com 240,
+  inclusive no modo de eficácia (em que V se reajusta); as zonas monofásicas convergem com 5 (padrão 8); balanço do ar
+  trecho a trecho; eficácia alvo atingida a 10⁻³; ε ≤ 1 − e^(−NTU) (desigualdade de Jensen) no evaporador só bifásico;
+  pinch por perda de carga e alvo de ε inatingível (acima ou abaixo) rejeitados com mensagem própria (com aumento
+  automático de circuitos quando a causa é a perda de carga); Q = ε Ċ_ar ΔT na serpentina de projeto exportada.
+* Umidade: no equilíbrio, a água removida pela serpentina (superfície efetiva, Lewis = 1) iguala a da infiltração e
+  o ξ de projeto é o latente dessa remoção (teste `test_balanco_umidade_lewis`).
 * Eficiência de aleta de Schmidt dentro de 3 % da solução exata (Bessel) da aleta anular.
 * Capilar contra Li et al. (1990), R12, D = 0,66 mm, L = 1,5 m (`python validacao/validacao_capilar_li1990.py`):
 
@@ -140,6 +145,7 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 | | porta de vidro | U = 2,0 W/m²K | vidro duplo low-e com moldura |
 | | gaxeta | ψ = 0,10 W/m·K | literatura 0,05–0,2; calibrar |
 | Uso | aberturas | 100/dia × 8 s | loja de conveniência típica |
+| | UR interna | equilíbrio (calculada) | `umidade_interna="fixa"` usa `UR_interna` |
 | | reposição | 50 % das garrafas/dia | |
 | | pull-down | carga cheia em 24 h | |
 | | utilização máx. | 70 % | folga para degelo/controle |
