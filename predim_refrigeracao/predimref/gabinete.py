@@ -304,6 +304,12 @@ class CargaTermica:
         return list(self.componentes.items())
 
 
+def cargas_internas(uso: Uso) -> float:
+    """Iluminação, ventilador do evaporador e a parte interna da resistência anti-embaçante [W]."""
+    return (uso.potencia_iluminacao_W + uso.potencia_ventilador_evap_W
+            + uso.fracao_antiembacante_interna * uso.potencia_antiembacante_W)
+
+
 def calcular_carga(cap: Capacidade, gab: Gabinete, uso: Uso, garrafa: Garrafa, T_amb_C: float,
                    UR_amb: float, T_alvo_C: float, avisos: Avisos) -> CargaTermica:
     T_amb, T_int = C_para_K(T_amb_C), C_para_K(T_alvo_C)
@@ -311,8 +317,7 @@ def calcular_carga(cap: Capacidade, gab: Gabinete, uso: Uso, garrafa: Garrafa, T
         raise ErroProjeto("A temperatura alvo deve ser menor que a ambiente.")
     tr = transmissao(cap, gab, T_amb, T_int)
     inf = infiltracao(cap, uso, T_amb, UR_amb, T_int, avisos)
-    Q_int = (uso.potencia_iluminacao_W + uso.potencia_ventilador_evap_W
-             + uso.fracao_antiembacante_interna * uso.potencia_antiembacante_W)
+    Q_int = cargas_internas(uso)
     T_prod = T_amb_C if uso.T_produto_entrada_C is None else uso.T_produto_entrada_C
     E_garrafa = garrafa.energia_resfriamento(T_prod, T_alvo_C)
     E_cheia = cap.n_garrafas * E_garrafa + uso.massa_adicional_kg * uso.cp_adicional * (T_prod - T_alvo_C)
@@ -339,4 +344,4 @@ def calcular_carga(cap: Capacidade, gab: Gabinete, uso: Uso, garrafa: Garrafa, T
 
 
 __all__ = ["Garrafa", "Gabinete", "Uso", "Capacidade", "CargaTermica", "resolver_capacidade",
-           "transmissao", "infiltracao", "calcular_carga"]
+           "transmissao", "infiltracao", "cargas_internas", "calcular_carga"]

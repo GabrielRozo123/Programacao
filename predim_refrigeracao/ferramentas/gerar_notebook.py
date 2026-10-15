@@ -20,7 +20,7 @@ MODULOS = [
     "predimref/correlacoes/bifasico.py", "predimref/correlacoes/lado_ar.py",
     "predimref/gabinete.py", "predimref/ciclo.py", "predimref/compressor.py",
     "predimref/trocador.py", "predimref/capilar.py", "predimref/carga_fluido.py",
-    "predimref/projeto.py", "predimref/relatorio.py", "predimref/graficos.py", "predimref/__init__.py",
+    "predimref/operacao.py", "predimref/projeto.py", "predimref/relatorio.py", "predimref/graficos.py", "predimref/__init__.py",
 ]
 
 
@@ -47,6 +47,7 @@ bebidas (porta de vidro), cujas saídas alimentam o modelo de sistema no **Simce
 | Temperatura ambiente T∞ | tubo capilar: diâmetro interno e comprimento |
 | Temperatura alvo interna (ex.: 2,5 °C) | carga de refrigerante, estados do ciclo, balanços de energia e exergia |
 | Eficácia ε do condensador e do evaporador (padrão 0,65) | velocidade de face e nº de fileiras que atendem ε, UA, NTU |
+| Potência máxima do compressor (opcional, requisito de ensaio) | pull-down estimado: tempo e pico de potência; capacidade limitada se preciso |
 
 **Papel da rotina:** é o *step-down* do modelo do Amesim. Gera parâmetros físicos e coerentes entre si para montar
 o modelo de sistema; as curvas de pull-down, consumo, fuga térmica e água drenada saem depois do próprio Amesim.
@@ -216,7 +217,26 @@ $m = \sum \rho_{in\,situ} V$, com $\rho_{in\,situ} = \alpha\rho_v + (1-\alpha)\r
 mais linhas, filtro, gás na carcaça e refrigerante dissolvido no óleo. Comparada com 150 g, 8×LFL e 13×LFL
 (IEC 60335-2-89; confirmar a edição e a regulamentação local).
 
-### 2.8 Referências principais
+### 2.8 Operação fora do projeto: pull-down e potência máxima
+Com a geometria congelada, o sistema é resolvido pelo **casamento de componentes** (Stoecker & Jones, cap. 14),
+com incógnitas $T_{evap}$ e $T_{cond}$:
+$$\dot m = V_{desl}\tfrac{N}{60}\,\eta_v(r)\,\rho_{1s},\quad \dot m\,(h_1-h_4)=\xi\,\varepsilon_e\,\dot C_{ar,e}\,(T_{ar,e}-T_{evap}),
+\quad \dot m\,(h_2-h_3)=\varepsilon_c\,\dot C_{ar,c}\,(T_{cond}-T_{ar,c})$$
+e $W_{el}=\dot m\,(h_{2s}-h_{1s})/\eta_{global}$, com $\eta_v$, $\eta_{global}$, ε e $\dot C_{ar}$ do projeto. No ponto de projeto o
+modelo reproduz o dimensionamento (erro ~10⁻⁶). No **pull-down** de porta fechada o produto (capacidade $C_p$) troca calor
+com o ar interno por $hA$, e o ar fica em equilíbrio quase estático:
+$$0=hA\,(T_p-T_a)+UA_{gab}(T_\infty-T_a)+Q_{base}+Q_{int}-Q_{evap}(T_a),\qquad t=\int\frac{C_p\,dT_p}{hA\,(T_p-T_a)}$$
+A potência de um compressor de rotação fixa **não é constante**: com o gabinete quente a pressão de sucção e a massa
+específica são altas, e a potência passa por um máximo (para o compressor ideal, em $r=k^{k/(k-1)}\approx 2{,}9$).
+O pico estimado (tipicamente 1,2–1,7× o de regime) inclui a partida com o gabinete encharcado e não depende de $hA$; o
+tempo de pull-down depende, e $hA$ deve ser calibrado com um ensaio.
+
+O **limite de potência** (`potencia_max_compressor_W`) vale para o regime ou para o pico (`RestricaoPotencia.criterio`).
+Com o COP fixo, $W=Q/COP$: respeitar o limite significa um compressor menor (mais tempo ligado, pull-down mais longo) ou
+um COP maior. No modo `limitar` a rotina reduz a capacidade até atender e avisa o que muda; se nem com o compressor
+100 % ligado o regime fecha, ela informa o COP necessário.
+
+### 2.9 Referências principais
 * ASHRAE Handbook — Refrigeration (caps. *Refrigeration Load*, *Thermal Properties of Foods*, *Refrigerant-Control Devices*).
 * Bell, I.H. et al. (2014). Pure and pseudo-pure fluid thermophysical property evaluation… CoolProp. *Ind. Eng. Chem. Res.* 53:2498.
 * Choi, Y., Okos, M.R. (1986). Effects of temperature and composition on the thermal properties of foods.
@@ -252,6 +272,10 @@ fluido = "R290"  #@param ["R290", "R600a", "R1270", "R134a", "R1234yf", "R152a",
 usar_eficacia = True  #@param {type:"boolean"}
 eficacia_condensador = 0.65  #@param {type:"slider", min:0.30, max:0.90, step:0.01}
 eficacia_evaporador = 0.65  #@param {type:"slider", min:0.30, max:0.90, step:0.01}
+#@markdown **Potência máxima do compressor** (requisito do laboratório; 0 = sem limite). Critério: potência de regime ou pico no pull-down
+potencia_max_compressor_W = 0  #@param {type:"number"}
+criterio_potencia = "regime"  #@param ["regime", "pico_pulldown"]
+modo_potencia = "limitar"  #@param ["limitar", "verificar"]
 
 from predimref import EntradasProjeto
 entradas = EntradasProjeto(
@@ -261,6 +285,7 @@ entradas = EntradasProjeto(
     n_garrafas=int(capacidade) if tipo_capacidade != "litros" else None,
     eficacia_condensador=eficacia_condensador if usar_eficacia else None,
     eficacia_evaporador=eficacia_evaporador if usar_eficacia else None,
+    potencia_max_compressor_W=potencia_max_compressor_W if potencia_max_compressor_W > 0 else None,
 )
 entradas
 """
@@ -268,6 +293,8 @@ entradas
 AVANCADOS = r"""
 #@title Parâmetros avançados (premissas de projeto) — edite se necessário
 from predimref import ParametrosProjeto
+from predimref.projeto import RestricaoPotencia
+from predimref.operacao import ParametrosOperacao
 from predimref.gabinete import Garrafa, Gabinete, Uso
 from predimref.ciclo import ParametrosCiclo
 from predimref.compressor import ParametrosCompressor
@@ -287,6 +314,9 @@ params = ParametrosProjeto(
     condensador=condensador_padrao(),   # tubo 3/8", aleta 2,5 mm (10 FPI), V preferida 2 m/s
     evaporador=evaporador_padrao(),     # tubo 3/8", aleta 4,23 mm (6 FPI), V preferida 1,5 m/s
     capilar=ParametrosCapilar(serie="polegada", L_min=1.0, L_max=5.0, L_alvo=2.5),
+    restricao_potencia=RestricaoPotencia(criterio=criterio_potencia, modo=modo_potencia),
+    operacao=ParametrosOperacao(h_produto_W_m2K=5.0,      # ar–garrafa; calibrar com ensaio de pull-down
+                                T_ambiente_C=None),       # None = a do projeto (p. ex. 43 para classe climática)
 )
 # Exemplos de ajuste:
 # params.condensador.velocidade_face = 1.5          # velocidade preferida (com ε, guia a escolha de fileiras)
@@ -310,7 +340,7 @@ except ErroProjeto as erro:
 """
 
 GRAFICOS = r"""
-#@title 5. Gráficos do ciclo, trocadores, capilar, carga e exergia
+#@title 5. Gráficos do ciclo, trocadores, capilar, carga, exergia e pull-down
 import matplotlib.pyplot as plt
 from IPython.display import display
 from predimref.graficos import painel
@@ -340,6 +370,32 @@ fig = mapa_cop(entradas.fluido, entradas.T_alvo_C, np.arange(20.0, 44.0, 1.0), p
                cop_pedido=entradas.COP)
 display(fig)
 plt.close(fig)
+"""
+
+PULLDOWN = r"""
+#@title Pull-down: sensibilidade ao hA ar–produto e à temperatura ambiente (tempo e pico de potência)
+import copy
+import pandas as pd
+from predimref import ErroProjeto
+from predimref.operacao import modelo_do_projeto, simular_pulldown
+if res is not None and res.pulldown is not None:
+    modelo, pp = modelo_do_projeto(res), res.parametros
+    linhas = []
+    for T_amb in sorted({res.entradas.T_ambiente_C, res.entradas.T_ambiente_C + 5.0, 43.0}):
+        for h in (3.0, 5.0, 10.0, 1e4):
+            po = copy.deepcopy(pp.operacao)
+            po.T_ambiente_C, po.h_produto_W_m2K, po.hA_produto_W_K = T_amb, h, None
+            try:
+                r_pd = simular_pulldown(modelo, res.capacidade, pp.gabinete, pp.uso, pp.garrafa, pp.ciclo,
+                                        res.entradas.T_ambiente_C, res.entradas.T_alvo_C, po)
+                linhas.append({"T_amb [°C]": T_amb, "h ar–produto [W/m²K]": "∞ (produto = ar)" if h > 1e3 else h,
+                               "hA [W/K]": r_pd.hA_produto_W_K, "tempo [h]": r_pd.tempo_h if r_pd.concluido else None,
+                               "W pico [W]": r_pd.W_pico, "W fim [W]": r_pd.W_final,
+                               "pico/regime": r_pd.W_pico / res.balanco.W_el, "kWh": r_pd.E_compressor_kWh})
+            except ErroProjeto as erro:
+                linhas.append({"T_amb [°C]": T_amb, "h ar–produto [W/m²K]": h, "erro": str(erro)})
+    print("Compressor e trocadores do projeto; o pico não depende de hA (inclui a partida), o tempo depende.")
+    display(pd.DataFrame(linhas).round(2))
 """
 
 AMESIM_MD = r"""
@@ -381,6 +437,8 @@ if res is not None:
             pd.DataFrame(perfil_trocador(res.evaporador)).to_excel(xl, sheet_name="evaporador", index=False)
             pd.DataFrame([{"componente": k, "W": v} for k, v in res.carga.componentes.items()]).to_excel(
                 xl, sheet_name="carga_termica", index=False)
+            if d.get("pulldown"):
+                pd.DataFrame(d["pulldown"]["curva"]).to_excel(xl, sheet_name="pulldown", index=False)
         arquivos.append("predim_resultado.xlsx")
     except Exception as e:
         print("Excel não gerado:", e)
@@ -502,13 +560,17 @@ LIMITES = r"""
   curvas de retorno fora da perda de carga; coeficientes de correlações para tubo liso e refrigerante sem óleo;
 * capilar adiabático e sem metaestabilidade (com trocador interno, o capilar real é não adiabático);
 * compressor: modelo de espaço morto para η_v e η_eletromecânica constante — substituir por mapa de catálogo
-  (polinômio AHRI 540 / EN 12900) assim que o compressor candidato for escolhido;
+  (polinômio AHRI 540 / EN 12900) assim que o compressor candidato for escolhido; o pico de potência no pull-down
+  usa o mesmo modelo (η_global constante), então também melhora com o mapa;
+* pull-down quase estático: superaquecimento fixo (o capilar real deixa o evaporador sub-alimentado no início),
+  massa do gabinete desprezada e hA ar–produto como premissa (calibrar com ensaio);
 * geada no evaporador tratada só por resistência de incrustação (padrão zero) e pelo fator de umidade.
 
 **Relação com o Amesim (a rotina é o *step-down* do modelo de sistema):**
 1. Esta rotina gera, em regime permanente, parâmetros coerentes entre si (balanços fechados, 2ª lei, COP viável)
    para montar o modelo do Amesim: compressor, trocadores com a eficácia escolhida, capilar e carga de fluido.
-2. As curvas de **pull-down, consumo, fuga térmica e água drenada** vêm do Amesim. Primeiro passo de conferência:
+2. As curvas de **pull-down, consumo, fuga térmica e água drenada** vêm do Amesim (o bloco `amesim.pulldown_estimado`
+   traz só uma estimativa quase estática para comparar a ordem de grandeza do tempo e do pico de potência). Primeiro passo de conferência:
    montado com as serpentinas `projeto_sem_margem` e a vazão de ar requerida, o modelo do Amesim deve reproduzir
    `amesim.alvo_validacao` (Q_evap, W_el, ṁ, T_evap, T_cond). Com as `construtiva_com_margem` (a geometria que se
    fabrica), T_cond fica abaixo e T_evap acima do alvo — é a folga de área, não um erro de mapeamento. Fora isso,
@@ -531,8 +593,8 @@ def main():
     cells.append(code("import importlib, predimref\nprint('predimref', predimref.__version__, 'pronto')"))
     cells += [md(TEORIA), md("## 3. Entradas"), code(ENTRADAS, True), code(AVANCADOS, True),
               md("## 4. Dimensionamento"), code(RODAR, True),
-              md("## 5. Gráficos e alternativas de geometria"), code(GRAFICOS, True), code(ALTERNATIVAS, True),
-              code(MAPA, True),
+              md("## 5. Gráficos e alternativas de geometria"), code(GRAFICOS, True), code(PULLDOWN, True),
+              code(ALTERNATIVAS, True), code(MAPA, True),
               md(AMESIM_MD), code(EXPORTAR, True),
               md(SENS_MD), code(SENS, True), code(SENS_EPS, True), code(SENS2, True),
               md(VALID_MD), code(VALID, True), md(LIMITES)]

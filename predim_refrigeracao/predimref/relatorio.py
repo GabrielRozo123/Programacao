@@ -83,6 +83,37 @@ def _trocador_dict(r) -> dict:
     }
 
 
+def _pulldown_dict(pd) -> dict | None:
+    """Resumo e curva do pull-down estimado (°C, h)."""
+    if pd is None:
+        return None
+    pk = pd.pico
+    cv = pd.curva()
+    return {
+        "premissas": {"porta": "fechada", "T_ambiente_C": _c(pd.T_ambiente), "T_produto_inicial_C": _c(pd.T_produto_inicial),
+                      "T_alvo_C": _c(pd.T_alvo), "capacidade_termica_produto_kJ_K": pd.C_produto_J_K / 1e3,
+                      "hA_ar_produto_W_K": pd.hA_produto_W_K, "UA_gabinete_W_K": pd.UA_gabinete_W_K,
+                      "cargas_internas_W": pd.Q_internas_W, "fator_umidade": pd.fator_umidade,
+                      "modelo": "casamento compressor–trocadores quase estático (geometria de projeto, ε, η_global e "
+                                "superaquecimento constantes); produto concentrado trocando calor com o ar por hA"},
+        "concluido": pd.concluido, "tempo_h": pd.tempo_h,
+        "T_produto_equilibrio_C": None if pd.T_produto_equilibrio is None else _c(pd.T_produto_equilibrio),
+        "potencia_pico_W": pd.W_pico, "pico_na_partida": pd.pico_na_partida, "t_pico_h": pd.t_pico_s / 3600.0,
+        "potencia_pico_trajetoria_W": pd.W_pico_trajetoria, "potencia_inicial_W": pd.W_inicial,
+        "potencia_final_W": pd.W_final, "energia_compressor_kWh": pd.E_compressor_kWh,
+        "T_descarga_max_C": _c(pd.T_descarga_max),
+        "ponto_pico": {"T_ar_evaporador_C": _c(pk.T_ar_evap), "T_evap_C": _c(pk.T_evap), "T_cond_C": _c(pk.T_cond),
+                       "razao_pressao": pk.razao_pressao, "Q_evap_W": pk.Q_evap, "vazao_massica_kg_h": pk.m * 3600.0,
+                       "COP": pk.COP},
+        "curva": {"t_h": [t / 3600.0 for t in cv["t_s"]],
+                  **{k.replace("_K", "_C"): [_c(T) for T in v] for k, v in cv.items() if k.endswith("_K")},
+                  "Q_evap_W": cv["Q_evap_W"], "W_el_W": cv["W_el_W"]},
+        "nota": "pico = máximo de W(T_ar) entre o ar no fim do pull-down e o produto inicial: inclui a partida com o "
+                "gabinete encharcado (limite superior dos primeiros minutos) e não depende de hA; o tempo depende de hA, "
+                "a calibrar com ensaio de pull-down.",
+    }
+
+
 def para_dict(res) -> dict:
     """Dicionário JSON-serializável. O bloco 'amesim' reúne os parâmetros de entrada típicos de
     um modelo de sistema (compressor volumétrico, trocadores tubo-aleta, capilar)."""
@@ -95,7 +126,8 @@ def para_dict(res) -> dict:
                      "UR_ambiente": ent.UR_ambiente, "volume_interno_L": res.capacidade.volume_interno_L,
                      "n_garrafas": res.capacidade.n_garrafas, "fluido": ent.fluido,
                      "eficacia_condensador": ent.eficacia_condensador,
-                     "eficacia_evaporador": ent.eficacia_evaporador},
+                     "eficacia_evaporador": ent.eficacia_evaporador,
+                     "potencia_max_compressor_W": ent.potencia_max_compressor_W},
         "gabinete": {"largura_int_m": res.capacidade.largura_m, "profundidade_int_m": res.capacidade.profundidade_m,
                      "altura_int_m": res.capacidade.altura_m, "volume_ar_livre_L": res.capacidade.volume_ar_livre_L,
                      "massa_produto_kg": res.capacidade.massa_produto_kg,
@@ -118,7 +150,10 @@ def para_dict(res) -> dict:
                        "capacidade_Btuh": b.Q_evap * W_PARA_BTUH, "deslocamento_cm3": comp.deslocamento_cm3,
                        "rotacao_rpm": comp.rotacao_rpm, "eficiencia_volumetrica": comp.eta_v,
                        "vazao_volumetrica_succao_m3_h": comp.vazao_volumetrica_succao * 3600,
-                       "T_descarga_C": _c(comp.T_descarga), "ponto_catalogo": comp.catalogo},
+                       "T_descarga_C": _c(comp.T_descarga), "ponto_catalogo": comp.catalogo,
+                       "potencia_pico_pulldown_W": None if res.pulldown is None else res.pulldown.W_pico},
+        "potencia_compressor": res.potencia,
+        "pulldown": _pulldown_dict(res.pulldown),
         "condensador": _trocador_dict(res.condensador),
         "evaporador": _trocador_dict(res.evaporador),
         "capilar": {"diametro_interno_mm": cap.D * 1e3, "diametro_interno_pol": cap.D / 25.4e-3,
@@ -235,6 +270,20 @@ def _bloco_amesim(res) -> dict:
                                "removida pela serpentina (superfície efetiva, Lewis = 1); ξ do evaporador e "
                                "ar_entrada são coerentes com ela. No caso governante de pull-down (portas fechadas) "
                                "o evaporador é dimensionado seco (ξ = 1)."},
+        "restricoes": {"potencia_max_compressor_W": res.entradas.potencia_max_compressor_W,
+                       "criterio": (res.potencia or {}).get("criterio"),
+                       "atendida": (res.potencia or {}).get("atende"),
+                       "nota": "criterio 'regime' = potência no ponto de projeto; 'pico_pulldown' = maior potência no "
+                               "pull-down de portas fechadas, incluindo a partida."},
+        "pulldown_estimado": None if res.pulldown is None else {
+            "T_ambiente_K": res.pulldown.T_ambiente, "T_produto_inicial_K": res.pulldown.T_produto_inicial,
+            "T_alvo_K": res.pulldown.T_alvo, "capacidade_termica_produto_J_K": res.pulldown.C_produto_J_K,
+            "hA_ar_produto_W_K": res.pulldown.hA_produto_W_K, "cargas_internas_W": res.pulldown.Q_internas_W,
+            "tempo_ate_T_alvo_s": res.pulldown.tempo_s if res.pulldown.concluido else None,
+            "potencia_pico_W": res.pulldown.W_pico, "potencia_inicial_W": res.pulldown.W_inicial,
+            "potencia_final_W": res.pulldown.W_final, "energia_compressor_J": res.pulldown.E_compressor_J,
+            "nota": "estimativa quase estática para comparar com o ensaio de pull-down no Amesim (não é alvo exato): "
+                    "massa do gabinete desprezada, superaquecimento fixo e hA ar–produto premissa."},
         "alvo_validacao": {"Q_evap_W": res.balanco.Q_evap, "W_el_W": res.balanco.W_el,
                            "vazao_massica_kg_s": res.balanco.m, "T_evap_K": c.T_evap, "T_cond_K": c.T_cond,
                            "nota": "reproduzido com as serpentinas 'projeto_sem_margem', a vazão de ar requerida e "
@@ -314,6 +363,25 @@ def resumo_texto(res) -> str:
     cat = comp.catalogo
     w(f"  no ponto {cat['condicao']} ({cat['T_evap_C']:.1f}/{cat['T_cond_C']:.1f} °C): ≈ {cat['Q_W']:.0f} W "
       f"({cat['Q_Btuh']:.0f} Btu/h), {cat['W_el_W']:.0f} W elétricos, COP {cat['COP']:.2f}")
+    pot = res.potencia or {}
+    if pot.get("limite_W"):
+        estado = ("ATIVO: capacidade de projeto " f"{pot['Q_requisitos_W']:.0f} → {pot['Q_projeto_W']:.0f} W"
+                  if pot["limitado"] else "inativo")
+        atende = {True: "atende", False: "NÃO ATENDE", None: "não verificado"}[pot["atende"]]
+        pico = "" if pot.get("W_pico_pulldown_W") is None else f", pico no pull-down {pot['W_pico_pulldown_W']:.0f} W"
+        w(f"  limite de potência {pot['limite_W']:.0f} W ({pot['criterio']}, {pot['modo']}): {atende}, {estado} | "
+          f"regime {pot['W_regime_W']:.1f} W{pico}")
+    pd = res.pulldown
+    if pd is not None:
+        w("")
+        w(f"PULL-DOWN ESTIMADO (porta fechada; produto {_c(pd.T_produto_inicial):.1f} → {_c(pd.T_alvo):.1f} °C; ambiente "
+          f"{_c(pd.T_ambiente):.1f} °C; C {pd.C_produto_J_K / 1e3:.0f} kJ/K; hA ar–produto {pd.hA_produto_W_K:.0f} W/K)")
+        fim = (f"{pd.tempo_h:.1f} h até {_c(pd.T_alvo):.1f} °C" if pd.concluido else
+               f"NÃO atinge {_c(pd.T_alvo):.1f} °C (equilíbrio ≈ {_c(pd.T_produto_equilibrio):.1f} °C)")
+        quando = "na partida" if pd.pico_na_partida else f"em t ≈ {pd.t_pico_s / 3600.0:.1f} h"
+        w(f"  {fim} | compressor {pd.W_inicial:.0f} W (início) → {pd.W_final:.0f} W (fim); pico {pd.W_pico:.0f} W {quando} "
+          f"({pd.W_pico / res.balanco.W_el:.2f}× o de regime; T_evap {_c(pd.pico.T_evap):.1f} °C, T_cond "
+          f"{_c(pd.pico.T_cond):.1f} °C) | {pd.E_compressor_kWh:.2f} kWh | T_descarga máx {_c(pd.T_descarga_max):.0f} °C")
     for r in (res.condensador, res.evaporador):
         g = r.geometria
         w("")

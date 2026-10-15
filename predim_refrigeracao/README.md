@@ -6,7 +6,9 @@ com a **eficácia dos trocadores** como entrada ajustável (padrão 0,65). As sa
 evaporador, capilar, carga de fluido) são as entradas do modelo de sistema no **Simcenter Amesim**.
 
 A rotina é o *step-down* do modelo do Amesim: gera, em regime permanente, parâmetros físicos e coerentes entre si
-para montar o modelo. As curvas de pull-down, consumo, fuga térmica e água drenada saem do próprio Amesim.
+para montar o modelo. As curvas de pull-down, consumo, fuga térmica e água drenada saem do próprio Amesim; a rotina
+traz só uma estimativa quase estática do pull-down (tempo e pico de potência) e aceita um **limite de potência
+máxima do compressor** como requisito de projeto.
 
 ## Como usar
 
@@ -41,6 +43,7 @@ Dependências do núcleo: `numpy`, `scipy`, `CoolProp` (matplotlib só para grá
 | Capilar | 0,028" (0,711 mm) × 2,16 m, não blocado |
 | Carga de R290 | ≈ 145 g (135 g com as serpentinas de projeto) |
 | Consumo estimado | ≈ 2,2 kWh/dia |
+| Pull-down estimado (porta fechada, 32 → 2,5 °C) | ≈ 12 h; compressor de 132 W (início) a 103 W (fim), pico ≈ 144 W na partida (1,32× o regime) |
 
 ### Eficácia dos trocadores
 
@@ -71,6 +74,32 @@ a mesma ε com 10 % mais vazão e UA, e num modelo de sistema condensa abaixo de
 (é a folga). O bloco `amesim` traz as duas, além da umidade do ar de entrada, do UA úmido e seco do evaporador, das
 linhas, do óleo e da carga separada em circuito, gás na carcaça e refrigerante dissolvido no óleo.
 
+### Potência máxima do compressor e pull-down
+
+`EntradasProjeto(potencia_max_compressor_W=...)` impõe um limite de potência elétrica do compressor (requisito de
+ensaio). Com o COP fixo, potência e capacidade andam juntas (W = Q/COP): respeitar o limite exige um compressor menor
+(mais tempo ligado, pull-down mais longo) ou um COP maior. `RestricaoPotencia` define:
+
+* `criterio="regime"` (padrão): potência no ponto de projeto (gabinete na T_alvo, compressor ligado);
+* `criterio="pico_pulldown"`: maior potência no pull-down de porta fechada, incluindo a partida com o gabinete
+  encharcado — num compressor de rotação fixa ela é 1,2–1,7× a de regime, porque com o gabinete quente a pressão e a
+  massa específica na sucção são altas (o pico do compressor ideal fica na razão de pressão k^(k/(k−1)) ≈ 2,9);
+* `modo="limitar"` (padrão): reduz a capacidade de projeto até atender e avisa o que muda (fração ligado, tempo de
+  pull-down); se nem com o compressor 100 % ligado o regime fecha, dá `ErroProjeto` com o COP necessário.
+  `modo="verificar"` só avisa.
+
+O pull-down vem de `operacao.py`: com a geometria congelada, o sistema é resolvido pelo casamento
+compressor–evaporador–condensador (Stoecker & Jones, cap. 14; reproduz o ponto de projeto a ~10⁻⁶), e o produto troca
+calor com o ar interno por hA (premissa `ParametrosOperacao.h_produto_W_m2K = 5`, **calibrar com ensaio de
+pull-down**). O pico de potência não depende de hA; o tempo depende. No exemplo:
+
+| Limite | Resultado |
+|---|---|
+| 150 W (regime) | inativo: 109 W em regime |
+| 100 W (regime) | capacidade 218 → 200 W, compressor 2,03 cm³, ligado 69 % do tempo, pull-down 13,6 h; aviso: pico 132 W |
+| 130 W (pico) | capacidade 218 → 196 W, regime 98 W, pico 129 W, pull-down 13,9 h |
+| 60 W (regime) | inviável: seria preciso COP ≥ 2,55 só para o regime com margem |
+
 ## Estrutura
 
 ```
@@ -85,7 +114,8 @@ predim_refrigeracao/
 │   ├── trocador.py            condensador/evaporador por zonas e segmentos
 │   ├── capilar.py             modelo homogêneo com blocagem
 │   ├── carga_fluido.py        massa de refrigerante e limites para HC
-│   ├── projeto.py             orquestração (ciclo ↔ trocadores ↔ capilar)
+│   ├── operacao.py            fora do projeto: casamento de componentes, pull-down, pico de potência
+│   ├── projeto.py             orquestração (ciclo ↔ trocadores ↔ capilar, limite de potência)
 │   ├── relatorio.py           resumo, JSON, bloco "amesim"
 │   └── graficos.py            P-h, T-s, perfis, mapa de COP
 ├── tests/                     testes automatizados (pytest)
@@ -111,6 +141,7 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 | Queda de pressão | Müller-Steinhagen & Heck + aceleração (Rouhani-Axelsson), acoplada ao ciclo |
 | Capilar | HEM: flash isentálpico, integração em pressão, blocagem pela linha de Fanno |
 | Carga de fluido | ρ in situ com fração de vazio de Rouhani-Axelsson + linhas, carcaça e óleo |
+| Pull-down / potência | casamento compressor–trocadores com geometria fixa (Newton 2D, bissecção de reserva); produto concentrado com hA; quadratura em T_produto |
 
 ## Verificação e validação
 
@@ -131,6 +162,10 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 | T_in 31,4 °C, P_in 9,67 bar | 1,130 g/s | −2,9 % | −4,3 % | −2,2 % |
 | T_in 23,4 °C, P_in 7,17 bar | 0,844 g/s | −1,2 % | −3,5 % | +0,1 % |
 
+* Pull-down: o modelo fora do projeto reproduz T_evap, T_cond, ṁ, Q e W do dimensionamento; a quadratura com
+  interpolação PCHIP bate com a integração direta da EDO (solve_ivp) a 0,3 %; a energia retirada do produto fecha a
+  0,2 %; com o pull-down governando e produto = ar, o tempo fica abaixo de t_req/(1 + margem), como a carga de projeto
+  garante (`tests/test_operacao.py`).
 * Correlação de Wang (2000): com o termo 0,158 ln[N(Fp/Dc)^0,41] em P3 (omitido em algumas transcrições), j fica
   contínuo de N=1 para N=2 e quase independente de N em Re alto, como nos dados; sem ele, j cairia 4–5× de 1 para
   6 fileiras (teste `test_wang_j_fisicamente_coerente`).
@@ -160,8 +195,10 @@ Depois de alterar qualquer módulo: `python ferramentas/gerar_notebook.py` (rege
 
 ## Limitações conhecidas
 
-* Pré-dimensionamento em regime permanente. Transitórios (pull-down real, ciclagem, degelo) ficam para o Amesim.
-* O compressor é um modelo genérico (espaço morto + η constante). Substituir pelo mapa do compressor escolhido.
+* Pré-dimensionamento em regime permanente. Transitórios (pull-down real, ciclagem, degelo) ficam para o Amesim; o
+  pull-down da rotina é quase estático (superaquecimento fixo, massa do gabinete desprezada, hA premissa).
+* O compressor é um modelo genérico (espaço morto + η constante), também usado no pico de potência. Substituir pelo
+  mapa do compressor escolhido (polinômio EN 12900 / AHRI 540).
 * O capilar é adiabático e sem metaestabilidade. Com trocador interno (capilar soldado à sucção), ajustar em protótipo.
 * Correlações de tubo liso, sem óleo. Geada só como resistência de incrustação.
 * A carga térmica depende fortemente das premissas de uso. A conferência é feita contra o modelo do Amesim: com as

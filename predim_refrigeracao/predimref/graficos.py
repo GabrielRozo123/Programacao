@@ -186,6 +186,55 @@ def mapa_cop(fluido: str, T_alvo_C: float, T_amb_C: np.ndarray, p_ciclo=None, et
     return fig
 
 
+def pulldown(res):
+    """Pull-down estimado (porta fechada): temperaturas e potência do compressor ao longo do tempo."""
+    pd = res.pulldown
+    if pd is None:
+        return None
+    plt = _estilo()
+    fig, (a1, a2) = plt.subplots(1, 2, figsize=(12, 4.3))
+    th = pd.t / 3600.0
+    T_alvo = pd.T_alvo - 273.15
+    curvas = ((pd.T_produto, AZUL, "produto"), (pd.T_ar, LARANJA, "ar interno"),
+              (pd.T_evap, VERDE_AGUA, "evaporação"))
+    for y, cor, nome in curvas:
+        a1.plot(th, y - 273.15, color=cor, label=nome)
+        a1.annotate(nome, (th[-1], y[-1] - 273.15), textcoords="offset points", xytext=(4, 0), va="center",
+                    color=TEXTO_2, fontsize=8)
+    a1.axhline(T_alvo, color=TEXTO_2, lw=0.8, ls="--")
+    a1.annotate(f"alvo {T_alvo:.1f} °C", (0.55 * th[-1], T_alvo), textcoords="offset points", xytext=(0, 4),
+                ha="center", color=TEXTO_2, fontsize=8)
+    a1.set_xlabel("tempo [h]")
+    a1.set_ylabel("temperatura [°C]")
+    fim = f"{pd.tempo_h:.1f} h até {T_alvo:.1f} °C" if pd.concluido else "não atinge o alvo"
+    a1.set_title(f"Pull-down estimado (porta fechada): {fim}")
+    a1.legend(loc="upper right")
+    a1.set_xlim(0.0, th[-1] * 1.12)
+
+    a2.plot(th, pd.Q_evap, color=AZUL, label="capacidade frigorífica")
+    a2.plot(th, pd.W_el, color=LARANJA, label="potência elétrica do compressor")
+    for y, nome in ((pd.Q_evap, "capacidade"), (pd.W_el, "potência")):
+        a2.annotate(nome, (th[-1], y[-1]), textcoords="offset points", xytext=(4, 0), va="center", color=TEXTO_2,
+                    fontsize=8)
+    a2.plot(pd.t_pico_s / 3600.0, pd.W_pico, "o", ms=8, color=LARANJA, mec=SUPERFICIE, mew=2, clip_on=False,
+            zorder=5)
+    a2.annotate(f"pico {pd.W_pico:.0f} W" + (" (partida)" if pd.pico_na_partida else ""),
+                (pd.t_pico_s / 3600.0, pd.W_pico), textcoords="offset points", xytext=(8, 6), color=TEXTO, fontsize=8)
+    lim = (res.potencia or {}).get("limite_W")
+    if lim:
+        a2.axhline(lim, color=TEXTO_2, lw=1.0, ls="--")
+        a2.annotate(f"limite {lim:.0f} W", (th[-1], lim), textcoords="offset points", xytext=(0, 4), ha="right",
+                    color=TEXTO_2, fontsize=8)
+    a2.set_xlabel("tempo [h]")
+    a2.set_ylabel("potência [W]")
+    a2.set_ylim(0.0, max(float(np.max(pd.Q_evap)), lim or 0.0) * 1.12)
+    a2.set_xlim(0.0, th[-1] * 1.15)
+    a2.set_title(f"Compressor no pull-down: regime de projeto {res.balanco.W_el:.0f} W, pico {pd.W_pico:.0f} W")
+    a2.legend(loc="upper right")
+    fig.tight_layout()
+    return fig
+
+
 def painel(res):
     """Gera todas as figuras principais e devolve um dicionário nome -> Figure."""
     plt = _estilo()
@@ -200,4 +249,6 @@ def painel(res):
     figs["evaporador"] = perfil_trocador(res.evaporador)
     figs["capilar"] = perfil_capilar(res)
     figs["exergia"] = barras(res.exergia["destruicao_W"], "Destruição de exergia por componente", "W")
+    if getattr(res, "pulldown", None) is not None:
+        figs["pulldown"] = pulldown(res)
     return figs

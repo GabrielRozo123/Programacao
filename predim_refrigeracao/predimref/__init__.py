@@ -10,7 +10,9 @@ Fluxo do cálculo (ver ``projeto.dimensionar``):
 4. condensador e evaporador aletados, dimensionados segmento a segmento com ε-NTU,
    correlações locais e queda de pressão (``trocador``);
 5. tubo capilar adiabático pelo modelo homogêneo com detecção de blocagem (``capilar``);
-6. carga de refrigerante, balanço de energia e de exergia, avisos de projeto.
+6. carga de refrigerante, balanço de energia e de exergia, avisos de projeto;
+7. operação fora do projeto: pull-down quase estático, pico de potência e limite de potência
+   máxima do compressor (``operacao`` e ``RestricaoPotencia``).
 
 Unidades internas: SI (Pa, K, J/kg, m, kg/s, W). A interface de alto nível aceita °C e litros.
 """
@@ -18,6 +20,7 @@ Unidades internas: SI (Pa, K, J/kg, m, kg/s, W). A interface de alto nível acei
 __version__ = "0.1.0"
 
 from .avisos import ErroProjeto
-from .projeto import EntradasProjeto, ParametrosProjeto, ResultadoProjeto, dimensionar
+from .projeto import EntradasProjeto, ParametrosProjeto, RestricaoPotencia, ResultadoProjeto, dimensionar
 
-__all__ = ["ErroProjeto", "EntradasProjeto", "ParametrosProjeto", "ResultadoProjeto", "dimensionar"]
+__all__ = ["ErroProjeto", "EntradasProjeto", "ParametrosProjeto", "RestricaoPotencia", "ResultadoProjeto",
+           "dimensionar"]
