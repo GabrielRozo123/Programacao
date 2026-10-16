@@ -82,8 +82,10 @@ ensaio). Com o COP fixo, potência e capacidade andam juntas (W = Q/COP): respei
 
 * `criterio="regime"` (padrão): potência no ponto de projeto (gabinete na T_alvo, compressor ligado);
 * `criterio="pico_pulldown"`: maior potência no pull-down de porta fechada, incluindo a partida com o gabinete
-  encharcado — num compressor de rotação fixa ela é 1,2–1,7× a de regime, porque com o gabinete quente a pressão e a
-  massa específica na sucção são altas (o pico do compressor ideal fica na razão de pressão k^(k/(k−1)) ≈ 2,9);
+  encharcado (ar a max(T_produto inicial, T_ambiente)). Num compressor de rotação fixa ela passa da de regime porque, com
+  o gabinete quente, a pressão e a massa específica na sucção são altas: nas varreduras feitas, 1,1–2,1× a de regime,
+  mais com ambiente quente, T_alvo baixa e fluidos de razão de pressão alta (R134a, R600a). O valor de cada caso sai em
+  `res.potencia["razao_pico_regime"]`;
 * `modo="limitar"` (padrão): reduz a capacidade de projeto até atender e avisa o que muda (fração ligado, tempo de
   pull-down); se nem com o compressor 100 % ligado o regime fecha, dá `ErroProjeto` com o COP necessário.
   `modo="verificar"` só avisa.
@@ -91,14 +93,16 @@ ensaio). Com o COP fixo, potência e capacidade andam juntas (W = Q/COP): respei
 O pull-down vem de `operacao.py`: com a geometria congelada, o sistema é resolvido pelo casamento
 compressor–evaporador–condensador (Stoecker & Jones, cap. 14; reproduz o ponto de projeto a ~10⁻⁶), e o produto troca
 calor com o ar interno por hA (premissa `ParametrosOperacao.h_produto_W_m2K = 5`, **calibrar com ensaio de
-pull-down**). O pico de potência não depende de hA; o tempo depende. No exemplo:
+pull-down**). O compressor fica 100 % ligado até o produto atingir T_alvo (ensaio de capacidade, sem corte do termostato),
+então o ar interno e o insuflado terminam abaixo de T_alvo (ambos reportados). O pico de potência não depende de hA; o
+tempo depende. No exemplo:
 
 | Limite | Resultado |
 |---|---|
 | 150 W (regime) | inativo: 109 W em regime |
 | 100 W (regime) | capacidade 218 → 200 W, compressor 2,03 cm³, ligado 69 % do tempo, pull-down 13,6 h; aviso: pico 132 W |
 | 130 W (pico) | capacidade 218 → 196 W, regime 98 W, pico 129 W, pull-down 13,9 h |
-| 60 W (regime) | inviável: seria preciso COP ≥ 2,55 só para o regime com margem |
+| 60 W (regime) | inviável: seria preciso COP ≥ 2,54 só para o regime com margem |
 
 ## Estrutura
 

@@ -4,11 +4,14 @@ Por que importa para a potência máxima
 --------------------------------------
 Num compressor alternativo de rotação fixa a potência elétrica não é constante. Com o gabinete
 quente (início do pull-down) a pressão de evaporação é alta, a massa específica na sucção também, e
-a potência passa por um máximo: para um compressor ideal sem espaço morto e pressão de descarga
+a potência é maior que a de regime. Para um compressor ideal sem espaço morto e pressão de descarga
 fixa, W ∝ P_suc [(P_desc/P_suc)^((k−1)/k) − 1], que é máxima em P_desc/P_suc = k^(k/(k−1)) (≈ 2,9 para
-k = 1,13). Por isso o motor é verificado no pull-down e não só no regime (Stoecker & Jones,
-Refrigeration and Air Conditioning, 2ª ed., cap. 11). Um limite de potência máxima de ensaio
-precisa dizer se vale para o regime ou para o pico; aqui calculam-se os dois.
+k = 1,13); como a pressão de descarga também sobe com a carga, nos casos típicos de visi-cooler o
+máximo do modelo cai na partida. Por isso o motor é verificado no pull-down e não só no regime
+(Stoecker & Jones, Refrigeration and Air Conditioning, 2ª ed., cap. 11). Um limite de potência máxima
+de ensaio precisa dizer se vale para o regime ou para o pico; aqui calculam-se os dois. A razão
+pico/regime depende do caso (≈ 1,1–2,1× nas varreduras feitas: maior com ambiente quente, T_alvo baixa
+e fluidos de razão de pressão alta, como R134a e R600a) e é reportada em cada execução.
 
 Modelo do sistema (casamento de componentes; Stoecker & Jones, cap. 14)
 -----------------------------------------------------------------------
@@ -27,15 +30,30 @@ Pull-down quase estático (porta fechada)
 ----------------------------------------
 Produto (bebida + embalagem + ``Uso.massa_adicional_kg``) concentrado num nó à T_p, que troca calor
 com o ar interno à T_a por hA; o ar tem capacidade térmica desprezível frente à do produto e fica em
-equilíbrio a cada instante:
-    0 = hA (T_p − T_a) + UA_gab (T_amb − T_a) + Q_base + Q_int − Q_evap(T_a)
+equilíbrio a cada instante (só a parcela sensível Q_evap/ξ resfria o ar):
+    0 = hA (T_p − T_a) + UA_gab (T_amb − T_a) + Q_base + Q_int − Q_evap(T_a)/ξ
     C_p dT_p/dt = −hA (T_p − T_a)   →   t(T_p) = ∫ C_p dT_p / [hA (T_p − T_a(T_p))]
 A transmissão é a do dimensionamento (afim em T_a: UA_gab e o acréscimo da base sobre o
 compartimento do compressor). Q_evap(T_a), W(T_a) etc. vêm de uma grade de pontos de operação
-interpolada por PCHIP (monotônica, sem oscilação); o pico de potência é refinado com o modelo completo.
+interpolada por PCHIP (monotônica, sem oscilação); o limite inferior da grade (ar no fim do pull-down)
+é localizado com o modelo completo e o pico de potência é refinado com ele.
+
+O compressor fica 100 % ligado até o produto chegar a T_alvo (ensaio de capacidade de pull-down, com o
+termostato no mínimo ou ignorado). Por isso o ar interno e o ar insuflado terminam abaixo de T_alvo
+(ambos são reportados); com o termostato do produto cortando pelo ar, o tempo real seria maior.
+
+Pico de potência: na trajetória quase estática o ar já está abaixo do produto em t = 0⁺, mas nos
+primeiros minutos o evaporador ainda vê o ar do gabinete encharcado, à max(T_p0, T_amb). O pico
+reportado é o máximo de W(T_a) entre o ar no fim do pull-down e essa temperatura: um limite superior que
+inclui a partida e não depende de hA (despreza a inércia térmica do evaporador e o transitório de
+pressões da partida).
 
 Hipóteses e limites (estimativa de pré-dimensionamento, não substitui o Amesim):
-* ε constante: o lado do ar domina a resistência; ε muda pouco com o coeficiente interno.
+* ε e Ċ_ar constantes. O lado interno responde por cerca de 40–50 % da resistência, então ε sobe
+  com ṁ no pull-down, enquanto Ċ_ar cai com ρ_ar (vazão volumétrica fixa). Os dois efeitos quase se
+  cancelam: no exemplo de 200 L, recalcular as serpentinas com a geometria fixa deu, na partida, W
+  ≈ 3 % menor (o modelo é conservador no pico) e Q ≈ 3–4 % maior, e diferenças < 2 % no resto da
+  trajetória.
 * η_global constante: em compressores reais ela varia com a razão de pressão; calibrar com o
   polinômio de catálogo (EN 12900 / AHRI 540) ou com ensaio do compressor candidato.
 * superaquecimento fixo: com capilar o evaporador fica sub-alimentado no início do pull-down; o Amesim,
@@ -63,6 +81,8 @@ from .constantes import C_para_K
 from .gabinete import cargas_internas, transmissao
 from .propriedades import Fluido
 
+_ERROS_NUMERICOS = (ValueError, ArithmeticError, np.linalg.LinAlgError)
+
 
 @dataclass
 class ParametrosOperacao:
@@ -71,9 +91,10 @@ class ParametrosOperacao:
     T_produto_inicial_C: Optional[float] = None  # None -> Uso.T_produto_entrada_C ou a ambiente
     h_produto_W_m2K: float = 5.0                 # ar–garrafa na área lateral (convecção mista, garrafas encostadas)
     hA_produto_W_K: Optional[float] = None       # sobrepõe h × área (use o valor calibrado em ensaio)
-    fator_umidade: float = 1.0                   # porta fechada: serpentina praticamente seca
-    n_pontos: int = 25                           # grade de temperatura do ar interno
-    n_passos: int = 400                          # passos de integração em T_produto
+    fator_umidade: float = 1.0                   # porta fechada: serpentina seca. ξ > 1 só eleva T_evap e W
+    #                                              (a parcela latente não resfria o ar nem o produto)
+    n_pontos: int = 25                           # grade de temperatura do ar interno (≥ 9)
+    n_passos: int = 400                          # passos de integração em T_produto (≥ 100)
 
 
 @dataclass
@@ -150,8 +171,17 @@ def ponto_operacao(modelo: ModeloSistema, T_ar_evap: float, T_ar_cond: float, xi
 
     Newton 2D com jacobiana por diferenças finitas a partir do chute (ou do ΔT de projeto); se não
     convergir, bissecção aninhada (T_cond para cada T_evap e depois T_evap), que é robusta porque os dois
-    resíduos são monotônicos."""
-    fl = fl or Fluido(modelo.fluido)
+    resíduos são monotônicos. Falhas numéricas viram ``ErroProjeto``."""
+    try:
+        return _ponto_operacao(modelo, T_ar_evap, T_ar_cond, xi, chute, fl or Fluido(modelo.fluido))
+    except ErroProjeto:
+        raise
+    except _ERROS_NUMERICOS as err:
+        raise ErroProjeto(f"ponto de operação com ar a {T_ar_evap - 273.15:.1f} °C (evaporador) e "
+                          f"{T_ar_cond - 273.15:.1f} °C (condensador) sem solução numérica ({err}).") from err
+
+
+def _ponto_operacao(modelo, T_ar_evap, T_ar_cond, xi, chute, fl) -> PontoOperacao:
     Ce = xi * modelo.eps_evap * modelo.C_ar_evap
     Cc = modelo.eps_cond * modelo.C_ar_cond
     Q_ref = max(modelo.Q_proj, 1.0)
@@ -175,17 +205,22 @@ def ponto_operacao(modelo: ModeloSistema, T_ar_evap: float, T_ar_cond: float, xi
     if valido(*x):
         try:
             sol = _newton(residuos, valido, x)
-        except (ErroProjeto, ValueError, ZeroDivisionError, np.linalg.LinAlgError):
+        except (ErroProjeto,) + _ERROS_NUMERICOS:
             sol = None
     if sol is None:
-        sol = _bisseccao(residuos, fl, T_ar_evap, T_ar_cond, T_e_min, T_c_max, SR)
+        sol = _bisseccao(residuos, T_ar_evap, T_ar_cond, T_e_min, T_c_max, SR)
     (T_e, T_c), (c, m, eta_v) = sol
+    if not (m > 0.0 and eta_v > 0.0):
+        raise ErroProjeto(f"ponto de operação sem vazão (η_v = {eta_v:.3f}) com ar a {T_ar_evap - 273.15:.1f} °C: "
+                          "razão de pressão acima da capacidade de bombeamento do compressor.")
     e = c.estados
     return PontoOperacao(T_ar_evap, T_ar_cond, T_e, T_c, e["1"].P, e["2"].P, m, m * c.q_evap,
                          m * (e["2"].h - e["3"].h), m * c.w_s / modelo.eta_global, eta_v, e["2"].T)
 
 
-def _newton(residuos, valido, x, tol: float = 1e-9, max_iter: int = 30):
+def _newton(residuos, valido, x, tol: float = 1e-9, tol_aceite: float = 1e-7, max_iter: int = 30):
+    """Newton amortecido. Converge a ``tol``; aceita ``tol_aceite`` quando o ruído numérico das propriedades
+    (≈1e-8 relativo) impede avançar."""
     r, aux = residuos(*x)
     for _ in range(max_iter):
         if np.max(np.abs(r)) < tol:
@@ -209,31 +244,52 @@ def _newton(residuos, valido, x, tol: float = 1e-9, max_iter: int = 30):
                     break
             lam *= 0.5
         else:
-            return None
-    return (x, aux) if np.max(np.abs(r)) < tol else None
+            break
+    return (x, aux) if np.max(np.abs(r)) < tol_aceite else None
 
 
-def _bisseccao(residuos, fl, T_ar_e, T_ar_c, T_e_min, T_c_max, SR):
+def _bisseccao(residuos, T_ar_e, T_ar_c, T_e_min, T_c_max, SR):
+    """Bissecção aninhada. Nos extremos do intervalo o ciclo pode não existir (condensador que não rejeita
+    o calor, estado 4 sem vapor); ali o erro só informa o sinal do resíduo."""
+    def r_cond(T_e, T_c):
+        try:
+            return residuos(T_e, T_c)[0][1]
+        except (ErroProjeto,) + _ERROS_NUMERICOS:
+            return math.nan
+
     def Tc_de(T_e):
         lo = max(T_ar_c + 1e-3, T_e + SR + 0.6)
         hi = min(T_c_max, T_ar_c + 150.0)
-        f = lambda T_c: residuos(T_e, T_c)[0][1]  # noqa: E731
-        if f(lo) <= 0.0:
+        if lo >= hi:
+            raise ErroProjeto("ponto de operação: sem faixa válida de T_cond.")
+        f_lo, f_hi = r_cond(T_e, lo), r_cond(T_e, hi)
+        if f_lo <= 0.0:
             return lo
-        if f(hi) > 0.0:
-            raise ErroProjeto(f"ponto de operação: o condensador não rejeita o calor nem com T_cond = "
-                              f"{hi - 273.15:.0f} °C (ar a {T_ar_c - 273.15:.1f} °C).")
-        return brentq(f, lo, hi, xtol=1e-7)
+        if not f_hi < 0.0:           # positivo ou ciclo inválido em T_c_max: compressor grande demais
+            return None
+        return brentq(lambda T_c: residuos(T_e, T_c)[0][1], lo, hi, xtol=1e-7)
 
     def g(T_e):
-        return residuos(T_e, Tc_de(T_e))[0][0]
+        T_c = Tc_de(T_e)
+        if T_c is None:
+            return 1.0              # o condensador não rejeita o calor: a T_evap real é menor
+        try:
+            return residuos(T_e, T_c)[0][0]
+        except (ErroProjeto,) + _ERROS_NUMERICOS:
+            return 1.0
 
     lo, hi = max(T_e_min, T_ar_e - 80.0), T_ar_e - 1e-3
-    if g(lo) > 0.0:
-        raise ErroProjeto("ponto de operação: compressor grande demais para o evaporador mesmo no limite "
+    g_lo, g_hi = g(lo), g(hi)
+    if g_lo > 0.0:
+        raise ErroProjeto("ponto de operação: compressor grande demais para os trocadores mesmo no limite "
                           "inferior de T_evap.")
+    if not g_hi > 0.0:
+        raise ErroProjeto("ponto de operação: evaporador grande demais para o compressor mesmo com T_evap "
+                          "junto da temperatura do ar.")
     T_e = brentq(g, lo, hi, xtol=1e-7)
     T_c = Tc_de(T_e)
+    if T_c is None:
+        raise ErroProjeto(f"ponto de operação: o condensador não rejeita o calor (ar a {T_ar_c - 273.15:.1f} °C).")
     return np.array([T_e, T_c]), residuos(T_e, T_c)[1]
 
 
@@ -249,7 +305,7 @@ class ResultadoPulldown:
     Q_internas_W: float
     fator_umidade: float
     concluido: bool                  # o produto chega a T_alvo
-    tempo_s: float                   # até T_alvo (ou até 0,5 K da temperatura de equilíbrio, se não concluir)
+    tempo_s: float                   # até T_alvo; se não concluir, até 0,5 K da temperatura de equilíbrio
     T_produto_equilibrio: Optional[float]
     t: np.ndarray
     T_produto: np.ndarray
@@ -259,16 +315,22 @@ class ResultadoPulldown:
     Q_evap: np.ndarray
     W_el: np.ndarray
     T_descarga: np.ndarray
-    pico: PontoOperacao              # máximo de W entre o ar no fim do pull-down e T_p0 (inclui a partida)
+    T_insuflado: np.ndarray          # ar na saída do evaporador (bulbo seco)
+    pico: PontoOperacao              # máximo de W entre o ar no fim do pull-down e o ar encharcado (inclui a partida)
     t_pico_s: float
     pico_na_partida: bool            # o máximo está na partida (ar ainda acima do valor quase estático)
     W_pico_trajetoria: float         # máximo na trajetória quase estática (t > 0)
+    T_ar_inicial: float              # ar do gabinete encharcado = max(T_produto_inicial, T_ambiente)
     E_compressor_J: float
     grade: dict = field(default_factory=dict)
 
     @property
     def tempo_h(self) -> float:
         return self.tempo_s / 3600.0
+
+    @property
+    def tempo_ate_alvo_s(self) -> Optional[float]:
+        return self.tempo_s if self.concluido else None
 
     @property
     def W_pico(self) -> float:
@@ -290,31 +352,58 @@ class ResultadoPulldown:
     def T_descarga_max(self) -> float:
         return float(np.max(self.T_descarga))
 
+    @property
+    def T_ar_min(self) -> float:
+        return float(np.min(self.T_ar))
+
+    @property
+    def T_insuflado_min(self) -> float:
+        return float(np.min(self.T_insuflado))
+
     def curva(self, n: int = 61) -> dict:
         """Curva reamostrada em tempo uniforme (para exportar e comparar com o Amesim)."""
         tt = np.linspace(0.0, self.t[-1], n)
         f = lambda y: np.interp(tt, self.t, y).tolist()  # noqa: E731
         return {"t_s": tt.tolist(), "T_produto_K": f(self.T_produto), "T_ar_K": f(self.T_ar),
-                "T_evap_K": f(self.T_evap), "T_cond_K": f(self.T_cond), "Q_evap_W": f(self.Q_evap),
-                "W_el_W": f(self.W_el), "T_descarga_K": f(self.T_descarga)}
+                "T_insuflado_K": f(self.T_insuflado), "T_evap_K": f(self.T_evap), "T_cond_K": f(self.T_cond),
+                "Q_evap_W": f(self.Q_evap), "W_el_W": f(self.W_el), "T_descarga_K": f(self.T_descarga)}
+
+
+def temperatura_inicial_produto(uso, po: ParametrosOperacao, T_amb_proj_C: float) -> float:
+    """T_produto inicial do pull-down [°C]: a de ``ParametrosOperacao``, senão a de entrada do produto, senão a ambiente."""
+    if po.T_produto_inicial_C is not None:
+        return po.T_produto_inicial_C
+    T_amb_C = T_amb_proj_C if po.T_ambiente_C is None else po.T_ambiente_C
+    return T_amb_C if uso.T_produto_entrada_C is None else uso.T_produto_entrada_C
 
 
 def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: ParametrosCiclo, T_amb_proj_C: float,
                      T_alvo_C: float, po: ParametrosOperacao) -> ResultadoPulldown:
-    """Pull-down de portas fechadas da carga cheia, do produto à T_inicial até T_alvo (ver docstring do módulo)."""
+    """Pull-down de portas fechadas da carga cheia, do produto à T_inicial até T_alvo (ver docstring do módulo).
+    Entradas inviáveis e falhas numéricas viram ``ErroProjeto``."""
+    try:
+        return _simular_pulldown(modelo, cap, gab, uso, garrafa, pc, T_amb_proj_C, T_alvo_C, po)
+    except ErroProjeto:
+        raise
+    except _ERROS_NUMERICOS as err:
+        raise ErroProjeto(f"pull-down: falha numérica ({type(err).__name__}: {err}).") from err
+
+
+def _simular_pulldown(modelo, cap, gab, uso, garrafa, pc, T_amb_proj_C, T_alvo_C, po) -> ResultadoPulldown:
     fl = Fluido(modelo.fluido)
     T_amb_C = T_amb_proj_C if po.T_ambiente_C is None else po.T_ambiente_C
-    if po.T_produto_inicial_C is not None:
-        T_p0_C = po.T_produto_inicial_C
-    else:
-        T_p0_C = T_amb_C if uso.T_produto_entrada_C is None else uso.T_produto_entrada_C
+    T_p0_C = temperatura_inicial_produto(uso, po, T_amb_proj_C)
     if T_p0_C <= T_alvo_C + 0.5:
-        raise ErroProjeto("pull-down: o produto inicial deve estar acima de T_alvo + 0,5 K.")
+        raise ErroProjeto(f"pull-down: o produto inicial ({T_p0_C:.1f} °C) deve estar acima de T_alvo + 0,5 K "
+                          "(ajuste ParametrosOperacao.T_produto_inicial_C).")
     if T_amb_C <= T_alvo_C:
         raise ErroProjeto("pull-down: a temperatura ambiente deve ser maior que a alvo.")
-    if po.n_pontos < 5 or po.n_passos < 20:
-        raise ErroProjeto("pull-down: use n_pontos ≥ 5 e n_passos ≥ 20.")
+    if po.n_pontos < 9 or po.n_passos < 100:
+        raise ErroProjeto("pull-down: use n_pontos ≥ 9 e n_passos ≥ 100.")
+    if not po.fator_umidade >= 1.0:
+        raise ErroProjeto("pull-down: fator_umidade deve ser ≥ 1.")
     T_amb, T_p0, T_f = C_para_K(T_amb_C), C_para_K(T_p0_C), C_para_K(T_alvo_C)
+    T_sup = max(T_p0, T_amb)                     # ar do gabinete encharcado na partida
     E = (cap.n_garrafas * garrafa.energia_resfriamento(T_p0_C, T_alvo_C)
          + uso.massa_adicional_kg * uso.cp_adicional * (T_p0_C - T_alvo_C))
     C_p = E / (T_p0_C - T_alvo_C)
@@ -336,11 +425,19 @@ def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: Parametr
     def ponto(T_a, chute=None):
         return ponto_operacao(modelo, T_a + dTr, T_ar_c, xi, chute, fl)
 
-    # grade de T_a: do limite inferior (ar no fim do pull-down) até T_p0 -------------------------------
+    # limite inferior da grade: ar no fim do pull-down, localizado com o modelo completo ---------------
     p_f = ponto(T_f)
-    N0 = p_f.Q_evap - carga_sem_produto(T_f)
-    T_lo = T_f - max(N0, 0.0) / hA - 1.0
-    Ts = np.linspace(T_lo, T_p0, po.n_pontos)
+    if p_f.Q_evap / xi - carga_sem_produto(T_f) > 0.0:
+        T, q = T_f, p_f
+        while q.Q_evap / xi - carga_sem_produto(T) - hA * (T_f - T) > 0.0:
+            if T < T_f - 80.0:
+                raise ErroProjeto("pull-down: ar no fim do pull-down mais de 80 K abaixo de T_alvo (hA muito baixo).")
+            T = T - 2.0
+            q = ponto(T, (q.T_evap - 1.2, q.T_cond))
+        T_lo = T - 0.5
+    else:
+        T_lo = T_f - 1.0
+    Ts = np.linspace(T_lo, T_sup, po.n_pontos)
     i0 = int(np.argmin(np.abs(Ts - T_f)))
     pts: list = [None] * len(Ts)
     pts[i0] = ponto(Ts[i0], (p_f.T_evap, p_f.T_cond))
@@ -353,8 +450,8 @@ def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: Parametr
     arr = {k: np.array([getattr(q, k) for q in pts]) for k in ("Q_evap", "W_el", "T_evap", "T_cond", "T_descarga")}
     it = {k: PchipInterpolator(Ts, v) for k, v in arr.items()}
 
-    def liquido(T_a):  # calor líquido que o evaporador tira do produto com o ar à T_a
-        return float(it["Q_evap"](T_a)) - carga_sem_produto(T_a)
+    def liquido(T_a):  # calor sensível que o evaporador tira do produto com o ar à T_a
+        return float(it["Q_evap"](T_a)) / xi - carga_sem_produto(T_a)
 
     # fim: T_alvo, ou perto do equilíbrio se o sistema não chegar lá -------------------------------
     concluido, T_eq = True, None
@@ -372,6 +469,8 @@ def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: Parametr
     Ta = np.empty_like(Tp)
     for k, T_p in enumerate(Tp):
         F = lambda T_a: liquido(T_a) - hA * (T_p - T_a)  # noqa: E731
+        if not F(T_lo) < 0.0:
+            raise ErroProjeto("pull-down: grade de temperatura do ar sem o ponto de equilíbrio (revise hA).")
         Ta[k] = brentq(F, T_lo, T_p, xtol=1e-7) if F(T_p) > 0.0 else T_p
     Q_prod = hA * (Tp - Ta)
     if np.any(Q_prod <= 0.0):
@@ -380,17 +479,15 @@ def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: Parametr
     t = -cumulative_trapezoid(dtdT, Tp, initial=0.0)
     W = it["W_el"](Ta)
     E_comp = -float(np.trapezoid(W * dtdT, Tp)) if hasattr(np, "trapezoid") else -float(np.trapz(W * dtdT, Tp))
+    T_ev = it["T_evap"](Ta)
+    T_ins = (Ta + dTr) - modelo.eps_evap * (Ta + dTr - T_ev)
 
-    # pico de potência --------------------------------------------------------------------------
-    # Na trajetória quase estática o ar já está abaixo do produto em t = 0⁺; nos primeiros minutos
-    # (gabinete e produto encharcados à T_p0) o evaporador ainda vê ar mais quente. O pico reportado é o
-    # máximo de W(T_a) entre o ar no fim do pull-down e T_p0: limite superior que inclui a partida e não
-    # depende de hA (despreza a inércia térmica do evaporador e o transitório de pressões da partida).
+    # pico de potência entre o ar no fim do pull-down e o ar encharcado da partida ------------------------
     def chute(T_a):
         q = pts[int(np.argmin(np.abs(Ts - T_a)))]
         return (q.T_evap + (T_a + dTr - q.T_ar_evap) * 0.6, q.T_cond)
 
-    TT = np.linspace(Ta[-1], T_p0, 400)
+    TT = np.linspace(Ta[-1], T_sup, 400)
     WW = it["W_el"](TT)
     k = int(np.argmax(WW))
     if 0 < k < len(TT) - 1:
@@ -403,9 +500,9 @@ def simular_pulldown(modelo: ModeloSistema, cap, gab, uso, garrafa, pc: Parametr
     na_partida = T_pico > Ta[0]
     t_pico = 0.0 if na_partida else float(np.interp(-T_pico, -Ta, t))
     return ResultadoPulldown(T_amb, T_p0, T_f, C_p, hA, UA, Q_int, xi, concluido, float(t[-1]), T_eq, t, Tp, Ta,
-                             it["T_evap"](Ta), it["T_cond"](Ta), it["Q_evap"](Ta), W, it["T_descarga"](Ta),
-                             pico, t_pico, na_partida, float(np.max(W)), E_comp, {"T_ar": Ts, **arr})
+                             T_ev, it["T_cond"](Ta), it["Q_evap"](Ta), W, it["T_descarga"](Ta), T_ins,
+                             pico, t_pico, na_partida, float(np.max(W)), T_sup, E_comp, {"T_ar": Ts, **arr})
 
 
 __all__ = ["ParametrosOperacao", "ModeloSistema", "modelo_do_projeto", "PontoOperacao", "ponto_operacao",
-           "ResultadoPulldown", "simular_pulldown"]
+           "ResultadoPulldown", "simular_pulldown", "temperatura_inicial_produto"]

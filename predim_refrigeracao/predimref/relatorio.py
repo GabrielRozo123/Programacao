@@ -94,23 +94,27 @@ def _pulldown_dict(pd) -> dict | None:
                       "T_alvo_C": _c(pd.T_alvo), "capacidade_termica_produto_kJ_K": pd.C_produto_J_K / 1e3,
                       "hA_ar_produto_W_K": pd.hA_produto_W_K, "UA_gabinete_W_K": pd.UA_gabinete_W_K,
                       "cargas_internas_W": pd.Q_internas_W, "fator_umidade": pd.fator_umidade,
+                      "T_ar_inicial_partida_C": _c(pd.T_ar_inicial), "compressor": "100 % ligado até o produto atingir T_alvo",
                       "modelo": "casamento compressor–trocadores quase estático (geometria de projeto, ε, η_global e "
                                 "superaquecimento constantes); produto concentrado trocando calor com o ar por hA"},
-        "concluido": pd.concluido, "tempo_h": pd.tempo_h,
+        "concluido": pd.concluido, "tempo_h": pd.tempo_h if pd.concluido else None,
+        "tempo_ate_equilibrio_h": None if pd.concluido else pd.tempo_h,
         "T_produto_equilibrio_C": None if pd.T_produto_equilibrio is None else _c(pd.T_produto_equilibrio),
         "potencia_pico_W": pd.W_pico, "pico_na_partida": pd.pico_na_partida, "t_pico_h": pd.t_pico_s / 3600.0,
         "potencia_pico_trajetoria_W": pd.W_pico_trajetoria, "potencia_inicial_W": pd.W_inicial,
         "potencia_final_W": pd.W_final, "energia_compressor_kWh": pd.E_compressor_kWh,
-        "T_descarga_max_C": _c(pd.T_descarga_max),
+        "T_descarga_max_C": _c(pd.T_descarga_max), "T_ar_min_C": _c(pd.T_ar_min),
+        "T_insuflado_min_C": _c(pd.T_insuflado_min),
         "ponto_pico": {"T_ar_evaporador_C": _c(pk.T_ar_evap), "T_evap_C": _c(pk.T_evap), "T_cond_C": _c(pk.T_cond),
                        "razao_pressao": pk.razao_pressao, "Q_evap_W": pk.Q_evap, "vazao_massica_kg_h": pk.m * 3600.0,
                        "COP": pk.COP},
         "curva": {"t_h": [t / 3600.0 for t in cv["t_s"]],
                   **{k.replace("_K", "_C"): [_c(T) for T in v] for k, v in cv.items() if k.endswith("_K")},
                   "Q_evap_W": cv["Q_evap_W"], "W_el_W": cv["W_el_W"]},
-        "nota": "pico = máximo de W(T_ar) entre o ar no fim do pull-down e o produto inicial: inclui a partida com o "
-                "gabinete encharcado (limite superior dos primeiros minutos) e não depende de hA; o tempo depende de hA, "
-                "a calibrar com ensaio de pull-down.",
+        "nota": "pico = máximo de W(T_ar) entre o ar no fim do pull-down e o ar do gabinete encharcado "
+                "(max(T_produto_inicial, T_ambiente)): inclui a partida (limite superior dos primeiros minutos) e não "
+                "depende de hA; o tempo depende de hA, a calibrar com ensaio de pull-down. Sem termostato: o ar interno e "
+                "o insuflado terminam abaixo de T_alvo.",
     }
 
 
@@ -279,11 +283,12 @@ def _bloco_amesim(res) -> dict:
             "T_ambiente_K": res.pulldown.T_ambiente, "T_produto_inicial_K": res.pulldown.T_produto_inicial,
             "T_alvo_K": res.pulldown.T_alvo, "capacidade_termica_produto_J_K": res.pulldown.C_produto_J_K,
             "hA_ar_produto_W_K": res.pulldown.hA_produto_W_K, "cargas_internas_W": res.pulldown.Q_internas_W,
-            "tempo_ate_T_alvo_s": res.pulldown.tempo_s if res.pulldown.concluido else None,
+            "tempo_ate_T_alvo_s": res.pulldown.tempo_ate_alvo_s,
             "potencia_pico_W": res.pulldown.W_pico, "potencia_inicial_W": res.pulldown.W_inicial,
             "potencia_final_W": res.pulldown.W_final, "energia_compressor_J": res.pulldown.E_compressor_J,
             "nota": "estimativa quase estática para comparar com o ensaio de pull-down no Amesim (não é alvo exato): "
-                    "massa do gabinete desprezada, superaquecimento fixo e hA ar–produto premissa."},
+                    "porta fechada e compressor 100 % ligado até o produto atingir T_alvo, massa do gabinete desprezada, "
+                    "superaquecimento fixo e hA ar–produto premissa."},
         "alvo_validacao": {"Q_evap_W": res.balanco.Q_evap, "W_el_W": res.balanco.W_el,
                            "vazao_massica_kg_s": res.balanco.m, "T_evap_K": c.T_evap, "T_cond_K": c.T_cond,
                            "nota": "reproduzido com as serpentinas 'projeto_sem_margem', a vazão de ar requerida e "
@@ -336,7 +341,13 @@ def resumo_texto(res) -> str:
         w(f"  {nome:34s} {v:8.1f}")
     w(f"  regime / fator de utilização       {car.Q_requerida_regime:8.1f}")
     w(f"  pull-down (100 % ligado)           {car.Q_pulldown:8.1f}")
-    w(f"  >> projeto ({car.caso_governante}, +{res.parametros.uso.margem_seguranca:.0%}): {car.Q_projeto:.1f} W "
+    pot = res.potencia or {}
+    if pot.get("limitado"):
+        rotulo = (f"limitado pela potência máxima do compressor; requisitos com +{res.parametros.uso.margem_seguranca:.0%}: "
+                  f"{pot['Q_requisitos_W']:.0f} W")
+    else:
+        rotulo = f"{car.caso_governante}, +{res.parametros.uso.margem_seguranca:.0%}"
+    w(f"  >> projeto ({rotulo}): {car.Q_projeto:.1f} W "
       f"({car.Q_projeto * W_PARA_BTUH:.0f} Btu/h), ξ = {car.fator_umidade:.3f}")
     um = car.infiltracao.get("umidade")
     if um:
@@ -382,6 +393,8 @@ def resumo_texto(res) -> str:
         w(f"  {fim} | compressor {pd.W_inicial:.0f} W (início) → {pd.W_final:.0f} W (fim); pico {pd.W_pico:.0f} W {quando} "
           f"({pd.W_pico / res.balanco.W_el:.2f}× o de regime; T_evap {_c(pd.pico.T_evap):.1f} °C, T_cond "
           f"{_c(pd.pico.T_cond):.1f} °C) | {pd.E_compressor_kWh:.2f} kWh | T_descarga máx {_c(pd.T_descarga_max):.0f} °C")
+        w(f"  compressor 100 % ligado até o produto atingir o alvo: no fim, ar interno {_c(pd.T_ar_min):.1f} °C e ar insuflado "
+          f"{_c(pd.T_insuflado_min):.1f} °C")
     for r in (res.condensador, res.evaporador):
         g = r.geometria
         w("")

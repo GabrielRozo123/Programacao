@@ -186,6 +186,19 @@ def mapa_cop(fluido: str, T_alvo_C: float, T_amb_C: np.ndarray, p_ciclo=None, et
     return fig
 
 
+def _rotulos_fim(ax, x, itens, sep_frac=0.06):
+    """Rótulos diretos no fim das curvas, afastados verticalmente para não se sobreporem."""
+    y0, y1 = ax.get_ylim()
+    sep = sep_frac * (y1 - y0)
+    ordem = sorted(itens, key=lambda it: it[0])
+    ys = [y for y, _ in ordem]
+    for i in range(1, len(ys)):
+        ys[i] = max(ys[i], ys[i - 1] + sep)
+    for (_, nome), y in zip(ordem, ys):
+        ax.annotate(nome, (x, y), textcoords="offset points", xytext=(6, 0), va="center", color=TEXTO_2, fontsize=8,
+                    annotation_clip=False)
+
+
 def pulldown(res):
     """Pull-down estimado (porta fechada): temperaturas e potência do compressor ao longo do tempo."""
     pd = res.pulldown
@@ -199,9 +212,7 @@ def pulldown(res):
               (pd.T_evap, VERDE_AGUA, "evaporação"))
     for y, cor, nome in curvas:
         a1.plot(th, y - 273.15, color=cor, label=nome)
-        a1.annotate(nome, (th[-1], y[-1] - 273.15), textcoords="offset points", xytext=(4, 0), va="center",
-                    color=TEXTO_2, fontsize=8)
-    a1.axhline(T_alvo, color=TEXTO_2, lw=0.8, ls="--")
+    a1.hlines(T_alvo, 0.0, th[-1], color=TEXTO_2, lw=0.8, ls="--")
     a1.annotate(f"alvo {T_alvo:.1f} °C", (0.55 * th[-1], T_alvo), textcoords="offset points", xytext=(0, 4),
                 ha="center", color=TEXTO_2, fontsize=8)
     a1.set_xlabel("tempo [h]")
@@ -209,28 +220,30 @@ def pulldown(res):
     fim = f"{pd.tempo_h:.1f} h até {T_alvo:.1f} °C" if pd.concluido else "não atinge o alvo"
     a1.set_title(f"Pull-down estimado (porta fechada): {fim}")
     a1.legend(loc="upper right")
-    a1.set_xlim(0.0, th[-1] * 1.12)
+    a1.set_xlim(0.0, th[-1] * 1.14)
+    _rotulos_fim(a1, th[-1], [(y[-1] - 273.15, nome) for y, _, nome in curvas])
 
     a2.plot(th, pd.Q_evap, color=AZUL, label="capacidade frigorífica")
     a2.plot(th, pd.W_el, color=LARANJA, label="potência elétrica do compressor")
-    for y, nome in ((pd.Q_evap, "capacidade"), (pd.W_el, "potência")):
-        a2.annotate(nome, (th[-1], y[-1]), textcoords="offset points", xytext=(4, 0), va="center", color=TEXTO_2,
-                    fontsize=8)
     a2.plot(pd.t_pico_s / 3600.0, pd.W_pico, "o", ms=8, color=LARANJA, mec=SUPERFICIE, mew=2, clip_on=False,
             zorder=5)
     a2.annotate(f"pico {pd.W_pico:.0f} W" + (" (partida)" if pd.pico_na_partida else ""),
                 (pd.t_pico_s / 3600.0, pd.W_pico), textcoords="offset points", xytext=(8, 6), color=TEXTO, fontsize=8)
     lim = (res.potencia or {}).get("limite_W")
+    a2.set_ylim(0.0, max(float(np.max(pd.Q_evap)), lim or 0.0) * 1.12)
     if lim:
-        a2.axhline(lim, color=TEXTO_2, lw=1.0, ls="--")
-        a2.annotate(f"limite {lim:.0f} W", (th[-1], lim), textcoords="offset points", xytext=(0, 4), ha="right",
-                    color=TEXTO_2, fontsize=8)
+        a2.hlines(lim, 0.0, th[-1], color=TEXTO_2, lw=1.0, ls="--")
+        # rótulo no meio do eixo, do lado da linha em que a curva de potência não passa
+        x_rot = 0.5 * th[-1]
+        acima = float(np.interp(x_rot, th, pd.W_el)) < lim
+        a2.annotate(f"limite {lim:.0f} W", (x_rot, lim), textcoords="offset points", xytext=(0, 4 if acima else -10),
+                    ha="center", color=TEXTO_2, fontsize=8)
     a2.set_xlabel("tempo [h]")
     a2.set_ylabel("potência [W]")
-    a2.set_ylim(0.0, max(float(np.max(pd.Q_evap)), lim or 0.0) * 1.12)
-    a2.set_xlim(0.0, th[-1] * 1.15)
+    a2.set_xlim(0.0, th[-1] * 1.16)
     a2.set_title(f"Compressor no pull-down: regime de projeto {res.balanco.W_el:.0f} W, pico {pd.W_pico:.0f} W")
     a2.legend(loc="upper right")
+    _rotulos_fim(a2, th[-1], [(pd.Q_evap[-1], "capacidade"), (pd.W_el[-1], "potência")])
     fig.tight_layout()
     return fig
 

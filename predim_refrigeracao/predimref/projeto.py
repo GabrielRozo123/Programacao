@@ -16,7 +16,8 @@ from .compressor import ParametrosCompressor, ResultadoCompressor, dimensionar_c
 from .constantes import C_para_K
 from .gabinete import (Capacidade, CargaTermica, Gabinete, Garrafa, Uso, calcular_carga,
                        resolver_capacidade)
-from .operacao import ModeloSistema, ParametrosOperacao, ResultadoPulldown, simular_pulldown
+from .operacao import (ModeloSistema, ParametrosOperacao, ResultadoPulldown, simular_pulldown,
+                       temperatura_inicial_produto)
 from .propriedades import Fluido, ar_seco
 from .trocador import (ParametrosTrocador, ResultadoTrocador, condensador_padrao,
                        dimensionar_condensador, dimensionar_evaporador, evaporador_padrao)
@@ -62,7 +63,7 @@ class RestricaoPotencia:
     exige COP maior (trocadores maiores, ΔT menores, compressor mais eficiente)."""
     criterio: str = "regime"
     modo: str = "limitar"
-    tolerancia: float = 0.01      # banda aceita abaixo do limite no critério de pico (iterativo)
+    tolerancia: float = 0.01      # banda aceita abaixo do limite quando a busca é iterativa (pico, ou COP livre)
     max_iter: int = 8
 
 
@@ -211,7 +212,9 @@ class _Nucleo:
 def _aplicar_teto(carga: CargaTermica, Q_teto: Optional[float]) -> None:
     """Limita a capacidade de projeto (restrição de potência). A fração latente fica a mesma: com um
     compressor menor ele passa mais tempo ligado e a água removida por hora ligada cai na mesma proporção
-    da capacidade, então o balanço de umidade continua fechado com o mesmo ξ."""
+    da capacidade, então, quando o regime governa, o balanço de umidade continua fechado com o mesmo ξ.
+    Quando o pull-down governa, a serpentina continua dimensionada seca (ξ = 1, porta fechada), que é a
+    condição mais exigente para a troca de calor."""
     if Q_teto is None or carga.Q_projeto <= Q_teto:
         return
     carga.Q_latente_projeto *= Q_teto / carga.Q_projeto
@@ -248,10 +251,20 @@ def _nucleo(fl, entradas: EntradasProjeto, p: ParametrosProjeto, cap: Capacidade
     return _Nucleo(carga, ciclo, bal, cond, evap, comp, av_carga, av_ciclo, it, conv, umid, umid_conv, Q_req, dicas)
 
 
-def _pulldown(nuc: _Nucleo, p: ParametrosProjeto, cap: Capacidade, entradas: EntradasProjeto) -> ResultadoPulldown:
+def _pulldown(nuc: _Nucleo, p: ParametrosProjeto, cap: Capacidade,
+              entradas: EntradasProjeto) -> tuple[ResultadoPulldown, Optional[str]]:
+    """Pull-down estimado do projeto. Se o produto de reposição já entra frio (≤ T_alvo + 0,5 K), simula o
+    ensaio usual: gabinete e produto encharcados à temperatura ambiente."""
+    po, nota = p.operacao, None
+    T_p0 = temperatura_inicial_produto(p.uso, po, entradas.T_ambiente_C)
+    if T_p0 <= entradas.T_alvo_C + 0.5:
+        T_amb = entradas.T_ambiente_C if po.T_ambiente_C is None else po.T_ambiente_C
+        po = dataclasses.replace(po, T_produto_inicial_C=T_amb)
+        nota = (f"o produto de reposição entra a {T_p0:.1f} °C (≤ T_alvo + 0,5 K): o pull-down foi simulado como "
+                f"ensaio com o gabinete e o produto encharcados à ambiente ({T_amb:.1f} °C).")
     modelo = ModeloSistema.do_projeto(nuc.ciclo, nuc.comp, nuc.cond, nuc.evap, p.ciclo, p.compressor)
     return simular_pulldown(modelo, cap, p.gabinete, p.uso, p.garrafa, p.ciclo, entradas.T_ambiente_C,
-                            entradas.T_alvo_C, p.operacao)
+                            entradas.T_alvo_C, po), nota
 
 
 def _potencia_criterio(rp: RestricaoPotencia, nuc: _Nucleo, pd: Optional[ResultadoPulldown],
@@ -278,14 +291,19 @@ def _cop_necessario(nuc: _Nucleo, W_c: float, W_max: float, Q: float) -> float:
     return nuc.ciclo.COP * (W_c / W_max) * (Q / nuc.carga.Q_projeto)
 
 
-def _mensagem_potencia_inviavel(fl, entradas, p, nuc, W_c, W_max, rp, T_ar_evap, T_ar_cond) -> str:
-    car, u = nuc.carga, p.uso
-    nome = "potência de regime" if rp.criterio == "regime" else "pico de potência no pull-down"
-    Q_teto = car.Q_projeto * W_max / W_c
-    cop_min = _cop_necessario(nuc, W_c, W_max, car.Q_regime * (1.0 + u.margem_seguranca))
-    cop_req = _cop_necessario(nuc, W_c, W_max, nuc.Q_requisitos)
-    txt = (f"limite de {W_max:.0f} W ({nome}) inviável com COP {nuc.ciclo.COP:.2f}: o maior compressor que o respeita "
-           f"entrega ≈ {Q_teto:.0f} W no ponto de projeto, abaixo da carga média de regime ({car.Q_regime:.0f} W) — o "
+def _nome_criterio(rp: RestricaoPotencia) -> str:
+    return "potência de regime" if rp.criterio == "regime" else "pico de potência no pull-down"
+
+
+def _mensagem_potencia_inviavel(fl, entradas, p, car: CargaTermica, Q_req: float, Q_cap: float, cop: float,
+                                W_max: float, rp: RestricaoPotencia, T_ar_evap, T_ar_cond) -> str:
+    """Q_cap: capacidade que o limite permite com o COP atual (W_critério ∝ Q/COP, então o COP necessário para a
+    capacidade Q é cop·Q/Q_cap)."""
+    u = p.uso
+    cop_min = cop * car.Q_regime * (1.0 + u.margem_seguranca) / Q_cap
+    cop_req = cop * Q_req / Q_cap
+    txt = (f"limite de {W_max:.0f} W ({_nome_criterio(rp)}) inviável com COP {cop:.2f}: o maior compressor que o "
+           f"respeita entrega ≈ {Q_cap:.0f} W no ponto de projeto, abaixo da carga média de regime ({car.Q_regime:.0f} W) — o "
            f"gabinete não manteria {entradas.T_alvo_C:.1f} °C nem com o compressor 100 % ligado. Com W ≤ {W_max:.0f} W "
            f"seriam necessários COP ≥ {cop_min:.2f} para o regime com a margem de {u.margem_seguranca:.0%} e "
            f"COP ≈ {cop_req:.2f} para todos os requisitos (fator de utilização {u.fator_utilizacao_max:.0%}, "
@@ -293,35 +311,45 @@ def _mensagem_potencia_inviavel(fl, entradas, p, nuc, W_c, W_max, rp, T_ar_evap,
     return txt + _sugestao_cop(fl, dataclasses.replace(entradas, COP=cop_req), T_ar_evap, T_ar_cond, p.ciclo)
 
 
-def _avisos_potencia(av: Avisos, entradas, p, nuc: _Nucleo, pd, pd_erro, W_max, rp, fl, T_ar_evap,
+def _avisos_potencia(av: Avisos, entradas, p, nuc: _Nucleo, pd, pd_erro, pd_nota, W_max, rp, fl, T_ar_evap,
                      T_ar_cond) -> dict:
     """Avisos e resumo da restrição de potência e do pull-down estimado."""
     car, bal, u = nuc.carga, nuc.bal, p.uso
     limitado = car.Q_projeto < nuc.Q_requisitos * (1.0 - 1e-9)
+    m = u.margem_seguranca
     if pd_erro:
         av.atencao("pull-down", f"simulação de pull-down não concluída: {pd_erro}")
+    if pd_nota:
+        av.info("pull-down", pd_nota)
     if pd is not None:
         quando = "na partida, com o gabinete ainda encharcado" if pd.pico_na_partida else \
             f"em t ≈ {pd.t_pico_s / 3600.0:.1f} h"
-        av.info("pull-down", f"estimativa quase estática (porta fechada, produto de {pd.T_produto_inicial - 273.15:.1f} a "
-                f"{pd.T_alvo - 273.15:.1f} °C, ambiente {pd.T_ambiente - 273.15:.1f} °C, hA ar–produto "
-                f"{pd.hA_produto_W_K:.0f} W/K): {pd.tempo_h:.1f} h; potência do compressor de {pd.W_inicial:.0f} W "
+        fim = (f"{pd.tempo_h:.1f} h" if pd.concluido else
+               f"não chega a {pd.T_alvo - 273.15:.1f} °C (equilíbrio ≈ {pd.T_produto_equilibrio - 273.15:.1f} °C)")
+        av.info("pull-down", f"estimativa quase estática (porta fechada, compressor 100 % ligado, produto de "
+                f"{pd.T_produto_inicial - 273.15:.1f} a {pd.T_alvo - 273.15:.1f} °C, ambiente {pd.T_ambiente - 273.15:.1f} °C, "
+                f"hA ar–produto {pd.hA_produto_W_K:.0f} W/K): {fim}; potência do compressor de {pd.W_inicial:.0f} W "
                 f"(início) a {pd.W_final:.0f} W (fim), pico {pd.W_pico:.0f} W {quando} = "
-                f"{pd.W_pico / bal.W_el:.2f}× a de regime. Calibrar hA com um ensaio de pull-down.")
+                f"{pd.W_pico / bal.W_el:.2f}× a de regime; no fim o ar interno chega a {pd.T_ar_min - 273.15:.1f} °C e o "
+                f"insuflado a {pd.T_insuflado_min - 273.15:.1f} °C. Calibrar hA com um ensaio de pull-down.")
         if not pd.concluido:
             av.critico("pull-down", f"com a porta fechada o produto não chega a {entradas.T_alvo_C:.1f} °C: equilíbrio "
                        f"em ≈ {pd.T_produto_equilibrio - 273.15:.1f} °C (capacidade seca menor que a carga do gabinete).")
         elif pd.tempo_h > u.tempo_pulldown_h:
-            av.atencao("pull-down", f"tempo estimado {pd.tempo_h:.1f} h > requisito de {u.tempo_pulldown_h:g} h: a "
-                       f"troca ar–produto (hA = {pd.hA_produto_W_K:.0f} W/K) e a capacidade disponível não bastam; a carga "
-                       "de pull-down do dimensionamento supõe o produto à temperatura do ar.")
+            causa = ("a capacidade foi reduzida pelo limite de potência" if limitado else
+                     f"a troca ar–produto (hA = {pd.hA_produto_W_K:.0f} W/K) limita; a carga de pull-down do "
+                     "dimensionamento supõe o produto à temperatura do ar")
+            av.atencao("pull-down", f"tempo estimado {pd.tempo_h:.1f} h > requisito de {u.tempo_pulldown_h:g} h: {causa}.")
         if pd.T_descarga_max - 273.15 > p.ciclo.T_descarga_max_C:
             av.atencao("pull-down", f"temperatura de descarga chega a {pd.T_descarga_max - 273.15:.0f} °C no pull-down "
                        f"(> {p.ciclo.T_descarga_max_C:.0f} °C).")
+    resumo_pd = {} if pd is None else {
+        "W_pico_pulldown_W": pd.W_pico, "razao_pico_regime": pd.W_pico / bal.W_el,
+        "pulldown_concluido": pd.concluido, "tempo_pulldown_h": pd.tempo_h if pd.concluido else None,
+        "requisito_pulldown_atendido": pd.concluido and pd.tempo_h <= u.tempo_pulldown_h}
     if W_max is None:
-        return {} if pd is None else {"limite_W": None, "W_regime_W": bal.W_el, "W_pico_pulldown_W": pd.W_pico,
-                                      "razao_pico_regime": pd.W_pico / bal.W_el}
-    nome = "potência de regime" if rp.criterio == "regime" else "pico de potência no pull-down"
+        return {} if pd is None else {"limite_W": None, "W_regime_W": bal.W_el, **resumo_pd}
+    nome = _nome_criterio(rp)
     W_c = bal.W_el if rp.criterio == "regime" else (None if pd is None else max(pd.W_pico, bal.W_el))
     atende = None if W_c is None else W_c <= W_max * (1.0 + 1e-6)
     f_on = car.Q_regime / car.Q_projeto
@@ -329,20 +357,34 @@ def _avisos_potencia(av: Avisos, entradas, p, nuc: _Nucleo, pd, pd_erro, W_max, 
         av.atencao("potência", f"limite de {W_max:.0f} W no pico de pull-down não verificado (simulação falhou).")
     elif not atende:
         cop_req = _cop_necessario(nuc, W_c, W_max, nuc.Q_requisitos)
+        Q_lim = car.Q_projeto * W_max / W_c
+        if rp.modo != "verificar":
+            alternativa = "."
+        elif Q_lim > car.Q_regime * (1.0 + 1e-6):
+            alternativa = (f" ou aceitar um compressor menor (RestricaoPotencia.modo = 'limitar'): ≈ {Q_lim:.0f} W de "
+                           f"capacidade, ligado ≈ {car.Q_regime / Q_lim:.0%} do tempo em regime.")
+        else:
+            cop_min = _cop_necessario(nuc, W_c, W_max, car.Q_regime * (1.0 + m))
+            alternativa = (f"; um compressor menor não resolve: o limite deixaria ≈ {Q_lim:.0f} W, abaixo da carga média "
+                           f"de regime ({car.Q_regime:.0f} W), e só o regime com a margem já exigiria COP ≥ {cop_min:.2f}.")
         av.critico("potência", f"{nome} {W_c:.0f} W acima do limite de {W_max:.0f} W. Para atender todos os requisitos "
-                   f"de carga com esse limite seria preciso COP ≈ {cop_req:.2f} (hoje {nuc.ciclo.COP:.2f})"
-                   + (" ou aceitar um compressor menor (RestricaoPotencia.modo = 'limitar')." if rp.modo == "verificar"
-                      else ".") + _sugestao_cop(fl, dataclasses.replace(entradas, COP=cop_req), T_ar_evap, T_ar_cond,
-                                                p.ciclo))
+                   f"de carga com esse limite seria preciso COP ≈ {cop_req:.2f} (hoje {nuc.ciclo.COP:.2f})" + alternativa
+                   + _sugestao_cop(fl, dataclasses.replace(entradas, COP=cop_req), T_ar_evap, T_ar_cond, p.ciclo))
     elif limitado:
         msg = (f"limite de {W_max:.0f} W ({nome}) ativo: capacidade de projeto reduzida de {nuc.Q_requisitos:.0f} para "
                f"{car.Q_projeto:.0f} W (compressor de {nuc.comp.deslocamento_cm3:.2f} cm³); em regime o compressor fica "
                f"ligado ≈ {f_on:.0%} do tempo (premissa: ≤ {u.fator_utilizacao_max:.0%})")
+        if car.Q_pulldown * (1.0 + m) > car.Q_projeto * (1.0 + 1e-9):
+            msg += f"; o requisito de pull-down em {u.tempo_pulldown_h:g} h deixa de ser garantido pela carga de projeto"
+            disp = car.Q_projeto / (1.0 + m) - (car.Q_pulldown - car.Q_pulldown_produto)
+            if pd is None and disp > 0.0:
+                msg += (f" (≈ {car.Q_pulldown_produto * u.tempo_pulldown_h / disp:.1f} h pela conta do dimensionamento, com "
+                        "o produto à temperatura do ar)")
         if pd is not None:
-            msg += f"; pull-down estimado em {pd.tempo_h:.1f} h (requisito {u.tempo_pulldown_h:g} h)"
-        if f_on > 1.0 / (1.0 + u.margem_seguranca):
-            av.critico("potência", msg + f" — sem a margem de segurança de {u.margem_seguranca:.0%}: reveja o COP ou o "
-                       "limite de potência.")
+            msg += (f"; pull-down estimado em {pd.tempo_h:.1f} h (requisito {u.tempo_pulldown_h:g} h)" if pd.concluido else
+                    f"; no pull-down o produto não chega a {entradas.T_alvo_C:.1f} °C")
+        if f_on > 1.0 / (1.0 + m):
+            av.critico("potência", msg + f" — sem a margem de segurança de {m:.0%}: reveja o COP ou o limite de potência.")
         else:
             av.atencao("potência", msg + ".")
     else:
@@ -353,9 +395,9 @@ def _avisos_potencia(av: Avisos, entradas, p, nuc: _Nucleo, pd, pd_erro, W_max, 
                    "à potência de regime; se o requisito vale para o ensaio inteiro, use "
                    "RestricaoPotencia(criterio='pico_pulldown').")
     return {"limite_W": W_max, "criterio": rp.criterio, "modo": rp.modo, "W_criterio_W": W_c, "atende": atende,
-            "limitado": limitado, "W_regime_W": bal.W_el, "W_pico_pulldown_W": None if pd is None else pd.W_pico,
-            "razao_pico_regime": None if pd is None else pd.W_pico / bal.W_el,
-            "Q_requisitos_W": nuc.Q_requisitos, "Q_projeto_W": car.Q_projeto, "fracao_ligado_regime": f_on}
+            "limitado": limitado, "W_regime_W": bal.W_el, "W_pico_pulldown_W": None, "razao_pico_regime": None,
+            **resumo_pd, "Q_requisitos_W": nuc.Q_requisitos, "Q_projeto_W": car.Q_projeto,
+            "fracao_ligado_regime": f_on}
 
 
 def _dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProjeto]) -> ResultadoProjeto:
@@ -390,37 +432,59 @@ def _dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProje
             raise ErroProjeto("RestricaoPotencia.criterio deve ser 'regime' ou 'pico_pulldown'.")
         if rp.modo not in ("limitar", "verificar"):
             raise ErroProjeto("RestricaoPotencia.modo deve ser 'limitar' ou 'verificar'.")
+        if not 0.0 < rp.tolerancia < 0.5 or rp.max_iter < 1:
+            raise ErroProjeto("RestricaoPotencia: use 0 < tolerancia < 0,5 e max_iter ≥ 1.")
     limitar = W_max is not None and rp.modo == "limitar"
     no_pico = W_max is not None and rp.criterio == "pico_pulldown"
     temps = (T_evap, T_cond, T_ar_evap, T_ar_cond)
     nc0 = {"condensador": p.condensador.n_circuitos, "evaporador": p.evaporador.n_circuitos}
-    dicas = (None, None)
-    # com COP informado W = Q/COP é exato: no critério de regime o teto de capacidade sai direto
-    Q_teto = W_max * entradas.COP if (limitar and not no_pico and entradas.COP is not None) else None
+    UR0 = p.uso.UR_interna
+    Q_teto = None
+    if limitar and not no_pico and entradas.COP is not None:
+        # com COP informado W = Q/COP é exato: no critério de regime o teto de capacidade sai direto
+        Q_teto = W_max * entradas.COP
+        car0 = calcular_carga(cap, p.gabinete, p.uso, p.garrafa, entradas.T_ambiente_C, entradas.UR_ambiente,
+                              entradas.T_alvo_C, Avisos())
+        if Q_teto < car0.Q_regime:
+            raise ErroProjeto(_mensagem_potencia_inviavel(fl, entradas, p, car0, car0.Q_projeto, Q_teto, entradas.COP,
+                                                          W_max, rp, T_ar_evap, T_ar_cond))
     W_alvo = None if W_max is None else W_max * (1.0 - (0.5 * rp.tolerancia if no_pico else 1e-6))
     hist: list = []
     convergiu_pot = True
-    for it_w in range(1, (max(rp.max_iter, 1) if limitar else 1) + 1):
-        nuc = _nucleo(fl, entradas, p, cap, temps, dicas, Q_teto)
-        dicas = nuc.dicas
-        pd, pd_erro = None, None
+    for _ in range(rp.max_iter if limitar else 1):
+        # cada passada parte do mesmo estado: o projeto final depende só da capacidade final
+        p.condensador.n_circuitos, p.evaporador.n_circuitos = nc0["condensador"], nc0["evaporador"]
+        p.uso.UR_interna = UR0
+        try:
+            nuc = _nucleo(fl, entradas, p, cap, temps, (None, None), Q_teto)
+        except ErroProjeto as err:
+            if Q_teto is None:
+                raise
+            raise ErroProjeto(f"com a capacidade de projeto limitada a {Q_teto:.0f} W pelo limite de {W_max:.0f} W "
+                              f"({_nome_criterio(rp)}): {err}") from err
+        pd, pd_erro, pd_nota = None, None, None
         if p.simular_pulldown or no_pico:
             try:
-                pd = _pulldown(nuc, p, cap, entradas)
-            except (ErroProjeto, ValueError, ArithmeticError) as err:   # análise secundária
+                pd, pd_nota = _pulldown(nuc, p, cap, entradas)
+            except ErroProjeto as err:   # análise secundária (simular_pulldown já converte falhas numéricas)
                 pd_erro = str(err)
         if not limitar:
             break
         W_c = _potencia_criterio(rp, nuc, pd, pd_erro)
         limitado = nuc.carga.Q_projeto < nuc.Q_requisitos * (1.0 - 1e-9)
         if limitado and nuc.carga.Q_projeto < nuc.carga.Q_regime:
-            raise ErroProjeto(_mensagem_potencia_inviavel(fl, entradas, p, nuc, W_c, W_max, rp, T_ar_evap, T_ar_cond))
-        if W_c <= W_max * (1.0 + 1e-9) and (not limitado or W_c >= W_max * (1.0 - rp.tolerancia)):
+            raise ErroProjeto(_mensagem_potencia_inviavel(fl, entradas, p, nuc.carga, nuc.Q_requisitos,
+                                                          nuc.carga.Q_projeto * W_max / W_c, nuc.ciclo.COP, W_max, rp,
+                                                          T_ar_evap, T_ar_cond))
+        if W_c <= W_max * (1.0 + 1e-9) and (not limitado or W_c >= min(W_max * (1.0 - rp.tolerancia),
+                                                                         W_alvo * (1.0 - 1e-6))):
             break
         hist.append((nuc.carga.Q_projeto, W_c))
-        Q_teto = min(_proximo_teto(hist, W_alvo), nuc.Q_requisitos)
-        if Q_teto < nuc.carga.Q_regime:
-            raise ErroProjeto(_mensagem_potencia_inviavel(fl, entradas, p, nuc, W_c, W_max, rp, T_ar_evap, T_ar_cond))
+        Q_no_limite = min(_proximo_teto(hist, W_max), nuc.Q_requisitos)
+        if Q_no_limite < nuc.carga.Q_regime:
+            raise ErroProjeto(_mensagem_potencia_inviavel(fl, entradas, p, nuc.carga, nuc.Q_requisitos, Q_no_limite,
+                                                          nuc.ciclo.COP, W_max, rp, T_ar_evap, T_ar_cond))
+        Q_teto = max(min(_proximo_teto(hist, W_alvo), nuc.Q_requisitos), nuc.carga.Q_regime * (1.0 + 1e-6))
     else:
         convergiu_pot = False
     carga, ciclo, bal, cond, evap, comp = nuc.carga, nuc.ciclo, nuc.bal, nuc.cond, nuc.evap, nuc.comp
@@ -501,7 +565,7 @@ def _dimensionar(entradas: EntradasProjeto, parametros: Optional[ParametrosProje
                 "prática ASHRAE para arraste de óleo em linhas horizontais); com HC + óleo miscível em "
                 "sistemas pequenos isso costuma ser aceitável, mas avalie no protótipo.")
 
-    pot = _avisos_potencia(av, entradas, p, nuc, pd, pd_erro, W_max, rp, fl, T_ar_evap, T_ar_cond)
+    pot = _avisos_potencia(av, entradas, p, nuc, pd, pd_erro, pd_nota, W_max, rp, fl, T_ar_evap, T_ar_cond)
 
     sens = (_sensibilidade(fl, bal, ciclo, carga, p, T_ar_cond, T_ar_evap, cond, evap, cap_sel.escolhido.D)
             if p.analise_sensibilidade else {})

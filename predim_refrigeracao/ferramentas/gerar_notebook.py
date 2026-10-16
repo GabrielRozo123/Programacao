@@ -225,11 +225,16 @@ $$\dot m = V_{desl}\tfrac{N}{60}\,\eta_v(r)\,\rho_{1s},\quad \dot m\,(h_1-h_4)=\
 e $W_{el}=\dot m\,(h_{2s}-h_{1s})/\eta_{global}$, com $\eta_v$, $\eta_{global}$, ε e $\dot C_{ar}$ do projeto. No ponto de projeto o
 modelo reproduz o dimensionamento (erro ~10⁻⁶). No **pull-down** de porta fechada o produto (capacidade $C_p$) troca calor
 com o ar interno por $hA$, e o ar fica em equilíbrio quase estático:
-$$0=hA\,(T_p-T_a)+UA_{gab}(T_\infty-T_a)+Q_{base}+Q_{int}-Q_{evap}(T_a),\qquad t=\int\frac{C_p\,dT_p}{hA\,(T_p-T_a)}$$
+$$0=hA\,(T_p-T_a)+UA_{gab}(T_\infty-T_a)+Q_{base}+Q_{int}-Q_{evap}(T_a)/\xi,\qquad t=\int\frac{C_p\,dT_p}{hA\,(T_p-T_a)}$$
+com o compressor 100 % ligado até o produto atingir $T_{alvo}$ (ensaio de capacidade, sem corte do termostato): o ar interno e o
+insuflado terminam abaixo de $T_{alvo}$, e ambos são reportados.
 A potência de um compressor de rotação fixa **não é constante**: com o gabinete quente a pressão de sucção e a massa
-específica são altas, e a potência passa por um máximo (para o compressor ideal, em $r=k^{k/(k-1)}\approx 2{,}9$).
-O pico estimado (tipicamente 1,2–1,7× o de regime) inclui a partida com o gabinete encharcado e não depende de $hA$; o
-tempo de pull-down depende, e $hA$ deve ser calibrado com um ensaio.
+específica são altas (para o compressor ideal com $P_{desc}$ fixa, o máximo fica em $r=k^{k/(k-1)}\approx 2{,}9$; como a
+pressão de descarga também sobe, nos casos típicos o máximo do modelo cai na partida). O pico estimado é o máximo de
+$W(T_a)$ até o ar do gabinete encharcado, $\max(T_{p,0},T_\infty)$: inclui a partida e não depende de $hA$. A razão
+pico/regime depende do caso (≈ 1,1–2,1× nas varreduras: maior com ambiente quente, $T_{alvo}$ baixa e fluidos de razão de
+pressão alta, como R134a e R600a) e sai em `res.potencia["razao_pico_regime"]`. O tempo de pull-down depende de $hA$, que deve
+ser calibrado com um ensaio.
 
 O **limite de potência** (`potencia_max_compressor_W`) vale para o regime ou para o pico (`RestricaoPotencia.criterio`).
 Com o COP fixo, $W=Q/COP$: respeitar o limite significa um compressor menor (mais tempo ligado, pull-down mais longo) ou
@@ -314,7 +319,7 @@ params = ParametrosProjeto(
     condensador=condensador_padrao(),   # tubo 3/8", aleta 2,5 mm (10 FPI), V preferida 2 m/s
     evaporador=evaporador_padrao(),     # tubo 3/8", aleta 4,23 mm (6 FPI), V preferida 1,5 m/s
     capilar=ParametrosCapilar(serie="polegada", L_min=1.0, L_max=5.0, L_alvo=2.5),
-    restricao_potencia=RestricaoPotencia(criterio=criterio_potencia, modo=modo_potencia),
+    restricao_potencia=RestricaoPotencia(tolerancia=0.01),   # critério e modo vêm da seção 3 (aplicados na seção 4)
     operacao=ParametrosOperacao(h_produto_W_m2K=5.0,      # ar–garrafa; calibrar com ensaio de pull-down
                                 T_ambiente_C=None),       # None = a do projeto (p. ex. 43 para classe climática)
 )
@@ -330,7 +335,11 @@ print("parâmetros prontos")
 
 RODAR = r"""
 #@title 4. Dimensionamento
+import dataclasses
 from predimref import dimensionar, ErroProjeto
+# critério e modo do limite de potência escolhidos na seção 3 (valem mesmo sem rodar de novo os parâmetros avançados)
+params.restricao_potencia = dataclasses.replace(params.restricao_potencia, criterio=criterio_potencia,
+                                                modo=modo_potencia)
 try:
     res = dimensionar(entradas, params)
     print(res.resumo())
@@ -392,7 +401,7 @@ if res is not None and res.pulldown is not None:
                                "hA [W/K]": r_pd.hA_produto_W_K, "tempo [h]": r_pd.tempo_h if r_pd.concluido else None,
                                "W pico [W]": r_pd.W_pico, "W fim [W]": r_pd.W_final,
                                "pico/regime": r_pd.W_pico / res.balanco.W_el, "kWh": r_pd.E_compressor_kWh})
-            except ErroProjeto as erro:
+            except ValueError as erro:   # ErroProjeto é um ValueError
                 linhas.append({"T_amb [°C]": T_amb, "h ar–produto [W/m²K]": h, "erro": str(erro)})
     print("Compressor e trocadores do projeto; o pico não depende de hA (inclui a partida), o tempo depende.")
     display(pd.DataFrame(linhas).round(2))

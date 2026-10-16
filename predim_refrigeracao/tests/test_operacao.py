@@ -219,3 +219,103 @@ def test_exportacao(res):
     assert len(cv["t_h"]) == len(cv["W_el_W"]) == len(cv["T_produto_C"])
     assert cv["T_produto_C"][0] == pytest.approx(32.0) and cv["T_produto_C"][-1] == pytest.approx(2.5, abs=1e-6)
     assert "PULL-DOWN ESTIMADO" in r.resumo() and "limite de potência 100 W" in r.resumo()
+
+
+# ------------------------------------------------------------------- correções da revisão
+def test_fator_umidade_no_pulldown_nao_resfria_produto(res):
+    """ξ > 1 eleva T_evap e W, mas só a parcela sensível Q/ξ resfria o ar (porta fechada, sem fonte de umidade)."""
+    a, b = _pd(res, fator_umidade=1.0), _pd(res, fator_umidade=1.2)
+    assert b.tempo_h >= a.tempo_h and b.W_pico >= a.W_pico
+    with pytest.raises(ErroProjeto):
+        _pd(res, fator_umidade=0.9)
+
+
+def test_pico_vai_ate_o_ar_encharcado(res):
+    """Produto entrando mais frio que o ambiente: o gabinete parado está à ambiente e a partida vê ar a 32 °C."""
+    q = _pd(res, T_produto_inicial_C=25.0)
+    assert q.T_ar_inicial == pytest.approx(305.15) and q.T_produto_inicial == pytest.approx(298.15)
+    assert q.W_pico == pytest.approx(res.pulldown.W_pico, rel=1e-4) and q.pico_na_partida
+    assert q.tempo_h < res.pulldown.tempo_h
+
+
+def test_ar_e_insuflado_abaixo_do_alvo_sem_termostato(res):
+    pd = res.pulldown
+    assert pd.T_insuflado_min < pd.T_ar_min < pd.T_alvo
+    d = res.para_dict()["pulldown"]
+    assert d["T_insuflado_min_C"] == pytest.approx(pd.T_insuflado_min - 273.15)
+    assert "T_insuflado_C" in d["curva"]
+
+
+def test_pulldown_hA_baixo_e_compressor_grande():
+    """Grade de T_ar localizada pelo modelo completo: não desce a temperaturas sem vazão (η_v < 0)."""
+    r = _dim(uso=Uso(tempo_pulldown_h=4.0))
+    pd = _pd(r, h_produto_W_m2K=1.0)
+    assert pd.concluido and pd.tempo_h > 0 and np.all(np.isfinite(pd.t))
+    assert pd.grade["T_ar"][0] > pd.T_alvo - 60.0
+
+
+def test_produto_pre_resfriado_simula_ensaio_encharcado():
+    r = _dim(uso=Uso(T_produto_entrada_C=2.0))
+    assert r.pulldown is not None and r.pulldown.T_produto_inicial == pytest.approx(305.15)
+    assert any(a.origem == "pull-down" and "encharcados à ambiente" in a.mensagem for a in r.avisos)
+    r2 = _dim(500.0, uso=Uso(T_produto_entrada_C=2.0), restricao_potencia=RestricaoPotencia(criterio="pico_pulldown"))
+    assert r2.potencia["atende"]
+
+
+def test_verificar_inviavel_nao_sugere_limitar():
+    r = _dim(60.0, restricao_potencia=RestricaoPotencia(modo="verificar"))
+    msg = next(a.mensagem for a in r.avisos if a.nivel == "CRITICO" and a.origem == "potência")
+    assert "não resolve" in msg and "modo = 'limitar'" not in msg
+    r2 = _dim(100.0, restricao_potencia=RestricaoPotencia(modo="verificar"))
+    msg2 = next(a.mensagem for a in r2.avisos if a.nivel == "CRITICO" and a.origem == "potência")
+    assert "modo = 'limitar'" in msg2 and "ligado ≈" in msg2
+
+
+@pytest.mark.parametrize("rp", [RestricaoPotencia(tolerancia=0.0), RestricaoPotencia(tolerancia=-0.1),
+                                RestricaoPotencia(max_iter=0)])
+def test_parametros_da_restricao_invalidos(rp):
+    with pytest.raises(ErroProjeto):
+        _dim(100.0, restricao_potencia=rp)
+
+
+def test_projeto_limitado_independe_do_caminho():
+    """O projeto final depende só da capacidade final: o pico (várias passadas) e o regime com o teto equivalente
+    (uma passada) dão a mesma geometria."""
+    a = _dim(130.0, restricao_potencia=RestricaoPotencia(criterio="pico_pulldown"))
+    b = _dim(a.carga.Q_projeto / BASE["COP"])
+    assert b.carga.Q_projeto == pytest.approx(a.carga.Q_projeto, rel=1e-12)
+    for x, y in ((a.condensador, b.condensador), (a.evaporador, b.evaporador)):
+        assert x.n_circuitos == y.n_circuitos and x.n_fileiras == y.n_fileiras
+        assert x.L_requerido == pytest.approx(y.L_requerido, rel=1e-9)
+    assert a.compressor.deslocamento_cm3 == pytest.approx(b.compressor.deslocamento_cm3, rel=1e-9)
+    assert a.parametros.uso.UR_interna == pytest.approx(b.parametros.uso.UR_interna, rel=1e-9)
+
+
+def test_cop_fixo_inviavel_da_mensagem_de_potencia():
+    with pytest.raises(ErroProjeto, match="inviável"):
+        _dim(30.0)
+
+
+def test_requisito_de_pulldown_avisado_sem_simulacao():
+    r = _dim(100.0, uso=Uso(tempo_pulldown_h=6.0), simular_pulldown=False)
+    assert any("deixa de ser garantido" in a.mensagem for a in r.avisos)
+    linha = next(l for l in r.resumo().splitlines() if ">> projeto" in l)
+    assert "limitado pela potência máxima" in linha and "requisitos com +10%: 491 W" in linha
+
+
+def test_exportacao_pulldown_nao_concluido(res):
+    import dataclasses
+    import matplotlib
+    matplotlib.use("Agg")
+    from predimref.graficos import pulldown
+    m = modelo_do_projeto(res)
+    m.deslocamento_m3 *= 0.2
+    p = res.parametros
+    pd = simular_pulldown(m, res.capacidade, p.gabinete, p.uso, p.garrafa, p.ciclo, 32.0, 2.5, ParametrosOperacao())
+    r = dataclasses.replace(res, pulldown=pd)
+    d = r.para_dict()
+    json.dumps(d)
+    assert d["pulldown"]["tempo_h"] is None and d["pulldown"]["tempo_ate_equilibrio_h"] > 0
+    assert d["amesim"]["pulldown_estimado"]["tempo_ate_T_alvo_s"] is None
+    assert "NÃO atinge" in r.resumo()
+    assert pulldown(r) is not None
