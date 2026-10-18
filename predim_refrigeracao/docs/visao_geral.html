@@ -11,11 +11,12 @@
     --papel: #f2f5f4;
     --painel: #e5ebea;
     --tinta: #172226;
-    --tinta-2: #4b5a60;
+    --tinta-2: #3e4b50;
     --regua: #c3cdcf;
+    --aleta: #9aa6aa;
     --cobre: #b4602b;
     --cobre-tinta: #7a3b12;
-    --laco: #2b6a82;
+    --laco: #245d73;
     --f-texto: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
     --f-mono: "JetBrains Mono", "DejaVu Sans Mono", ui-monospace, monospace;
     color-scheme: light;
@@ -25,41 +26,41 @@
          padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
   .folha { max-width: 1920px; margin: 0 auto; }
   .rolagem { overflow-x: auto; }
-  svg.mapa { display: block; width: 100%; min-width: 1180px; height: auto; background: var(--papel); }
+  svg.mapa { display: block; width: 100%; min-width: 1180px; height: auto; max-height: calc(100vh - 32px);
+             background: var(--papel); font-family: var(--f-texto); fill: var(--tinta); }
   figure { margin: 0; }
   figcaption { font-size: 15px; color: var(--tinta-2); max-width: 70ch; padding-top: 10px; line-height: 1.45; }
 
-  svg.mapa { font-family: var(--f-texto); fill: var(--tinta); }
   .mapa .eyebrow { font-size: 14px; font-weight: 600; letter-spacing: .14em; fill: var(--tinta-2); }
   .mapa .titulo { font-size: 42px; font-weight: 600; letter-spacing: -.005em; }
-  .mapa .titulo .marca { font-family: var(--f-mono); font-weight: 600; font-size: 38px; }
-  .mapa .sub { font-size: 19px; fill: var(--tinta-2); }
+  .mapa .marca { font-family: var(--f-mono); font-weight: 600; font-size: 38px; }
+  .mapa .tese { font-size: 20px; font-weight: 500; }
   .mapa .secao { font-size: 14px; font-weight: 700; letter-spacing: .14em; }
-  .mapa .secao-nota { font-size: 15px; fill: var(--tinta-2); font-weight: 500; letter-spacing: 0; }
+  .mapa .secao-nota { font-size: 15.5px; fill: var(--tinta-2); font-weight: 500; letter-spacing: 0; }
   .mapa .letra { font-size: 14px; font-weight: 700; fill: var(--papel); }
-  .mapa .rot { font-size: 12.5px; font-weight: 600; letter-spacing: .13em; fill: var(--tinta-2); }
+  .mapa .rot { font-size: 13.5px; font-weight: 600; letter-spacing: .13em; fill: var(--tinta-2); }
   .mapa .num { font-size: 15px; font-weight: 700; }
   .mapa .perg { font-size: 19.5px; font-weight: 600; }
   .mapa .valor { font-family: var(--f-mono); font-size: 20px; font-weight: 600; fill: var(--cobre-tinta); }
-  .mapa .det { font-size: 14px; font-weight: 500; }
-  .mapa .met { font-size: 13.5px; fill: var(--tinta-2); }
-  .mapa .eixo { font-size: 11.5px; fill: var(--tinta-2); }
-  .mapa .eixo-cobre { font-size: 11.5px; fill: var(--cobre-tinta); font-weight: 600; }
-  .mapa .laco-t { font-size: 13.5px; fill: var(--laco); font-weight: 600; }
+  .mapa .det { font-size: 15px; font-weight: 500; }
+  .mapa .met { font-size: 14.5px; fill: var(--tinta-2); }
+  .mapa .eixo { font-size: 13.5px; fill: var(--tinta-2); }
+  .mapa .eixo-cobre { font-size: 13.5px; fill: var(--cobre-tinta); font-weight: 600; }
+  .mapa .laco-t { font-size: 14.5px; fill: var(--laco); font-weight: 600; }
   .mapa .ent-v { font-family: var(--f-mono); font-size: 22px; font-weight: 600; }
-  .mapa .ent-r { font-size: 13.5px; fill: var(--tinta-2); }
-  .mapa .opc { font-size: 14px; }
+  .mapa .ent-r { font-size: 14.5px; fill: var(--tinta-2); }
+  .mapa .opc { font-size: 14.5px; }
   .mapa .saida-v { font-family: var(--f-mono); font-size: 21px; font-weight: 600; }
   .mapa .saida-i { font-size: 15px; }
-  .mapa .codigo { font-family: var(--f-mono); font-size: 12.5px; fill: var(--tinta-2); }
+  .mapa .codigo { font-family: var(--f-mono); font-size: 14px; fill: var(--tinta-2); }
   .mapa .nome { font-size: 20px; font-weight: 600; }
-  .mapa .papel-t { font-size: 12.5px; font-weight: 600; letter-spacing: .13em; fill: var(--tinta-2); }
+  .mapa .papel-t { font-size: 13.5px; font-weight: 600; letter-spacing: .13em; fill: var(--tinta-2); }
   .mapa .desc { font-size: 15px; }
-  .mapa .seta-t { font-family: var(--f-mono); font-size: 12px; fill: var(--tinta-2); }
+  .mapa .seta-t { font-size: 14px; font-weight: 600; fill: var(--tinta-2); }
   .mapa .item { font-size: 15.5px; }
-  .mapa .item b { font-weight: 600; }
-  .mapa .verif { font-size: 14.5px; }
-  .mapa .rodape { font-size: 13px; fill: var(--tinta-2); }
+  .mapa .forte { font-weight: 600; }
+  .mapa .verif { font-size: 15px; }
+  .mapa .rodape { font-size: 14.5px; fill: var(--tinta-2); }
 
   .ln { stroke: var(--tinta); fill: none; }
   .ln2 { stroke: var(--tinta-2); fill: none; }
@@ -72,65 +73,54 @@
 <figure>
 <div class="rolagem">
 <svg class="mapa" viewBox="0 0 1920 1080" role="img"
-     aria-label="Mapa do predimref. Faixa A: o pedido do cliente (COP, capacidade, temperaturas) passa por sete perguntas em sequência: gabinete e carga térmica, ciclo, compressor, trocadores, capilar, carga de fluido e operação fora do projeto, com três laços de iteração; um fio de cobre leva os números de um caso real de 200 L até o bloco de parâmetros do Amesim. Faixa B: a rotina exporta o bloco, Diego integra pela API, Pedro monta o modelo de sistema e o laboratório da IMBERA ensaia; os ensaios calibram a rotina e o modelo.">
+     aria-label="Mapa do predimref. Em cerca de 1 segundo a rotina transforma o pedido do cliente em parâmetros de partida coerentes para o Amesim. Faixa A: o pedido (capacidade, temperaturas, COP) passa por sete perguntas em ordem: gabinete e carga térmica, ciclo, compressor, trocadores, capilar, carga de fluido e partida com o gabinete quente, com três laços que voltam a etapas anteriores; um fio de cobre leva os números de um caso real de 200 litros até o bloco exportado ao Amesim. Faixa B: Gabriel entrega o bloco, Diego o liga ao Amesim pela API, Pedro reproduz o alvo e simula, o laboratório da IMBERA ensaia, e os ensaios calibram a rotina e o modelo.">
   <defs>
     <marker id="pt-tinta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#4b5a60"/>
+      <path d="M0,0 L10,5 L0,10 z" fill="#3e4b50"/>
     </marker>
     <marker id="pt-cobre" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto">
       <path d="M0,0 L10,5 L0,10 z" fill="#b4602b"/>
     </marker>
     <marker id="pt-laco" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="#2b6a82"/>
+      <path d="M0,0 L10,5 L0,10 z" fill="#245d73"/>
     </marker>
   </defs>
 
   <!-- ================================================================ cabeçalho -->
   <text x="56" y="70" class="eyebrow">CAEXPERTS · IMBERA · SIMCENTER AMESIM · PRÉ-DIMENSIONAMENTO DE VISI-COOLERS</text>
   <text x="56" y="120" class="titulo"><tspan class="marca">predimref</tspan>: do pedido do cliente ao modelo no Amesim</text>
-  <text x="56" y="154" class="sub">Sete perguntas, sempre na mesma ordem. O fio de cobre acompanha um caso real do começo ao fim:
-    visi-cooler de 200 L, ambiente a 32 °C, alvo de 2,5 °C, COP 2,0, R290.</text>
+  <text x="56" y="155" class="tese">Em cerca de 1 s a rotina transforma o pedido em parâmetros de partida coerentes e conferidos pela física,
+    o <tspan font-style="italic">step-down</tspan> do Amesim. Depois, o Amesim refina e o ensaio da IMBERA confirma.</text>
 
   <!-- ================================================================ faixa A -->
   <rect x="56" y="181" width="22" height="22" fill="#172226"/>
   <text x="67" y="197" class="letra" text-anchor="middle">A</text>
-  <text x="90" y="197" class="secao">DENTRO DA ROTINA <tspan class="secao-nota">· cerca de 1 s por projeto, em Python (numpy, scipy, CoolProp)</tspan></text>
+  <text x="90" y="197" class="secao">DENTRO DA ROTINA <tspan class="secao-nota">· sete perguntas, nesta ordem; o fio de cobre leva um caso real (200 L, 32 °C, alvo de 2,5 °C, COP 2,0, R290) do pedido ao Amesim</tspan></text>
 
-  <!-- pedido -->
+  <!-- pedido, na ordem em que as entradas são usadas -->
   <rect x="56" y="216" width="184" height="410" rx="3" fill="#e5ebea"/>
+  <line x1="56" y1="217" x2="240" y2="217" stroke="#172226" stroke-width="2"/>
   <text x="74" y="244" class="rot">O PEDIDO</text>
-  <text x="74" y="282" class="ent-v">2,0</text>
-  <text x="74" y="301" class="ent-r">COP desejado</text>
-  <text x="74" y="338" class="ent-v">200 L</text>
-  <text x="74" y="357" class="ent-r">ou garrafas de 600 mL</text>
-  <text x="74" y="394" class="ent-v">32 °C</text>
-  <text x="74" y="413" class="ent-r">temperatura ambiente</text>
-  <text x="74" y="450" class="ent-v">2,5 °C</text>
-  <text x="74" y="469" class="ent-r">temperatura alvo interna</text>
+  <text x="74" y="282" class="ent-v">200 L</text>
+  <text x="74" y="302" class="ent-r">ou garrafas de 600 mL</text>
+  <text x="74" y="338" class="ent-v">32 °C</text>
+  <text x="74" y="358" class="ent-r">temperatura ambiente</text>
+  <text x="74" y="394" class="ent-v">2,5 °C</text>
+  <text x="74" y="414" class="ent-r">temperatura alvo interna</text>
+  <text x="74" y="450" class="ent-v">2,0</text>
+  <text x="74" y="470" class="ent-r">COP desejado</text>
   <line x1="74" y1="494" x2="222" y2="494" class="regua"/>
-  <text x="74" y="518" class="rot">OPCIONAIS</text>
-  <text x="74" y="542" class="opc">eficácia ε (0,65 e 0,65)</text>
-  <text x="74" y="563" class="opc">potência máxima</text>
-  <text x="74" y="584" class="opc">fluido (R290, R600a…)</text>
+  <text x="74" y="518" class="rot">OPCIONAIS (PADRÃO)</text>
+  <text x="74" y="542" class="opc">ε dos trocadores (0,65)</text>
+  <text x="74" y="563" class="opc">potência máx. (sem)</text>
+  <text x="74" y="584" class="opc">fluido (R290)</text>
   <text x="74" y="605" class="opc">umidade ambiente (60 %)</text>
 
-  <!-- ordem das etapas -->
-  <g class="ln2" stroke-width="1.2">
-    <line x1="379" y1="226" x2="527" y2="226" marker-end="url(#pt-tinta)"/>
-    <line x1="563" y1="226" x2="711" y2="226" marker-end="url(#pt-tinta)"/>
-    <line x1="747" y1="226" x2="895" y2="226" marker-end="url(#pt-tinta)"/>
-    <line x1="931" y1="226" x2="1079" y2="226" marker-end="url(#pt-tinta)"/>
-    <line x1="1115" y1="226" x2="1263" y2="226" marker-end="url(#pt-tinta)"/>
-    <line x1="1299" y1="226" x2="1447" y2="226" marker-end="url(#pt-tinta)"/>
-  </g>
-  <g>
-    <circle cx="362" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="546" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="730" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="914" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="1098" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="1282" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
-    <circle cx="1466" cy="226" r="15" fill="#f2f5f4" stroke="#172226" stroke-width="1.6"/>
+  <!-- etapas numeradas -->
+  <g fill="#f2f5f4" stroke="#172226" stroke-width="1.6">
+    <circle cx="362" cy="226" r="15"/><circle cx="546" cy="226" r="15"/><circle cx="730" cy="226" r="15"/>
+    <circle cx="914" cy="226" r="15"/><circle cx="1098" cy="226" r="15"/><circle cx="1282" cy="226" r="15"/>
+    <circle cx="1466" cy="226" r="15"/>
   </g>
   <g class="num" text-anchor="middle">
     <text x="362" y="231">1</text><text x="546" y="231">2</text><text x="730" y="231">3</text>
@@ -145,13 +135,13 @@
     <text x="730" y="272">Que compressor<tspan x="730" dy="23">entrega isso?</tspan></text>
     <text x="914" y="272">Que tamanho de<tspan x="914" dy="23">serpentina?</tspan></text>
     <text x="1098" y="272">Que capilar<tspan x="1098" dy="23">expande o fluido?</tspan></text>
-    <text x="1282" y="272">Quanto fluido<tspan x="1282" dy="23">vai no circuito?</tspan></text>
-    <text x="1466" y="272">E fora do ponto<tspan x="1466" dy="23">de projeto?</tspan></text>
+    <text x="1282" y="272">Quantos gramas<tspan x="1282" dy="23">de fluido?</tspan></text>
+    <text x="1466" y="272">E ao ligar com o<tspan x="1466" dy="23">gabinete quente?</tspan></text>
   </g>
   <g class="rot" text-anchor="middle">
     <text x="362" y="330">GABINETE</text><text x="546" y="330">CICLO</text><text x="730" y="330">COMPRESSOR</text>
     <text x="914" y="330">TROCADORES</text><text x="1098" y="330">CAPILAR</text><text x="1282" y="330">CARGA DE FLUIDO</text>
-    <text x="1466" y="330">OPERAÇÃO</text>
+    <text x="1466" y="330">PULL-DOWN</text>
   </g>
 
   <!-- 1 gabinete: garrafas no envelope e calor entrando -->
@@ -161,14 +151,14 @@
     <circle cx="347" cy="373" r="4.3"/><circle cx="359" cy="373" r="4.3"/><circle cx="371" cy="373" r="4.3"/><circle cx="383" cy="373" r="4.3"/>
     <circle cx="347" cy="388" r="4.3"/><circle cx="359" cy="388" r="4.3"/><circle cx="371" cy="388" r="4.3"/><circle cx="383" cy="388" r="4.3"/>
     <circle cx="347" cy="403" r="4.3"/><circle cx="359" cy="403" r="4.3"/><circle cx="371" cy="403" r="4.3"/><circle cx="383" cy="403" r="4.3"/>
-    <line x1="300" y1="366" x2="330" y2="366" marker-end="url(#pt-tinta)"/>
-    <line x1="300" y1="385" x2="330" y2="385" marker-end="url(#pt-tinta)"/>
-    <line x1="300" y1="404" x2="330" y2="404" marker-end="url(#pt-tinta)"/>
-    <line x1="430" y1="366" x2="400" y2="366" marker-end="url(#pt-tinta)"/>
-    <line x1="430" y1="385" x2="400" y2="385" marker-end="url(#pt-tinta)"/>
+    <line x1="300" y1="370" x2="330" y2="370" marker-end="url(#pt-tinta)"/>
+    <line x1="300" y1="388" x2="330" y2="388" marker-end="url(#pt-tinta)"/>
+    <line x1="300" y1="406" x2="330" y2="406" marker-end="url(#pt-tinta)"/>
+    <line x1="430" y1="370" x2="400" y2="370" marker-end="url(#pt-tinta)"/>
+    <line x1="430" y1="388" x2="400" y2="388" marker-end="url(#pt-tinta)"/>
   </g>
-  <text x="300" y="357" class="eixo">paredes</text>
-  <text x="430" y="357" class="eixo" text-anchor="end">porta</text>
+  <text x="330" y="358" class="eixo" text-anchor="end">paredes</text>
+  <text x="400" y="358" class="eixo">porta</text>
 
   <!-- 2 ciclo: diagrama P-h -->
   <g class="ln2" stroke-width="1">
@@ -177,12 +167,12 @@
     <path d="M 500 423 Q 546 280 592 423"/>
   </g>
   <polygon points="517,405 593,405 612,371 517,371" class="ln" stroke-width="1.8" stroke-linejoin="round"/>
-  <text x="484" y="356" class="eixo" text-anchor="end">P</text>
-  <text x="606" y="438" class="eixo" text-anchor="end">h</text>
+  <text x="484" y="357" class="eixo" text-anchor="end">P</text>
+  <text x="606" y="441" class="eixo" text-anchor="end">h</text>
 
   <!-- 3 compressor: cilindro, pistão, biela e manivela; cota do deslocamento -->
   <rect x="706" y="352" width="44" height="40" class="ln" stroke-width="1.6"/>
-  <rect x="709" y="374" width="38" height="8" fill="#4b5a60"/>
+  <rect x="709" y="374" width="38" height="8" fill="#3e4b50"/>
   <line x1="728" y1="382" x2="737" y2="405" class="ln" stroke-width="1.6"/>
   <circle cx="728" cy="410" r="11" class="ln2" stroke-width="1"/>
   <circle cx="737" cy="405" r="2" fill="#172226"/>
@@ -193,61 +183,63 @@
     <line x1="754" y1="358" x2="762" y2="358"/>
     <line x1="754" y1="374" x2="762" y2="374"/>
   </g>
-  <text x="766" y="370" class="eixo">V</text>
-  <text x="682" y="348" class="eixo" text-anchor="end">suc.</text>
-  <text x="778" y="348" class="eixo">desc.</text>
+  <text x="766" y="371" class="eixo">V</text>
+  <text x="680" y="349" class="eixo" text-anchor="end">suc.</text>
+  <text x="780" y="349" class="eixo">desc.</text>
 
-  <!-- 4 trocador tubo-aleta: aletas, tubos escalonados, ar -->
-  <g class="regua" stroke-width="1">
-    <line x1="872" y1="349" x2="872" y2="425"/><line x1="880" y1="349" x2="880" y2="425"/>
-    <line x1="888" y1="349" x2="888" y2="425"/><line x1="896" y1="349" x2="896" y2="425"/>
-    <line x1="904" y1="349" x2="904" y2="425"/><line x1="912" y1="349" x2="912" y2="425"/>
-    <line x1="920" y1="349" x2="920" y2="425"/><line x1="928" y1="349" x2="928" y2="425"/>
-    <line x1="936" y1="349" x2="936" y2="425"/><line x1="944" y1="349" x2="944" y2="425"/>
-    <line x1="952" y1="349" x2="952" y2="425"/><line x1="960" y1="349" x2="960" y2="425"/>
+  <!-- 4 trocador tubo-aleta: aleta de placa vista de frente, 6 fileiras escalonadas, ar atravessando -->
+  <g transform="translate(8,0)">
+    <rect x="870" y="349" width="90" height="76" fill="#dde4e4" stroke="#9aa6aa" stroke-width="1"/>
+    <g fill="#f2f5f4" stroke="#172226" stroke-width="1.3">
+      <circle cx="878" cy="361" r="5"/><circle cx="878" cy="387" r="5"/><circle cx="878" cy="413" r="5"/>
+      <circle cx="892" cy="374" r="5"/><circle cx="892" cy="400" r="5"/>
+      <circle cx="906" cy="361" r="5"/><circle cx="906" cy="387" r="5"/><circle cx="906" cy="413" r="5"/>
+      <circle cx="920" cy="374" r="5"/><circle cx="920" cy="400" r="5"/>
+      <circle cx="934" cy="361" r="5"/><circle cx="934" cy="387" r="5"/><circle cx="934" cy="413" r="5"/>
+      <circle cx="948" cy="374" r="5"/><circle cx="948" cy="400" r="5"/>
+    </g>
+    <g class="ln2" stroke-width="1.1">
+      <line x1="838" y1="368" x2="864" y2="368" marker-end="url(#pt-tinta)"/>
+      <line x1="838" y1="386" x2="864" y2="386" marker-end="url(#pt-tinta)"/>
+      <line x1="838" y1="404" x2="864" y2="404" marker-end="url(#pt-tinta)"/>
+    </g>
+    <text x="838" y="359" class="eixo">ar</text>
   </g>
-  <g fill="#f2f5f4" stroke="#172226" stroke-width="1.4">
-    <circle cx="884" cy="360" r="6"/><circle cx="884" cy="386" r="6"/><circle cx="884" cy="412" r="6"/>
-    <circle cx="903" cy="373" r="6"/><circle cx="903" cy="399" r="6"/>
-    <circle cx="922" cy="360" r="6"/><circle cx="922" cy="386" r="6"/><circle cx="922" cy="412" r="6"/>
-    <circle cx="941" cy="373" r="6"/><circle cx="941" cy="399" r="6"/>
-  </g>
-  <g class="ln2" stroke-width="1.1">
-    <line x1="838" y1="368" x2="864" y2="368" marker-end="url(#pt-tinta)"/>
-    <line x1="838" y1="386" x2="864" y2="386" marker-end="url(#pt-tinta)"/>
-    <line x1="838" y1="404" x2="864" y2="404" marker-end="url(#pt-tinta)"/>
-  </g>
-  <text x="838" y="359" class="eixo">ar</text>
 
-  <!-- 5 capilar: pressão ao longo do tubo -->
+  <!-- 5 capilar: perfil real de pressão (líquido até o flash, depois bifásico acelerando) -->
   <g class="ln2" stroke-width="1">
     <line x1="1040" y1="424" x2="1158" y2="424"/>
     <line x1="1040" y1="424" x2="1040" y2="347"/>
   </g>
-  <path d="M 1046 354 L 1104 367 C 1128 373 1146 392 1154 420" class="ln" stroke-width="1.8"/>
-  <text x="1034" y="356" class="eixo" text-anchor="end">P</text>
-  <text x="1158" y="438" class="eixo" text-anchor="end">L</text>
-  <text x="1060" y="380" class="eixo">líquido</text>
-  <text x="1122" y="353" class="eixo">bifásico</text>
+  <line x1="1070.6" y1="366" x2="1070.6" y2="424" class="regua" stroke-dasharray="2 2"/>
+  <polyline points="1046,354 1070.6,359.8 1089.2,364.6 1105.4,370.2 1121.6,377.8 1132.4,384.9 1140.0,391.5 1145.4,397.9 1149.7,405.1 1152.4,412.0 1154,420"
+            class="ln" stroke-width="1.8" stroke-linejoin="round"/>
+  <text x="1034" y="357" class="eixo" text-anchor="end">P</text>
+  <text x="1158" y="441" class="eixo" text-anchor="end">L</text>
+  <text x="1066" y="390" class="eixo" text-anchor="end">líq.</text>
+  <text x="1076" y="410" class="eixo">bifásico</text>
 
-  <!-- 6 carga de fluido: barra em escala, 145 g frente ao limite de 150 g -->
+  <!-- 6 carga de fluido: barra em escala, 145 g frente aos 150 g da IEC de 2010 -->
   <rect x="1212" y="378" width="140" height="16" fill="#dde4e4"/>
   <rect x="1212" y="378" width="101.5" height="16" fill="#b4602b"/>
+  <rect x="1212.5" y="378.5" width="139" height="15" fill="none" stroke="#3e4b50" stroke-width="1"/>
   <line x1="1317" y1="368" x2="1317" y2="402" class="ln" stroke-width="1.6"/>
-  <text x="1317" y="362" class="eixo" text-anchor="middle">limite 150 g</text>
-  <text x="1212" y="413" class="eixo">0</text>
-  <text x="1352" y="413" class="eixo" text-anchor="end">200 g</text>
+  <text x="1317" y="362" class="eixo" text-anchor="middle">150 g (IEC 2010)</text>
+  <text x="1212" y="414" class="eixo">0</text>
+  <text x="1352" y="414" class="eixo" text-anchor="end">200 g</text>
+  <text x="1282" y="436" class="eixo" text-anchor="middle">edições novas: até ≈ 494 g</text>
 
-  <!-- 7 operação: potência do compressor no pull-down (curva real do caso) -->
+  <!-- 7 pull-down: potência do compressor (curva real do caso) -->
   <line x1="1396" y1="425" x2="1536" y2="425" class="ln2" stroke-width="1"/>
   <line x1="1396" y1="399.4" x2="1536" y2="399.4" class="ln2" stroke-width="1" stroke-dasharray="3 3"/>
+  <line x1="1396" y1="358" x2="1396" y2="368" stroke="#b4602b" stroke-width="1.2" stroke-dasharray="2 2"/>
   <polyline points="1396.0,369.0 1407.7,373.5 1419.3,377.7 1431.0,381.7 1442.7,385.4 1454.3,388.8 1466.0,392.1 1477.7,395.1 1489.3,397.9 1501.0,400.6 1512.7,403.0 1524.3,405.4 1536.0,407.5"
             class="fio" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>
   <circle cx="1396" cy="352.8" r="4.5" fill="#b4602b" stroke="#f2f5f4" stroke-width="2"/>
-  <text x="1405" y="356" class="eixo-cobre">144 W</text>
-  <text x="1398" y="415" class="eixo">regime 109 W</text>
-  <text x="1396" y="438" class="eixo">0</text>
-  <text x="1536" y="438" class="eixo" text-anchor="end">12 h</text>
+  <text x="1405" y="357" class="eixo-cobre">144 W na partida</text>
+  <text x="1398" y="416" class="eixo">regime 109 W</text>
+  <text x="1396" y="441" class="eixo">0 h</text>
+  <text x="1536" y="441" class="eixo" text-anchor="end">12,3 h</text>
 
   <!-- fio do caso -->
   <line x1="240" y1="476" x2="1586" y2="476" class="fio" stroke-width="4" marker-end="url(#pt-cobre)"/>
@@ -260,126 +252,127 @@
     <text x="362" y="512">218 W</text>
     <text x="546" y="512">−7,5 / 45 °C</text>
     <text x="730" y="512">109 W</text>
-    <text x="914" y="512">5,6 / 11,6 m</text>
+    <text x="914" y="512">11,6 / 5,6 m</text>
     <text x="1098" y="512">0,711 mm</text>
     <text x="1282" y="512">145 g</text>
     <text x="1466" y="512">pico 144 W</text>
   </g>
   <g class="det" text-anchor="middle">
-    <text x="362" y="535">108 garrafas, não 333</text>
-    <text x="546" y="535">evaporação / condensação</text>
-    <text x="730" y="535">2,22 cm³ a 3500 rpm</text>
-    <text x="914" y="535">condensador / evaporador</text>
-    <text x="1098" y="535">× 2,16 m (0,028")</text>
-    <text x="1282" y="535">de R290, no circuito</text>
-    <text x="1466" y="535">pull-down em ≈ 12 h</text>
+    <text x="362" y="536">108 garrafas (333 não cabem)</text>
+    <text x="546" y="536">evaporação / condensação</text>
+    <text x="730" y="536">elétricos: 218 W ÷ 2,0</text>
+    <text x="914" y="536">de tubo: evap. / cond.</text>
+    <text x="1098" y="536">(0,028") × 2,16 m de tubo</text>
+    <text x="1282" y="536">de R290 no total</text>
+    <text x="1466" y="536">pull-down ≈ 12 h (estimativa)</text>
   </g>
   <g class="met" text-anchor="middle">
-    <text x="362" y="566">paredes, porta, gaxeta,<tspan x="362" dy="18">aberturas e reposição;</tspan><tspan x="362" dy="18">umidade de equilíbrio</tspan></text>
-    <text x="546" y="566">CoolProp; COP conferido<tspan x="546" dy="18">com Carnot e o ciclo</tspan><tspan x="546" dy="18">ideal (η_global 0,52)</tspan></text>
-    <text x="730" y="566">espaço morto → η_v;<tspan x="730" dy="18">ponto de catálogo</tspan><tspan x="730" dy="18">EN 12900 ≈ 198 W</tspan></text>
-    <text x="914" y="566">ε = 0,65 fixa a vazão de ar;<tspan x="914" dy="18">6 fileiras de tubo 3/8";</tspan><tspan x="914" dy="18">+10 % na construtiva</tspan></text>
-    <text x="1098" y="566">modelo homogêneo com<tspan x="1098" dy="18">blocagem; validado:</tspan><tspan x="1098" dy="18">Li et al. (1990), −1 a −3 %</tspan></text>
-    <text x="1282" y="566">fração de vazio de<tspan x="1282" dy="18">Rouhani-Axelsson; limite</tspan><tspan x="1282" dy="18">IEC 60335-2-89</tspan></text>
-    <text x="1466" y="566">compressor e trocadores<tspan x="1466" dy="18">casados com a geometria</tspan><tspan x="1466" dy="18">fixa; limite de potência</tspan></text>
+    <text x="362" y="566">entram 139 W em média;<tspan x="362" dy="19">÷ 70 % de uso e + 10 %</tspan><tspan x="362" dy="19">de margem dão os 218 W</tspan></text>
+    <text x="546" y="566">sim: 2,0 fica abaixo do<tspan x="546" dy="19">ciclo ideal (3,9) e de</tspan><tspan x="546" dy="19">Carnot (5,1); CoolProp</tspan></text>
+    <text x="730" y="566">2,22 cm³ a 3500 rpm;<tspan x="730" dy="19">no catálogo (−10/45 °C),</tspan><tspan x="730" dy="19">≈ 198 W de frio</tspan></text>
+    <text x="914" y="566">ε = 0,65 fixa o ar;<tspan x="914" dy="19">6 fileiras de tubo 3/8";</tspan><tspan x="914" dy="19">+10 % de área ao construir</tspan></text>
+    <text x="1098" y="566">validado contra medição<tspan x="1098" dy="19">(Li et al., 1990): 1 a 3 %;</tspan><tspan x="1098" dy="19">±12,7 µm no Ø: ±5 % de ṁ</tspan></text>
+    <text x="1282" y="566">123 g no circuito; o resto<tspan x="1282" dy="19">na carcaça e no óleo</tspan><tspan x="1282" dy="19">(vazio de Rouhani-Axelsson)</tspan></text>
+    <text x="1466" y="566">quase estático, com a<tspan x="1466" dy="19">geometria fixa; o transitório</tspan><tspan x="1466" dy="19">real sai do Amesim</tspan></text>
   </g>
 
-  <!-- laços de iteração (voltam a etapas anteriores até convergir) -->
-  <polyline points="908,614 908,640 546,640 546,616" class="tr-laco" marker-end="url(#pt-laco)"/>
-  <text x="727" y="633" class="laco-t" text-anchor="middle">a perda de carga volta ao ciclo</text>
-  <polyline points="920,614 920,662 368,662 368,616" class="tr-laco" marker-end="url(#pt-laco)"/>
-  <text x="458" y="655" class="laco-t" text-anchor="middle">a umidade volta à carga</text>
-  <polyline points="1466,614 1466,684 356,684 356,616" class="tr-laco" marker-end="url(#pt-laco)"/>
-  <text x="1190" y="677" class="laco-t" text-anchor="middle">acima da potência máxima, refaz com capacidade menor</text>
+  <!-- laços: a rotina volta a uma etapa anterior até convergir -->
+  <polyline points="908,618 908,640 546,640 546,620" class="tr-laco" marker-end="url(#pt-laco)"/>
+  <text x="727" y="633" class="laco-t" text-anchor="middle">a queda de pressão volta à etapa 2</text>
+  <polyline points="920,618 920,662 374,662 374,620" class="tr-laco" marker-end="url(#pt-laco)"/>
+  <text x="460" y="656" class="laco-t" text-anchor="middle">a umidade volta à etapa 1</text>
+  <polyline points="1466,618 1466,684 350,684 350,620" class="tr-laco" marker-end="url(#pt-laco)"/>
+  <text x="1190" y="678" class="laco-t" text-anchor="middle">se houver potência máxima pedida, refaz desde a etapa 1 com capacidade menor</text>
 
   <!-- saída -->
   <rect x="1596" y="216" width="268" height="410" rx="3" fill="#e5ebea"/>
+  <line x1="1596" y1="217" x2="1864" y2="217" stroke="#172226" stroke-width="2"/>
   <text x="1614" y="244" class="rot">O QUE VAI PARA O AMESIM</text>
   <text x="1614" y="282" class="saida-v">bloco amesim</text>
-  <text x="1614" y="303" class="ent-r">JSON, tudo em SI</text>
+  <text x="1614" y="303" class="ent-r">JSON em SI (rotação em rpm)</text>
   <g class="saida-i">
     <rect x="1614" y="331" width="7" height="7" fill="#172226"/><text x="1630" y="339">compressor: deslocamento, η</text>
-    <rect x="1614" y="359" width="7" height="7" fill="#172226"/><text x="1630" y="367">condensador e evaporador:</text>
-    <text x="1630" y="387" class="ent-r">geometria e duas serpentinas</text>
+    <rect x="1614" y="359" width="7" height="7" fill="#172226"/><text x="1630" y="367">evaporador e condensador:</text>
+    <text x="1630" y="387" class="ent-r">serpentina sem margem e +10 %</text>
     <rect x="1614" y="407" width="7" height="7" fill="#172226"/><text x="1630" y="415">capilar e linhas</text>
-    <rect x="1614" y="435" width="7" height="7" fill="#172226"/><text x="1630" y="443">carga de fluido e pressões</text>
-    <rect x="1614" y="463" width="7" height="7" fill="#172226"/><text x="1630" y="471">alvo de validação</text>
+    <rect x="1614" y="435" width="7" height="7" fill="#172226"/><text x="1630" y="443">carga, pressões e ar interno</text>
+    <rect x="1614" y="463" width="7" height="7" fill="#172226"/><text x="1630" y="471">alvo de validação:</text>
     <text x="1630" y="491" class="ent-r">Q, W, ṁ, T_evap, T_cond</text>
     <rect x="1614" y="511" width="7" height="7" fill="#172226"/><text x="1630" y="519">pull-down estimado</text>
-    <rect x="1614" y="539" width="7" height="7" fill="#172226"/><text x="1630" y="547">restrições (potência máxima)</text>
+    <rect x="1614" y="539" width="7" height="7" fill="#172226"/><text x="1630" y="547">potência máxima, se pedida</text>
   </g>
   <line x1="1614" y1="574" x2="1846" y2="574" class="regua"/>
   <text x="1614" y="598" class="codigo">res = dimensionar(entradas)</text>
-  <text x="1614" y="616" class="codigo">res.para_dict()["amesim"]</text>
+  <text x="1614" y="617" class="codigo">res.para_dict()["amesim"]</text>
 
   <!-- ================================================================ faixa B -->
   <line x1="56" y1="716" x2="1864" y2="716" class="regua" stroke-width="1.2"/>
   <rect x="56" y="736" width="22" height="22" fill="#172226"/>
   <text x="67" y="752" class="letra" text-anchor="middle">B</text>
-  <text x="90" y="752" class="secao">DEPOIS DA ROTINA <tspan class="secao-nota">· quem faz o quê</tspan></text>
+  <text x="90" y="752" class="secao">DEPOIS DA ROTINA <tspan class="secao-nota">· quem faz o quê; transitório, ciclagem, degelo e consumo diário ficam com o Amesim</tspan></text>
 
   <g class="ln" stroke-width="2">
-    <line x1="56" y1="780" x2="282" y2="780"/><line x1="342" y1="780" x2="568" y2="780"/>
-    <line x1="628" y1="780" x2="854" y2="780"/><line x1="914" y1="780" x2="1140" y2="780"/>
+    <line x1="56" y1="780" x2="306" y2="780"/><line x1="376" y1="780" x2="626" y2="780"/>
+    <line x1="696" y1="780" x2="946" y2="780"/><line x1="1016" y1="780" x2="1266" y2="780"/>
   </g>
   <text x="56" y="806" class="nome">Gabriel · CAExperts</text>
   <text x="56" y="827" class="papel-t">ROTINA PREDIMREF</text>
-  <text x="56" y="852" class="desc">dimensiona o sistema e<tspan x="56" dy="20">exporta o bloco amesim</tspan><tspan x="56" dy="20">(notebook Colab ou Python)</tspan></text>
+  <text x="56" y="852" class="desc">entrega o bloco amesim<tspan x="56" dy="20">deste ou de outro pedido</tspan><tspan x="56" dy="20">(Colab ou pacote Python:</tspan><tspan x="56" dy="20">numpy, scipy, CoolProp)</tspan></text>
 
-  <text x="342" y="806" class="nome">Diego</text>
-  <text x="342" y="827" class="papel-t">INTEGRAÇÃO PELA API</text>
-  <text x="342" y="852" class="desc">chama dimensionar() e<tspan x="342" dy="20">mapeia os nomes nos</tspan><tspan x="342" dy="20">submodelos do Amesim</tspan></text>
+  <text x="376" y="806" class="nome">Diego</text>
+  <text x="376" y="827" class="papel-t">INTEGRAÇÃO PELA API</text>
+  <text x="376" y="852" class="desc">1º: chamar dimensionar() e,<tspan x="376" dy="20">pela API do Amesim, ligar</tspan><tspan x="376" dy="20">cada campo do JSON a um</tspan><tspan x="376" dy="20">parâmetro de submodelo</tspan></text>
 
-  <text x="628" y="806" class="nome">Pedro</text>
-  <text x="628" y="827" class="papel-t">MODELO DE SISTEMA</text>
-  <text x="628" y="852" class="desc">monta com a serpentina de<tspan x="628" dy="20">projeto, confere o alvo e</tspan><tspan x="628" dy="20">simula pull-down e consumo</tspan></text>
+  <text x="696" y="806" class="nome">Pedro</text>
+  <text x="696" y="827" class="papel-t">MODELO DE SISTEMA</text>
+  <text x="696" y="852" class="desc">1º: com a serpentina sem margem,<tspan x="696" dy="20">reproduzir Q, W, ṁ, T_evap e</tspan><tspan x="696" dy="20">T_cond da rotina; depois,</tspan><tspan x="696" dy="20">pull-down, ciclagem e consumo</tspan></text>
 
-  <text x="914" y="806" class="nome">Luiz · IMBERA</text>
-  <text x="914" y="827" class="papel-t">LABORATÓRIO</text>
-  <text x="914" y="852" class="desc">ensaia pull-down,<tspan x="914" dy="20">potência e consumo</tspan><tspan x="914" dy="20">do produto real</tspan></text>
+  <text x="1016" y="806" class="nome">Luiz · IMBERA</text>
+  <text x="1016" y="827" class="papel-t">LABORATÓRIO</text>
+  <text x="1016" y="852" class="desc">ensaia pull-down, potência<tspan x="1016" dy="20">e consumo do produto real;</tspan><tspan x="1016" dy="20">mede o UA do gabinete</tspan><tspan x="1016" dy="20">e a troca ar–garrafa</tspan></text>
 
   <g class="ln2" stroke-width="1.4">
-    <line x1="290" y1="806" x2="334" y2="806" marker-end="url(#pt-tinta)"/>
-    <line x1="576" y1="806" x2="620" y2="806" marker-end="url(#pt-tinta)"/>
-    <line x1="862" y1="806" x2="906" y2="806" marker-end="url(#pt-tinta)"/>
+    <line x1="316" y1="806" x2="366" y2="806" marker-end="url(#pt-tinta)"/>
+    <line x1="636" y1="806" x2="686" y2="806" marker-end="url(#pt-tinta)"/>
+    <line x1="956" y1="806" x2="1006" y2="806" marker-end="url(#pt-tinta)"/>
   </g>
-  <text x="312" y="798" class="seta-t" text-anchor="middle">JSON</text>
-  <text x="598" y="798" class="seta-t" text-anchor="middle">modelo</text>
-  <text x="884" y="798" class="seta-t" text-anchor="middle">compara</text>
+  <text x="341" y="797" class="seta-t" text-anchor="middle">JSON</text>
+  <text x="661" y="797" class="seta-t" text-anchor="middle">modelo</text>
+  <text x="981" y="797" class="seta-t" text-anchor="middle">previsão</text>
 
   <!-- realimentação dos ensaios -->
-  <polyline points="1027,920 1027,942 160,942 160,922" class="tr-laco" marker-end="url(#pt-laco)"/>
-  <line x1="740" y1="942" x2="740" y2="922" class="tr-laco" marker-end="url(#pt-laco)"/>
-  <text x="56" y="970" class="laco-t">os ensaios calibram as duas pontas: UA do gabinete, troca ar–garrafa (hA) e mapa do compressor</text>
+  <polyline points="1141,926 1141,948 181,948 181,930" class="tr-laco" marker-end="url(#pt-laco)"/>
+  <line x1="821" y1="948" x2="821" y2="930" class="tr-laco" marker-end="url(#pt-laco)"/>
+  <text x="56" y="976" class="laco-t">os ensaios do Luiz calibram a rotina e o modelo do Pedro: UA do gabinete, troca ar–garrafa (hA) e η do compressor</text>
 
-  <text x="56" y="1010" class="rot">PRÓXIMOS PASSOS</text>
-  <text x="200" y="1010" class="item">mapa de catálogo do compressor (EN 12900) · calibração com os ensaios · interface gráfica</text>
+  <text x="56" y="1012" class="rot">A ROTINA, A SEGUIR</text>
+  <text x="228" y="1012" class="item">mapa real do compressor escolhido (EN 12900) · interface gráfica</text>
 
   <!-- decisões e verificação -->
-  <line x1="1196" y1="776" x2="1196" y2="1012" class="regua"/>
-  <text x="1222" y="780" class="rot">PARA DECIDIR JUNTOS</text>
+  <line x1="1326" y1="776" x2="1326" y2="1016" class="regua"/>
+  <text x="1352" y="780" class="rot">PARA DECIDIR JUNTOS</text>
   <g class="item">
-    <rect x="1222" y="797" width="7" height="7" fill="#172226"/>
-    <text x="1240" y="805"><tspan font-weight="600">Eficácia no Amesim:</tspan> referida à saturação (a nossa) ou Q/Q_max?</text>
-    <text x="1240" y="825" class="ent-r">As duas definições já vão no JSON.</text>
-    <rect x="1222" y="845" width="7" height="7" fill="#172226"/>
-    <text x="1240" y="853"><tspan font-weight="600">Potência máxima do laboratório:</tspan> regime ou pico do pull-down?</text>
-    <text x="1240" y="873" class="ent-r">E em qual temperatura ambiente (32 °C, 43 °C)?</text>
-    <rect x="1222" y="893" width="7" height="7" fill="#172226"/>
-    <text x="1240" y="901"><tspan font-weight="600">Margem de 10 % de área:</tspan> só no fim,</text>
-    <text x="1240" y="921" class="ent-r">sobre a geometria que o Amesim otimizar.</text>
+    <rect x="1352" y="797" width="7" height="7" fill="#172226"/>
+    <text x="1370" y="805"><tspan class="forte">Eficácia no Amesim:</tspan> saturação (0,65) ou Q/Q_max (0,93–0,97)?</text>
+    <text x="1370" y="826" class="ent-r">Pedro confere no submodelo; as duas vão no JSON.</text>
+    <rect x="1352" y="846" width="7" height="7" fill="#172226"/>
+    <text x="1370" y="854"><tspan class="forte">Limite de potência:</tspan> regime (109 W) ou pico (144 W)?</text>
+    <text x="1370" y="875" class="ent-r">E a que ambiente, 32 °C ou 43 °C? Luiz e IMBERA definem.</text>
+    <rect x="1352" y="895" width="7" height="7" fill="#172226"/>
+    <text x="1370" y="903"><tspan class="forte">Margem de 10 % de área:</tspan> aplicar só no fim?</text>
+    <text x="1370" y="924" class="ent-r">Proposta: sobre a geometria que o Amesim otimizar.</text>
   </g>
-  <text x="1222" y="962" class="rot">COMO SABEMOS QUE ESTÁ CERTO</text>
+  <text x="1352" y="964" class="rot">COMO FOI VERIFICADO</text>
   <g class="verif">
-    <text x="1222" y="988">120 testes automáticos</text>
-    <text x="1222" y="1010">balanço de energia fecha a 10⁻⁹</text>
-    <text x="1500" y="988">capilar × Li et al. (1990): −1 a −3 %</text>
-    <text x="1500" y="1010">3 rodadas de revisão adversarial</text>
+    <text x="1352" y="990">120 testes, todos passando</text>
+    <text x="1352" y="1012">energia: entra = sai (erro &lt; 10<tspan dy="-7" font-size="11">−8</tspan><tspan dy="7">)</tspan></text>
+    <text x="1610" y="990">pull-down: 2 métodos, &lt; 0,3 %</text>
+    <text x="1610" y="1012">próxima prova: Amesim × alvo</text>
   </g>
 
-  <text x="56" y="1056" class="rodape">Números do caso de 200 L gerados pela própria rotina. São estimativas de pré-dimensionamento: o Amesim refina e o ensaio confirma.</text>
+  <text x="56" y="1048" class="rodape">Todos os números são do caso de 200 L, gerados pela própria rotina. São estimativas de pré-dimensionamento.</text>
 </svg>
 </div>
-<figcaption>Leitura em duas faixas, sempre da esquerda para a direita. Na faixa A, cada coluna é uma pergunta que a rotina responde, e o fio de cobre leva os números de um caso real de 200 L até o bloco de parâmetros do Amesim; os tracejados azuis são os laços em que a rotina volta a uma etapa anterior até convergir. Na faixa B, o mesmo sentido mostra quem recebe o resultado e como os ensaios voltam para calibrar a rotina e o modelo.</figcaption>
+<figcaption>Leitura em duas faixas, sempre da esquerda para a direita. Na faixa A, cada coluna é uma pergunta que a rotina responde, e o fio de cobre leva os números de um caso real de 200 L até o bloco de parâmetros do Amesim; os tracejados azuis são os laços em que a rotina volta a uma etapa anterior até convergir. Na faixa B, o mesmo sentido mostra quem recebe o resultado, o primeiro passo de cada um e como os ensaios voltam para calibrar a rotina e o modelo.</figcaption>
 </figure>
 </div>
