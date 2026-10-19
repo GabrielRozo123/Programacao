@@ -45,6 +45,19 @@ geometria**; a exportação tem de sair do software de projeto.
   CFD externo, o interior do prédio sai inteiro (categoria 3) e a fonte é a **descarga dos
   exaustores** — confirma a §4, item 10, como o detalhe mais importante do modelo.
 
+### 0.2 Terceiro envio (19/10) — `#F-C-1219_copy.x_t` (civil da área de O₃, com geometria)
+~434 corpos. Classificação pelos nomes:
+
+| grupo | nomes | corpos | decisão |
+|---|---|---|---|
+| **Fundação** | `OZ_B_Base_B…`, `BLOCK_P…`, `TUB-AP…` (tubulões), `BASES_ELEV…`, `P.R-BL…`, `P.R-CP…`, `F-C-1219-FUND-…`, `PS-…_BASE` | **~220 (≈ metade)** | **sai** (abaixo do piso) |
+| **Estrutura interna** | `FITTING`, `SUBSTRUCTURE`, `FRMWORK`, `SBFRAMEWORK`, `SCTN`, `BEANS`, `COLUMNS`, `FLOOR` | ~130 | **sai** |
+| **Envoltória** | `GWALL`, `STWALL`, `OZONE_BUILDING…` | ~65 | **fica** (ou vira caixa no lugar) |
+| Insertos | `F-C-1210_OZONIO-BUILD_INS…` | ~15 | sai |
+
+→ Do civil do prédio de O₃, **só ~15 % das peças ficam**. As coordenadas estão no sistema da planta
+(em metros, com elevação de projeto), longe da origem.
+
 ## 1. O princípio: o nível de detalhe vem da pergunta e da malha
 
 O estudo quer as **concentrações de O₃ junto ao solo** (contornos de 0,2 · 0,5 · 3 ppm, até
