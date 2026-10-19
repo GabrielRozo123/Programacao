@@ -80,6 +80,12 @@ a +4,5 m** (~8,5 × 20 m) e **sala de transformadores** (~9,5 × 8 m, ~4,5 m) no
 **Não estão neste arquivo** (é só o civil): **exaustores**, misturadores e **tubulação de saída de
 O₃** → estão nos subconjuntos mecânicos/tubulação (`#F-M-1219` e possivelmente outros da área 1219).
 
+### 0.4 Quinto envio (20/10) — inventário do mecânico `#F-M-1219` (CSV, via Colab)
+5 947 peças com nomes, lidas com `geometria/inventario_STEP_colab.ipynb`. **Os 4 exaustores (1219-24-910/920/930/940)
+foram localizados** num **terraço técnico elevado** do prédio de O₃: laje com sala embaixo, **coberto** e com lados abertos.
+O topo das descargas fica a ~2 m da cobertura. **A direção da descarga é a pendência crítica**: se for vertical, o jato
+bate na cobertura e se espalha. Nada do mecânico passa de ~8 m (sem chaminé alta). Posições e detalhes: `_privado/`.
+
 ## 1. O princípio: o nível de detalhe vem da pergunta e da malha
 
 O estudo quer as **concentrações de O₃ junto ao solo** (contornos de 0,2 · 0,5 · 3 ppm, até
