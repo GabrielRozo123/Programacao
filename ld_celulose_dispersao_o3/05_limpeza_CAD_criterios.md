@@ -58,6 +58,28 @@ geometria**; a exportação tem de sair do software de projeto.
 → Do civil do prédio de O₃, **só ~15 % das peças ficam**. As coordenadas estão no sistema da planta
 (em metros, com elevação de projeto), longe da origem.
 
+### 0.3 Quarto envio (19/10) — `#F-C-1219` em STEP → limpeza automática
+O STEP abre aqui (OpenCascade): 192 peças, geometria **facetada** (faces planas). Script
+`geometria/limpar_step.py` (regras por nome + cota; saída em `_privado/`, fora do git):
+
+| decisão | categoria | peças |
+|---|---|---|
+| fica | paredes (`GWALL`, `STWALL`) | 62 |
+| fica | lajes (plataforma `+974,900` e sala de transformadores) | 9 |
+| conferir | `OZONE_BUILDING_OPENNING` (abertura ~0,9 × 0,9 m na laje a +4,5 m) | 1 |
+| sai | fundação/bases | 75 |
+| sai | estrutura, furos, insertos, piso interno | 24 |
+| sai | `TUB-AP…` — **eletrodutos finos** que descem junto às paredes até abaixo do piso (não são tubulação de processo) | 4 |
+| sai | peças sem posição (na origem do arquivo) | 17 |
+
+**Volumes do prédio (origem local no canto das paredes, z = 0 no piso, cota de projeto ≈ 970,4 m):**
+envoltória ~31 × 30 m; **bloco alto ~11 × 11 m com 21,3 m**; corpo baixo ~9 m; **plataforma elevada
+a +4,5 m** (~8,5 × 20 m) e **sala de transformadores** (~9,5 × 8 m, ~4,5 m) no lado leste.
+**H do prédio de O₃ ≈ 21 m** → Z0 (~3H) ≈ 65 m de raio.
+
+**Não estão neste arquivo** (é só o civil): **exaustores**, misturadores e **tubulação de saída de
+O₃** → estão nos subconjuntos mecânicos/tubulação (`#F-M-1219` e possivelmente outros da área 1219).
+
 ## 1. O princípio: o nível de detalhe vem da pergunta e da malha
 
 O estudo quer as **concentrações de O₃ junto ao solo** (contornos de 0,2 · 0,5 · 3 ppm, até
