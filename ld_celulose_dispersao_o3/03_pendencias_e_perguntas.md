@@ -81,6 +81,18 @@ Veio a **planta inteira** (inclui guindastes e estacas). Critérios de limpeza e
 - **cota do solo acabado** (para cortar tudo que está abaixo);
 - se possível, a **lista de peças (BOM)** exportada em Excel — acelera a classificação.
 
+**19/10 — o `.x_t` enviado veio sem geometria** (só a árvore; modelo em coordenadas da planta, fora
+do limite de 1 km do Parasolid). Mensagem sugerida ao cliente:
+
+> Recebemos o modelo, obrigado. O arquivo .x_t chegou só com a estrutura da montagem, sem os
+> sólidos — o modelo está em coordenadas da planta, muito longe da origem, e o formato Parasolid
+> descarta a geometria nesse caso. Vocês conseguiriam exportar a partir do software de projeto
+> (AVEVA/E3D ou o que gerou o Navisworks), em STEP ou Parasolid, **só a área do prédio de ozônio
+> (1219) e as estruturas num raio de ~300 m**, **sem tubulação, internos e acessórios**, com a
+> origem transladada para perto do prédio de ozônio (e nos informando o vetor de translação)?
+> Também precisamos da **cota do piso acabado** e da confirmação de que os guindastes do modelo são
+> temporários.
+
 ### 10. Onde estão as pessoas
 Áreas ocupadas, passarelas, salas de controle e **tomadas de ar de HVAC**. O critério do
 estudo é exposição humana; sem esse mapa, os contornos não viram recomendação.

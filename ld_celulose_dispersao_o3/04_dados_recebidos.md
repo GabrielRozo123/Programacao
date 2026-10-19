@@ -129,6 +129,19 @@ e a vazão é o que entra na conta do §1.3.
 
 ---
 
+## Lote 2 — 15 a 19/10/2026 · CAD da planta
+
+| arquivo | conteúdo |
+|---|---|
+| `MONTAGEM_COMPLETA.cfg` | configuração de exibição do Solid Edge — **sem geometria** |
+| `MONTAGEM_COMPLETA - menor.x_t` | Parasolid com **só a árvore da montagem**, sem sólidos (coordenadas da planta fora da caixa de 1 km do Parasolid) |
+| imagens do Navisworks (`AMADEUS_OZONIO.nwd`) | prédio de O₃ identificado; misturadores internos |
+
+**Informação nova de processo (Marcus, 19/10):** já houve **trinca na tubulação de alimentação dos
+misturadores**, dentro do prédio, com liberação de O₃; nesse vazamento **os exaustores são
+acionados**. → Caminho de liberação do cenário de vazamento = **interior → exaustores → atmosfera**.
+Análise e critérios: `05_limpeza_CAD_criterios.md` §0.1.
+
 ## O que ainda falta
 
 Do `03_pendencias_e_perguntas.md`, seguem abertos e agora com prioridade revista:

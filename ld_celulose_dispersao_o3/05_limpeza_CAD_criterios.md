@@ -18,6 +18,33 @@
   ocorrência, a montagem tem dezenas de milhares de peças. **A limpeza tem de ser feita por regra
   (categoria, tamanho, zona), não peça a peça.**
 
+### 0.1 Segundo envio (19/10/2026) — Parasolid `.x_t` "menor" + imagens do Navisworks
+
+**O `.x_t` não tem geometria.** São 12 kB com só a **árvore da montagem** (≈ 25 componentes) e
+nenhuma superfície, aresta ou sólido. O que dá para ler:
+
+| achado | leitura |
+|---|---|
+| Nomes `#F-C-1219`, `#F-E-1219`, `#F-I-1219`, `#F-M-1213…1216`, `#F-M-1219`, `#RC-1210`, `#RF-1210`, `Building`, `Building_sub_0…7`, `FRMWORK_CANALETAS_ALCALINAS`, `AIDGROUP` | convenção de **AVEVA E3D/PDMS** (FRMWORK, AIDGROUP) → o modelo de origem é de projeto de planta, convertido. O número é a **área** da planta: os exaustores têm tag **1219-24-9x0** → **área 1219 = planta de ozônio** [inferência a confirmar] |
+| Uma única translação, de **dezenas de km** em x e y e ~1 km em z | o modelo está em **coordenadas da planta**, longe da origem. O Parasolid só modela dentro de uma caixa de **1 km (±500 m) em torno da origem** (cabeçalho: tamanho 1e3) → geometria fora dela **não é exportada / fica inválida**. **Causa provável do `.x_t` vazio.** |
+| `CANALETAS_ALCALINAS` | canaletas no piso → **remover** (categoria 12, §4) |
+
+**Correção (no Solid Edge, antes de exportar):** mover a montagem para que o **prédio de O₃ fique na
+origem** (registrar o vetor usado, para voltar às coordenadas da planta depois), conferir a
+**unidade** (mm × m) e exportar de novo. Melhor ainda — **filtrar na fonte**: pedir ao cliente uma
+exportação do AVEVA/Navisworks só das **áreas em torno da 1219, num raio de ~300 m**, sem tubulação
+e sem internos (ver mensagem em `03` §9). O Navisworks *Freedom* é só visualizador — **não exporta
+geometria**; a exportação tem de sair do software de projeto.
+
+**Das imagens do Navisworks (Marcus):**
+- O prédio de O₃ é um **volume revestido** (caixa alta), colado a vasos verticais altos e a uma área
+  coberta com equipamentos e exaustores. Há um **caminhão-tanque** estacionado (veículo → remover).
+- **Dentro** há os **misturadores** e a tubulação de alimentação. **Já houve trinca nessa tubulação e
+  liberação de O₃**; nesse tipo de vazamento **os exaustores são acionados**. → O cenário de
+  vazamento real é **interno**: o O₃ sai para a atmosfera **pelas descargas dos exaustores**. Para o
+  CFD externo, o interior do prédio sai inteiro (categoria 3) e a fonte é a **descarga dos
+  exaustores** — confirma a §4, item 10, como o detalhe mais importante do modelo.
+
 ## 1. O princípio: o nível de detalhe vem da pergunta e da malha
 
 O estudo quer as **concentrações de O₃ junto ao solo** (contornos de 0,2 · 0,5 · 3 ppm, até
