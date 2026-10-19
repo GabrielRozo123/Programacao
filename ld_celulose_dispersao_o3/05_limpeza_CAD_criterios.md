@@ -213,6 +213,20 @@ coordenadas locais (origem no prédio de O₃ → resolve o problema do Parasoli
 (cada obstáculo é uma linha da tabela, com a medida de onde veio). São dezenas de linhas, não
 dezenas de milhares de peças.
 
+**Ajuste após conversa com o Otávio (19/10) — estratégia híbrida (adotada):** medir e reposicionar
+tudo à mão é arriscado numa planta desse tamanho. Então:
+- **Externo (silos, tanques, prédios, torres): limpar apagando**, mantendo as peças originais →
+  posição exata garantida. É a parte fácil.
+- **Interno do prédio de O₃: apagar tudo.** O estudo é de dispersão **externa**; o prédio entra como
+  volume fechado e a fonte é a **descarga dos exaustores**. A concentração na descarga sai de um
+  balanço (vazão de vazamento ÷ vazão dos exaustores, mistura completa), sem geometria interna. CFD
+  interno só se o escopo pedir (posição de detectores dentro do prédio) — seria outro modelo.
+- **Só o que for difícil de malhar é remodelado, e no lugar:** *Create Part In-Place* na própria
+  montagem, desenhando a caixa/cilindro **sobre as faces da peça original** (herda a posição), e
+  depois apagando a original. Ex.: envoltória do prédio de O₃ se as paredes vierem em painéis com
+  frestas.
+- O gerador por tabela (`geometria/`) fica como **plano B**.
+
 Pistas do `#F-C-1219`: os nomes `PILES`, `BLOCK_P`, `BASES_ELEV` confirmam fundação abaixo do
 solo (as barras verdes abaixo do piso na vista); `+974,900` parece ser a **cota do piso** — conferir.
 
