@@ -174,6 +174,23 @@ longo dos tubos). Se a área frontal do aglomerado for pequena frente ao entorno
 
 ---
 
+### 7.1 Roteiro prático no Solid Edge (montagem aberta em 19/10)
+A montagem abre com os sólidos. Árvore de topo: `#F-C-1219`, `#F-E-1219`, `#F-I-1219`,
+`#F-M-1213…1216`, `#F-M-1219`, `#RC-1210`, `#RF-1210` (cada uma com `Building.asm` dentro).
+
+0. **Cópia da pasta inteira** no Windows Explorer antes de mexer (apagar dentro de subconjunto
+   regrava o `.asm` do subconjunto).
+1. **Inventário:** no PathFinder, desligar o olho de **um** subconjunto por vez e anotar o que some
+   (palpite a confirmar: C = civil/estrutura, E = elétrica, I = instrumentação, M = mecânica/equipamentos
+   e tubulação; o número é a área).
+2. **Ocultar ≠ apagar:** primeiro **ocultar** o que sai (olho), conferir a vista, só depois apagar
+   (selecionar no PathFinder → *Delete*). Apagar uma ocorrência **não** apaga o arquivo da peça.
+3. **Achar por nome:** caixa *Type to find components* do PathFinder.
+4. **Medir:** aba *Inspect* → medir altura do prédio de O₃ e distâncias (define H e as zonas).
+5. **Exportar em STEP** (*Save As* → STEP) em vez de `.x_t`: o STEP não tem a caixa de 1 km do
+   Parasolid. A translação para perto da origem pode ser feita depois, no STAR. Se algum componente
+   estiver **inativo** (ícone apagado), ativar antes de exportar — inativo não é exportado.
+
 ## Referências
 - Franke, J. et al. (2007). *Best Practice Guideline for the CFD Simulation of Flows in the Urban
   Environment* — COST Action 732.
