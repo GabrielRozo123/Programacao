@@ -191,6 +191,31 @@ A montagem abre com os sólidos. Árvore de topo: `#F-C-1219`, `#F-E-1219`, `#F-
    Parasolid. A translação para perto da origem pode ser feita depois, no STAR. Se algum componente
    estiver **inativo** (ícone apagado), ativar antes de exportar — inativo não é exportado.
 
+### 7.2 ⭐ Mudança de estratégia (19/10): remodelar em vez de limpar
+Abrindo o subconjunto `#F-C-1219` (civil da área de O₃) aparecem **centenas de peças** só nele:
+paredes e furos de parede (`STWALL`, `GWALL`, `WALL-HOLE`), pisos internos (`FLOOR … FRMWORK`),
+quadros e conexões (`FRMWORK`, `SBFRAMEWORK`, `FITTING`), vigas e pilares (`BEANS`, `COLUMNS`),
+insertos (`…_INS-…`), **estacas e blocos** (`…PILES`, `BLOCK_P…`, `BASES_ELEV+974,900`) e a sala de
+transformadores. Multiplicado pelos outros subconjuntos, **limpar peça a peça não fecha no prazo**.
+
+**Decisão proposta:** usar o CAD da planta **só como referência de medidas** e **remodelar** cada
+obstáculo relevante como primitiva, pelas zonas e critérios deste documento:
+1. No Solid Edge: medir (aba *Inspect*) posição, dimensões e altura de cada objeto que fica (prédio
+   de O₃, anexos, silos, tanques, torres, prédios vizinhos, descargas dos exaustores).
+2. Anotar numa tabela (`geometria/objetos_exemplo.csv` é o modelo; a tabela real vai em
+   `_privado/`, fora do git): tipo (caixa, cilindro, silo, duto), zona, posição, dimensões.
+3. `geometria/gen_geometria_cfd.py` gera o **STEP limpo**, um sólido nomeado por objeto, e imprime a
+   área frontal por direção de vento (verificação §6).
+4. Só o **prédio de O₃ (Z0)** ganha detalhe extra: forma da cobertura e descargas reais.
+
+Vantagens: geometria **estanque e sem interferências** por construção; nomes prontos para o STAR;
+coordenadas locais (origem no prédio de O₃ → resolve o problema do Parasolid); e **rastreabilidade**
+(cada obstáculo é uma linha da tabela, com a medida de onde veio). São dezenas de linhas, não
+dezenas de milhares de peças.
+
+Pistas do `#F-C-1219`: os nomes `PILES`, `BLOCK_P`, `BASES_ELEV` confirmam fundação abaixo do
+solo (as barras verdes abaixo do piso na vista); `+974,900` parece ser a **cota do piso** — conferir.
+
 ## Referências
 - Franke, J. et al. (2007). *Best Practice Guideline for the CFD Simulation of Flows in the Urban
   Environment* — COST Action 732.

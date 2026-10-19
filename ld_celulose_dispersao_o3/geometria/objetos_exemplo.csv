@@ -1,0 +1,12 @@
+# Tabela de objetos para o modelo CFD — EXEMPLO FICTÍCIO (dados reais ficam em ../_privado/)
+# Coordenadas em metros, origem num canto do prédio de O3, z = 0 no piso acabado.
+# tipo: caixa | cilindro | silo (cilindro + cone de fundo) | duto (cilindro vertical = chaminé/descarga)
+# caixa:    x0,y0 = canto; a = dimensão em x; b = dimensão em y; h = altura; rot = rotação em z (graus) em torno do canto
+# cilindro/silo/duto: x0,y0 = centro; a = diâmetro; b = altura do cone de fundo (silo) ou 0; h = altura total; z0 = cota da base
+nome,tipo,zona,x0,y0,z0,a,b,h,rot
+predio_O3,caixa,Z0,0,0,0,20,12,18,0
+anexo_O3,caixa,Z0,20,0,0,15,12,6,0
+descarga_exaustor_1,duto,Z0,25,3,6,1.0,0,3,0
+silo_A,silo,Z1,-30,10,4,8,6,30,0
+tanque_B,cilindro,Z1,-15,-25,0,10,0,12,0
+predio_C,caixa,Z1,40,-30,0,30,20,10,15
