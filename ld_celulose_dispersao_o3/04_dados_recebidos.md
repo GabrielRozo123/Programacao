@@ -142,6 +142,14 @@ misturadores**, dentro do prédio, com liberação de O₃; nesse vazamento **os
 acionados**. → Caminho de liberação do cenário de vazamento = **interior → exaustores → atmosfera**.
 Análise e critérios: `05_limpeza_CAD_criterios.md` §0.1.
 
+### ⭐ Direção das descargas — lida do CAD (20/10/2026)
+Geometria real dos bocais (`#F-M-1219`), conferida contra os manuais (área do flange × Q/v):
+- **LX 816 (910 e 920): descarga HORIZONTAL**, para fora do terraço pelos lados abertos (um para cada lado), a ~6 m do chão.
+- **HL 4S (930 e 940): descarga VERTICAL**, sob a cobertura do terraço (~2,4 m acima da saída) → o jato bate na cobertura.
+- Corrige o §1.3: a premissa de "descarga vertical a 33,8 m/s" **não vale para os LX 816**. O raciocínio de downwash do §1.2
+  (razão v_saída/v_vento) precisa ser refeito para jato horizontal e para jato vertical confinado pela cobertura.
+- Posições e dimensões: `_privado/geometria_predio_O3.md`.
+
 ## O que ainda falta
 
 Do `03_pendencias_e_perguntas.md`, seguem abertos e agora com prioridade revista:
