@@ -67,8 +67,8 @@ Em seguida, cada equipamento foi agrupado pelo seu **tag**, com a caixa envolven
 
 ### 3.3 Reconstruir por **primitivas**, nas posições originais
 Os objetos que ficam foram reconstruídos como **caixas e cilindros** (diâmetro e altura do inventário) por um
-script que lê uma tabela (uma linha por objeto) e gera um **STEP limpo**: sólidos fechados, sem interferências,
-nomeados, em metros e com origem local no prédio de O₃ (evita o limite de 1 km do Parasolid e problemas de
+script que lê uma tabela (uma linha por objeto) e gera um **STEP limpo**: sólidos fechados e
+nomeados (as interferências restantes são intencionais — blocos do mesmo prédio — e se resolvem por união no STAR), em metros e com origem local no prédio de O₃ (evita o limite de 1 km do Parasolid e problemas de
 precisão com coordenadas de dezenas de km).
 
 ### 3.4 As fontes, com a geometria real
@@ -87,7 +87,7 @@ concentração = vazão de O₃ vazada ÷ vazão de exaustão (mistura completa 
 | | antes | depois |
 |---|---|---|
 | peças | > 40 mil (10 subconjuntos, ~4 GB de STEP) | **38 sólidos** nomeados |
-| geometria | facetada, com frestas, enterrados, interferências | fechada, estanque, sem interferências |
+| geometria | facetada, com frestas, enterrados, interferências | sólidos fechados; interferências só entre blocos do mesmo prédio (união) |
 | coordenadas | da planta (dezenas de km da origem) | locais (metros, origem no prédio de O₃) |
 | fontes | não identificadas | 4 descargas reais, direção e área conferidas |
 
@@ -102,6 +102,8 @@ prédio elétrico, sala elétrica e dois tanques grandes ao sul.
 - **Limitações declaradas:** cilindros e caixas envolventes (sem bocais, plataformas, tubulação externa);
   estruturas treliçadas desprezadas (racks densos podem virar blocos porosos se a sensibilidade indicar);
   estruturas a mais de ~100 m dependem da montagem completa ou entram como rugosidade.
+- **Checagem de interferências:** indicou tanques parcialmente sob a laje do prédio das prensas → indício de que ele é
+  aberto embaixo (a confirmar).
 - **Pendências:** prédio das prensas aberto ou fechado embaixo; estruturas altas entre 100 e 300 m; tamanho do
   domínio (H do entorno ≈ 58 m); quais exaustores operam em cada cenário.
 
