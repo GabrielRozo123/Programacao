@@ -39,7 +39,7 @@
 | L4 | Densidades de projeto das curvas dos ventiladores (0,9002 × 1,0148 kg/m³) | Cliente |
 | L5 | Faltam **1 planilha e 1 PDF** do lote 1 | Cliente |
 | L6 | Aval dos **cenários 5–6** (vento fraco estável) | Marcus |
-| L7 | CAD abre com sólidos no Solid Edge. **Estratégia híbrida** (`05` §7.2): apagar o externo mantendo posições, interior do prédio de O₃ fora, remodelar no lugar só o difícil. **Otávio limpa** (começa depois da Vale) · Gabriel adianta o 1º corte em massa e a lista do que fica · ⚠️ Etapa 1 (7 dias) corre desde 15/10 | Otávio + Gabriel |
+| L7 | ✅ Geometria do CFD pronta (40 sólidos, escala correta) — `06`, `07`. Falta só: estruturas altas 100–300 m (Otávio) | Gabriel + Otávio |
 | L8 | Decidir se o projeto migra para repositório privado | Marcus |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
