@@ -103,6 +103,42 @@ que já existe antes de recomendar.
 
 ---
 
+## ⭐ Perguntas consolidadas — 20/10/2026 (antes de montar o CFD)
+
+### Para o cliente (via Marcus)
+**A. Fonte (bloqueia os cenários)**
+1. Vazamento na alimentação dos misturadores (o caso da trinca): vazão de O₃ estimada [kg/h] — um valor típico e um
+   pior caso — e a concentração de O₃ na corrente (% em massa em O₂).
+2. Nesse vazamento, quais exaustores ligam (910/920, 930/940 ou todos), em quanto tempo e com que lógica
+   (detector a 0,2 ppm?). Quais operam continuamente em operação normal?
+3. As PSVs dos geradores (topo dos 1219-20-110/210/310): descarregam dentro do prédio ou para fora? Pressão de set e
+   vazão de alívio.
+4. Os desenhos CVC00P0015–P0018 (tabela de características técnicas) — para confirmar vazão e condição de operação
+   dos ventiladores; e a densidade de projeto (0,90 × 1,01 kg/m³ nas curvas).
+
+**B. Meteorologia e terreno**
+5. Estação Zeus: o 0° de direção é o norte verdadeiro? Qual a altura do anemômetro? Qual o ângulo do norte de
+   projeto da planta em relação ao norte verdadeiro?
+6. Uso do solo no entorno (agrícola, mata, área urbana) e topografia num raio de ~1 km — imagem aérea ou mapa basta.
+
+**C. Critérios e receptores**
+7. Os limiares (3 · 0,5 · 0,2 ppm e 0,08 ppm da NR-15) são valores instantâneos ou médias numa janela de tempo?
+8. Onde ficam as pessoas no entorno do prédio de O₃ (áreas ocupadas, passarelas, salas de controle) e as tomadas
+   de ar de HVAC; posição e tipo dos sensores de O₃ já instalados.
+
+### Para o Marcus (decisões internas)
+1. **Domínio:** cilíndrico centrado no prédio de O₃ (uma malha para as 6 direções), raio ~600 m, altura ~350 m,
+   bloqueio ~2,5 %. O COST pediria ~870 m a jusante (H ≈ 58 m das torres): ok seguir com ~600 m + teste de
+   sensibilidade num cenário?
+2. **Cenários 5–6 (vento fraco, estável, classe F):** modelar a estratificação (perfis de estabilidade + empuxo) ou
+   rodar neutro com vento fraco e declarar a limitação? Muda prazo.
+3. **Matriz final de cenários:** 6 ventos × combinações de exaustores. Com um escalar por exaustor, o campo de vento
+   é rodado 6 vezes e as combinações saem por superposição — confirmar quais combinações reportar.
+4. **Escopo:** estudo externo; o interior do prédio fica de fora (fonte = descargas). Confirmar com o cliente que não
+   esperam posição de detectores internos.
+5. **Prazo:** a geometria está pronta; a Etapa 1 estourou alguns dias por causa do CAD. Ajustar o cronograma?
+6. Repositório: migrar o projeto para privado (L8)?
+
 ## Log de respostas
 
 | data | item | resposta |
