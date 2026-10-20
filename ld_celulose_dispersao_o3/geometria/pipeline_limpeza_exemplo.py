@@ -101,10 +101,13 @@ def distancia(b):  # distância horizontal da caixa até a origem (fonte)
 grupos, saiu = defaultdict(list), defaultdict(int)
 for caminho, n, b in pecas:
     texto = caminho + " " + n
+    if re.search(r"^(GWALL|STWALL)", n) and b[5] >= 0.5:   # paredes de prédio (sem tag) → envoltória do prédio
+        grupos["envoltoria_" + caminho.split(" / ")[0][:20]].append(b); continue
     motivo = next((m for p, m in REGRAS_SAI if re.search(p, n, re.I)), None)
     tag = TAG.search(texto)
     if b[5] < 0.5:                       motivo = "abaixo do piso"
-    elif tag:                            motivo = None          # peça de equipamento: decide o conjunto (etapa 5)
+    elif tag and motivo in (None, "suporte / aterramento / bocal / válvula", "acessório"):
+        motivo = None                    # peça de equipamento (bocal, escada do vaso…): decide o conjunto (etapa 5)
     if motivo: saiu[motivo] += 1; continue
     grupos[tag.group(1) if tag else "sem tag"].append(b)
 print("[4] saíram:", dict(saiu))
@@ -118,14 +121,14 @@ for tag, caixas in grupos.items():
     dx, dy, h = b[3] - b[0], b[4] - b[1], b[5] - b[2]
     d = distancia(b)
     limite = 1.0 if d <= a.raio_z0 else 3.0 if d <= a.raio_z1 else 1e9   # critério de tamanho por zona (§3)
-    if max(dx, dy, h) < limite: continue
-    if abs(dx - dy) / max(dx, dy) < 0.25:                                   # planta ~quadrada → vaso/silo/torre
+    if max(dx, dy, h) < limite or h < 1.0: continue                         # pequeno, ou base/pedestal baixo
+    if abs(dx - dy) / max(dx, dy) < 0.25 and not tag.startswith("envoltoria"):  # planta ~quadrada → vaso/silo/torre
         s = cq.Workplane("XY").circle(min(dx, dy) / 2).extrude(h).translate(((b[0]+b[3])/2, (b[1]+b[4])/2, b[2]))
         forma = "cilindro"
     else:
         s = cq.Workplane("XY").box(dx, dy, h, centered=False).translate((b[0], b[1], b[2]))
         forma = "caixa"
     asm.add(s, name=tag); tabela.append([tag, forma, round(d), round(dx, 1), round(dy, 1), round(h, 1)])
-asm.export(os.path.join(a.saida, "geometria_limpa.step"))
+if tabela: asm.export(os.path.join(a.saida, "geometria_limpa.step"))
 print(f"[5] {len(tabela)} objetos → geometria_limpa.step")
 for t in sorted(tabela, key=lambda t: t[2]): print(f"    {t[0]:14s} {t[1]:8s} dist {t[2]:4d} m   {t[3]} × {t[4]} m, h {t[5]} m")
