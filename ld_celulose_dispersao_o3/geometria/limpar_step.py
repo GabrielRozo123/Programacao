@@ -95,7 +95,7 @@ for nm, shp in pecas:
     desenho.append((loc, dec, cat))
     if dec in ("fica", "conferir"):
         k = usados.get(nm, 0); usados[nm] = k + 1
-        asm.add(loc, name=nm if k == 0 else f"{nm}__{k}")
+        asm.add(loc.scale(mm), name=nm if k == 0 else f"{nm}__{k}")   # STEP gravado em mm
 asm.export(a.saida + "_limpo.step")
 with open(a.saida + "_inventario.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f)

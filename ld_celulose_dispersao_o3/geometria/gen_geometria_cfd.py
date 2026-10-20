@@ -65,7 +65,7 @@ solidos = []
 for o in objs:
     s = solido(o)
     solidos.append(s)
-    montagem.add(s, name=o["nome"].strip())
+    montagem.add(s.scale(1000), name=o["nome"].strip())   # STEP do CadQuery é gravado em mm → m × 1000
     por_zona.setdefault(o["zona"].strip(), []).append(o["nome"].strip())
 montagem.export(a.out)
 

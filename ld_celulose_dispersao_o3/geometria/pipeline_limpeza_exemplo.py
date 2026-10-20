@@ -128,7 +128,8 @@ for tag, caixas in grupos.items():
     else:
         s = cq.Workplane("XY").box(dx, dy, h, centered=False).translate((b[0], b[1], b[2]))
         forma = "caixa"
-    asm.add(s, name=tag); tabela.append([tag, forma, round(d), round(dx, 1), round(dy, 1), round(h, 1)])
+    asm.add(s.val().scale(1000), name=tag);   # STEP do CadQuery é gravado em mm
+    tabela.append([tag, forma, round(d), round(dx, 1), round(dy, 1), round(h, 1)])
 if tabela: asm.export(os.path.join(a.saida, "geometria_limpa.step"))
 print(f"[5] {len(tabela)} objetos → geometria_limpa.step")
 for t in sorted(tabela, key=lambda t: t[2]): print(f"    {t[0]:14s} {t[1]:8s} dist {t[2]:4d} m   {t[3]} × {t[4]} m, h {t[5]} m")
