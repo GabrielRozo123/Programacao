@@ -25,6 +25,8 @@ Superfícies do `volume_ar_LD.stl`: `S01…S16` (laterais, S01 = 0° = +y, horá
    *Repair Surface…* → diagnóstico: **0 free edges, 0 non-manifold, 0 pierced faces**.
    - *Face quality* com milhares de faces é **esperado**: o STL vem da triangulação do CAD (triângulos longos no solo e
      nos cilindros) — é exatamente o que o Surface Remesher refaz. Não consertar no Repair.
+   - *Face proximity* (~50) = espessuras e vãos reais (laje 0,85 m, cobertura 0,6 m, vão tanque–laje 0,8 m) ao lado de
+     triângulos enormes; clicar no número para ver onde estão. Leitura completa: `star_ccm_tutoriais/10_Surface_Repair_referencia.md`.
    - As saídas dos exaustores são faces **rentes** à face do exaustor (sem degrau); um degrau de 2 cm gerava
      *Face proximity* e exigiria células de 1–2 cm.
 
