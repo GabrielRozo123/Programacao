@@ -126,6 +126,11 @@ que já existe antes de recomendar.
 8. Onde ficam as pessoas no entorno do prédio de O₃ (áreas ocupadas, passarelas, salas de controle) e as tomadas
    de ar de HVAC; posição e tipo dos sensores de O₃ já instalados.
 
+**D. Geometria (confirmação)**
+9. O prédio das prensas (mesa de concreto com as prensas na laje a ~11 m) é **aberto embaixo** ou tem **fechamento
+   lateral** (paredes/telhas)? No modelo 3D recebido não há fechamento — pode faltar uma disciplina (arquitetura/
+   fechamentos) na exportação. Se houver fechamento, até que altura e em quais faces?
+
 ### Para o Marcus (decisões internas)
 1. **Domínio:** cilíndrico centrado no prédio de O₃ (uma malha para as 6 direções), raio ~600 m, altura ~350 m,
    bloqueio ~2,5 %. O COST pediria ~870 m a jusante (H ≈ 58 m das torres): ok seguir com ~600 m + teste de
