@@ -23,6 +23,10 @@ Superfícies do `volume_ar_LD.stl`: `S01…S16` (laterais, S01 = 0° = +y, horá
 3. Repetir para os dois `refino_*.stl` (*Create New Part*, m). Eles **não** vão para região — são só formas de refino.
 4. Conferir: *Geometry → Parts → volume_ar_LD → Surfaces*: 87 superfícies; clique direito no part →
    *Repair Surface…* → diagnóstico: **0 free edges, 0 non-manifold, 0 pierced faces**.
+   - *Face quality* com milhares de faces é **esperado**: o STL vem da triangulação do CAD (triângulos longos no solo e
+     nos cilindros) — é exatamente o que o Surface Remesher refaz. Não consertar no Repair.
+   - As saídas dos exaustores são faces **rentes** à face do exaustor (sem degrau); um degrau de 2 cm gerava
+     *Face proximity* e exigiria células de 1–2 cm.
 
 ## 2. Região e contornos
 1. *Geometry → Parts* → clique direito em `volume_ar_LD` → *Assign Parts to Regions*:
