@@ -53,25 +53,26 @@ def area_frontal(solidos, direcao_graus):
     return total
 
 
-ap = argparse.ArgumentParser()
-ap.add_argument("tabela")
-ap.add_argument("--out", default="geometria_cfd.step")
-a = ap.parse_args()
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("tabela")
+    ap.add_argument("--out", default="geometria_cfd.step")
+    a = ap.parse_args()
 
-objs = ler(a.tabela)
-montagem = cq.Assembly()
-por_zona = {}
-solidos = []
-for o in objs:
-    s = solido(o)
-    solidos.append(s)
-    montagem.add(s.scale(1000), name=o["nome"].strip())   # STEP do CadQuery é gravado em mm → m × 1000
-    por_zona.setdefault(o["zona"].strip(), []).append(o["nome"].strip())
-montagem.export(a.out)
+    objs = ler(a.tabela)
+    montagem = cq.Assembly()
+    por_zona = {}
+    solidos = []
+    for o in objs:
+        s = solido(o)
+        solidos.append(s)
+        montagem.add(s.scale(1000), name=o["nome"].strip())   # STEP do CadQuery é gravado em mm → m × 1000
+        por_zona.setdefault(o["zona"].strip(), []).append(o["nome"].strip())
+    montagem.export(a.out)
 
-print(f"{len(objs)} objetos -> {a.out}")
-for z, n in sorted(por_zona.items()):
-    print(f"  {z}: {len(n)}  ({', '.join(n)})")
-print("Área frontal (aprox., caixa envolvente) por direção de onde vem o vento:")
-for d in range(0, 360, 45):
-    print(f"  {d:3d}°: {area_frontal(solidos, d):8.0f} m²")
+    print(f"{len(objs)} objetos -> {a.out}")
+    for z, n in sorted(por_zona.items()):
+        print(f"  {z}: {len(n)}  ({', '.join(n)})")
+    print("Área frontal (aprox., caixa envolvente) por direção de onde vem o vento:")
+    for d in range(0, 360, 45):
+        print(f"  {d:3d}°: {area_frontal(solidos, d):8.0f} m²")

@@ -28,13 +28,14 @@ Legenda: ✅ feito · 🟡 em andamento / parcial · ⬜ a fazer · ❓ depende 
 | Inventários com nomes de todos os subconjuntos relevantes | ✅ | F-C/F-M/F-E 1213–1219, RC/RF-1210, F-C-1216 |
 | Geometria por primitivas — **69 sólidos** (inclui 22 pilares e 2 vigas das prensas), escala correta (mm) | ✅ | `_privado/geometria_cfd_preliminar.step` |
 | **Domínio prisma de 16 lados** R 600 m × 350 m, **16 setores** nomeados + refinos R 80/300 m | ✅ | `geometria/gen_dominio_cilindrico.py --stl` → `_privado/` (STL em metros) |
-| Importação no STAR + *Surface Wrapper* (nomes preservados) | ✅ | 21/10 |
+| **Volume de ar em STL único** (domínio − 69 sólidos, 87 superfícies nomeadas, estanque) | ✅ | `geometria/gen_volume_fluido.py` → `_privado/volume_ar_LD.stl`; fluxo no STAR: `08` |
+| Frestas corrigidas: tanque 1213-21-004 × laje (5 cm → 0,8 m), placa de descarga 910 × exaustor (2 mm → 0) | ✅ | 21/10 |
 | Prédio das prensas = **mesa de concreto aberta embaixo** (laje ~11 m); variante fechada para sensibilidade | ✅ | revisão com o Otávio (21/10) |
 | Varredura de equipamentos esquecidos (tanque 1213-21-003 e outros 5) | ✅ | 21/10 |
 | Galpão (casinha F-C-1216) | ✅ | |
 | Nota metodológica e check-up item a item | ✅ | `06` · `_privado/checkup_geometria_CFD.md` |
 | Estruturas altas entre 100 e 300 m (montagem completa) | ❓ | print de planta com escala; senão → rugosidade |
-| Uniões no STAR (blocos do prédio de O₃, prensas + máquinas) | ⬜ | *Boolean Unite* ou surface wrapper |
+| Uniões (blocos do prédio de O₃, prensas + máquinas) | ✅ | feitas no script (fusão antes da subtração) |
 
 ## 3. Domínio — **prisma de 16 lados** (cilindro "poligonal")
 
@@ -167,7 +168,7 @@ corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetr
 
 ## 8. Próximos passos (ordem)
 1. ❓ Respostas: Marcus (domínio, estabilidade, operação dos exaustores) e cliente (vazões de O₃, norte).
-2. 🟡 Domínio + geometria (69 sólidos) no STAR, wrapper feito → *Assign Parts to Regions* ("Ar"), contornos.
+2. 🟡 STAR do zero com `volume_ar_LD.stl` (`08`): importar → região "Ar" → contornos → malha (sem wrapper).
 3. ⬜ **Teste do domínio vazio** com o perfil de CLA; malha base, checar qualidade.
 4. ⬜ Caso base (vento típico) com os 4 escalares → convergência, malha, sensibilidades.
 5. ⬜ Os 6 cenários de vento → relatórios.

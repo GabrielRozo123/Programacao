@@ -19,6 +19,7 @@ dados de cliente.
 | 06 | [Porous Resistance: Isotropic Media](06_Porous_Resistance_Isotropic.md) | Incompressible Flow | região porosa, coeficientes inercial/viscoso | ✅ |
 | 07 | [Eulerian Multiple Flow Regimes: PWR](07_Eulerian_Multiple_Flow_Regimes_PWR.md) | Multiphase | bolhas + superfície livre + gotas num só modelo (MFR), contracorrente ar–água | ✅ |
 | 08 | [Eulerian: Aeration Tank Degassing](08_Eulerian_Aeration_Tank_Degassing.md) | Multiphase | contorno de degaseificação (parede permeável só ao gás), placa perfurada, Mixture Turbulence | ✅ |
+| 09 | [Surface Wrapper (referência)](09_Surface_Wrapper_referencia.md) | Meshing | quando usar e quando NÃO usar; gap closure × contact prevention × proximity; leak detection | ✅ |
 
 **Lote 1 completo (13/10/2026).** **Lote 2, por prioridade:** (1) meio poroso ✅ (06) ·
 (2) Eulerian Multiple Flow Regimes (PWR) ✅ (07) · (3) Eulerian: Aeration Tank Degassing ✅ (08). **Lote 2 completo.** Natural Convection: Concentric Cylinders — dispensável.
