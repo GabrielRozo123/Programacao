@@ -1,7 +1,7 @@
 """
 gen_dominio_cilindrico.py — domínio CILÍNDRICO para o CFD atmosférico, com a lateral dividida em SETORES.
 
-Cada setor da lateral é uma face separada no STEP → no STAR, separar as faces (Split by Patch) e, para cada cenário
+A lateral é um POLÍGONO de n lados (um lado plano por setor) → no STAR, "Split by Angle" separa os setores; para cada cenário
 de vento, marcar os setores de barlavento como Velocity Inlet e os de sotavento como Pressure Outlet, SEM remalhar.
 Também gera corpos de REFINO (cilindros) para controles volumétricos de malha.
 
@@ -25,15 +25,11 @@ n = a.setores; dth = 2 * math.pi / n
 def ponto(ang, r):  # ângulo de rosa dos ventos (0 = +y, horário) → (x, y)
     return (cx + r * math.sin(ang), cy + r * math.cos(ang))
 
-# n fatias (pizza) unidas SEM limpeza → as faces laterais de cada fatia continuam separadas (um setor = uma face)
-fatias = []
-for k in range(n):
-    a0 = -dth / 2 + k * dth
-    w = (cq.Workplane("XY").moveTo(cx, cy).lineTo(*ponto(a0, a.raio))
-         .threePointArc(ponto(a0 + dth / 2, a.raio), ponto(a0 + dth, a.raio)).close())
-    fatias.append(w.extrude(a.altura).val())
-dominio = fatias[0].fuse(*fatias[1:], glue=True)
-lat = [f for f in dominio.Faces() if f.geomType() == "CYLINDER"]
+# lateral POLIGONAL (n lados planos, um por setor): o STAR separa os setores sozinho com "Split by Angle"
+# (as arestas entre setores têm 360/n graus de quebra). Raio = distância centro → vértice.
+vertices = [ponto(-dth / 2 + k * dth, a.raio) for k in range(n)]
+dominio = cq.Workplane("XY").polyline(vertices).close().extrude(a.altura).val()
+lat = [f for f in dominio.Faces() if abs(f.normalAt().z) < 0.5]
 print(f"domínio: raio {a.raio} m, altura {a.altura} m, {len(lat)} faces laterais (setores), {len(dominio.Faces())} faces no total")
 
 asm = cq.Assembly()
