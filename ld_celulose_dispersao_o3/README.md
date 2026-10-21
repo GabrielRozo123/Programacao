@@ -17,6 +17,7 @@ Cliente **LD Celulose** (via CAEXPERTS).
 | [`04_dados_recebidos.md`](04_dados_recebidos.md) | **Dados recebidos**, o que foi extraído deles e o que ainda falta |
 | [`07_checklist_CFD.md`](07_checklist_CFD.md) | **Checklist de execução**: dados, geometria, domínio circular, malha, física no STAR, verificação, relatórios |
 | [`08_STAR_passo_a_passo.md`](08_STAR_passo_a_passo.md) | **STAR do zero**: volume de ar em STL único (domínio − obstáculos, superfícies nomeadas) → remesher + trimmed + prismas, sem wrapper |
+| [`09_reuniao_andamento_22-10.md`](09_reuniao_andamento_22-10.md) | **Reunião de acompanhamento com a LD (22/10)**: pauta, o que foi mostrado, perguntas entregues. O PDF com figuras da planta fica em `_privado/relatorio_22-10/` |
 | [`06_metodologia_geometria_CFD.md`](06_metodologia_geometria_CFD.md) | **Nota metodológica**: como o CAD da planta (> 40 mil peças) virou a geometria do CFD (38 sólidos) — princípio, literatura, etapas, resultado, limitações |
 | [`05_limpeza_CAD_criterios.md`](05_limpeza_CAD_criterios.md) | **Limpeza do CAD da planta**: zonas de detalhe, critério de tamanho pela malha, critério por categoria, blocos porosos, verificação e fluxo no Solid Edge (com referências) |
 
