@@ -47,15 +47,24 @@ Superfícies do `volume_ar_LD.stl`: `S01…S16` (laterais, S01 = 0° = +y, horá
 ## 3. Malha (Automated Mesh no part `volume_ar_LD`)
 1. *Operations → New → Mesh → Automated Mesh* → *Input Parts*: `volume_ar_LD`.
 2. Meshers: **Surface Remesher** + **Trimmed Cell Mesher** + **Prism Layer Mesher**. (Sem Surface Wrapper.)
-3. *Default Controls*: Base Size 4 m; Target Surface Size 100 % do base; Minimum Surface Size 0,25 m; crescimento ≤ 1,2–1,3.
-4. *Custom Controls → Surface Control*:
-   - obstáculos (todos menos S*, Solo, Topo): target 0,5 m / mínimo 0,1 m;
-   - prédio de O₃ + exaustores: 0,25 m / 0,05 m;
-   - `Saida_*`: 0,05 m / 0,02 m (≥ 8–10 células na largura);
-   - `S01–S16`, `Topo`: target = base, sem prismas.
-5. *Custom Controls → Volumetric Control*: `refino_r80_h70` → 0,5 m; `refino_r300_h120` → 1–2 m.
-6. Prismas: no `Solo` e nas paredes dos obstáculos; 1ª célula > ks; desligar nas laterais e no topo.
-7. *Execute* → checar *Mesh Diagnostics* (células de volume negativo = 0; face validity ≥ 0,95).
+**Malha 1 (grossa, para testar o pipeline e o domínio vazio)** — estimativa ~3,5–5 milhões de células:
+longe 8 m (~0,7 M), cilindro R300 a 3 m (~1,2 M), cilindro R80 a 1 m (~1,4 M), + refino junto aos obstáculos.
+A malha fina do estudo de independência sai desta dividindo os tamanhos por ~1,5.
+
+3. *Default Controls*: Base Size **8 m**; Target Surface Size 100 %; Minimum Surface Size **0,25 m** (absoluto);
+   Surface Growth Rate 1,3; Number of Prism Layers **3**; Prism Layer Total Thickness **1,0 m**; Prism Layer Stretching 1,2.
+4. *Custom Controls → Surface Control* (um controle por grupo, selecionando os part surfaces):
+   | controle | superfícies | target / mínimo | prismas |
+   |---|---|---|---|
+   | `Saidas` | `Saida_*` | 0,05 / 0,02 m (≥ 8–10 células na largura) | desligados |
+   | `PredioO3` | `O3_*`, `exaustor_*` | 0,25 / 0,05 m | desligados |
+   | `Obstaculos` | todos os demais obstáculos | 0,5 / 0,1 m | desligados (frestas de 0,8 m) |
+   | `Externo` | `S01–S16`, `Topo` | 8 m (= base) | desligados |
+   | `Solo` | `Solo` | padrão | **3 camadas, 1,0 m** (1ª célula > ks — revisar após o domínio vazio) |
+5. *Custom Controls → Volumetric Control* (Surface Remesher **e** Trimmer marcados, tamanho absoluto):
+   `refino_r80_h70` → **1 m**; `refino_r300_h120` → **3 m**.
+6. *Execute* → número de células, *Mesh → Diagnostics* (volume negativo = 0; face validity ≥ 0,95; volume change > 1e-3)
+   e uma cena de corte (plano z = 1,5 m e plano vertical pelo prédio de O₃).
 
 ## 4. Antes dos cenários
 1. **Domínio vazio:** mesmo procedimento com o domínio sem obstáculos (`dominio_16setores_NOMEADO_m.stl`) → perfis U e k
