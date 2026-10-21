@@ -66,6 +66,20 @@ A malha fina do estudo de independência sai desta dividindo os tamanhos por ~1,
 6. *Execute* → número de células, *Mesh → Diagnostics* (volume negativo = 0; face validity ≥ 0,95; volume change > 1e-3)
    e uma cena de corte (plano z = 1,5 m e plano vertical pelo prédio de O₃).
 
+**Malha 1 executada (21/10):** 6,56 M células, topologicamente válida, face validity 1,0 em 100 %, volume change mínimo
+0,011 (> 1e-3). Acima da estimativa por causa das transições de tamanho (8 → 3 → 1 m) e do refino nos obstáculos.
+
+## 3b. A fonte (o "vazamento")
+O vazamento acontece **dentro** do prédio (`06` §3.5) e os exaustores levam o O₃ para fora → a fonte entra **nas
+faces `Saida_*`**, com o ar do exaustor marcado por um escalar passivo.
+1. *Physics*: Passive Scalar com **4 componentes** (`O3_910`, `O3_920`, `O3_930`, `O3_940`), Sc_t 0,7, clip em 0.
+2. Cada `Saida_9x0` = *Mass Flow Inlet*: ṁ = ρ·Q do manual (LX 816: 10,5 m³/s; HL 4S: 4,2 m³/s); escalar **do próprio
+   exaustor = 1**, os outros = 0; turbulência na saída: intensidade 5–10 %, comprimento ~0,07·D_h.
+3. φ = fração de ar de exaustão no ponto → **ppm = φ · C_exaustão**, com C_exaustão = vazão de O₃ vazada ÷ vazão do exaustor.
+   Como é linear, a vazão real de O₃ (pendência A1 do cliente) entra só no pós-processamento.
+4. ⚠️ A face do CAD (0,27 m² nos LX 816) é menor que a área do manual (0,3105 m²) → mesma vazão sai a ~39 m/s em vez de
+   33,8 m/s. Manter a vazão (é o que dilui) e declarar; sensibilidade de momento se a pluma subir demais.
+
 ## 4. Antes dos cenários
 1. **Domínio vazio:** mesmo procedimento com o domínio sem obstáculos (`dominio_16setores_NOMEADO_m.stl`) → perfis U e k
    na saída = entrada.
