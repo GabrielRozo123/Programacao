@@ -27,7 +27,8 @@ Legenda: ✅ feito · 🟡 em andamento / parcial · ⬜ a fazer · ❓ depende 
 | Critérios de limpeza com base na literatura | ✅ | `05` |
 | Inventários com nomes de todos os subconjuntos relevantes | ✅ | F-C/F-M/F-E 1213–1219, RC/RF-1210, F-C-1216 |
 | Geometria por primitivas — **69 sólidos** (inclui 22 pilares e 2 vigas das prensas), escala correta (mm) | ✅ | `_privado/geometria_cfd_preliminar.step` |
-| **Domínio cilíndrico** R 600 m × 350 m, **16 setores** laterais + refinos R 80/300 m | ✅ | `geometria/gen_dominio_cilindrico.py` → `_privado/dominio_cilindrico_LD.step` |
+| **Domínio prisma de 16 lados** R 600 m × 350 m, **16 setores** nomeados + refinos R 80/300 m | ✅ | `geometria/gen_dominio_cilindrico.py --stl` → `_privado/` (STL em metros) |
+| Importação no STAR + *Surface Wrapper* (nomes preservados) | ✅ | 21/10 |
 | Prédio das prensas = **mesa de concreto aberta embaixo** (laje ~11 m); variante fechada para sensibilidade | ✅ | revisão com o Otávio (21/10) |
 | Varredura de equipamentos esquecidos (tanque 1213-21-003 e outros 5) | ✅ | 21/10 |
 | Galpão (casinha F-C-1216) | ✅ | |
@@ -35,12 +36,54 @@ Legenda: ✅ feito · 🟡 em andamento / parcial · ⬜ a fazer · ❓ depende 
 | Estruturas altas entre 100 e 300 m (montagem completa) | ❓ | print de planta com escala; senão → rugosidade |
 | Uniões no STAR (blocos do prédio de O₃, prensas + máquinas) | ⬜ | *Boolean Unite* ou surface wrapper |
 
-## 3. Domínio — **circular** (cilíndrico)
+## 3. Domínio — **prisma de 16 lados** (cilindro "poligonal")
 
 **Por quê:** são 6 cenários de vento em direções diferentes. Num domínio retangular, cada direção pede
 girar a geometria e **refazer a malha**. Num **cilindro centrado na fonte**, a malha é **uma só**: muda-se só
 o vetor de entrada e quais setores da lateral são entrada ou saída. Além de economizar tempo, **a malha é idêntica entre
 cenários**, o que torna as comparações limpas (a diferença entre cenários não vem da malha).
+
+### 3.1 Por que polígono, e não cilindro liso nem esfera (21/10)
+
+**"10°" não é o tamanho do setor.** É o limiar do *Split by Angle* do STAR (ângulo entre faces vizinhas acima
+do qual a superfície é separada). Dois lados vizinhos de um 16-gono se encontram a **22,5°**, e lateral × solo/topo a
+**90°**; qualquer limiar entre 0 e 22,5° separa os 16 lados + solo + topo. Os **setores têm 22,5°** — a rosa
+dos ventos meteorológica de 16 rumos (N, NNE, NE…). No STL entregue os 18 contornos já vêm nomeados (S01–S16, Solo, Topo).
+
+**Polígono × cilindro liso**
+| | cilindro liso | prisma de 16 lados |
+|---|---|---|
+| Separar a lateral em setores | a superfície não tem arestas — o *Split by Angle* não acha onde cortar (aconteceu: os arcos se fundiram numa face só) | arestas de 22,5° → separa sozinho |
+| Entrada ou saída por cenário | normal varia ponto a ponto dentro do setor | **uma normal por lado** → classifica pelo sinal de **u·n**, sem ambiguidade dentro do lado |
+| Tamanho | R 600 m | raio inscrito 588,5 m (−1,9 %) — desprezível frente aos critérios do COST |
+| Malha | — | a mesma; o trimmer corta as células na borda nos dois casos |
+
+**Por que não esfera (nem cúpula)**
+- A esfera é o domínio de "campo distante" da aerodinâmica externa (avião, carro em túnel virtual): **corrente livre
+  uniforme e nenhuma parede**. A camada limite atmosférica é o oposto: tem **solo** (parede rugosa, ks) e um
+  **perfil vertical** U(z), k(z), ε(z).
+- A CLA horizontalmente homogênea (Richards & Hoxey, 1993) exige **solo plano**, perfil imposto em **faces
+  verticais** e um **topo horizontal** com tensão de cisalhamento prescrita ou velocidade do perfil (Richards &
+  Hoxey, 1993; Hargreaves & Wright, 2007; Blocken et al., 2007). Numa esfera/cúpula a parede curva mistura
+  "lateral" e "topo": não há onde impor o perfil de forma consistente e a homogeneidade (teste do domínio vazio) não se sustenta.
+- Na cúpula a altura fica presa ao raio (600 m em vez dos ~350 m = 6H necessários) → células gastas onde não há nada.
+- As diretrizes de vento em torno de prédios (COST 732 — Franke et al., 2007; AIJ — Tominaga et al., 2008) são
+  escritas para domínios de **solo plano, laterais verticais e topo plano**; o cilindro/polígono setorizado é a
+  extensão multidirecional disso. Não encontramos diretriz de CFD atmosférico que use esfera.
+
+**Prática com domínio cilíndrico/setorizado (fontes de prática, menos fortes que as diretrizes):**
+- domínio cilíndrico evita remalhar para cada direção, o retangular precisaria ser realinhado
+  ([Rakenteiden Mekaniikka](https://rakenteidenmekaniikka.journal.fi/article/download/119848/76572/266557));
+- lateral em setores (ex.: 12 × 30°) com entrada/saída escolhida por direção na mesma malha
+  ([AMS, conferência](https://ams.confex.com/ams/pdfpapers/126911.pdf));
+- geometria centrada para permitir qualquer direção, com o alerta de que a troca entrada/saída nas bordas
+  tangentes pode dar instabilidade ([arXiv 2505.14703](https://arxiv.org/pdf/2505.14703), preprint) → por isso o
+  teste do domínio vazio e a checagem das bordas tangentes (§6);
+- ~12 direções costumam bastar em conforto de pedestres (Hågbo & Giljarhus,
+  [Frontiers 2022](https://doi.org/10.3389/fbuil.2022.858067)); aqui 16 setores ≥ 12, e os 6 cenários vêm da meteorologia.
+
+**Detalhe prático:** o domínio entra no STAR como **STL em metros** (não STEP/Parasolid), porque o Parasolid só aceita
+corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetro.
 
 **O que a literatura diz:**
 - COST 732 / AIJ dão as distâncias em função de H para domínios **retangulares alinhados ao vento**: 5H a
@@ -64,7 +107,7 @@ cenários**, o que torna as comparações limpas (a diferença entre cenários n
 **Contornos:**
 | superfície | condição |
 |---|---|
-| Lateral, dividida em **setores** (ex.: 12 de 30° ou 16 de 22,5°) | setores de barlavento = **Velocity Inlet** com perfil de CLA; de sotavento = **Pressure Outlet**; trocar por cenário sem remalhar |
+| Lateral, dividida em **16 setores de 22,5°** (S01 = 0°, sentido horário) | setores de barlavento = **Velocity Inlet** com perfil de CLA; de sotavento = **Pressure Outlet**; trocar por cenário sem remalhar |
 | Topo | velocidade e turbulência do perfil no topo, ou **tensão de cisalhamento prescrita** (Richards & Hoxey) — escolher pelo teste do domínio vazio |
 | Solo | parede rugosa com *Roughness Height* ks (≈ 30·z₀ ou 9,793·z₀/Cs), 1ª célula > ks |
 | Prédios e equipamentos | parede lisa (no-slip) |
@@ -124,7 +167,7 @@ cenários**, o que torna as comparações limpas (a diferença entre cenários n
 
 ## 8. Próximos passos (ordem)
 1. ❓ Respostas: Marcus (domínio, estabilidade, operação dos exaustores) e cliente (vazões de O₃, norte).
-2. ⬜ Montar o cilindro e os setores no STAR; **teste do domínio vazio** com o perfil de CLA.
-3. ⬜ Importar a geometria (40 sólidos), unir, malha base, checar qualidade.
+2. 🟡 Domínio + geometria (69 sólidos) no STAR, wrapper feito → *Assign Parts to Regions* ("Ar"), contornos.
+3. ⬜ **Teste do domínio vazio** com o perfil de CLA; malha base, checar qualidade.
 4. ⬜ Caso base (vento típico) com os 4 escalares → convergência, malha, sensibilidades.
 5. ⬜ Os 6 cenários de vento → relatórios.
