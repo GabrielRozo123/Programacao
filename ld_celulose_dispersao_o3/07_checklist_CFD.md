@@ -26,7 +26,8 @@ Legenda: ✅ feito · 🟡 em andamento / parcial · ⬜ a fazer · ❓ depende 
 |---|---|---|
 | Critérios de limpeza com base na literatura | ✅ | `05` |
 | Inventários com nomes de todos os subconjuntos relevantes | ✅ | F-C/F-M/F-E 1213–1219, RC/RF-1210, F-C-1216 |
-| Geometria por primitivas — **45 sólidos**, escala correta (mm no STEP) | ✅ | `_privado/geometria_cfd_preliminar.step` |
+| Geometria por primitivas — **69 sólidos** (inclui 22 pilares e 2 vigas das prensas), escala correta (mm) | ✅ | `_privado/geometria_cfd_preliminar.step` |
+| **Domínio cilíndrico** R 600 m × 350 m, **16 setores** laterais + refinos R 80/300 m | ✅ | `geometria/gen_dominio_cilindrico.py` → `_privado/dominio_cilindrico_LD.step` |
 | Prédio das prensas = **mesa de concreto aberta embaixo** (laje ~11 m); variante fechada para sensibilidade | ✅ | revisão com o Otávio (21/10) |
 | Varredura de equipamentos esquecidos (tanque 1213-21-003 e outros 5) | ✅ | 21/10 |
 | Galpão (casinha F-C-1216) | ✅ | |
