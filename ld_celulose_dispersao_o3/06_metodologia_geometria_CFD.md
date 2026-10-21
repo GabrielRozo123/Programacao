@@ -102,9 +102,12 @@ prédio elétrico, sala elétrica e dois tanques grandes ao sul.
 - **Limitações declaradas:** cilindros e caixas envolventes (sem bocais, plataformas, tubulação externa);
   estruturas treliçadas desprezadas (racks densos podem virar blocos porosos se a sensibilidade indicar);
   estruturas a mais de ~100 m dependem da montagem completa ou entram como rugosidade.
-- **Checagem de interferências:** indicou tanques parcialmente sob a laje do prédio das prensas → indício de que ele é
-  aberto embaixo (a confirmar).
-- **Pendências:** prédio das prensas aberto ou fechado embaixo; estruturas altas entre 100 e 300 m; tamanho do
+- **Checagem de interferências:** indicou tanques parcialmente sob a laje do prédio das prensas → confirmado na revisão:
+  é uma **mesa de concreto aberta embaixo** (laje sobre pilares); modelada como laje, com variante fechada para sensibilidade.
+- **Revisão cruzada com o desenho (21/10):** uma varredura sistemática dos inventários achou 6 equipamentos médios que o
+  primeiro filtro deixou passar (ex.: um tanque de 7 m de altura) — incluídos. Lição: filtrar por critério da zona, não por
+  limiar fixo de altura.
+- **Pendências:** estruturas altas entre 100 e 300 m; tamanho do
   domínio (H do entorno ≈ 58 m); quais exaustores operam em cada cenário.
 
 ## 6. Ferramentas (no repositório)
