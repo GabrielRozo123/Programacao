@@ -39,7 +39,8 @@ Legenda: ✅ feito · 🟡 em andamento / parcial · ⬜ a fazer · ❓ depende 
 
 ## 3. Domínio — **prisma de 16 lados** (cilindro "poligonal")
 
-**Por quê:** são 6 cenários de vento em direções diferentes. Num domínio retangular, cada direção pede
+**Por quê:** os 6 cenários iniciais (3 campos de vento) estão na direção dominante (NNE), mas outras direções podem ser
+pedidas (norte da estação a confirmar, B5; segunda direção mais frequente). Num domínio retangular, cada direção pede
 girar a geometria e **refazer a malha**. Num **cilindro centrado na fonte**, a malha é **uma só**: muda-se só
 o vetor de entrada e quais setores da lateral são entrada ou saída. Além de economizar tempo, **a malha é idêntica entre
 cenários**, o que torna as comparações limpas (a diferença entre cenários não vem da malha).
@@ -94,8 +95,8 @@ corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetr
   a prática é **dividir a lateral em setores** e, para cada direção, ativar os setores de barlavento como entrada
   e os de sotavento como saída (literatura de vento urbano com domínio cilíndrico; relatos de prática em CFD
   Online — **a validar com o teste de domínio vazio**).
-- Estudos de conforto de pedestres consideram ~12 direções suficientes; aqui são **6 cenários definidos pela
-  meteorologia**, não uma rosa completa.
+- Estudos de conforto de pedestres consideram ~12 direções suficientes; aqui são **6 cenários (3 campos de vento)
+  definidos pela meteorologia**, não uma rosa completa.
 
 **Dimensionamento proposto** [a fechar com o Marcus — H do entorno ≈ 58 m]:
 | item | regra | valor |

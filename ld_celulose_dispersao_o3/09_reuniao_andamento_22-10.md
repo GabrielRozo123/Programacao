@@ -32,3 +32,16 @@
 | item | resposta / decisão |
 |---|---|
 | — | *(preencher após a reunião)* |
+
+## Versão em PowerPoint (pedido do Marcus, 22/10)
+`_privado/relatorio_22-10/LD_O3_andamento_22-10.pptx` (13 slides, modelo CAE): capa, andamento, limpeza (comparação,
+antes/depois, critérios), descargas, domínio e malha, como o vazamento entra, **cenários iniciais propostos**, perguntas,
+próximos passos, **referências**, encerramento. Gerado por `build.py` sobre o modelo `Slides_Fire_Smoke_CAEXPERTS`.
+
+**Cenários iniciais propostos** (análise meteorológica de 29/09, `cenarios_meteo.py`): 6 cenários = 3 campos de vento,
+todos na direção dominante NNE (22,5°, 20,5 % das horas):
+| campo | vento a 10 m | estabilidade | cenários |
+|---|---|---|---|
+| V1 típico | 1,9 m/s (média) | D | 1 e 2 (vazamento pequeno e grande) |
+| V2 rajada | 13,6 m/s (máxima medida) | D | 3 e 4 |
+| V3 fraco estável | 1,1 m/s | F (28,8 % das horas) | 5 e 6 (proposto) |

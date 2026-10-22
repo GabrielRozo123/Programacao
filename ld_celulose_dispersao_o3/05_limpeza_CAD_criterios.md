@@ -119,7 +119,7 @@ O₃, downwash da descarga dos exaustores, canalização entre estruturas** (`02
 
 ## 2. Zonas de detalhe (concêntricas, em torno do prédio de O₃)
 
-Como são 6 cenários de vento em direções diferentes, as zonas são **círculos** em torno da fonte,
+Como a direção do vento pode variar entre cenários (e ser revista), as zonas são **círculos** em torno da fonte,
 não retângulos a jusante.
 
 | zona | extensão | nível de detalhe | o que representa |
