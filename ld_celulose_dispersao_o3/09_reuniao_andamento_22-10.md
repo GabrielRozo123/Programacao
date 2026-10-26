@@ -28,10 +28,21 @@
 | C8 | pessoas, passarelas, salas de controle, tomadas de HVAC, sensores existentes |
 | D9 | prédio das prensas aberto ou fechado |
 
-## Registro da reunião
+## Registro da reunião (realizada em 26/10/2026, ~28 min; gravação transcrita, trechos com ruído)
 | item | resposta / decisão |
 |---|---|
-| — | *(preencher após a reunião)* |
+| Geometria limpa | **Sem críticas** ("acho que tá tranquilo"). |
+| Cronograma | Marcus registrou o impacto da exportação do CAD no prazo. |
+| **Fonte nova: chaminé do off-gás** | Faltava no modelo. Recebe o alívio das **PSVs dos vasos/geradores**: descarga de **4"** que entra num coletor comum de **10"** e sobe até a chaminé; sai com pressão bem baixa (muita perda no caminho). |
+| PSV | Vaso opera a ~9,5–19,5 bar (áudio ruim); PSV ajustada em ~12–12,8 bar, fecha a ~12,5 bar. Vazão difícil de medir (abertura parcial da válvula). |
+| **Concentração no off-gás** | **~12,5–13 %** de O₃ (a confirmar se em massa, em O₂). Volume pequeno, mas **muito mais concentrado** que os exaustores: maior potencial de risco segundo a LD. |
+| Exaustores | Volume grande, concentração baixa (**~0,2 ppm**, ligam a partir do alarme). Proposta da LD: condição 1 = concentração mínima de acionamento × vazão dos exaustores. |
+| Vazão do off-gás | Estimar pelo diâmetro da descarga da PSV (4"), do coletor (10") e pressão de ajuste, com hipótese de abertura da literatura (API 520/521). |
+| Edifícios a oeste | Retângulo mais a oeste = **sala de controle (SDCD/DCS)**; o seguinte = **CCM** (quadros elétricos). **São receptores com pessoas.** |
+| Histórico de eventos | Em vazamentos já perceberam O₃ **além do CCM**, chegando ao **segundo nível**. |
+| Ação CAE | Enviar **print da vista de cima, sem perspectiva**; a LD marca a chaminé e os locais onde já houve eventos (para comparar com as direções de vento simuladas). |
+| Ação LD | Mandar o print/posição da chaminé do off-gás (já mostraram um print na reunião). |
+
 
 ## Versão em PowerPoint (pedido do Marcus, 22/10)
 `_privado/relatorio_22-10/LD_O3_andamento_22-10.pptx` (13 slides, modelo CAE): capa, andamento, limpeza (comparação,

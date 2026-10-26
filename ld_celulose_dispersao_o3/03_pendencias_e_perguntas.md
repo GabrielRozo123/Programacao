@@ -144,9 +144,15 @@ que já existe antes de recomendar.
 5. **Prazo:** a geometria está pronta; a Etapa 1 estourou alguns dias por causa do CAD. Ajustar o cronograma?
 6. Repositório: migrar o projeto para privado (L8)?
 
+## 🔴 Novas pendências — 26/10
+- **Chaminé do off-gás:** posição, altura da saída, diâmetro do topo (print enviado na reunião + desenho isométrico da linha).
+- **PSV:** pressão de ajuste exata, diâmetro do bocal (orifício API, letra), vazão nominal da folha de dados da PSV.
+- **Concentração do off-gás:** 12,5–13 % em massa em O₂? (confirmar unidade).
+- **Eventos históricos:** a LD vai marcar no print da vista de cima onde já sentiram O₃.
+
 ## Log de respostas
 
 | data | item | resposta |
 |---|---|---|
-| — | — | *(aguardando)* |
+| 26/10 | Reunião de acompanhamento | Geometria aceita. **Nova fonte: chaminé do off-gás** (alívio das PSVs, 4" → coletor 10", ~12,5–13 % de O₃, PSV ~12–12,8 bar). Oeste do modelo = SDCD (sala de controle) e CCM: receptores. Eventos já percebidos além do CCM, no 2º nível. Detalhes: `09` |
 - **15/10/2026** — CAD da planta inteira recebido (Solid Edge). Critérios de limpeza: `05`.
