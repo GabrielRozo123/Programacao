@@ -35,7 +35,7 @@
 | Cronograma | Marcus registrou o impacto da exportação do CAD no prazo. |
 | **Fonte nova: chaminé do off-gás** | Faltava no modelo. Recebe o alívio das **PSVs dos vasos/geradores**: descarga de **4"** que entra num coletor comum de **10"** e sobe até a chaminé; sai com pressão bem baixa (muita perda no caminho). |
 | PSV | Vaso opera a ~9,5–19,5 bar (áudio ruim); PSV ajustada em ~12–12,8 bar, fecha a ~12,5 bar. Vazão difícil de medir (abertura parcial da válvula). |
-| **Concentração no off-gás** | **~12,5–13 %** de O₃ (a confirmar se em massa, em O₂). Volume pequeno, mas **muito mais concentrado** que os exaustores: maior potencial de risco segundo a LD. |
+| **Concentração no off-gás** | **~13 %** de O₃ (Gabriel confirma a leitura; unidade a confirmar: massa em O₂?), contra ~0,2 ppm nos exaustores. Volume pequeno, mas **muito mais concentrado** que os exaustores: maior potencial de risco segundo a LD. |
 | Exaustores | Volume grande, concentração baixa (**~0,2 ppm**, ligam a partir do alarme). Proposta da LD: condição 1 = concentração mínima de acionamento × vazão dos exaustores. |
 | Vazão do off-gás | Estimar pelo diâmetro da descarga da PSV (4"), do coletor (10") e pressão de ajuste, com hipótese de abertura da literatura (API 520/521). |
 | Edifícios a oeste | Retângulo mais a oeste = **sala de controle (SDCD/DCS)**; o seguinte = **CCM** (quadros elétricos). **São receptores com pessoas.** |
@@ -56,3 +56,5 @@ todos na direção dominante NNE (22,5°, 20,5 % das horas):
 | V1 típico | 1,9 m/s (média) | D | 1 e 2 (vazamento pequeno e grande) |
 | V2 rajada | 13,6 m/s (máxima medida) | D | 3 e 4 |
 | V3 fraco estável | 1,1 m/s | F (28,8 % das horas) | 5 e 6 (proposto) |
+
+**27/10:** Marcus envia a apresentação à LD e encaminha as perguntas (inclusive a localização da chaminé).
