@@ -85,6 +85,19 @@ faces `Saida_*`**, com o ar do exaustor marcado por um escalar passivo.
    na saída = entrada.
 2. Caso base, sensibilidades, cenários — `07_checklist_CFD.md` §6–8.
 
+## 4b. Teste do domínio vazio — registro (27/10)
+Malha: domínio de 16 lados sem obstáculos, base 8 m, refino 3 m até 30 m de altura, 1 prisma de 2,5 m no solo → 4,8 M células.
+Perfil: Richards & Hoxey, 1,9 m/s a 10 m, z₀ = 0,03 m, vento de NNE; entradas S15–S05 + paralelos S06/S14 + Topo (perfil
+imposto no topo, Blocken 2007); saídas S07–S13. Solo rugoso: ks = 9,793·z₀/C = 1,16 m (C = 0,253 do STAR; κ = 0,42 também
+no perfil).
+
+| rodada | modelo | U saída × entrada | k saída ÷ teórico (10–70 m) | veredito |
+|---|---|---|---|---|
+| 1 | Realizable k-ε Two-Layer, All y+ | ≤ 2 % | **0,69–0,74** (1000 it) | k decai ~30 % → reprovado |
+| 2 | **Standard k-ε, High y+, σε = 1,225** (Richards & Hoxey: σε = κ²/((C2ε−C1ε)√Cμ)) | — | — | em andamento |
+
+Critério: vento ±3 %, k ±15 % entre entrada e saída. Lição: o Realizable não preserva o perfil de R&H (Cμ variável).
+
 ## Plano B (se o remesher reclamar)
 Wrapper no mesmo part, com *Proximity Refinement* e *Contact Prevention* (2 grupos: `laje_prensas` × tanques sob a
 laje; pilares × tanques), *Minimum Size* ≈ 0,8 m. Ver `09_Surface_Wrapper_referencia.md`.
