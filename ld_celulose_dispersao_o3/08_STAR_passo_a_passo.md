@@ -96,9 +96,18 @@ no perfil).
 | 1 | Realizable k-ε Two-Layer, All y+ | ≤ 2 % | **0,69–0,74** (1000 it) | k decai ~30 % → reprovado |
 | 2 | **Standard k-ε, High y+, σε = 1,225** (Richards & Hoxey: σε = κ²/((C2ε−C1ε)√Cμ)) | ≤ 2 % | 0,75–0,80 | melhorou, ainda > 15 % |
 
-| 3 | idem 2, com **Maximum Cell Size do trimmer = 8 m** (as sondas mostraram células de até ~60 m de altura entre 115 e 240 m) | | | a rodar |
+| 3 | idem 2, com **Maximum Cell Size do trimmer = 8 m** (antes 800 m, padrão) → 5,36 M células | ≤ 1,5 % | saída 0,76–0,79 · **centro (fonte) 0,83–0,86** | malha não era a causa; **aceito** (ver abaixo) |
 
 Critério: vento ±3 %, k ±15 % entre entrada e saída. Lição: o Realizable não preserva o perfil de R&H (Cμ variável).
+
+**Decisão (29/10):** o perfil que interessa é o **incidente na fonte** (centro do domínio), não o da borda de saída
+(Blocken et al., 2007). No centro: U a ±1 % e k 14–17 % abaixo do teórico entre 10 e 50 m. O k decai a partir do solo
+(maior perto do chão, some no topo), assinatura do tratamento de parede rugosa (Hargreaves & Wright, 2007), não da malha
+nem das constantes. **Aceito com registro no relatório:** k menor → menos mistura → concentrações **conservadoras**; a
+sensibilidade de Sc_t (0,5–0,9) cobre essa incerteza de difusão. Melhoria possível, se necessário: termos-fonte de
+Parente et al. (2011) para k-ε consistente com a CLA.
+**Setup validado para V1/V2:** Standard k-ε, σε = 1,225, High y+, solo rugoso ks = 9,793·z₀/0,253, perfil de R&H na entrada
+e no topo, Maximum Cell Size 8 m.
 
 ## Plano B (se o remesher reclamar)
 Wrapper no mesmo part, com *Proximity Refinement* e *Contact Prevention* (2 grupos: `laje_prensas` × tanques sob a
