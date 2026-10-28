@@ -94,7 +94,9 @@ no perfil).
 | rodada | modelo | U saída × entrada | k saída ÷ teórico (10–70 m) | veredito |
 |---|---|---|---|---|
 | 1 | Realizable k-ε Two-Layer, All y+ | ≤ 2 % | **0,69–0,74** (1000 it) | k decai ~30 % → reprovado |
-| 2 | **Standard k-ε, High y+, σε = 1,225** (Richards & Hoxey: σε = κ²/((C2ε−C1ε)√Cμ)) | — | — | em andamento |
+| 2 | **Standard k-ε, High y+, σε = 1,225** (Richards & Hoxey: σε = κ²/((C2ε−C1ε)√Cμ)) | ≤ 2 % | 0,75–0,80 | melhorou, ainda > 15 % |
+
+| 3 | idem 2, com **Maximum Cell Size do trimmer = 8 m** (as sondas mostraram células de até ~60 m de altura entre 115 e 240 m) | | | a rodar |
 
 Critério: vento ±3 %, k ±15 % entre entrada e saída. Lição: o Realizable não preserva o perfil de R&H (Cμ variável).
 
