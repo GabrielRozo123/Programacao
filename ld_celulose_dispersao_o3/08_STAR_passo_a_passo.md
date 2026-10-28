@@ -51,7 +51,7 @@ Superfícies do `volume_ar_LD.stl`: `S01…S16` (laterais, S01 = 0° = +y, horá
 longe 8 m (~0,7 M), cilindro R300 a 3 m (~1,2 M), cilindro R80 a 1 m (~1,4 M), + refino junto aos obstáculos.
 A malha fina do estudo de independência sai desta dividindo os tamanhos por ~1,5.
 
-3. *Default Controls*: Base Size **8 m**; Target Surface Size 100 %; Minimum Surface Size **0,25 m** (absoluto);
+3. *Default Controls*: Base Size **8 m**; **Maximum Cell Size 8 m (absoluto — o padrão do STAR é 10 000 % do base = 800 m!)**; Target Surface Size 100 %; Minimum Surface Size **0,25 m** (absoluto);
    Surface Growth Rate 1,3; Number of Prism Layers **3**; Prism Layer Total Thickness **1,0 m**; Prism Layer Stretching 1,2.
 4. *Custom Controls → Surface Control* (um controle por grupo, selecionando os part surfaces):
    | controle | superfícies | target / mínimo | prismas |
