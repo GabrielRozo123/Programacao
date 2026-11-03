@@ -35,7 +35,7 @@ PRESETS = {
     # o DEM grava um terço de volta (duas passagens de aleta): o laço do vídeo não tem emenda
     # DEM com mudança de fase: rotação simulada (regime de rolamento), fatia, voltas para a batelada inteira e
     # duração do contato; LES: malha e tempos; vídeo: segundos do time-lapse
-    "teste": dict(dem_rpm=3.0, dem_slab=0.4, dem_rev=4.0, dem_tc=0.010, les="teste", les_t=17.0, les_rec=3.0,
+    "teste": dict(dem_rpm=3.0, dem_slab=0.5, dem_rev=4.0, dem_tc=0.010, les="teste", les_t=17.0, les_rec=3.0,
                   timelapse_s=30.0),
     "gpu": dict(dem_rpm=2.0, dem_slab=0.5, dem_rev=6.0, dem_tc=0.006, les="gpu", les_t=24.0, les_rec=4.0,
                 timelapse_s=40.0),
@@ -93,7 +93,7 @@ pdem = PhaseDEM(drum, charge, b_rot.log, PhaseConfig(slab=P["dem_slab"], rpm=P["
                                                     contact_time=P["dem_tc"]))
 print(pdem.describe())
 recs = pdem.run_batch()
-st_pre = pdem.stats().as_dict()
+st_pre = pdem.pre_stats.as_dict()     # medidas no trecho frio, com a carga solta
 fase = dict(recs=recs, label=pdem.label.cpu().numpy(), names=NAMES)
 # trecho frio (antes do relógio da batelada): lixo solto girando com as aletas, para o segmento "dentro do tambor"
 pre = pdem.pre_records
