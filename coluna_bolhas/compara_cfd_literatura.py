@@ -34,7 +34,8 @@ from pathlib import Path
 import numpy as np
 
 from projeto_coluna_bolhas import (Propriedades, holdup_akita_yoshida,
-                                   holdup_hikita, holdup_reilly)
+                                   holdup_deslizamento, holdup_hikita, holdup_reilly,
+                                   u_terminal_mendelson)
 
 
 def le_monitor_star(arq: Path, chave: str):
@@ -121,6 +122,9 @@ def main():
             label="Akita & Yoshida (1973)")
     ax.plot(U * 100, holdup_hikita(U, p), "--", color="0.35", label="Hikita et al. (1980)")
     ax.plot(U * 100, holdup_reilly(U, p), "-.", color="0.35", label="Reilly et al. (1986)")
+    Uh = U[U <= 0.05]
+    ax.plot(Uh * 100, holdup_deslizamento(Uh, U_inf=float(u_terminal_mendelson(5e-3, p))), ":",
+            color="k", label="Homogêneo ideal, d = 5 mm (sem circulação)")
 
     marcadores = iter(["s", "^", "D", "v", "P", "X"])
     for fonte in dict.fromkeys(e[0] for e in exp):
