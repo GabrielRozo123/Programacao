@@ -1,0 +1,37 @@
+COLUNA DE BOLHAS AR–ÁGUA  |  D = 0.150 m,  H0 = 0.90 m,  H0/D = 6.0
+Critérios de Wilkinson et al. (1992) p/ εG independente da escala:
+  D > 0,15 m ........ OK  (D = 0.15 m)
+  H/D > 5 ........... OK  (H/D = 6.0)
+  furos do aspersor > 1–2 mm (definido no CFD pelo diâmetro de bolha)
+
+ Ug[m/s]   εG AY  εG Hik  εG Rei  d32[mm]  a[1/m]  kLa AY kLa Shah  D_L[m²/s]
+-----------------------------------------------------------------------------
+   0.005   0.016   0.028   0.061     7.25    13.4  0.0035   0.0061     0.0097
+   0.010   0.030   0.042   0.080     6.67    27.4  0.0070   0.0107     0.0120
+   0.020   0.055   0.062   0.105     6.14    53.8  0.0135   0.0189     0.0147
+   0.030   0.076   0.078   0.124     5.85    77.5  0.0191   0.0263     0.0166
+   0.040   0.093   0.093   0.139     5.65    99.0  0.0241   0.0333     0.0181
+   0.060   0.123   0.117   0.164     5.38   136.7  0.0325   0.0465     0.0205
+   0.080   0.146   0.138   0.185     5.20   169.0  0.0396   0.0589     0.0223
+
+Bolha de referência p/ o CFD: d = 5.0 mm  →  U∞ (Mendelson) = 0.231 m/s,  Eo = 3.39,  Re_b = 1294
+  kL (Higbie) = 3.52e-04 m/s
+  Hatta (k1 = 0.01 1/s) = 0.013  →  regime LENTO (reação no seio do líquido)
+
+Circulação do líquido (alvo p/ o CFD, Riquarts 1981): V_L(eixo) = 0.19 m/s @ 1 cm/s, 0.25 m/s @ 2 cm/s, 0.33 m/s @ 4 cm/s
+
+EXEMPLO DE PROJETO 1 — absorção de O2 com consumo de 1ª ordem no líquido
+  (gás pistonado + líquido misturado, semibatelada; ver docstring)
+    Ug     St  X_O2 gás  C_L/C*  r/C*_entrada [1/s]
+ 0.010  0.021    1.194%   0.418            4.05e-03
+ 0.020  0.020    0.836%   0.585            5.53e-03
+ 0.040  0.019    0.518%   0.725            6.57e-03
+
+EXEMPLO DE PROJETO 2 — fase líquida contínua, reação de 1ª ordem k1,
+  efeito da retromistura (modelo de dispersão axial), uL = 0.005 m/s
+    Ug      D_L     Pe     Da   X_PFR   X_ADM  X_CSTR
+ 0.010   0.0120  0.388   1.80   0.835   0.666   0.643
+ 0.020   0.0147  0.323   1.80   0.835   0.663   0.643
+ 0.040   0.0181  0.274   1.80   0.835   0.660   0.643
+  → Pe < 1: a fase líquida se comporta quase como CSTR. A circulação de
+    líquido (que o CFD resolve) é o que define D_L e, portanto, X.

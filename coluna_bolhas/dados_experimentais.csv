@@ -1,0 +1,14 @@
+# Dados experimentais de retenção gasosa global (ar–água, líquido em batelada)
+# Preencher a partir das TABELAS ou digitalizando as FIGURAS dos artigos
+# (ex.: WebPlotDigitizer). Anotar na coluna "fonte" o autor/ano e, se
+# digitalizado, a figura usada. Linhas com '#' são ignoradas.
+#
+# Só compare com colunas que satisfazem os critérios de Wilkinson et al. (1992):
+#   D >= 0,15 m, H/D >= 5, furos do aspersor >= 1-2 mm  → εG independe da escala.
+#
+# Fontes recentes sugeridas (ver Literatura/07_Reator_Coluna_de_Bolhas/README.md):
+#   - Besagni & Inzoli (2016), CES 146:259 — D = 0,24 m, H = 5,3 m, Ug 0,004–0,20 m/s
+#   - Sommer et al. (2023), Chem. Eng. Technol. — banco de dados HZDR (coluna retangular)
+#   - Draw & Rzehak (2024), IJMF 181:104969 — D = 0,288 m, H = 2,5 m, regime homogêneo
+#
+fonte,D_m,Ug_m_s,eps_G
