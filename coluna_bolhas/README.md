@@ -6,10 +6,11 @@ Scripts de apoio para o caso Euler–Euler no STAR-CCM+. O passo a passo da simu
 |---------|-----------|
 | `projeto_coluna_bolhas.py` | Correlações (εG, d32, a, kLa, D_L, V_L) e dois modelos de projeto do reator (gás pistonado + líquido misturado; dispersão axial com reação de 1ª ordem) |
 | `compara_cfd_literatura.py` | Lê os monitores exportados do STAR (`star_exports/holdup_Ug*.csv`), calcula a média temporal e compara com as correlações e com `dados_experimentais.csv` |
-| `dados_experimentais.csv` | Modelo para os dados da literatura recente (a preencher a partir dos PDFs) |
+| `dados_experimentais.csv` | εG × U_G experimentais: Mudde et al. (2009), D = 0,15 m, agulhas (Draw & Rzehak 2024, Tab. 2) e Besagni & Inzoli (2016), D = 0,24 m (digitalizado) |
 | `sensibilidade_diametro.py` | εG ≈ U_G/U∞(d) pelo arrasto de Tomiyama: mostra quanto o diâmetro de bolha controla o resultado e "inverte" um εG do CFD para o d equivalente |
 | `perfis_radiais.py` | Plota εG(r) e V_L(r) médios (line probe) com Riquarts e a inversão em r/R ≈ 0,7; confere a vazão líquida ≈ 0 |
 | `monta_animacao.py` | Junta os hardcopies PNG do STAR em MP4 + GIF (1 ou 2 cenas lado a lado, com o tempo escrito) |
+| `cinetica_projeto.py` | **Equações cinéticas de projeto**: Hatta, fator de aumento (van Krevelen–Hoftijzer), regimes, altura/volume de projeto para O₂ (lento) e CO₂/NaOH (rápido) com hidrodinâmica de correlação × experimentos × CFD |
 | `cfd_para_projeto.py` | **Leva o CFD às equações de projeto**: kLa (Higbie + a = 6εG/d), Hatta, taxa global com resistências em série, D_L (Joshi) → Pe → conversão; compara com o projeto só por correlações |
 | `figura_resumo_rodadas.py` | Figura-resumo das 4 rodadas 2D (εG × correlações, α(r), V_L(r)) a partir de `resultados_cfd_2D/` |
 | `resultados_cfd_2D/` | Exportações do STAR das rodadas 1–4 (U_G = 2 cm/s) + `resumo_rodadas.csv` |

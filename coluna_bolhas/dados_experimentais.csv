@@ -1,14 +1,34 @@
 # Dados experimentais de retenção gasosa global (ar–água, líquido em batelada)
-# Preencher a partir das TABELAS ou digitalizando as FIGURAS dos artigos
-# (ex.: WebPlotDigitizer). Anotar na coluna "fonte" o autor/ano e, se
-# digitalizado, a figura usada. Linhas com '#' são ignoradas.
+# Linhas com '#' são ignoradas.
 #
-# Só compare com colunas que satisfazem os critérios de Wilkinson et al. (1992):
-#   D >= 0,15 m, H/D >= 5, furos do aspersor >= 1-2 mm  → εG independe da escala.
+# [Mudde2009] Mudde, Harteveld & van den Akker (2009), via Draw & Rzehak (2024),
+#   IJMF 181:104969, Tabela 2 (valores tabelados, exatos). Coluna D = 0,15 m
+#   (mesmo D do nosso CFD), H = 1,3 m, aspersor de 599 AGULHAS (distribuição
+#   uniforme, regime homogêneo verdadeiro), água de torneira de idade intermediária,
+#   bolhas de 3,5–5 mm.
 #
-# Fontes recentes sugeridas (ver Literatura/07_Reator_Coluna_de_Bolhas/README.md):
-#   - Besagni & Inzoli (2016), CES 146:259 — D = 0,24 m, H = 5,3 m, Ug 0,004–0,20 m/s
-#   - Sommer et al. (2023), Chem. Eng. Technol. — banco de dados HZDR (coluna retangular)
-#   - Draw & Rzehak (2024), IJMF 181:104969 — D = 0,288 m, H = 2,5 m, regime homogêneo
+# [Besagni2016] Besagni & Inzoli (2016), CES 146:259, modo batelada (U_L = 0).
+#   Coluna D = 0,24 m, H = 5,3 m, H0 = 3,0 m, aspersor "spider" com furos de
+#   1–3,5 mm (aspersor grosseiro: regime de má distribuição). Bolhas de 2,5–4 mm
+#   (Figs. 19–21), transição em U_G = 0,0264 m/s (εG = 0,09).
+#   Valores DIGITALIZADOS de forma aproximada (±10 %) do gráfico de velocidade de
+#   enxame (Fig. 14), com εG = U_G/U_swarm. Conferem com a Fig. 5 e com a
+#   correlação ajustada pelos autores (Eq. 31, implementada em projeto_coluna_bolhas.py).
 #
 fonte,D_m,Ug_m_s,eps_G
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.015,0.061
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.017,0.076
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.025,0.11
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.032,0.16
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.039,0.20
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.049,0.25
+Mudde et al. (2009) (D 0.15 m; agulhas),0.15,0.065,0.42
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.005,0.015
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.010,0.033
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.020,0.069
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.030,0.10
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.040,0.121
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.050,0.135
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.100,0.20
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.150,0.238
+Besagni & Inzoli (2016) (D 0.24 m; spider; digit.),0.24,0.200,0.263

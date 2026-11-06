@@ -34,7 +34,7 @@ from pathlib import Path
 import numpy as np
 
 from projeto_coluna_bolhas import (Propriedades, holdup_akita_yoshida,
-                                   holdup_deslizamento, holdup_hikita, holdup_reilly,
+                                   holdup_besagni_inzoli, holdup_deslizamento, holdup_hikita, holdup_reilly,
                                    u_terminal_mendelson)
 
 
@@ -128,12 +128,14 @@ def main():
     import matplotlib.pyplot as plt
 
     U = np.linspace(0.002, 0.10, 200)
-    fig, ax = plt.subplots(figsize=(6, 4.2), dpi=150)
+    fig, ax = plt.subplots(figsize=(8.6, 4.4), dpi=150)
     ax.plot(U * 100, holdup_akita_yoshida(U, args.D, p), color="0.35",
             label="Akita & Yoshida (1973)")
     ax.plot(U * 100, holdup_hikita(U, p), "--", color="0.35", label="Hikita et al. (1980)")
     ax.plot(U * 100, holdup_reilly(U, p), "-.", color="0.35", label="Reilly et al. (1986)")
-    Uh = U[U <= 0.05]
+    ax.plot(U * 100, holdup_besagni_inzoli(U, p), "-", color="tab:green", lw=1,
+            label="Besagni & Inzoli (2016), Eq. 31")
+    Uh = U[U <= 0.045]
     ax.plot(Uh * 100, holdup_deslizamento(Uh, U_inf=float(u_terminal_mendelson(5e-3, p))), ":",
             color="k", label="Homogêneo ideal, d = 5 mm (sem circulação)")
 
@@ -153,7 +155,7 @@ def main():
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 0.30)
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=7.5, loc="upper left")
+    ax.legend(fontsize=7.5, loc="upper left", bbox_to_anchor=(1.01, 1.0))
     ax.set_title(f"Retenção gasosa: CFD × literatura (D = {args.D:.2f} m)")
     fig.tight_layout()
     fig.savefig(args.out / "fig_cfd_vs_literatura.png")

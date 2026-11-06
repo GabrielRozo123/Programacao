@@ -102,6 +102,23 @@ def holdup_reilly(Ug, p: Propriedades):
     return 296 * Ug**0.44 * p.rho_L**-0.98 * p.sigma**-0.16 * p.rho_G**0.19 + 0.009
 
 
+def holdup_besagni_inzoli(Ug, p: Propriedades):
+    """Besagni & Inzoli (2016), CES 146:259, Eq. (31) — ajuste aos dados da
+    coluna de 0,24 m com aspersor "spider" (furos 1–3,5 mm), modo batelada:
+
+        εG / (1 − εG)^4,9 = 329,31 · Ca^0,997,     Ca = U_G μL / σ
+    """
+    rhs = 329.31 * (np.asarray(Ug, dtype=float) * p.mu_L / p.sigma)**0.997
+    lo = np.zeros_like(rhs)
+    hi = np.full_like(rhs, 0.95)
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        f = mid / (1 - mid)**4.9 - rhs
+        lo = np.where(f < 0, mid, lo)
+        hi = np.where(f >= 0, mid, hi)
+    return 0.5 * (lo + hi)
+
+
 def holdup_deslizamento(Ug, U_inf=0.23, n=2.0):
     """Modelo de deslizamento (drift-flux homogêneo, Wallis / Richardson–Zaki)
     com líquido em batelada (UL = 0):
