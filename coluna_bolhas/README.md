@@ -14,6 +14,8 @@ Scripts de apoio para o caso Euler–Euler no STAR-CCM+. O passo a passo da simu
 | `cfd_para_projeto.py` | **Leva o CFD às equações de projeto**: kLa (Higbie + a = 6εG/d), Hatta, taxa global com resistências em série, D_L (Joshi) → Pe → conversão; compara com o projeto só por correlações |
 | `figura_resumo_rodadas.py` | Figura-resumo das 4 rodadas 2D (εG × correlações, α(r), V_L(r)) a partir de `resultados_cfd_2D/` |
 | `resultados_cfd_2D/` | Exportações do STAR das rodadas 1–4 (U_G = 2 cm/s) + `resumo_rodadas.csv` |
+| `figura_2D_vs_3D.py` | Rodada 4 (2D) × caso 3D × experimentos: εG e perfis radiais (3D = média de 4 raios, com faixa de dispersão) |
+| `resultados_cfd_3D/` | Exportações do STAR do caso 3D (holdup + perfis em x e y) |
 | `geometria/` | STEP da coluna (3D: D = 150 mm, H = 1200 mm; e 2D axissimétrico) com faces nomeadas + script CadQuery `gera_geometria.py` |
 | `resultados/` | Tabela, resumo e figura das correlações para D = 0,15 m |
 
