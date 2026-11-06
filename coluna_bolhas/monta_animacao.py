@@ -13,6 +13,11 @@ Uso:
 
 Os PNG de cada pasta são ordenados pelo número no nome do arquivo
 (o STAR gera nomes como Scene_00001.png, Scene_00002.png, ...).
+
+Δt variável: se o número no nome for o PASSO de tempo, use --agenda-dt
+"passo_inicial:dt,..." (ex.: "0:0.001,1000:0.0025,3384:0.005") e --dt-video
+para reamostrar os quadros num tempo uniforme. --recorte x0,y0,x1,y1 corta
+cada quadro (pixels) e --recorte-legenda cola a barra de cores abaixo.
 """
 
 from __future__ import annotations
@@ -37,6 +42,22 @@ def lista_quadros(pasta: Path) -> list[Path]:
     if not arqs:
         raise SystemExit(f"nenhuma imagem em {pasta}")
     return arqs
+
+
+def numero(p: Path) -> int:
+    nums = re.findall(r"\d+", p.stem)
+    return int(nums[-1]) if nums else 0
+
+
+def tempo_do_passo(n: int, agenda: list[tuple[int, float]]) -> float:
+    """Tempo físico no passo n, com Δt por trechos: [(passo_inicial, dt), ...]."""
+    t = 0.0
+    for i, (n0, dt) in enumerate(agenda):
+        n1 = agenda[i + 1][0] if i + 1 < len(agenda) else 10**12
+        if n <= n0:
+            break
+        t += (min(n, n1) - n0) * dt
+    return t
 
 
 def fonte(tam: int):
@@ -79,19 +100,53 @@ def main():
     ap.add_argument("--saida", default="animacao_coluna")
     ap.add_argument("--gif-largura", type=int, default=480,
                     help="largura do GIF (menor = arquivo menor)")
+    ap.add_argument("--agenda-dt", help='ex.: "0:0.001,1000:0.0025,3384:0.005"')
+    ap.add_argument("--dt-video", type=float, default=0.2,
+                    help="intervalo de tempo físico uniforme entre quadros do vídeo [s]")
+    ap.add_argument("--recorte", help="x0,y0,x1,y1 do quadro (pixels)")
+    ap.add_argument("--recorte-legenda", help="x0,y0,x1,y1 da barra de cores (colada abaixo)")
     a = ap.parse_args()
 
     q1 = lista_quadros(a.cena1)
     q2 = lista_quadros(a.cena2) if a.cena2 else None
+    tempos = None
+    if a.agenda_dt:
+        agenda = [(int(x.split(":")[0]), float(x.split(":")[1])) for x in a.agenda_dt.split(",")]
+        tq = np.array([tempo_do_passo(numero(q), agenda) for q in q1])
+        grade = np.arange(tq[0], tq[-1] + 1e-9, a.dt_video)
+        idx = sorted(set(int(np.argmin(np.abs(tq - g))) for g in grade))
+        q1 = [q1[i] for i in idx]
+        q2 = [q2[i] for i in idx] if q2 else None
+        tempos = [tq[i] for i in idx]
+        print(f"reamostrado para Δt_video = {a.dt_video} s: t = {tempos[0]:.2f} … {tempos[-1]:.2f} s")
     n = min(len(q1), len(q2)) if q2 else len(q1)
     print(f"{n} quadros → {n / a.fps:.1f} s de vídeo a {a.fps} fps")
+    box = tuple(int(v) for v in a.recorte.split(",")) if a.recorte else None
+    boxl = tuple(int(v) for v in a.recorte_legenda.split(",")) if a.recorte_legenda else None
+
+    def prepara(img):
+        img = img.convert("RGB")
+        if box:
+            corpo = img.crop(box)
+            if boxl:
+                leg = img.crop(boxl)
+                tela = Image.new("RGB", (max(corpo.width, leg.width), corpo.height + leg.height), "white")
+                tela.paste(corpo, ((tela.width - corpo.width) // 2, 0))
+                tela.paste(leg, ((tela.width - leg.width) // 2, corpo.height))
+                return tela
+            return corpo
+        return img
 
     mp4 = imageio.get_writer(f"{a.saida}.mp4", fps=a.fps, codec="libx264",
                              quality=8, macro_block_size=1)
     quadros_gif = []
     for i in range(n):
-        txt = f"t = {a.t0 + i * a.dt_quadro:5.1f} s" if a.dt_quadro > 0 else None
-        img = compoe(Image.open(q1[i]), Image.open(q2[i]) if q2 else None, txt)
+        if tempos is not None:
+            txt = f"t = {tempos[i]:5.1f} s"
+        else:
+            txt = f"t = {a.t0 + i * a.dt_quadro:5.1f} s" if a.dt_quadro > 0 else None
+        img = compoe(prepara(Image.open(q1[i])),
+                     prepara(Image.open(q2[i])) if q2 else None, txt)
         mp4.append_data(np.asarray(img))
         if i % 2 == 0:  # GIF com metade dos quadros
             r = a.gif_largura / img.width
