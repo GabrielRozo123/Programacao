@@ -31,7 +31,7 @@ responsável anterior (Henrique) saiu e o Matheus pode atrasar outras informaç�
   não há risco de descolamento por expansão; o jato acelera de ~12 para ~19 m/s antes do duto reto de 307 mm.
 - **Cantos R15 não modelados** (cantos vivos, como no estudo anterior) para isolar o efeito da transição. R15 reduz a área
   da entrada em ~2 % → v_i +2 %, ΔP ~+4 %. Pode entrar numa rodada seguinte.
-- Tubo de CFD a montante: 5·D = 770 mm (o real é uma ponta de 50 mm + tubulação desconhecida) — só afasta a BC.
+- Tubo a montante: **5·D = 770 mm de fluido**, mas **só os 50 mm reais têm parede de aço** (`--l-tubo-solido 50`); o resto é extensão de CFD com parede adiabática, para não somar aço e perda de calor que não existem. A face do fluido é partida em y = 610,5 mm para o contato casar com a parede real. Sólido: 8,41 L ≈ 66 kg.
 - **Vortex finder:** o desenho não cota o mergulho interno; mantido S = 153,5 mm (0,5·Dc). Confirmar.
 - Mudaram **três coisas** em relação ao modelo antigo (transição, saída de pó 102,26, bocais/tampo reais): a comparação
   de η e ΔP com o estudo anterior mistura os efeitos. Se precisar separar, rodar também a base com saída de pó 102,26 sem

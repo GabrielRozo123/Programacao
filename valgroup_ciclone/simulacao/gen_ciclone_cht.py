@@ -34,7 +34,7 @@ Uso:
     python3 gen_ciclone_cht.py 307 4.75 --l-ret 250 --d-tubo 102.3 --l-trans 200
 
 Rodada R01 (desenho Valgroup "Ciclone DC307 3 vistas R01", 06/11/2026):
-    python3 gen_ciclone_cht.py 307 4.75 --l-ret 460.5 --d-tubo 154.08 --l-trans 100 --t-tubo 7.11 \
+    python3 gen_ciclone_cht.py 307 4.75 --l-ret 460.5 --d-tubo 154.08 --l-trans 100 --t-tubo 7.11 --l-tubo-solido 50 \
         --d-gas 154.08 --t-gas 7.11 --d-po 102.26 --t-po 6.02 --t-tampo 12.7 --sufixo R01
 """
 import cadquery as cq
@@ -52,6 +52,8 @@ ap.add_argument("--l-tubo",  type=float, help="trecho reto de tubo redondo — e
 ap.add_argument("--dx-tubo", type=float, default=0.0, help="desvio radial do eixo do tubo em relação ao centro do retângulo (mm)")
 ap.add_argument("--dz-tubo", type=float, default=0.0, help="desvio vertical do eixo do tubo em relação ao centro do retângulo (mm)")
 ap.add_argument("--t-tubo",  type=float, help="espessura do tubo redondo (mm). Default = t")
+ap.add_argument("--l-tubo-solido", type=float, help="trecho do tubo redondo que tem PAREDE DE AÇO (mm), a partir da transição. "
+                "O resto da extensão de CFD fica só como fluido (parede adiabática). Default = todo o tubo")
 # bocais reais (desenho Valgroup R01, 06/11/2026): diâmetros internos de tubo comercial
 ap.add_argument("--d-gas",   type=float, help="Ø INTERNO da saída de gás / vortex finder (mm). Default 0,5·Dc")
 ap.add_argument("--t-gas",   type=float, help="espessura do tubo de saída de gás / vortex finder (mm). Default = t")
@@ -95,6 +97,7 @@ if TRANS:
     L_TUBO  = args.l_tubo if args.l_tubo is not None else 5 * args.d_tubo
     T_TUBO  = args.t_tubo if args.t_tubo is not None else T
     DX, DZ  = args.dx_tubo, args.dz_tubo
+    L_TUBO_S = min(args.l_tubo_solido, L_TUBO) if args.l_tubo_solido is not None else L_TUBO
 
 # Offset radial da casca cônica.
 #
@@ -186,7 +189,14 @@ def build_fluido():
 
     if TRANS:
         f = f.fuse(transicao(B_, A, R_TUBO, L_RET, L_TRANS, DX, DZ))
-        f = f.fuse(tubo(R_TUBO, L_RET + L_TRANS, L_TUBO, DX, DZ))
+        f = f.clean()
+        # tubo redondo em DOIS trechos, fundidos SEM clean(): a face lateral do fluido fica partida
+        # em y = fim do trecho com aço, e o contato fluido-sólido casa exatamente com a parede real
+        y0 = L_RET + L_TRANS
+        f = f.fuse(tubo(R_TUBO, y0, L_TUBO_S, DX, DZ))
+        if L_TUBO > L_TUBO_S:
+            f = f.fuse(tubo(R_TUBO, y0 + L_TUBO_S, L_TUBO - L_TUBO_S, DX, DZ))
+        return f
     return f.clean()
 
 # ── ENVELOPE EXTERNO (fluido + casca) ─────────────────────────────────────
@@ -215,7 +225,7 @@ def build_envelope():
 
     if TRANS:
         e = e.fuse(transicao(B_ + 2*T, A + 2*T, R_TUBO + T_TUBO, L_RET, L_TRANS, DX, DZ))
-        e = e.fuse(tubo(R_TUBO + T_TUBO, L_RET + L_TRANS, L_TUBO, DX, DZ))
+        e = e.fuse(tubo(R_TUBO + T_TUBO, L_RET + L_TRANS, L_TUBO_S, DX, DZ))
     return e.clean()
 
 # ── construção ────────────────────────────────────────────────────────────
@@ -248,7 +258,7 @@ if TRANS:
              "externo": (B_/2 - DX) - R_TUBO, "interno": (B_/2 + DX) - R_TUBO}
     ang = {k: math.degrees(math.atan(v / L_TRANS)) for k, v in lados.items()}
     print(f"  transição: Ø{2*R_TUBO:.1f} -> {B_:.1f} × {A:.1f} mm em {L_TRANS:.1f} mm "
-          f"· tubo reto de CFD {L_TUBO:.1f} mm (t = {T_TUBO:.2f})")
+          f"· tubo reto de CFD {L_TUBO:.1f} mm, dos quais {L_TUBO_S:.1f} mm com parede de aço (t = {T_TUBO:.2f})")
     print(f"  área retângulo / área tubo = {A_ret/A_tubo:.3f}  "
           f"({'EXPANDE' if A_ret > A_tubo else 'CONTRAI'} em área no sentido do escoamento)")
     print("  semiângulos por lado (+ expande, − contrai):  " +
