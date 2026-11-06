@@ -1,0 +1,5 @@
+rodada,eps_G,desvpad,VL_eixo_m_s,VL_max_m_s,VL_min_m_s,r_inversao_R
+"1: d = 1 mm, aspersor uniforme",0.1724,0.0000,-0.079,0.031,-0.079,0.60
+"2: d = 5 mm, uniforme",0.0865,0.0000,0.001,0.001,-0.007,0.93
+"3: d = 5 mm, aspersor parabólico",0.0884,0.0002,0.028,0.028,-0.021,0.60
+"4: idem + lift C_L = −0,05",0.0856,0.0008,0.056,0.091,-0.089,0.70

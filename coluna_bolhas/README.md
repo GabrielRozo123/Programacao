@@ -10,6 +10,8 @@ Scripts de apoio para o caso Euler–Euler no STAR-CCM+. O passo a passo da simu
 | `sensibilidade_diametro.py` | εG ≈ U_G/U∞(d) pelo arrasto de Tomiyama: mostra quanto o diâmetro de bolha controla o resultado e "inverte" um εG do CFD para o d equivalente |
 | `perfis_radiais.py` | Plota εG(r) e V_L(r) médios (line probe) com Riquarts e a inversão em r/R ≈ 0,7; confere a vazão líquida ≈ 0 |
 | `monta_animacao.py` | Junta os hardcopies PNG do STAR em MP4 + GIF (1 ou 2 cenas lado a lado, com o tempo escrito) |
+| `figura_resumo_rodadas.py` | Figura-resumo das 4 rodadas 2D (εG × correlações, α(r), V_L(r)) a partir de `resultados_cfd_2D/` |
+| `resultados_cfd_2D/` | Exportações do STAR das rodadas 1–4 (U_G = 2 cm/s) + `resumo_rodadas.csv` |
 | `geometria/` | STEP da coluna (3D: D = 150 mm, H = 1200 mm; e 2D axissimétrico) com faces nomeadas + script CadQuery `gera_geometria.py` |
 | `resultados/` | Tabela, resumo e figura das correlações para D = 0,15 m |
 
