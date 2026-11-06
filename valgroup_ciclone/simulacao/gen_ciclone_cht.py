@@ -34,7 +34,7 @@ Uso:
     python3 gen_ciclone_cht.py 307 4.75 --l-ret 250 --d-tubo 102.3 --l-trans 200
 
 Rodada R01 (desenho Valgroup "Ciclone DC307 3 vistas R01", 06/11/2026):
-    python3 gen_ciclone_cht.py 307 4.75 --l-ret 460.5 --d-tubo 154.08 --l-trans 100 --t-tubo 7.11 --l-tubo-solido 50 \
+    python3 gen_ciclone_cht.py 307 4.75 --l-ret 460.5 --d-tubo 154.08 --l-trans 100 --t-tubo 7.11 --l-tubo-solido 50 --l-out 319.7 \
         --d-gas 154.08 --t-gas 7.11 --d-po 102.26 --t-po 6.02 --t-tampo 12.7 --sufixo R01
 """
 import cadquery as cq
@@ -60,6 +60,7 @@ ap.add_argument("--t-gas",   type=float, help="espessura do tubo de saída de g�
 ap.add_argument("--d-po",    type=float, help="Ø INTERNO da saída de pó = base menor do cone (mm). Default 0,375·Dc")
 ap.add_argument("--t-po",    type=float, help="espessura do tubo de saída de pó (mm). Default = t")
 ap.add_argument("--t-tampo", type=float, help="espessura do tampo plano superior (mm). Default = t")
+ap.add_argument("--l-out",   type=float, help="comprimento da saída de gás ACIMA da face interna do teto (mm). Default 1,0·Dc")
 ap.add_argument("--sufixo",  default="", help="texto acrescentado ao nome dos STEP (ex.: R01)")
 ap.add_argument("--out", default=os.path.dirname(os.path.abspath(__file__)), help="pasta de saída")
 args = ap.parse_args()
@@ -80,7 +81,7 @@ BD = args.d_po if args.d_po else 0.375 * DC     # Ø saída de pó (base menor d
 
 # extensões para o CFD (espaço para as BCs — não fazem parte da norma)
 L_IN   = 1.5 * DC
-L_OUT  = 1.0 * DC
+L_OUT  = args.l_out if args.l_out is not None else 1.0 * DC
 L_DUST = 0.5 * DC
 
 H_CONE = HT - H_

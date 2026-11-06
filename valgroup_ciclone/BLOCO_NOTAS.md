@@ -28,7 +28,13 @@ responsável anterior (Henrique) saiu e o Matheus pode atrasar outras informaç�
 
 **Decisões / pontos de atenção:**
 - A transição **contrai** no sentido do escoamento (área do retângulo = 0,505 × a do tubo; laterais −24,9°, topo/fundo −0,2°):
-  não há risco de descolamento por expansão; o jato acelera de ~12 para ~19 m/s antes do duto reto de 307 mm.
+  não há risco de descolamento por expansão. Com 1 820 kg/h, 400 °C, 1,2 bar, MM 130,594 (ρ = 2,800 kg/m³, Q = 0,1806 m³/s):
+  **9,68 m/s no tubo 6" → 19,16 m/s no retângulo** (pdin 131 → 514 Pa); com R15 seriam 19,56 m/s (+2 %).
+  ⚠️ **ΔP estático medido a partir da entrada do tubo** sai ~380 Pa maior só pela aceleração (514 − 131 Pa), sem ser perda:
+  comparar com o estudo anterior **no mesmo plano** (seção do duto retangular) ou em **pressão total**.
+- Revisão geométrica de 06/11 (medida no STEP × desenho): todas as cotas conferem, incluindo envelope em planta 768,75 e
+  altura entre faces 1 701,2 (a saída de gás foi para **319,7 mm acima do teto interno = 307 acima do tampo de 12,7**, `--l-out`).
+  Orientação conferida: em planta o duto fica acima do centro, como no desenho (mesmo sentido de giro do modelo anterior).
 - **Cantos R15 não modelados** (cantos vivos, como no estudo anterior) para isolar o efeito da transição. R15 reduz a área
   da entrada em ~2 % → v_i +2 %, ΔP ~+4 %. Pode entrar numa rodada seguinte.
 - Tubo a montante: **5·D = 770 mm de fluido**, mas **só os 50 mm reais têm parede de aço** (`--l-tubo-solido 50`); o resto é extensão de CFD com parede adiabática, para não somar aço e perda de calor que não existem. A face do fluido é partida em y = 610,5 mm para o contato casar com a parede real. Sólido: 8,41 L ≈ 66 kg.
