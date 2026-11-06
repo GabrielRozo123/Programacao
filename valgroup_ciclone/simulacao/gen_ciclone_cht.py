@@ -32,6 +32,10 @@ Entrada com transição redondo-retangular (pedido Valgroup, 13/10/2026):
 Uso:
     python3 gen_ciclone_cht.py [Dc_mm] [t_mm]                       (default: 307  4.75)
     python3 gen_ciclone_cht.py 307 4.75 --l-ret 250 --d-tubo 102.3 --l-trans 200
+
+Rodada R01 (desenho Valgroup "Ciclone DC307 3 vistas R01", 06/11/2026):
+    python3 gen_ciclone_cht.py 307 4.75 --l-ret 460.5 --d-tubo 154.08 --l-trans 100 --t-tubo 7.11 \
+        --d-gas 154.08 --t-gas 7.11 --d-po 102.26 --t-po 6.02 --t-tampo 12.7 --sufixo R01
 """
 import cadquery as cq
 from cadquery import exporters
@@ -48,19 +52,29 @@ ap.add_argument("--l-tubo",  type=float, help="trecho reto de tubo redondo — e
 ap.add_argument("--dx-tubo", type=float, default=0.0, help="desvio radial do eixo do tubo em relação ao centro do retângulo (mm)")
 ap.add_argument("--dz-tubo", type=float, default=0.0, help="desvio vertical do eixo do tubo em relação ao centro do retângulo (mm)")
 ap.add_argument("--t-tubo",  type=float, help="espessura do tubo redondo (mm). Default = t")
+# bocais reais (desenho Valgroup R01, 06/11/2026): diâmetros internos de tubo comercial
+ap.add_argument("--d-gas",   type=float, help="Ø INTERNO da saída de gás / vortex finder (mm). Default 0,5·Dc")
+ap.add_argument("--t-gas",   type=float, help="espessura do tubo de saída de gás / vortex finder (mm). Default = t")
+ap.add_argument("--d-po",    type=float, help="Ø INTERNO da saída de pó = base menor do cone (mm). Default 0,375·Dc")
+ap.add_argument("--t-po",    type=float, help="espessura do tubo de saída de pó (mm). Default = t")
+ap.add_argument("--t-tampo", type=float, help="espessura do tampo plano superior (mm). Default = t")
+ap.add_argument("--sufixo",  default="", help="texto acrescentado ao nome dos STEP (ex.: R01)")
 ap.add_argument("--out", default=os.path.dirname(os.path.abspath(__file__)), help="pasta de saída")
 args = ap.parse_args()
 
 DC, T, OUT = args.dc, args.t, args.out
+T_GAS   = args.t_gas   if args.t_gas   is not None else T
+T_PO    = args.t_po    if args.t_po    is not None else T
+T_TAMPO = args.t_tampo if args.t_tampo is not None else T
 
 # proporções Stairmand (alta eficiência) — idênticas ao modelo do estudo anterior
 A  = 0.50  * DC            # altura da entrada
 B_ = 0.20  * DC            # largura da entrada (radial)
-DE = 0.50  * DC            # Ø saída de gás (vortex finder)
+DE = args.d_gas if args.d_gas else 0.50 * DC   # Ø saída de gás (vortex finder)
 S  = 0.50  * DC            # mergulho do vortex finder abaixo do teto
 H_ = 1.50  * DC            # altura da parte cilíndrica
 HT = 4.00  * DC            # altura total (cilindro + cone)
-BD = 0.375 * DC            # Ø saída de pó
+BD = args.d_po if args.d_po else 0.375 * DC     # Ø saída de pó (base menor do cone)
 
 # extensões para o CFD (espaço para as BCs — não fazem parte da norma)
 L_IN   = 1.5 * DC
@@ -160,7 +174,7 @@ def build_fluido():
 
     # parede do vortex finder: anel DE/2 -> DE/2+T, de z=-S ao teto — SUBTRAI do fluido
     # (T unificado com a espessura do casco; o modelo anterior usava 4 mm fixos aqui)
-    ext = cq.Solid.makeCylinder(DE/2 + T, S, pnt=cq.Vector(0, 0, -S), dir=cq.Vector(0, 0, 1))
+    ext = cq.Solid.makeCylinder(DE/2 + T_GAS, S, pnt=cq.Vector(0, 0, -S), dir=cq.Vector(0, 0, 1))
     itn = cq.Solid.makeCylinder(DE/2,     S, pnt=cq.Vector(0, 0, -S), dir=cq.Vector(0, 0, 1))
     f = f.cut(ext.cut(itn))
 
@@ -178,7 +192,7 @@ def build_fluido():
 # ── ENVELOPE EXTERNO (fluido + casca) ─────────────────────────────────────
 def build_envelope():
     # corpo cilíndrico + espessura do teto (z de -H_ a +T)
-    corpo = cq.Solid.makeCylinder(DC/2 + T, H_ + T,
+    corpo = cq.Solid.makeCylinder(DC/2 + T, H_ + T_TAMPO,
             pnt=cq.Vector(0, 0, -H_), dir=cq.Vector(0, 0, 1))
     # cone externo: offset normal -> t/cos(alpha) no raio
     cone  = cq.Solid.makeCone(BD/2 + T_CONE, DC/2 + T_CONE, H_CONE,
@@ -186,11 +200,11 @@ def build_envelope():
     e = corpo.fuse(cone)
 
     # tubo da saída de pó
-    e = e.fuse(cq.Solid.makeCylinder(BD/2 + T, L_DUST,
+    e = e.fuse(cq.Solid.makeCylinder(BD/2 + T_PO, L_DUST,
                pnt=cq.Vector(0, 0, -HT - L_DUST), dir=cq.Vector(0, 0, 1)))
 
     # tubo de saída de gás acima do teto (a parte abaixo do teto já vem do corpo)
-    e = e.fuse(cq.Solid.makeCylinder(DE/2 + T, S + L_OUT,
+    e = e.fuse(cq.Solid.makeCylinder(DE/2 + T_GAS, S + L_OUT,
                pnt=cq.Vector(0, 0, -S), dir=cq.Vector(0, 0, 1)))
 
     # duto de entrada: engrossa só na seção transversal (x e z), mantém o comprimento em y
@@ -219,6 +233,7 @@ print(f"  a (entrada, alt) = {A:7.1f}     De (saída gás)  = {DE:7.1f}")
 print(f"  b (entrada, lar) = {B_:7.1f}     S  (vortex)     = {S:7.1f}")
 print(f"  h (cilindro)     = {H_:7.1f}     H  (total)      = {HT:7.1f}")
 print(f"  cone             = {H_CONE:7.1f}     B  (saída pó)   = {BD:7.1f}")
+print(f"  espessuras: casco/cone {T:.2f} · tampo {T_TAMPO:.2f} · saída de gás {T_GAS:.2f} · saída de pó {T_PO:.2f} mm")
 print(f"  semiângulo do cone = {math.degrees(ALPHA):.2f}°  ->  offset radial da casca = {T_CONE:.3f} mm")
 
 # onde a parede interna do duto (x = Dc/2 - b) deixa de cortar o casco: abaixo disto o duto
@@ -269,6 +284,8 @@ print("  >> conferir: 'válido' True nos dois, e a massa de aço plausível para
 tag = f"Dc{DC:.0f}_t{T:.2f}".replace(".", "p")
 if TRANS:
     tag += f"_Lr{L_RET:.0f}_D{2*R_TUBO:.0f}_Lt{L_TRANS:.0f}"
+if args.sufixo:
+    tag += f"_{args.sufixo}"
 os.makedirs(OUT, exist_ok=True)
 pf = os.path.join(OUT, f"ciclone_{tag}_fluido.step")
 ps = os.path.join(OUT, f"ciclone_{tag}_solido.step")

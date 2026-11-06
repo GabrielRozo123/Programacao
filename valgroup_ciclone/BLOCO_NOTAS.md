@@ -6,6 +6,39 @@
 
 ---
 
+## ✅ Desenho R01 recebido (06/11/2026) — geometria da rodada gerada
+
+Arquivos do cliente: `Ciclone_DC307_3_vistas_R01.dwg` + PNG, `Criterios_e_observacoes_R01.txt`, memorial
+`MC_VP_T-202 Rev.00` (ASME VIII Div.1) e apresentação do memorial. O cliente informou também que o
+responsável anterior (Henrique) saiu e o Matheus pode atrasar outras informações.
+
+**O que o desenho define (diâmetros INTERNOS):**
+| item | desenho R01 | modelo anterior |
+|---|---|---|
+| corpo / cone | DI 307, H 460,5 / cone 767,5 | igual |
+| entrada | 153,5 × 61,4, **cantos R15**, reto **307 preservado** (= 460,5 a partir do plano do eixo) | igual, cantos vivos |
+| transição | **retângulo → círculo centrada, L = 100**, e = 4,75; semiângulo 24,9° em planta | — |
+| tubo de entrada | **6" SCH40S, DI 154,08**, ponta de 50 mm (sem flange) | — |
+| saída de gás | 6" SCH40S, DI 154,08, e 7,11, L 307 c/ flange | DI 153,5, e 4,75 |
+| saída de pó | **4" SCH40S, DI 102,26**, e 6,02, L 153,5 → **muda a base do cone** (semiângulo 7,12° → 7,60°) | DI 115,13 |
+| tampo | **12,70 mm** | 4,75 |
+
+**Geometria gerada:** `simulacao/ciclone_Dc307_t4p75_Lr460_D154_Lt100_R01_ASSEMBLY.step` (fluido 87,16 L, sólido
+11,0 L ≈ 87 kg de aço, ambos válidos, nenhuma face < 50 mm²). Comando no cabeçalho do `gen_ciclone_cht.py`.
+
+**Decisões / pontos de atenção:**
+- A transição **contrai** no sentido do escoamento (área do retângulo = 0,505 × a do tubo; laterais −24,9°, topo/fundo −0,2°):
+  não há risco de descolamento por expansão; o jato acelera de ~12 para ~19 m/s antes do duto reto de 307 mm.
+- **Cantos R15 não modelados** (cantos vivos, como no estudo anterior) para isolar o efeito da transição. R15 reduz a área
+  da entrada em ~2 % → v_i +2 %, ΔP ~+4 %. Pode entrar numa rodada seguinte.
+- Tubo de CFD a montante: 5·D = 770 mm (o real é uma ponta de 50 mm + tubulação desconhecida) — só afasta a BC.
+- **Vortex finder:** o desenho não cota o mergulho interno; mantido S = 153,5 mm (0,5·Dc). Confirmar.
+- Mudaram **três coisas** em relação ao modelo antigo (transição, saída de pó 102,26, bocais/tampo reais): a comparação
+  de η e ΔP com o estudo anterior mistura os efeitos. Se precisar separar, rodar também a base com saída de pó 102,26 sem
+  transição.
+- Medir ΔP **estático e total** nos mesmos planos (fecha a pendência 3 400 × 2 910 Pa).
+- Inserção de 8 mm (253,5 × 161,4, R30) é reforço externo da abertura: não entra no fluido.
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
