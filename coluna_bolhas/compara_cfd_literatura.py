@@ -95,6 +95,17 @@ def main():
         cfd.append((Ug, media, dp, t.max()))
         print(f"{arq.name}: coluna '{nome}', t_max = {t.max():.1f} s → "
               f"εG = {media:.4f} ± {dp:.4f}")
+        # estacionariedade: compara as médias das duas metades da janela
+        tm = 0.5 * (args.t_media + t.max())
+        try:
+            m1, _ = media_temporal(t[t <= tm], y[t <= tm], args.t_media)
+            m2, _ = media_temporal(t, y, tm)
+            dif = 100 * (m2 - m1) / m1
+            veredito = "OK (estatisticamente estacionário)" if abs(dif) < 2 else \
+                "AINDA EVOLUINDO: rode mais tempo ou comece a média mais tarde"
+            print(f"    1ª metade {m1:.4f} | 2ª metade {m2:.4f} | diferença {dif:+.1f}% → {veredito}")
+        except ValueError:
+            pass
     cfd.sort()
 
     with open(args.out / "tabela_cfd.csv", "w", newline="") as f:
