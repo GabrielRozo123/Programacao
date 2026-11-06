@@ -49,6 +49,21 @@ responsável anterior (Henrique) saiu e o Matheus pode atrasar outras informaç�
 - Medir ΔP **estático e total** nos mesmos planos (fecha a pendência 3 400 × 2 910 Pa).
 - Inserção de 8 mm (253,5 × 161,4, R30) é reforço externo da abertura: não entra no fluido.
 
+### Montagem do caso R01 no STAR (06/11) — `ciclone_307_100_FEA_geometria_nova.sim` (cópia do caso FEA_Espessura)
+- Nomes: fluido `inlet` · `outlet_gas` · `outlet_dust` · `walls`; sólido `Pontas` (3 anéis das pontas, adiabáticos) · `Externa`
+  (convecção h = 10, 25 °C). As faces molhadas do sólido ficam em `Externa` e passam para a interface.
+- 3D-CAD → Part com *Create Part Contacts from Coincident Entities* (21 pares) → *Assign Parts to Regions* com contact-mode
+  interfaces. **Ligar cada região ao seu continuum** (a cópia deixou o `Aço_304L` sem região).
+- ⚠️ **Interface tem de ser *Mapped Contact Interface***: o sólido usa FE Solid Energy; *Contact Interface* (in-place) dá
+  "Type star.common.ContactInterface … is incompatible" na inicialização.
+- Malha: 1 678 427 células. Tabelas do Simas reapontadas: `Carga_mecanica` → interface lado fluido [0]; `Campo_termico` →
+  fronteiras do sólido. `char_PSD_CDF` fica gravada no .sim (CSV copiado para a pasta do .sim por segurança).
+- Reports de ΔP: `DeltaP`/`DeltaP_total` entre `corte_duto` e `outlet_gas` (comparável ao estudo anterior) e
+  **`DeltaP_equipamento_total`** = p_total(`inlet`) − p_total(`outlet_gas`), o número contra os 40 mbar. O `Pressure Drop 1`
+  (inlet → outlet_gas) fica para conferir se o report nativo usa pressão total (deve bater) ou estática (~380 Pa a mais).
+- Execução: fase 1 escoamento + energia com o lagrangeano congelado; fase 2 congela fluxo/energia e roda as partículas.
+  Referência do caso anterior: ΔP estático 3 400 Pa · calor 5,15 kW · parede 350–398 °C · η 96,25 %.
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
