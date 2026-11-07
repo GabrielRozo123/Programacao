@@ -64,6 +64,20 @@ responsável anterior (Henrique) saiu e o Matheus pode atrasar outras informaç�
 - Execução: fase 1 escoamento + energia com o lagrangeano congelado; fase 2 congela fluxo/energia e roda as partículas.
   Referência do caso anterior: ΔP estático 3 400 Pa · calor 5,15 kW · parede 350–398 °C · η 96,25 %.
 
+### Resultado R01, fase 1 (escoamento + calor, k-ω SST, 8 449 it) — 07/11
+| grandeza | R01 | caso anterior (CHT Dc307) |
+|---|---|---|
+| **ΔP total do equipamento** (p_total `inlet` 6" → `outlet_gas`) | **3 745 Pa = 37,4 mbar** (±30 Pa de oscilação do vórtice) | — (não medido) |
+| ΔP estático no duto (`corte_duto` → `outlet_gas`) | *pedir o valor* | 3 400 Pa |
+| calor pela `Externa` | **5,43 kW** | 5,15 kW (+5 %: transição, ponta e tampo de 12,7) |
+| calor pela interface | 5,27 kW → **desequilíbrio 2,9 %** (antes 1,2 %); a interface mapeada não é estritamente conservativa | |
+| parede | **356–391 °C** | 350–398 °C |
+
+Leitura: 6" na entrada e na saída → ΔP total ≈ estático de flange a flange; a transição quase não acrescenta perda
+(estimativa pelo caso anterior: 3 400 + 514 − 131 ≈ 3 780 Pa de duto a saída em pressão total). **Contra 40 mbar a
+margem é de 6 %, e isto é k-ω:** com o fator RST do relatório final (×1,18 a ×1,39) vai a **44–52 mbar**. Mesmo recado
+do caso anterior (`11_CHT` §2), agora no equipamento real — levar ao Marcus.
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
