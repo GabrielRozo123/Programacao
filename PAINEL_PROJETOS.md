@@ -24,7 +24,7 @@
 |---|---|---|
 | V1 | 🟡 **Desenho R01 recebido (06/11)** · STEP gerado (`simulacao/ciclone_Dc307_t4p75_Lr460_D154_Lt100_R01_ASSEMBLY.step`) → rodar CHT, passar T e P ao Simas, avaliar η e ΔP (estático e total) | Gabriel |
 | V2 | **Comparar as duas cenas de erosão** (residência 60 s × 2 s) — pedido feito em 30/09, resultado nunca reportado | Gabriel |
-| V3 | **ΔP estático × total:** criar reports com `Pressure` em Inlet/Outlet_gas — fecha 3 400 × 2 910 Pa e o envelope em k-ω | Gabriel |
+| V3 | ✅ **Fechado (07/11):** ΔP oficial = estático de flange a flange; R01 = **40,5 mbar em k-ω** (limite 40) — ver `BLOCO_NOTAS.md` | — |
 | V4 | Opcional: rodada a 120 s para ver se η = 96,25 % ainda cai | Gabriel |
 | V5 | Particulado **10 ou 80 kg/h** (erosão escala linear) | Marcus / Valgroup |
 | V6 | Grau do aço **304 ou 304L** · **arranjo de apoios** do ciclone (dimensiona o FEA térmico) | Marcus / Valgroup |

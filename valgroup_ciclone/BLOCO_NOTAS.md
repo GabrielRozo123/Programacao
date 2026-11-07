@@ -78,6 +78,27 @@ Leitura: 6" na entrada e na saída → ΔP total ≈ estático de flange a flang
 margem é de 6 %, e isto é k-ω:** com o fator RST do relatório final (×1,18 a ×1,39) vai a **44–52 mbar**. Mesmo recado
 do caso anterior (`11_CHT` §2), agora no equipamento real — levar ao Marcus.
 
+### ΔP da R01 — fechamento (07/11, reports `R01_`, k-ω SST)
+| medida | valor |
+|---|---|
+| p estática `inlet` (6", área) | 4 051 Pa |
+| p total `inlet` (vazão) | 4 180 Pa (= estática + ½ρv² de 9,68 m/s, 131 Pa ✔) |
+| p estática `outlet_gas` (área) | −2 Pa |
+| p total `outlet_gas` (vazão) | 763 Pa → o gás sai com **redemoinho** (dinâmica ≈ 23 m/s contra 9,7 m/s axial) |
+| p estática `corte_duto` (y = 0,3 m, área) | 3 247 Pa · vazão pelo plano 0,5047 kg/s ✔ |
+| p total `corte_duto` (vazão) | 4 526 Pa ⚠️ maior que na entrada → **não usar**: perfil muito irregular/refluxo no duto logo após a transição deixa a média ponderada por vazão mal condicionada |
+
+**ΔP oficial = estático de flange a flange (`inlet` → `outlet_gas`) = 4 053 Pa = 40,5 mbar (k-ω).** Com 6" nas duas
+pontas, é também a perda total contando o redemoinho de saída como perdido (ele se dissipa na tubulação a jusante;
+Hoffmann & Stein). Total com redemoinho "recuperado" = 3 418 Pa (34,2 mbar) é só limite inferior.
+- Parte do ciclone (estático duto → saída): 3 249 Pa contra 3 400 Pa do caso anterior (−4 %) → o ciclone não mudou.
+- O acréscimo vem da entrada: queda estática ponta → duto = 804 Pa, dos quais ~383 Pa são aceleração inevitável (6" →
+  retângulo, 9,7 → 19,2 m/s) e **~420 Pa** vêm da transição curta (L = 100, lados a 25°) deixando o jato irregular.
+- **Contra 40 mbar: 40,5 mbar já em k-ω**; com o fator RST do relatório final (×1,18–1,39) → ~48–56 mbar.
+- Pendência V3 (estático × total) **fechada** com estes números.
+- Sugestão: rodada de sensibilidade com transição mais longa (ex.: L = 300 mm, lados ~9°) para medir quanto dos ~420 Pa
+  se recupera — o gerador faz em segundos (`--l-trans 300`).
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
