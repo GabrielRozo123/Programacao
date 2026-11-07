@@ -99,6 +99,16 @@ Hoffmann & Stein). Total com redemoinho "recuperado" = 3 418 Pa (34,2 mbar) é s
 - Sugestão: rodada de sensibilidade com transição mais longa (ex.: L = 300 mm, lados ~9°) para medir quanto dos ~420 Pa
   se recupera — o gerador faz em segundos (`--l-trans 300`).
 
+### Exportação para o Simas (07/11)
+- Tabelas XYZ herdadas da cópia do .sim saíram com **1.797e+308 (sem valor)** em todas as colunas: estavam com
+  *Representation = Latest Surface* / configuração da simulação antiga. **Solução: criar tabelas XYZ novas** (solução na
+  *Volume Mesh*). Com interface mapeada, as faces ficam nas fronteiras originais: mecânico em `walls` (fluido), térmico
+  em `Externa` + `Pontas` (sólido).
+- Conferido: temperatura ~658–663 K (385–390 °C) no lado interno do tampo, coerente com a faixa 356–391 °C.
+- Nota enviada junto: sistema de coordenadas (origem no eixo, z = 0 na face interna do tampo, duto em +y, SI), condições
+  (400 °C, 1 820 kg/h, h = 10 W/m²K a 25 °C, pontas adiabáticas), pressão manométrica relativa a 1,2 bar abs
+  (atmosfera: Absolute Pressure − 101 325), pendências de material (304 × 304L) e apoios.
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
