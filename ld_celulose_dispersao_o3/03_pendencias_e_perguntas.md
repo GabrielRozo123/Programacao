@@ -150,9 +150,38 @@ que já existe antes de recomendar.
 - **Concentração do off-gás:** 12,5–13 % em massa em O₂? (confirmar unidade).
 - **Eventos históricos:** a LD vai marcar no print da vista de cima onde já sentiram O₃.
 
+## 📥 Respostas recebidas — 09/11 (planta marcada + 4 certificados de PSV)
+**Exaustores (marcação na planta):** 910 e 920 = **exaustão de emergência** (ligam com O₃ > 0,2 ppm); 930 e 940 = **exaustão
+contínua da sala**. Nota da LD: "*todas as saídas estão em sentido Leste*".
+⚠️ **Conflito com o 3D:** pelo modelo, 910 descarrega na horizontal para +y, 920 para −y e 930/940 na vertical sob a cobertura
+do terraço. Ou o 3D está desatualizado, ou "Leste" se refere ao lado do prédio. **Pedir foto das 4 descargas.**
+
+**Chaminé do off-gás ("Saída PSV's"):** no **topo do bloco alto do prédio de O₃** (21,3 m). Não está no 3D recebido (a
+tubulação não foi exportada). Modelada provisoriamente como tubo 10", saída vertical 1,0 m acima do teto → `Saida_chamine`.
+
+**Certificados de PSV (Ibrav, out/2026), LESER, orifício não informado:**
+| tag | tamanho | ajuste | fechamento | tipo | observação |
+|---|---|---|---|---|---|
+| 1348-PSV-000-050 | 1" × 2" (150#) | 13,0 kgf/cm² (12,7 barg) | 11,7 | convencional | abriu a 12,6 na recepção |
+| 1349-PSV-000-050 | 1" × 2" (150#) | 13,0 kgf/cm² | 11,7 | convencional | idem |
+| PSV-1219-1196 | **3" × 4"** (300# × 150#) | **0,51 kgf/cm² (0,50 barg)** | 0,46 | balanceada (fole) | **vazando** na recepção |
+| PSV-1219-1197 | **3" × 4"** | **0,51 kgf/cm²** | 0,46 | balanceada | **vazando** na recepção |
+As 1219-1196/1197 estão no prédio de O₃ e têm **saída de 4"** — batem com o relato da reunião (4" → coletor de 10" →
+chaminé). As 1348/1349 (13 kgf/cm², saída 2") batem com a pressão citada (~12–13 bar), mas são de outra área.
+**Leitura:** PSVs que chegaram **vazando** sugerem liberação **contínua e pequena** pela chaminé, além do sopro na abertura —
+coerente com os eventos relatados.
+
+**Perguntas que sobram (curtas):**
+1. Quais PSVs descarregam na chaminé: só as 1219-1196/1197, ou também as 1348/1349?
+2. Orifício (letra) ou folha de dados das PSVs — com o artigo LESER (4414.4654 e 4414.7964) dá para buscar no catálogo.
+3. Altura da saída da chaminé acima do teto do bloco alto e diâmetro do topo; saída vertical?
+4. Foto das 4 descargas dos exaustores (direção real).
+5. Os locais de eventos (✕) não vieram marcados.
+
 ## Log de respostas
 
 | data | item | resposta |
 |---|---|---|
+| 09/11 | Planta marcada + 4 certificados de PSV | Ver seção acima: papéis dos exaustores, chaminé no topo do bloco alto, PSVs 1219-1196/1197 (3"×4", 0,51 kgf/cm², vazando). |
 | 26/10 | Reunião de acompanhamento | Geometria aceita. **Nova fonte: chaminé do off-gás** (alívio das PSVs, 4" → coletor 10", ~12,5–13 % de O₃, PSV ~12–12,8 bar). Oeste do modelo = SDCD (sala de controle) e CCM: receptores. Eventos já percebidos além do CCM, no 2º nível. Detalhes: `09` |
 - **15/10/2026** — CAD da planta inteira recebido (Solid Edge). Critérios de limpeza: `05`.

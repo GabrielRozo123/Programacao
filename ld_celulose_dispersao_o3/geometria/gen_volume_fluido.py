@@ -95,7 +95,9 @@ def area(t):
 def mais_proximo(p):
     vx = BRepBuilderAPI_MakeVertex(gp_Pnt(*p)).Vertex()
     d = [(BRepExtrema_DistShapeShape(vx, s.wrapped).Value(), nm) for nm, s in solidos.items()]
-    return min(d)
+    # empate (face coincidente com dois sólidos): a placa descarga_* vence, para a face de saída ganhar o nome Saida_*
+    dist, nome = min(d, key=lambda t: (round(t[0], 6), not t[1].startswith("descarga_"), t[1]))
+    return dist, nome
 
 
 # 3. nomear cada face: domínio pelo plano/normal, obstáculos pelo sólido de origem mais próximo
@@ -129,7 +131,7 @@ for f in ar.Faces():
 for nome, fs in faces_descarga.items():
     fs.sort(key=lambda x: -x[0])
     tag = re.search(r"\d{4}-\d{2}-(\d+)", nome)
-    tag = tag.group(1) if tag else nome
+    tag = tag.group(1) if tag else nome.replace("descarga_", "")
     grupos[f"Saida_{tag}"] += fs[0][1]
     exaustor = next((m for m in nomes if m.startswith("exaustor_") and m.endswith(tag)), nome)
     for _, tris in fs[1:]:
