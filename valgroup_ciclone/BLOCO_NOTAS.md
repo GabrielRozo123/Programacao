@@ -109,6 +109,15 @@ Hoffmann & Stein). Total com redemoinho "recuperado" = 3 418 Pa (34,2 mbar) é s
   (400 °C, 1 820 kg/h, h = 10 W/m²K a 25 °C, pontas adiabáticas), pressão manométrica relativa a 1,2 bar abs
   (atmosfera: Absolute Pressure − 101 325), pendências de material (304 × 304L) e apoios.
 
+### Partículas da R01 — primeira rodada (09/11) inválida para η
+- `mdot_gas_XXX` herdado apontava para o `inlet` (corrigido para `outlet_gas`).
+- Rodada com **Maximum Residence Time = 2 s** → η = 99,73 %: **viesado**, igual à verificação de 2 s do caso anterior
+  (99,75 %). O η válido exige **60 s** (caso anterior: 96,25 %, 632 770 sub-passos) — ver `11_CHT` §5.
+- **Achado novo:** 1,0×10⁻⁴ kg/s (**3,6 % do injetado**) saem **de volta pelo `inlet`** — partículas que quicam nas paredes
+  convergentes da transição (25°) e atravessam a face de entrada a só 50 mm. Não existia no modelo antigo (entrada no
+  duto reto). Correção: condição da fase lagrangeana no `inlet` = **Rebound** (o escoamento a montante as devolveria),
+  e conferir que a saída pelo `inlet` vai a ~0 na rodada de 60 s.
+
 ## Pendentes — transição redondo-retangular na entrada (pedido de 13/10/2026)
 
 **Pedido do Marcus:** a Valgroup quer encurtar o duto retangular de entrada ao mínimo do desenho
