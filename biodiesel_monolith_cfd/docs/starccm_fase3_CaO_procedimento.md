@@ -361,12 +361,140 @@ regime em que a geometria do monólito tem função.
 ## 11. Pendências
 
 ```
+□ FECHAR O BALANÇO GLOBAL (ver seção 12) — bloqueia qualquer publicação de resultado
 □ Trocar 393.15 por ${Temperature} nas FFs de k, quando houver Ea (teste de invariância antes)
 □ Definir se o monólito será rota metílica (Melo) ou etílica (Fonseca, 70 °C, 1:9)
 □ Medir ρ_washcoat e δ_washcoat reais — o resultado é LINEAR no produto dos dois
 □ Obter ρ e μ medidos da carga real do laboratório
 □ Avaliar Multi-component Diffusion (Maxwell-Stefan) quando houver difusividades binárias
 ```
+
+---
+
+## 12. Registro das corridas e o balanço global em aberto
+
+### 12.1 Corrida de 150 s (malha sem prism layers, entrada 4:1)
+
+Reports em t = 150,045 s:
+
+```
+Y_TG parede (Surface Average, Top_Wall)   0,4909535
+Y_TG bulk   (Volume Average, Canal)       0,8491793
+Y_TG saída  (Mass Flow Average, Outlet)   0,8711881
+Integral de Flux_TG (Top_Wall)           -5,953611e-10  kg/s
+Surface Average de r_wall                 2,731014e-07  kmol/(m²·s)
+Mass Flow Inlet / Outlet                 -4,774000e-08 / +4,773998e-08 kg/s
+```
+
+**Resultado central medido:**
+
+```
+C_parede/C_bulk = 0,4909535 / 0,8491793 = 0,5782
+Da = 1/0,5782 − 1 = 0,73          (previsto a priori: 0,68)
+```
+
+Regime **misto** confirmado — nem cinético nem difusional. Com o CaO real, o Da sai
+de 0,003 (Fase 2) para 0,73, e a geometria do monólito passa a ter função. Isso
+inverte a conclusão que consta da apresentação de seminário v2.
+
+**Achado de projeto — o canal é curto demais:**
+
+```
+Re = 0,182     Sc = 1,73e5     Re·Sc = 3,1e4
+L_entrada,massa ≈ 0,05·D_h·Re·Sc = 3,46 m   vs   L_canal = 0,05 m   →  69×
+δ_c(x=L) por Lévêque = 179 µm = 16 % da altura do canal
+```
+
+A camada-limite de concentração nunca se desenvolve. O núcleo sai praticamente na
+composição de entrada, e a conversão por passe num canal de 50 mm é inerentemente
+baixa. Argumento para canal mais longo, velocidade menor ou reciclo.
+
+A cadeia de FF foi verificada à mão e fecha com 6 dígitos:
+
+```
+C_TG(parede) = 868 × 0,4909535/872            = 0,488701 kmol/m³
+r_wall = 5,302e-5 × 0,017 × 0,488701 × 0,62   = 2,731014e-07   ✓ idêntico
+872 × r_wall × 2,5e-6                          = 5,953611e-10   ✓ idêntico
+```
+
+### 12.2 O problema em aberto: o balanço global não fecha
+
+```
+(a) X_TG pela saída            = 0,0816 %
+(c) X_TG pelo FAME na saída    = 0,0817 %      ← (a) e (c) concordam
+(b) X_TG pelo fluxo de parede  = 1,4303 %      ← 17,5× maior
+```
+
+Balanço em t = 150 s, com ṁ medido (não estimado):
+
+```
+consumo na parede        -5,954e-10 kg/s
+saída líquida (ṁ·ΔY)     -3,399e-11 kg/s
+───────────────────────────────────────
+dM_TG/dt exigido         -5,614e-10 kg/s
+dM_TG/dt observado       -5,227e-11 kg/s
+───────────────────────────────────────
+não contabilizado         5,09e-10 kg/s   (85 %)
+```
+
+O déficit aparece em TG e FAME na proporção estequiométrica exata (1,00461), ou seja,
+o solver aplica uma **fração** do fluxo pedido, igual para todas as espécies. A fração
+degrada conforme a parede empobrece:
+
+```
+t ≈   1,5 s   →  0,997
+t ≈  15   s   →  0,932
+t ≈ 150   s   →  0,145     (Y_parede = 0,491)
+```
+
+Gradiente na parede: `∂Y/∂n = J/(ρD) = 2,381e-4/(868 × 7e-11) = 3920 m⁻¹`, o que dá
+ΔY ≈ 0,055 através de uma célula de 14 µm — 11 % do valor de parede. Hipótese de
+trabalho: resolução de malha junto à parede.
+
+Descartado por inspeção: não existe field function de fluxo de espécie no contorno
+(busca "bou" só retorna Boundary Index, Boundary Sliver Cell Indicator, etc.), então
+não há como medir o fluxo aplicado diretamente.
+
+### 12.3 Corrida com prism layers (entrada 6:1) — teste da hipótese
+
+Prism layers em Top_Wall e Bottom_Wall: 15 camadas, 200 µm total, stretching 1,2
+(primeira camada 2,8 µm).
+
+```
+Volume de malha confirmado : M_TG(t=0)/(ρ·Y₀) = 2,7502e-9 m³  vs 2,75e-9 geométrico ✓
+Condição inicial           : Y_TG = 0,81941  = 6:1 molar ✓
+Estequiometria             : 1,00461  (esperado 1,004587) ✓
+```
+
+**O teste falhou em dois pontos:**
+
+```
+ΔP_analítico (Poiseuille) = 12·µ·ū·L/H² = 5,21 Pa
+ΔP malha sem prisms                     = 5,430 Pa   (+4,2 %)
+ΔP malha com prisms                     = 5,463 Pa   (+4,8 %)   ← piorou
+```
+
+```
+desvio do balanço, malha sem prisms, t ≈ 15 s   = -6,8 %
+desvio do balanço, malha com prisms, t = 21 s   = -8,9 %   ← não melhorou
+```
+
+O ΔP não se moveu na direção do valor analítico, o que sugere que as prism layers
+não foram efetivamente geradas. Verificar contagem de células e cena de malha junto
+à parede antes de concluir que a hipótese de resolução está errada.
+
+### 12.4 Armadilha reencontrada
+
+O **array de espécies do Outlet** voltou a ficar defasado do Inlet na remontagem.
+Com Inlet em 6:1 (Y_TG = 0,8194), o Outlet reportou Y_TG = 0,8695 — acima da
+entrada, o que é impossível. A composição da saída é internamente consistente com
+uma alimentação 4,08:1, isto é, com os valores antigos.
+
+```
+REGRA: ao mudar a composição do Inlet, mudar o array do Outlet no mesmo ato.
+```
+
+Essa é a segunda vez que essa armadilha custa uma corrida. Já consta da seção 9.
 
 ---
 
