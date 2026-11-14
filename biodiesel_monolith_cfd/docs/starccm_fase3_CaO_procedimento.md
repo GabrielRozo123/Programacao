@@ -361,7 +361,8 @@ regime em que a geometria do monólito tem função.
 ## 11. Pendências
 
 ```
-□ FECHAR O BALANÇO GLOBAL (ver seção 12) — bloqueia qualquer publicação de resultado
+□ Prolongar a marcha até ~400 s (dM/dt ainda vale 7,6 % do fluxo em 150 s)
+□ Refazer a sonda de perfil em x = 49,9 mm para fechar os 20 % do balanço
 □ Trocar 393.15 por ${Temperature} nas FFs de k, quando houver Ea (teste de invariância antes)
 □ Definir se o monólito será rota metílica (Melo) ou etílica (Fonseca, 70 °C, 1:9)
 □ Medir ρ_washcoat e δ_washcoat reais — o resultado é LINEAR no produto dos dois
@@ -495,6 +496,63 @@ REGRA: ao mudar a composição do Inlet, mudar o array do Outlet no mesmo ato.
 ```
 
 Essa é a segunda vez que essa armadilha custa uma corrida. Já consta da seção 9.
+
+### 12.5 Resolução do balanço — era instrumentação, não modelo
+
+As camadas prismáticas (§3) derrubaram o resíduo de partida para **0,18 % em
+t = 1 s**, confirmando que a resolução de parede era um problema real. Mas o
+resíduo continuava crescendo com o tempo, chegando a 96 % em t = 150 s.
+
+Três hipóteses foram levantadas e descartadas:
+
+```
+discretização temporal   descartada: Δt mudou de 0,005 para 0,02 no meio da
+                         corrida e a curva de resíduo passou lisa, sem degrau
+convergência interna     descartada: 30 iterações internas por passo
+report da saída errado   descartada: tipo, campo e parte corretos; report
+                         recriado do zero reproduziu o mesmo valor
+```
+
+A pista veio de duas grandezas medidas que implicavam espessuras incompatíveis
+de camada-limite:
+
+```
+Y_bulk  = 0,79744  →  δ médio no canal ≈ 134 µm
+Y_saída = 0,81893  →  δ em x = L       ≈  39 µm
+```
+
+A camada cresce com x; não pode ser três vezes mais fina na saída. Uma sonda de
+linha transversal resolveu:
+
+```
+média ponderada por vazão, do perfil medido  0,810664
+Mass Flow Average reportado                  0,818927
+exigido pelo balanço global                  0,808672
+```
+
+**O perfil concorda com o balanço, não com o report.** O modelo estava correto
+desde o início. Detalhamento na Nota II de `notas_metodologicas_cfd_especies.md`.
+
+```
+REGRA: NUNCA calcular conversão pelo Mass Flow Average de espécie no Outlet.
+       Use |Integral(Flux)|/(ṁ·Y_in), ou integre um perfil de sonda de linha.
+       Em escoamento laminar com reação de parede o fluido mais empobrecido
+       é o mais lento, e some da ponderação por vazão.
+```
+
+### 12.6 Resultados finais da Fase 3
+
+```
+Da              = 0,74        regime MISTO
+C_parede/C_bulk = 0,574
+X_TG            = 1,42 %      (previsão analítica a priori: 1,5 %)
+δ_c medido      = 324 µm      (Lévêque em regime: 179 µm)
+L_entrada,massa = 3,46 m      contra canal de 50 mm → 69×
+```
+
+Texto científico em `dissertacao_fase3_modelagem_canal_catalitico.md`.
+Perfil medido em `../results/perfil_camada_limite_x49mm.csv`.
+Figura em `../results/fig4_camada_limite_x49mm.pdf`.
 
 ---
 
