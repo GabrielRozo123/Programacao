@@ -200,6 +200,57 @@ justamente a que menos pesa na média.
    suspeitar do modelo — e medir o campo, não deduzir a partir de integrais.
 ```
 
+### Caso 2 do mesmo modo de falha: o report congelado na retomada
+
+O diagnóstico acima tratava de uma média *fisicamente* frágil. Um segundo caso,
+encontrado depois, é inequívoco e não tem defesa física alguma.
+
+Ao retomar a marcha a partir de um arquivo salvo em t = 150 s, o report
+`Surface Average of Mass Fraction of TG` sobre a parede catalítica passou a
+retornar o valor exato da alimentação:
+
+```
+t = 149,90 s     Y_parede = 0,457256
+t = 150,04 s     Y_parede = 0,819400     ← valor da alimentação, 7 dígitos
+...
+t = 303,00 s     Y_parede = 0,819400     congelado por 3000 passos
+```
+
+A simulação seguia correta: a integral do fluxo na mesma parede valia
+−5,4827 × 10⁻¹⁰ kg s⁻¹, de onde se recupera Y_parede = 0,4521 pela cadeia de
+field functions. Uma sonda de linha criada após a retomada nasceu com o mesmo
+defeito, retornando perfil plano em 0,8194.
+
+Importa registrar que **a integral de superfície de uma field function construída
+sobre o mesmo campo, na mesma parede, continuou correta**. O que falhou foi a
+leitura direta do campo primitivo em face de contorno e em derived part.
+
+### Prática consolidada
+
+```
+Para fração mássica de espécie, confiar apenas em grandezas de célula:
+  · Volume Average / Volume Integral sobre a região
+  · Surface Integral de uma field function construída sobre o campo
+
+Não usar, para fins quantitativos:
+  · Surface Average de Y_i em contorno
+  · Mass Flow Average de Y_i em contorno
+  · Line Probe de Y_i
+
+Verificação cruzada obrigatória, barata e que pega os três casos:
+      Volume Average de Y_i   ==   M_i / (ρ V)
+Se não baterem em 5-6 dígitos, o report está mentindo, não o modelo.
+```
+
+Em regime permanente o valor de parede é recuperado da integral do fluxo:
+
+```
+Y_w = |∮J dA| / K ,   com K agrupando as constantes da cadeia de FF
+```
+
+No presente caso K = 1,212661 × 10⁻⁹ kg s⁻¹, verificado contra o report de fluxo
+em 0,000 %.
+
 ### Lição de método
 
 As três hipóteses que falharam (resolução de malha, convergência das iterações

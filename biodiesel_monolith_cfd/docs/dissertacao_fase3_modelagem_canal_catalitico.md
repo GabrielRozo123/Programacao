@@ -270,6 +270,41 @@ na saída.** Esse ponto é desenvolvido na Nota II; no presente trabalho ele
 produziu erro de fator 19 e levou à rejeição indevida de um modelo correto ao
 longo de quatro corridas.
 
+### 3.4 Confiabilidade dos reports de fração mássica
+
+Ao longo do trabalho, **três reports distintos de fração mássica de espécie
+avaliados em face de contorno ou derived part produziram valores incorretos**,
+todos retornando a composição de alimentação:
+
+| Grandeza | Base de avaliação | Comportamento |
+|---|---|---|
+| Volume Average de Y_i | célula (região) | correto — reproduz M_i/(ρV) em 6 dígitos |
+| Surface Integral de uma field function | field function no contorno | correto |
+| Surface Average de Y_i em parede | face de contorno | retornou Y_in |
+| Mass Flow Average de Y_i na saída | face de contorno | erro de fator 19 |
+| Line Probe de Y_i | derived part | retornou Y_in |
+
+O último caso é inequívoco: o report `Y_TG_parede` leu 0,457256 em t = 149,90 s
+e 0,819400 — o valor exato da alimentação, em sete dígitos — em t = 150,04 s, sem
+transição, permanecendo congelado por 3000 passos de tempo. O gatilho foi a
+retomada da marcha a partir de um arquivo salvo. Uma sonda de linha criada após
+a retomada nasceu com o mesmo defeito.
+
+```
+REGRA OPERACIONAL
+
+Para fração mássica de espécie, usar apenas grandezas baseadas em célula:
+  · Volume Average / Volume Integral sobre a região
+  · Surface Integral de uma field function construída sobre o campo
+
+Não usar, para fins quantitativos:
+  · Surface Average de Y_i em contorno
+  · Mass Flow Average de Y_i em contorno
+  · Line Probe de Y_i
+
+O valor de parede é recuperado da integral do fluxo:
+  Y_w = |∮J dA| / K ,   K = M_TG · η · k_cat · w · (ρ/M_TG) · A_parede
+
 ---
 
 ## 4. Resultados
@@ -297,7 +332,7 @@ Y_TG|parede (média sobre a parede)  = 0,4574
 Y_TG|domínio (média volumétrica)    = 0,7974
 C_w/C_b                             = 0,574
 ──────────────────────────────────────────────
-Da                                  = 0,74
+Da                                  = 0,74     (0,76 em regime permanente, §4.4)
 ```
 
 **Regime misto.** Nem controle cinético (Da ≪ 1) nem controle por transporte
@@ -382,13 +417,43 @@ reciclo. Aumentar a carga de catalisador, isoladamente, tem retorno decrescente 
 já em Da = 0,74 o transporte externo responde por 43% da queda de concentração
 disponível.
 
+### 4.4 Regime permanente
+
+A marcha foi prolongada até t = 303 s, ponto em que o inventário deixa de evoluir:
+
+```
+dM_TG/dt   = −2,21 × 10⁻¹⁴ kg s⁻¹  =  0,004 % do fluxo de parede
+dM_FAME/dt = +2,21 × 10⁻¹⁴ kg s⁻¹
+```
+
+Regime permanente pleno. Os valores finais e sua comparação com t = 150 s:
+
+| | t = 150 s | t = 303 s (regime) |
+|---|---:|---:|
+| Y_TG na parede | 0,4572 | 0,4521 |
+| Y_TG no domínio | 0,7974 | 0,7970 |
+| C_w/C_b | 0,574 | 0,567 |
+| **Da** | 0,744 | **0,763** |
+| **X_TG** | 1,417 % | **1,402 %** |
+
+Em regime permanente o balanço global assume a forma fechada, com dM/dt nulo:
+
+```
+ṁ (Y_in − Y_out) = |∮J dA|   ⟹   ΔY_out = 0,011484   ⟹   Y_out = 0,807916
+```
+
+O valor de Y_TG na parede em t = 303 s foi obtido a partir da integral do fluxo,
+`Y_w = |∮J dA| / 1,212661 × 10⁻⁹`, e não do report de superfície, pelas razões
+expostas em §3.4 e na Nota II.
+
 ---
 
 ## 5. Pendências
 
 ```
-□ Prolongar a marcha até ~400 s (dM/dt ainda vale 7,6 % do fluxo em 150 s)
-□ Refazer a sonda de perfil em x = 49,9 mm para fechar os 20 % do balanço
+□ Recriar os reports de parede e a sonda de linha (ver §3.4)
+□ Medir o perfil na saída com os reports recriados, para fechar o balanço
+   na forma de regime permanente (Y_out previsto: 0,807916)
 □ Substituir 393,15 por ${Temperature} nas FFs de k quando houver Ea
    (executar teste de invariância antes)
 □ Definir rota com a orientação: metílica (Melo, 65 °C, 6:1) ou

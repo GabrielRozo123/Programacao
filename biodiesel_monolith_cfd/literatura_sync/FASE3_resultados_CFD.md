@@ -12,10 +12,19 @@ Código, dados brutos e scripts: repositório `Programacao`, pasta
 ## 1. O resultado central
 
 ```
-Número de Damköhler de parede        Da = 0,74       REGIME MISTO
-Razão de concentrações               C_parede/C_bulk = 0,574
-Conversão por passe                  X_TG = 1,42 %
+Número de Damköhler de parede        Da = 0,76       REGIME MISTO
+Razão de concentrações               C_parede/C_bulk = 0,567
+Conversão por passe                  X_TG = 1,40 %
 ```
+
+Valores em **regime permanente pleno**, atingido em t = 303 s:
+
+```
+dM_TG/dt = −2,21 × 10⁻¹⁴ kg s⁻¹  =  0,004 % do fluxo de parede
+```
+
+Em t = 150 s os valores eram Da = 0,744 e X_TG = 1,417 % — a marcha até o regime
+permanente os deslocou em menos de 3 %.
 
 Para reação de primeira ordem na parede, `C_w/C_b = 1/(1+Da)`, de modo que o Da
 sai diretamente das duas concentrações medidas.
@@ -30,7 +39,7 @@ a vencer, e a geometria do reator passa a ser determinante.
 | Fase | Catalisador | Da | Regime |
 |---|---|---:|---|
 | 2 | ZnAl₂O₄ (Allain, 2015), extrapolado | 0,003 | controle cinético absoluto |
-| 3 | **CaO (Melo, 2023), do laboratório** | **0,74** | **misto** |
+| 3 | **CaO (Melo, 2023), do laboratório** | **0,76** | **misto** |
 
 Na Fase 2, com Da = 0,003, não havia gradiente algum a vencer: o monólito não
 cumpria função. Esse era o argumento que constava da apresentação de seminário.
@@ -159,12 +168,19 @@ a soma das frações mássicas deriva, o solver renormaliza, e o erro cai
 proporcionalmente a Y_i — ou seja, quase todo na espécie majoritária. Erro medido
 no balanço do TG: **374%**. Corrigido para 0,013% igualando as difusividades.
 
-**II. A média ponderada por vazão na saída é imprópria para conversão em
-escoamento laminar com reação de parede.** O fluido mais empobrecido é o mais
+**II. A leitura de fração mássica de espécie em face de contorno não é
+confiável.** Três reports distintos — média ponderada por vazão na saída, média
+de superfície na parede e sonda de linha — retornaram a composição de
+alimentação, enquanto as grandezas baseadas em célula (média volumétrica,
+integral de superfície de field function) permaneceram corretas e mútuamente
+consistentes. No caso da média de saída há ainda um agravante físico: O fluido mais empobrecido é o mais
 lento: a 11 µm da parede o TG caiu 45%, mas a velocidade é 4% da do núcleo. A
 região que carrega toda a informação de conversão quase não pesa na média, e
 fica à mercê de contaminação pelo array de composição da fronteira. Erro medido:
 **fator 19**, com 96% do fluxo de parede sem explicação no balanço global.
+
+Verificação cruzada que detecta os três casos, e que passou a ser padrão:
+`Volume Average de Y_i` deve igualar `M_i/(ρV)` em 5–6 dígitos.
 
 Texto completo: `Programacao/biodiesel_monolith_cfd/docs/notas_metodologicas_cfd_especies.md`
 
@@ -176,8 +192,8 @@ em CFD comercial, e merecem avaliação como nota técnica.
 ## 7. Pendências
 
 ```
-□ Prolongar a marcha até ~400 s (dM/dt ainda vale 7,6 % do fluxo em 150 s)
-□ Refazer a sonda de perfil em x = 49,9 mm para fechar os 20 % do balanço
+□ Recriar reports de parede e sonda de linha (quebram na retomada da marcha)
+□ Medir o perfil de saída com reports recriados (Y_out previsto: 0,807916)
 □ DECISÃO COM A ORIENTAÇÃO: rota metílica (Melo, 65 °C, 6:1) ou
   etílica (Fonseca, 70 °C, 1:9)
 □ DADOS DO LABORATÓRIO: ρ_washcoat e δ_washcoat reais, ρ e μ da carga real
