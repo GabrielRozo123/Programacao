@@ -128,6 +128,10 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
 - Inicial: *Turbulent Viscosity Ratio* 1E10 (manual); conferir o limite máximo da razão de viscosidade (νt/ν chega a
   ~1,3 milhão no topo).
 - Critério antes de rodar: 1 iteração e **nenhuma** linha "Roughness limited" no *Output*.
+- **1ª iteração (16/11):** "Roughness limited" **sumiu** ✅ (1 camada + r = 1,07 m). Apareceu "Turbulent viscosity limited on
+  4 271 414 cells in Ar": na 1ª iteração é efeito da condição inicial (razão 1E10 em tudo). O que não pode é o limite
+  máximo do solver (*K-Epsilon Turbulent Viscosity → Maximum Ratio*, se for 1E5) cortar o perfil: νt/ν = κ·u*·z/ν passa de
+  1E5 a partir de ~26 m e chega a ~1,3E6 no topo → **Maximum Ratio 1E7**. Ao convergir, a linha tem de sumir.
 
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
