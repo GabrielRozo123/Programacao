@@ -178,10 +178,23 @@ coerente com os eventos relatados.
 4. Foto das 4 descargas dos exaustores (direção real).
 5. Os locais de eventos (✕) não vieram marcados.
 
+## 📥 Respostas recebidas — 16/11 (e-mail da LD com 3D das descargas e eventos marcados)
+1. **Exaustores:** "todos apontam para o **Leste**" (3D anexo): as 4 descargas são **horizontais para Leste** — substitui a leitura
+   do 3D anterior (910/920 para lados opostos, 930/940 verticais). Leste = +x do modelo (assumindo +y = norte de projeto).
+2. **Chaminé do off-gás:** saída a **~21 m** (topo do bloco alto do prédio de O₃), **linha de 12"**, curva com saída
+   **horizontal para Leste**.
+3. **PSVs:** as **4** descarregam na chaminé; **capacidade total de alívio = 2 300 kg/h "de O₃ em concentração 13 %"**.
+   ⚠️ Ambíguo: 2 300 kg/h **da corrente** (O₂ + 13 % de O₃ → ~300 kg/h de O₃; ~0,53 m³/s, ~7 m/s na saída de 12") ou
+   2 300 kg/h **de O₃** (corrente ~17 700 kg/h; ~56 m/s na saída). Confirmar.
+4. **Eventos (✕) marcados:** 6 pontos, todos a **oeste e sudoeste** do prédio de O₃ — na área das prensas (~40–60 m), entre
+   prensas e CCM (~70 m), ao sul das prensas e junto à **sala de controle (SDCD), a ~125–135 m**. Servem de validação
+   qualitativa das direções de vento simuladas (coordenadas em `_privado/`).
+
 ## Log de respostas
 
 | data | item | resposta |
 |---|---|---|
+| 16/11 | Descargas e chaminé para Leste, capacidade das PSVs, eventos marcados | Ver seção 16/11 acima. |
 | 09/11 | Planta marcada + 4 certificados de PSV | Ver seção acima: papéis dos exaustores, chaminé no topo do bloco alto, PSVs 1219-1196/1197 (3"×4", 0,51 kgf/cm², vazando). |
 | 26/10 | Reunião de acompanhamento | Geometria aceita. **Nova fonte: chaminé do off-gás** (alívio das PSVs, 4" → coletor 10", ~12,5–13 % de O₃, PSV ~12–12,8 bar). Oeste do modelo = SDCD (sala de controle) e CCM: receptores. Eventos já percebidos além do CCM, no 2º nível. Detalhes: `09` |
 - **15/10/2026** — CAD da planta inteira recebido (Solid Edge). Critérios de limpeza: `05`.

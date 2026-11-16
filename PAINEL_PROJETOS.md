@@ -22,7 +22,7 @@
 ### 🌀 Valgroup — `valgroup_ciclone/` · notas internas em `BLOCO_NOTAS.md`
 | # | pendência | com quem |
 |---|---|---|
-| V1 | 🟡 **Desenho R01 recebido (06/11)** · STEP gerado (`simulacao/ciclone_Dc307_t4p75_Lr460_D154_Lt100_R01_ASSEMBLY.step`) → rodar CHT, passar T e P ao Simas, avaliar η e ΔP (estático e total) | Gabriel |
+| V1 | ✅ **Encerrado (16/11):** R01 rodada (ΔP 40,5 mbar em k-ω, parede 356–391 °C, campos enviados ao Simas); Valgroup encerrou o estudo antes do lagrangeano de 60 s | — |
 | V2 | **Comparar as duas cenas de erosão** (residência 60 s × 2 s) — pedido feito em 30/09, resultado nunca reportado | Gabriel |
 | V3 | ✅ **Fechado (07/11):** ΔP oficial = estático de flange a flange; R01 = **40,5 mbar em k-ω** (limite 40) — ver `BLOCO_NOTAS.md` | — |
 | V4 | Opcional: rodada a 120 s para ver se η = 96,25 % ainda cai | Gabriel |
