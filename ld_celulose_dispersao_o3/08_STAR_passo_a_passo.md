@@ -132,6 +132,13 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
   4 271 414 cells in Ar": na 1ª iteração é efeito da condição inicial (razão 1E10 em tudo). O que não pode é o limite
   máximo do solver (*K-Epsilon Turbulent Viscosity → Maximum Ratio*, se for 1E5) cortar o perfil: νt/ν = κ·u*·z/ν passa de
   1E5 a partir de ~26 m e chega a ~1,3E6 no topo → **Maximum Ratio 1E7**. Ao convergir, a linha tem de sumir.
+- **Iterações 38–48:** com Maximum Ratio 1E7 o aviso de viscosidade sumiu ✅, mas a velocidade foi a **29 m/s** em bolhas
+  (o perfil não passa de 3,06 m/s no topo) e apareceu "Reversed flow" em 200–1100 faces de cada saída S07–S13 ❌.
+  Causa provável: a razão de viscosidade inicial 1E10 do manual deixa ε ≈ 0 no começo, o k dispara e cria um transiente
+  espúrio. **Correção:** condição inicial em equilíbrio (*Turbulence Specification* K + Epsilon com `k_ABL` e `eps_ABL`,
+  velocidade `Vel_ABL`), *Clear Solution* e rodar de novo. Critério: nas primeiras 20 iterações a cena fica em 0–3,06 m/s, sem
+  "Reversed flow" nem "viscosity limited". Se deformar mesmo assim, o problema está nas condições de contorno (direção do
+  vento nas entradas e no Topo).
 
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
