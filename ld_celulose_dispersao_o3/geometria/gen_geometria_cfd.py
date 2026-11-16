@@ -3,7 +3,7 @@ gen_geometria_cfd.py — gera a geometria LIMPA do modelo CFD a partir de uma ta
 
 Ideia: em vez de limpar dezenas de milhares de peças do CAD da planta, usar o CAD só como
 referência de medidas (Solid Edge > Inspect > medir) e REMODELAR cada obstáculo relevante como
-primitiva (caixa, cilindro, silo com cone, duto de descarga) — critérios em ../05_limpeza_CAD_criterios.md.
+primitiva (caixa, cilindro, silo com cone, duto vertical ou horizontal em x) — critérios em ../05_limpeza_CAD_criterios.md.
 
 Uso:
     python3 gen_geometria_cfd.py objetos_exemplo.csv --out geometria_cfd.step
@@ -32,6 +32,8 @@ def solido(o):
         s = s.rotate((0, 0, 0), (0, 0, 1), rot).translate((x0, y0, z0))
     elif t in ("cilindro", "duto"):
         s = cq.Workplane("XY").circle(a / 2).extrude(h).translate((x0, y0, z0))
+    elif t == "duto_x":  # tubo horizontal ao longo de +x: (x0, y0, z0) = centro da face inicial, a = Ø, h = comprimento
+        s = cq.Workplane("YZ").circle(a / 2).extrude(h).translate((x0, y0, z0))
     elif t == "silo":  # cone de fundo de altura b (ponta com 20 % do diâmetro) + corpo cilíndrico
         cone = cq.Solid.makeCone(0.1 * a, a / 2, b)
         corpo = cq.Workplane("XY").workplane(offset=b).circle(a / 2).extrude(h - b)

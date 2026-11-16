@@ -109,6 +109,17 @@ Parente et al. (2011) para k-ε consistente com a CLA.
 **Setup validado para V1/V2:** Standard k-ε, σε = 1,225, High y+, solo rugoso ks = 9,793·z₀/0,253, perfil de R&H na entrada
 e no topo, Maximum Cell Size 8 m.
 
+## 4c. Rodada 4 do domínio vazio — modelo ABL do STAR (planejada, 16/11)
+Ativar *Atmospheric Boundary Layer* (Standard k-ε, Ref. Speed 1,9 m/s, Ref. Height 10 m, z₀ 0,03 m, κ 0,42), **desligar o
+Roughness Limiter** (o Output mostrava a rugosidade limitada em 268 738 faces do Solo) e usar Cμ = 0,013 / σε = 3,22 como o
+manual recomenda. Ver `star_ccm_tutoriais/11_Atmospheric_Boundary_Layer_referencia.md`.
+
+## Geometria v4 (16/11)
+`volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
+saída horizontal para Leste a ~21,5 m) → 90 superfícies, fontes `Saida_910/920/930/940` e `Saida_chamine`.
+A tabela de objetos foi **reconstruída** do STL anterior (a pasta `_privado` se perdeu no reinício do ambiente); as 83
+superfícies comuns conferem com a versão anterior a menos de 2 mm.
+
 ## Plano B (se o remesher reclamar)
 Wrapper no mesmo part, com *Proximity Refinement* e *Contact Prevention* (2 grupos: `laje_prensas` × tanques sob a
 laje; pilares × tanques), *Minimum Size* ≈ 0,8 m. Ver `09_Surface_Wrapper_referencia.md`.
