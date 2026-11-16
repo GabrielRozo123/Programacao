@@ -111,7 +111,7 @@ corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetr
 |---|---|
 | Lateral, dividida em **16 setores de 22,5°** (S01 = 0°, sentido horário) | setores de barlavento = **Velocity Inlet** com perfil de CLA; de sotavento = **Pressure Outlet**; trocar por cenário sem remalhar |
 | Topo | velocidade e turbulência do perfil no topo, ou **tensão de cisalhamento prescrita** (Richards & Hoxey) — escolher pelo teste do domínio vazio |
-| Solo | parede rugosa com *Roughness Height* ks (≈ 30·z₀ ou 9,793·z₀/Cs), 1ª célula > ks |
+| Solo | parede rugosa com *Roughness Height* ks (no STAR: E·z₀/C = 9 × 0,03 / 0,253 = 1,07 m; 9,793·z₀/Cs é a forma do Fluent), centro da 1ª célula > ks |
 | Prédios e equipamentos | parede lisa (no-slip) |
 | Descargas dos exaustores | **Mass Flow Inlet** (vazão do manual), com escalar passivo = 1 |
 

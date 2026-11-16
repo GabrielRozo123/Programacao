@@ -110,20 +110,24 @@ Parente et al. (2011) para k-ε consistente com a CLA.
 e no topo, Maximum Cell Size 8 m.
 
 ## 4c. Rodada 4 do domínio vazio — modelo ABL do STAR (planejada, 16/11)
-Ativar *Atmospheric Boundary Layer* (Standard k-ε, Ref. Speed 1,9 m/s, Ref. Height 10 m, z₀ 0,03 m, κ 0,42), **desligar o
-Roughness Limiter** (o Output mostrava a rugosidade limitada em 268 738 faces do Solo) e usar Cμ = 0,013 / σε = 3,22 como o
-manual recomenda. Ver `star_ccm_tutoriais/11_Atmospheric_Boundary_Layer_referencia.md`.
+Ativar *Atmospheric Boundary Layer* (Standard k-ε, Ref. Speed 1,9 m/s, Ref. Height 10 m, z₀ 0,03 m, κ 0,42) e eliminar o
+corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do Solo). Plano inicial era Cμ = 0,013 /
+σε = 3,22; revisto abaixo. Ver `star_ccm_tutoriais/11_Atmospheric_Boundary_Layer_referencia.md`.
 
-**Montagem (16/11):** modelo ABL ativo com os 4 valores. No Solo, *Roughness Model Parameters* mostra só RplusSmooth 2,25 ·
-RplusRough 90 · B 0 · C 0,253, **sem chave do limitador**; a descrição do nó diz "Roughness height is limited by cell height".
-No método *Rough* o STAR usa ks efetivo = mín(ks; distância à parede da 1ª célula), e o *Output* informa em quantas faces cortou.
-- 268 738 faces ≈ **o Solo inteiro** (~1,1 km² ÷ 268 mil ≈ 4 m² por face) → a 1ª célula estava **abaixo de 1,16 m** em todo o
-  solo, apesar do prisma de 2,5 m planejado (suspeitas: espessura em % do base em vez de absoluta, ou o controle do Solo
-  com 3 camadas de 1,0 m herdado do modelo completo).
-- Saída que independe da chave: **1 camada de prisma de 3,0 m absoluta no Solo** (centro a 1,5 m, 30 % acima do ks) e conferir
-  no *Output* que a linha "Roughness limited" sumiu.
-- Com Cμ = 0,013 a field function de k muda: `k_ABL = pow(${ustar},2)/sqrt(0.013)` (k teórico 0,063 → **0,165 m²/s²**, 2,6×);
-  ε não depende de Cμ. Vale para as entradas e o Topo, salvo se o modelo ABL oferecer o perfil pronto no *Method*.
+**Montagem (16/11), revista com o manual (*Setting Up ABL* + *Wall Treatment Models Reference*):**
+- A chave do *Roughness Limiter* **não existe** nesta versão: o método *Rough* sempre limita a rugosidade pela distância da
+  1ª célula. O *Rough Displaced Origin* não limita, mas não tem B/C e a receita do ABL não vale para ele → fica *Rough*.
+- 268 738 faces ≈ **o Solo inteiro** (1,10 km² ÷ 268 738 ≈ 4,1 m² por face, células de 2 m: o trimmer arredonda os 3 m do
+  `Refino_Solo` para 8/2² = 2 m) → o centro da 1ª célula estava **abaixo do ks em todo o solo**. A espessura do prisma estava
+  certa (2,5 m, absoluta): suspeita no **número de camadas** (padrão 2) ou no prisma não gerado.
+- **Rugosidade corrigida:** r = E·z₀/C = 9 × 0,03 / 0,253 = **1,07 m** (a fórmula com 9,793 é do Fluent).
+- **Cμ fica 0,09 / σε 1,225** (o manual sugere 0,03–0,11; no equilíbrio νt = κ·u*·z não depende de Cμ). Rodada 4 muda só
+  entrada ABL + limitador, para isolar a causa do k baixo.
+- Entradas e Topo: *Turbulence Specification* K+Epsilon; *Velocity Specification* Magnitude + Direction; Magnitude, k e ε
+  com Method **Atmospheric Boundary Layer**; direção [−0,3827, −0,9239, 0].
+- Inicial: *Turbulent Viscosity Ratio* 1E10 (manual); conferir o limite máximo da razão de viscosidade (νt/ν chega a
+  ~1,3 milhão no topo).
+- Critério antes de rodar: 1 iteração e **nenhuma** linha "Roughness limited" no *Output*.
 
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
