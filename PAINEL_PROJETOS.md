@@ -1,14 +1,14 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
 > **Torre de controle.** Bata o olho aqui para saber onde está tudo e **o que está pendente com quem**.
-> **Atualizado: 2026-10-13.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
+> **Atualizado: 2026-11-16.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
 > 🔒 Projetos com material confidencial (Petrobras) aparecem aqui só em nível de status.
 
 ## Semáforo
 | projeto | cliente | 🚦 | onde está |
 |---|---|---|---|
-| 🌀 **Ciclone — FEA/CHT** | Valgroup | 🟡 | CHT entregue (P, T na parede → Simas, que já mapeou). **Aguardando desenho** da transição redondo-retangular na entrada. Gerador de CAD já preparado. |
-| 💨 **Dispersão de O₃** | LD Celulose | 🟡 | Etapa 2 (premissas). Planilha meteorológica entregue (Marcus gostou). **Aguardando dados do cliente.** |
+| 🌀 **Ciclone — FEA/CHT** | Valgroup | ✅ | Encerrado pela Valgroup (16/11): R01 rodada, ΔP 40,5 mbar, campos térmico e mecânico com o Simas. |
+| 💨 **Dispersão de O₃** | LD Celulose | 🟡 | Etapa 3 (CFD). Geometria v4 (descargas para Leste + chaminé) pronta; **domínio vazio aprovado (16/11)** com o modelo ABL. Próximo: V1 com os prédios e as 5 fontes. |
 | 🔥 **Resfriador + finos (DEM)** | Petrobras RNEST | 🟡 | Contratação em andamento (convite previsto para a semana de 20/10). Estudo de tutoriais de ebulição em curso. Detalhes no bloquinho privado. |
 | 🌊 **Misturador hiperbólico** | Nexus | ⚪ | E-mail de perguntas aguardando revisão do Marcus (desde 21/09). Sem resposta registrada. |
 | 🍺 **Tanque chiller** | GreyLogix | ✅ | Concluído. Post do blog entregue ao Otávio. Restam ajustes menores. |
@@ -33,14 +33,16 @@
 ### 💨 LD Celulose — `ld_celulose_dispersao_o3/`
 | # | pendência | com quem |
 |---|---|---|
-| L1 | **Vazões de vazamento** pequeno e grande (Q_peq, Q_gr) — bloqueia os cenários | Cliente |
-| L2 | Desenhos **CVC00P0015 a P0018** (geometria de descarga dos exaustores) · quais ventiladores são contínuos | Cliente |
+| L1 | **Vazão de O₃ vazado** nos cenários dos exaustores — não bloqueia o CFD (escalar normalizado), só a conversão para ppm | Cliente |
+| L2 | ✅ (09 e 16/11) Papéis dos exaustores, descargas horizontais para Leste, chaminé de 12" a ~21 m, PSVs 2 300 kg/h a 13 % | — |
 | L3 | Estação Zeus: o **0° é norte verdadeiro?** · ângulo do norte de projeto da planta · altura do anemômetro | Cliente |
 | L4 | Densidades de projeto das curvas dos ventiladores (0,9002 × 1,0148 kg/m³) | Cliente |
 | L5 | Faltam **1 planilha e 1 PDF** do lote 1 | Cliente |
 | L6 | Aval dos **cenários 5–6** (vento fraco estável) | Marcus |
 | L7 | ✅ Geometria do CFD pronta (40 sólidos, escala correta) — `06`, `07`. Falta só: estruturas altas 100–300 m (Otávio) | Gabriel + Otávio |
 | L8 | Decidir se o projeto migra para repositório privado | Marcus |
+| L9 | Aval da proposta para a chaminé (CFD normalizado + régua gaussiana + vazamento contínuo pequeno), enviada em 16/11 | Marcus |
+| L10 | Rodar o **V1** com os prédios (STL v4, 5 escalares, setup do domínio vazio aprovado) | Gabriel |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
 | # | pendência | com quem |

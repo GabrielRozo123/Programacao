@@ -100,7 +100,7 @@ no perfil).
 
 Critério: vento ±3 %, k ±15 % entre entrada e saída. Lição: o Realizable não preserva o perfil de R&H (Cμ variável).
 
-**Decisão (29/10):** o perfil que interessa é o **incidente na fonte** (centro do domínio), não o da borda de saída
+**Decisão (29/10), substituída pela rodada 4 (§4c, 16/11):** o perfil que interessa é o **incidente na fonte** (centro do domínio), não o da borda de saída
 (Blocken et al., 2007). No centro: U a ±1 % e k 14–17 % abaixo do teórico entre 10 e 50 m. O k decai a partir do solo
 (maior perto do chão, some no topo), assinatura do tratamento de parede rugosa (Hargreaves & Wright, 2007), não da malha
 nem das constantes. **Aceito com registro no relatório:** k menor → menos mistura → concentrações **conservadoras**; a
@@ -143,6 +143,27 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
   25 iterações com **máximo estável em 3,0587 m/s**, sem "Reversed flow" nem "viscosity limited", resíduos caindo ✅.
   Os resíduos normalizados parecem altos (~0,1 no momento) porque a normalização usa os resíduos das primeiras iterações,
   que já são pequenos quando o campo começa em equilíbrio. O critério é o perfil (U ±3 %, k ±15 %), não o resíduo.
+
+**Resultado da rodada 4 (1000 iterações, 16/11) — APROVADO** · figura e CSVs em `resultados/dominio_vazio_r4/`
+(`resultados/plot_dominio_vazio.py` refaz a figura).
+| | rodadas 1–3 | **rodada 4** |
+|---|---|---|
+| U saída ÷ entrada | ≤ 2 % | **−1,5 % na 1ª célula; ±0,7 % de 10 m para cima** |
+| k ÷ teórico, 10–70 m (centro / saída) | 0,69–0,86 | **0,976–0,999 / 0,974–1,003** |
+| k ÷ teórico acima de 100 m | — | 1,000 |
+- **Causas do k baixo nas rodadas 1–3** (corrigidas juntas, sem separar o peso de cada uma): rugosidade cortada em todo o Solo
+  (1ª célula abaixo do ks) e, provavelmente, a razão de viscosidade turbulenta podada pelo limite do solver acima de ~26 m.
+  Não era o Realizable × Standard sozinho, nem a malha.
+- Restam dois desvios locais, **iguais na entrada, no centro e na saída** (o perfil é homogêneo, só não é idêntico ao
+  teórico no 1º metro):
+  - U na 1ª célula (centro a 1,25 m) = 1,16 m/s contra 1,23 do perfil (−5 %): z₀ efetivo ≈ 0,036 m na lei de parede;
+  - k na 2ª célula (2,5–4,5 m) = +19 %: o gradiente entre a 1ª e a 2ª célula fica maior e gera mais produção. É o pico de k
+    junto ao solo descrito com funções de parede rugosas (Blocken et al., 2007).
+- **Setup validado para o V1:** Standard k-ε (Cμ 0,09, σε 1,225), High y⁺; modelo ABL nas entradas e no Topo (Magnitude +
+  Direction); Solo *Rough*, r = 1,07 m, prisma único de 2,5 m; Maximum Ratio da viscosidade turbulenta 1E7; condição inicial
+  em equilíbrio (`Vel_ABL`, `k_ABL`, `eps_ABL`); Maximum Cell Size 8 m. Isso substitui a "Decisão (29/10)" de §4b.
+- No V1, conferir no *Output* que não volta "Roughness limited" perto da planta (cilindro R80 com células de 1 m ao lado do
+  prisma de 2,5 m).
 
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,

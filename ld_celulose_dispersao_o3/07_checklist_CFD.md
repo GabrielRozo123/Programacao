@@ -169,7 +169,9 @@ corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetr
 
 ## 8. Próximos passos (ordem)
 1. ❓ Respostas: Marcus (domínio, estabilidade, operação dos exaustores) e cliente (vazões de O₃, norte).
-2. 🟡 STAR do zero com `volume_ar_LD.stl` (`08`): importar → região "Ar" → contornos → malha (sem wrapper).
-3. ⬜ **Teste do domínio vazio** com o perfil de CLA; malha base, checar qualidade.
+2. ✅ STAR do zero com `volume_ar_LD.stl` (`08`): importar → região "Ar" → contornos → malha (sem wrapper). Geometria v4
+   (descargas para Leste + chaminé) pronta em 16/11.
+3. ✅ **Teste do domínio vazio** aprovado na rodada 4 (16/11): modelo ABL do STAR, U ±1,5 %, k 0,97–1,00 do teórico
+   (`08` §4c, `resultados/dominio_vazio_r4/`).
 4. ⬜ Caso base (vento típico) com os 4 escalares → convergência, malha, sensibilidades.
 5. ⬜ Os 6 cenários de vento → relatórios.
