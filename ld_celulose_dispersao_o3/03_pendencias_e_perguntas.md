@@ -190,6 +190,9 @@ coerente com os eventos relatados.
    ~7,2 m/s na saída de 12", gás ~15 % mais denso que o ar, **~9 % de O₃ em volume (≈ 90 000 ppm)**. Pela régua gaussiana
    (1 g/s → 0,2 ppm a ~86 m em D·5 m/s), 83 g/s leva o contorno de 0,2 ppm para **bem além do domínio de 600 m** — o alívio
    pleno é um evento curto (sopro), e o resultado deve ser apresentado como normalizado + régua analítica para o campo distante.
+   📨 **Proposta enviada ao Marcus (16/11), aguardando:** (1) CFD normalizado da chaminé; (2) régua gaussiana para o alcance
+   distante no alívio pleno; (3) se possível, cenário de vazamento contínuo pequeno pela chaminé (os certificados mostram PSVs
+   1219 vazando, o que explicaria os eventos relatados).
 4. **Eventos (✕) marcados:** 6 pontos, todos a **oeste e sudoeste** do prédio de O₃ — na área das prensas (~40–60 m), entre
    prensas e CCM (~70 m), ao sul das prensas e junto à **sala de controle (SDCD), a ~125–135 m**. Servem de validação
    qualitativa das direções de vento simuladas (coordenadas em `_privado/`).

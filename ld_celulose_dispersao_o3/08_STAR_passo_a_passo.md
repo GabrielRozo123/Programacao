@@ -114,6 +114,17 @@ Ativar *Atmospheric Boundary Layer* (Standard k-ε, Ref. Speed 1,9 m/s, Ref. Hei
 Roughness Limiter** (o Output mostrava a rugosidade limitada em 268 738 faces do Solo) e usar Cμ = 0,013 / σε = 3,22 como o
 manual recomenda. Ver `star_ccm_tutoriais/11_Atmospheric_Boundary_Layer_referencia.md`.
 
+**Montagem (16/11):** modelo ABL ativo com os 4 valores. No Solo, *Roughness Model Parameters* mostra só RplusSmooth 2,25 ·
+RplusRough 90 · B 0 · C 0,253, **sem chave do limitador**; a descrição do nó diz "Roughness height is limited by cell height".
+No método *Rough* o STAR usa ks efetivo = mín(ks; distância à parede da 1ª célula), e o *Output* informa em quantas faces cortou.
+- 268 738 faces ≈ **o Solo inteiro** (~1,1 km² ÷ 268 mil ≈ 4 m² por face) → a 1ª célula estava **abaixo de 1,16 m** em todo o
+  solo, apesar do prisma de 2,5 m planejado (suspeitas: espessura em % do base em vez de absoluta, ou o controle do Solo
+  com 3 camadas de 1,0 m herdado do modelo completo).
+- Saída que independe da chave: **1 camada de prisma de 3,0 m absoluta no Solo** (centro a 1,5 m, 30 % acima do ks) e conferir
+  no *Output* que a linha "Roughness limited" sumiu.
+- Com Cμ = 0,013 a field function de k muda: `k_ABL = pow(${ustar},2)/sqrt(0.013)` (k teórico 0,063 → **0,165 m²/s²**, 2,6×);
+  ε não depende de Cμ. Vale para as entradas e o Topo, salvo se o modelo ABL oferecer o perfil pronto no *Method*.
+
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
 saída horizontal para Leste a ~21,5 m) → 90 superfícies, fontes `Saida_910/920/930/940` e `Saida_chamine`.

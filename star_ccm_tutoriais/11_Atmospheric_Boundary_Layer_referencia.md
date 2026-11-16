@@ -30,6 +30,14 @@ Ativa a field function *Wall Direction* (normal à parede mais próxima): a altu
 - **Desativar o Roughness Limiter** da parede rugosa. No nosso teste do domínio vazio o *Output* mostrava
   "Roughness limited on 268 738 faces on boundary: Solo" — o limitador estava cortando a rugosidade, candidato a explicar
   a perda de 15–25 % de k junto ao solo.
+  - Na nossa versão o nó *Roughness Model Parameters* do contorno mostra só RplusSmooth (2,25), RplusRough (90), B (0) e C
+    (0,253), sem chave do limitador; a descrição do nó é "Roughness height is limited by cell height". O método *Rough* usa
+    ks efetivo = mín(ks; distância à parede da célula junto à parede). O método *Rough Displaced Origin* não tem esse corte e a
+    Siemens o recomenda quando disponível, mas ainda não conferimos se ele é compatível com o modelo ABL.
+  - Forma garantida de anular o limitador: **1ª célula com centro acima do ks**, ou seja, prisma único com espessura acima de
+    2·ks, com folga (ks = 1,16 m → prisma de 3 m, centro a 1,5 m). Confirmar no *Output*: a linha "Roughness limited on N
+    faces" deve sumir.
+- Com Cμ = 0,013, os perfis feitos à mão mudam só no k: k = u*²/√0,013 (2,6× o valor com 0,09). U e ε não dependem de Cμ.
 
 ## Uso no estudo da LD
 1. Repetir o teste do domínio vazio com o modelo ABL (Ref. Speed 1,9 m/s · Ref. Height 10 m · z₀ 0,03 m · κ 0,42), limitador
