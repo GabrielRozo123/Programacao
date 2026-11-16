@@ -139,6 +139,10 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
   velocidade `Vel_ABL`), *Clear Solution* e rodar de novo. Critério: nas primeiras 20 iterações a cena fica em 0–3,06 m/s, sem
   "Reversed flow" nem "viscosity limited". Se deformar mesmo assim, o problema está nas condições de contorno (direção do
   vento nas entradas e no Topo).
+- **Reinício em equilíbrio (16/11):** inicialização 1,23 m/s no centro da 1ª célula (teoria 1,23) a 3,06 m/s no topo;
+  25 iterações com **máximo estável em 3,0587 m/s**, sem "Reversed flow" nem "viscosity limited", resíduos caindo ✅.
+  Os resíduos normalizados parecem altos (~0,1 no momento) porque a normalização usa os resíduos das primeiras iterações,
+  que já são pequenos quando o campo começa em equilíbrio. O critério é o perfil (U ±3 %, k ±15 %), não o resíduo.
 
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
