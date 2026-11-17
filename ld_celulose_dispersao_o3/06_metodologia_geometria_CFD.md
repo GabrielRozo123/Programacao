@@ -95,6 +95,18 @@ o escopo:
   extras no mesmo modelo externo (um escalar cada).
 - CFD do interior (posição do vazamento, detectores, eficiência da ventilação) é **outro estudo**, a propor como adicional.
 
+**Réplica do Marcus (17/11): "pontos de vazamento diferentes saem por um exaustor ou outro".** Correto: o ponto do vazamento
+define a **divisão fₖ** do O₃ entre os exaustores. Como o externo é linear, no receptor:
+ppm = Σₖ φₖ · fₖ · S / Qₖ (S = vazão de O₃ vazada, Qₖ = vazão do exaustor k, Σ fₖ = 1).
+- **Envelope sem modelo interno:** o máximo sobre qualquer divisão (qualquer ponto de vazamento) é S · máxₖ(φₖ/Qₖ), ou seja,
+  tudo saindo pelo exaustor "pior" para aquele receptor. Sai direto dos 4 escalares já rodados.
+- **Valor por ponto de vazamento:** precisa da matriz fₖ(ponto) → **modelo interno separado**, acoplado por superposição:
+  sala com as tomadas dos exaustores (vazão fixa), entradas de ar de reposição e um escalar por ponto de vazamento; 1 rodada
+  por configuração (operação normal 930/940; emergência com os quatro) dá fₖ de todos os pontos de uma vez (fluxo de cada
+  escalar por tomada). O modelo externo não muda. Vale enquanto a sala for dominada pela exaustão (pressão negativa).
+- Dados para o interno: layout interno do prédio (o CAD original tem; foi removido na limpeza), pontos de vazamento
+  prováveis (alimentação dos misturadores), aberturas de reposição de ar.
+
 ## 4. Resultado
 
 | | antes | depois |
