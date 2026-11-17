@@ -209,6 +209,16 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
 - Superposição: ppm total = Σ φᵢ·Cᵢ, só entre escalares do **mesmo** campo de velocidade.
 - Receptores (sondas a 1,5 m): SDCD, CCM, prensas e os 6 eventos marcados pela LD (coordenadas em `_privado/`).
 - Checagem: balanço de cada escalar (fluxo que sai pelas saídas = ṁ da fonte × 1).
+
+**Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
+- 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
+  todos conferidos fora dos obstáculos (o mais próximo a 1 m de uma fachada).
+- Planos: horizontais a z = 1,5 m (respiração) e z = 6 m (altura das descargas); verticais **ao longo do vento** pelas
+  descargas e pela chaminé (normal horizontal ⟂ ao vento NNE: [0,9239; −0,3827; 0]).
+- Cenas: U a 1,5 m; cada escalar a 1,5 m em **escala log** (1e-7 a 1e-1); escalares dos exaustores e da chaminé nos
+  cortes verticais.
+- Convergência: 5 reports "máximo de cada escalar nos 10 receptores" + monitor; no fim, tabela XYZ dos receptores com os
+  5 escalares exportada em CSV para as tabelas de diluição e ppm.
 - Operação normal (V1b): cópia com 910/920 desligados (só 930/940 + chaminé), porque os jatos de 12 kg/s mudam o
   escoamento local e a superposição dos escalares só vale dentro do mesmo campo de velocidade.
 
