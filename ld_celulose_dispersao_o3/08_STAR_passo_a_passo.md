@@ -228,6 +228,10 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   e o solver segregado estoura. Correção: **rampa nas vazões** (field function `rampa = min(1, $Iteration/300)`,
   `mdot_LX = 11.13*$rampa`, `mdot_HL = 4.45*$rampa`, `mdot_ch = 0.639*$rampa` em kg/s) e **sub-relaxação menor** no começo
   (velocidade 0,5, pressão 0,2, k-ε 0,6); *Clear Solution* e reinicializar.
+- **Reinício com rampa (17/11):** pico de ~60 m/s na iteração 2 com as fontes a 0,7 % da vazão → o pico vem do campo
+  inicial (perfil de vento atravessando os prédios) na 1ª correção de pressão, não dos jatos; cai para 10 m/s na
+  iteração 15. Estável. Plano: até ~500 iterações com sub-relaxação baixa (rampa completa em 300; máximo deve subir para
+  ~39–45 m/s), depois voltar aos padrões e seguir até os 5 monitores dos receptores ficarem planos (< 1 % em 200 it.).
 
 **Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
 - 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
