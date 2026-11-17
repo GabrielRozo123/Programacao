@@ -184,6 +184,21 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
    Estimativa ~7 M células. Com R300 a 3 m (= 2 m no trimmer, que só usa base/2ⁿ) seriam ~10 M.
 4. Conferir na 1ª iteração que não aparece "Roughness limited" perto da planta.
 
+**Malha executada (17/11): 7 064 089 células** (estimativa 7 M).
+
+**Contornos e fontes do V1a (tudo ligado: emergência + alívio da chaminé)**
+- S01–S16, Solo, Topo: herdados do domínio vazio. Obstáculos: *Wall* lisa (padrão), escalar *Zero Flux*.
+- Passive Scalar com 5 componentes, nesta ordem: `O3_910`, `O3_920`, `O3_930`, `O3_940`, `O3_chamine`; *Clip Below Min* 0;
+  Sc_t 0,7; convecção de 2ª ordem.
+- Fontes (*Mass Flow Inlet*, direção normal à face = +x, Leste); ṁ = ρ·Q com ρ = 1,18415 kg/m³ (conferir no material):
+  | contorno | Q | ṁ | velocidade na face | turbulência (I / L) | escalar |
+  |---|---|---|---|---|---|
+  | Saida_910 / 920 | 10,5 m³/s (LX 816) | 12,43 kg/s | ~39 m/s (0,270 m²) | 5 % / 0,03 m | próprio = 1 |
+  | Saida_930 / 940 | 4,2 m³/s (HL 4S) | 4,97 kg/s | ~25 m/s (0,171 m²) | 5 % / 0,03 m | próprio = 1 |
+  | Saida_chamine | 2 300 kg/h | 0,639 kg/s | ~7,4 m/s (0,073 m²) | 5 % / 0,02 m | próprio = 1 |
+- Operação normal (V1b): cópia com 910/920 desligados (só 930/940 + chaminé), porque os jatos de 12 kg/s mudam o
+  escoamento local e a superposição dos escalares só vale dentro do mesmo campo de velocidade.
+
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
 saída horizontal para Leste a ~21,5 m) → 90 superfícies, fontes `Saida_910/920/930/940` e `Saida_chamine`.
