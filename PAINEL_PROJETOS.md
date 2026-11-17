@@ -43,6 +43,8 @@
 | L8 | Decidir se o projeto migra para repositório privado | Marcus |
 | L9 | Aval da proposta para a chaminé (CFD normalizado + régua gaussiana + vazamento contínuo pequeno), enviada em 16/11 | Marcus |
 | L10 | Rodar o **V1** com os prédios (STL v4, 5 escalares, setup do domínio vazio aprovado) | Gabriel |
+| L11 | Posição e altura das **tomadas de ar do ar-condicionado da SDCD e do CCM** (o modelo mede na fachada; dentro depende da tomada) | Cliente |
+| L12 | Aval para os campos de vento **ENE e Leste** (eventos da SDCD e das prensas) e decisão sobre o V3 estável | Marcus |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
 | # | pendência | com quem |
