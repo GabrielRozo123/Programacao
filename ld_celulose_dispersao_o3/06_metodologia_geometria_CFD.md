@@ -107,6 +107,12 @@ ppm = Σₖ φₖ · fₖ · S / Qₖ (S = vazão de O₃ vazada, Qₖ = vazão 
 - Dados para o interno: layout interno do prédio (o CAD original tem; foi removido na limpeza), pontos de vazamento
   prováveis (alimentação dos misturadores), aberturas de reposição de ar.
 
+**Decisão (Marcus, 17/11):** apresentar o externo e ver a reação da LD. **Se pedirem o interior, modelo único interno +
+externo**, como no galpão de solda. Caminho: o domínio externo atual é a base; o prédio de O₃ vira oco com as paredes, as
+aberturas e os exaustores (tomada interna → descarga externa, por *fan interface* ou par saída/entrada com o escalar
+passado por report), vazamentos como fontes internas. Ganho sobre o desacoplado: captura o efeito do vento nas aberturas
+(infiltração e escape por portas/venezianas). Custo: o interior entra em toda rodada de vento.
+
 ## 4. Resultado
 
 | | antes | depois |
