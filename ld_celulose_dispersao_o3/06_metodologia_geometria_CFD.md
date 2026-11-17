@@ -113,6 +113,14 @@ aberturas e os exaustores (tomada interna → descarga externa, por *fan interfa
 passado por report), vazamentos como fontes internas. Ganho sobre o desacoplado: captura o efeito do vento nas aberturas
 (infiltração e escape por portas/venezianas). Custo: o interior entra em toda rodada de vento.
 
+**Marcus (17/11, mais tarde): fazer o interior já**, porque a LD já passou aberturas, janelas e a veneziana que abre no
+vazamento grande, e a direção do vento muda a entrada de ar pelas janelas.
+- **Civil `#F-C-1219` recebido (17/11):** 251 peças com nome, alinha com os blocos do modelo externo a ~0,1 m. Traz
+  envoltória, cobertura, portas (folhas desenhadas abertas), antecâmara, furos de parede, abertura na laje do terraço e as
+  grelhas da sala de transformadores. O bloco alto é **aberto para o salão** (sem laje a 9,2 m sobre ele).
+- **Falta:** janelas e venezianas do salão, dutos e tomadas dos exaustores, geradores e misturadores → `#F-M-1219` e o
+  documento da LD com as aberturas. Detalhes e coordenadas em `_privado/notas_interior_O3.md`.
+
 ## 4. Resultado
 
 | | antes | depois |
