@@ -233,6 +233,33 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   iteração 15. Estável. Plano: até ~500 iterações com sub-relaxação baixa (rampa completa em 300; máximo deve subir para
   ~39–45 m/s), depois voltar aos padrões e seguir até os 5 monitores dos receptores ficarem planos (< 1 % em 200 it.).
 
+- **Iteração ~250 (17/11):** `Maximum 1` sobe junto com a rampa (33 m/s a 83 %) → ~40 m/s no fim, área das saídas
+  remalhadas ≈ 0,264 m² (−2 %), ok. Plumas de 930/940 **puxadas ao chão logo atrás do prédio** (esteira) e levadas para
+  SSW, sobre a área de E5/E6; pluma da chaminé também chega a 1,5 m. Monitores ainda subindo: não convergido.
+
+**Como variar o vento (V2, V3 e outras direções)**
+- Parametrizar: *Global Parameters* `Uref` (m/s, a 10 m) e `theta` (graus, de onde o vento vem). Usar em: *Reference
+  Speed* do modelo ABL (`$Uref`), `ustar = 0.42*$Uref/log((10+0.03)/0.03)`, direção
+  `[-sin($theta*3.14159265/180), -cos($theta*3.14159265/180), 0]` (nas entradas e no `Vel_ABL` inicial).
+- **V2 (rajada, 13,6 m/s, D):** só `Uref = 13.6`. Perfil de R&H é autossemelhante (escala com u*), parede totalmente
+  rugosa → mesma malha e setup; checagem opcional no domínio vazio.
+- **V3 (1,1 m/s, F):** o modelo ABL do STAR é neutro. Opções para o Marcus: (a) perfil neutro a 1,1 m/s + régua gaussiana
+  classe F para limitar (simples, subestima a concentração no chão); (b) CLA estável de verdade: energia + gravidade
+  (Boussinesq), perfis de Monin–Obukhov (U, θ, k, ε; L ≈ 15–35 m em F), k-ε com correções de Alinot & Masson (2005) /
+  Pieterse & Harms (2013) e novo teste do domínio vazio (~1–2 dias).
+- **Outras direções** (vento vindo de θ = 22,5·m°): entradas são os 9 setores com |αₖ − θ| ≤ 90° (os 2 paralelos entram
+  como entrada, como no NNE), saídas os outros 7:
+  | vento de | direção do escoamento | entradas | saídas |
+  |---|---|---|---|
+  | NNE 22,5° | [−0,3827; −0,9239; 0] | S14–S16, S01–S06 | S07–S13 |
+  | NE 45° | [−0,7071; −0,7071; 0] | S15, S16, S01–S07 | S08–S14 |
+  | ENE 67,5° | [−0,9239; −0,3827; 0] | S16, S01–S08 | S09–S15 |
+  | E 90° | [−1; 0; 0] | S01–S09 | S10–S16 |
+  | ESE 112,5° | [−0,9239; 0,3827; 0] | S02–S10 | S11–S16, S01 |
+- **Eventos × direção:** pela posição de cada evento em relação ao prédio de O₃, E5/E6 pedem vento de NNE–NE (28–35°),
+  E3/E4 de ENE (66–70°) e E1/E2, junto à SDCD, de **E–ESE (99–111°)**. Só o NNE não explica os eventos da sala de controle
+  → propor ao Marcus/LD um campo **de Leste** (conferir a frequência de E/ENE/ESE na rosa da planilha meteorológica).
+
 **Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
 - 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
   todos conferidos fora dos obstáculos (o mais próximo a 1 m de uma fachada).
