@@ -222,6 +222,12 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
     central, onde os prédios estão explícitos. Troca o corte do limitador (dependente da malha) por uma escolha declarada.
 - Máximo de velocidade na 1ª iteração 48,7 m/s (jato esperado ~39 m/s na 910/920): acompanhar; se não cair, conferir a
   área das `Saida_*` remalhadas.
+- Com `r_solo`: limitadas **3 385 faces** (antes 12 682). Devem ser as faces pequenas (≤ 0,25 m) no chão junto ao prédio de
+  O₃, refinadas pelos controles `PredioO3`/`Saidas`, onde o prisma fica fino: algumas centenas de m², aceito e registrado.
+- **Iteração 2: máximo de velocidade 147,6 m/s → início instável.** Os jatos de 11 kg/s entram de uma vez num campo parado
+  e o solver segregado estoura. Correção: **rampa nas vazões** (field function `rampa = min(1, $Iteration/300)`,
+  `mdot_LX = 11.13*$rampa`, `mdot_HL = 4.45*$rampa`, `mdot_ch = 0.639*$rampa` em kg/s) e **sub-relaxação menor** no começo
+  (velocidade 0,5, pressão 0,2, k-ε 0,6); *Clear Solution* e reinicializar.
 
 **Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
 - 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
