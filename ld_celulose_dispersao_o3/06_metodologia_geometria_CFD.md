@@ -120,6 +120,11 @@ vazamento grande, e a direção do vento muda a entrada de ar pelas janelas.
   grelhas da sala de transformadores. O bloco alto é **aberto para o salão** (sem laje a 9,2 m sobre ele).
 - **Falta:** janelas e venezianas do salão, dutos e tomadas dos exaustores, geradores e misturadores → `#F-M-1219` e o
   documento da LD com as aberturas. Detalhes e coordenadas em `_privado/notas_interior_O3.md`.
+- **Mecânico `#F-M-1219` recebido (17/11):** RAR em 10 partes → STEP de 629 MB, 6 095 peças, lido inteiro no OpenCascade
+  (~6 min, cabe em 15 GB). No salão: compressores no piso e os **3 geradores de O₃ em cima deles (4,4–7,2 m)**, PSVs no topo
+  dos geradores e as PSVs do alívio para a chaminé; na sala sob o terraço: as fontes dos geradores com ar-condicionado
+  próprio (fan coils, ventiladores de parede, dutos). **Não estão no CAD:** os dutos e grelhas de sucção dos 4 exaustores
+  e as janelas/venezianas do salão → dependem do documento da LD.
 
 ## 4. Resultado
 
