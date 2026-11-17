@@ -82,6 +82,19 @@ O cenário de vazamento (trinca na alimentação dos misturadores) acontece **de
 levam o O₃ para fora. Como o estudo é de dispersão **externa**, a fonte entra **na descarga dos exaustores**, com
 concentração = vazão de O₃ vazada ÷ vazão de exaustão (mistura completa no ambiente).
 
+**Questão do Marcus (17/11): "o interior influencia o que sai, uma parte pode ficar presa".** Resposta técnica sem mudar
+o escopo:
+- **Balanço de massa:** em regime, nada fica preso: o que vaza sai. O que "fica" só atrasa (enchimento da sala) ou se
+  decompõe nas superfícies (o O₃ reage) → supor 100 % saindo pelos exaustores é **conservador** para o estudo externo.
+- **Tempo de enchimento** (modelo de caixa, C(t) = S/Q·(1 − e^(−t/τ)), τ = V/Q): envelope do prédio ≈ 5 400 m³ → τ ≈ 11 min
+  só com 930/940 (8,4 m³/s) e ≈ 3 min com os quatro (29,4 m³/s). Usar o volume real da sala quando a LD informar.
+- **Mistura não uniforme** (vazamento perto de um exaustor): já coberta, porque há um escalar por exaustor e qualquer
+  divisão da concentração entre eles sai na superposição, inclusive o pior caso.
+- **O que mudaria o resultado externo:** O₃ saindo por **outro caminho** (portas, venezianas, frestas) em vez dos
+  exaustores. Perguntar à LD se a sala fica em pressão negativa e quais aberturas existem; se houver, entram como fontes
+  extras no mesmo modelo externo (um escalar cada).
+- CFD do interior (posição do vazamento, detectores, eficiência da ventilação) é **outro estudo**, a propor como adicional.
+
 ## 4. Resultado
 
 | | antes | depois |
