@@ -173,5 +173,30 @@ corpos dentro de uma caixa de 1 km (±500 m) e o domínio tem 1,2 km de diâmetr
    (descargas para Leste + chaminé) pronta em 16/11.
 3. ✅ **Teste do domínio vazio** aprovado na rodada 4 (16/11): modelo ABL do STAR, U ±1,5 %, k 0,97–1,00 do teórico
    (`08` §4c, `resultados/dominio_vazio_r4/`).
-4. ⬜ Caso base (vento típico) com os 4 escalares → convergência, malha, sensibilidades.
-5. ⬜ Os 6 cenários de vento → relatórios.
+4. 🟡 **V1a** (NNE 1,9 m/s, emergência: 4 exaustores + chaminé, 5 escalares) rodando desde 17/11, malha de 7,06 M.
+5. ⬜ Os 6 cenários de vento → relatórios. Plano revisto em 17/11, abaixo.
+
+### Plano depois que o V1a convergir (17/11)
+**Rosa × estabilidade** (planilha meteorológica, horas com v ≥ 0,3 m/s; % do total de horas válidas):
+| vento de | freq. | v média | horas em F | v média em F | para onde vai a pluma |
+|---|---|---|---|---|---|
+| NNE | 20,5 % | 2,1 m/s | 6,8 % | 1,2 m/s | SSW: E5/E6 |
+| NE | 14,1 % | 3,2 m/s | 3,3 % | 1,6 m/s | SW |
+| **ENE** | **17,3 %** | 2,9 m/s | 3,7 % | 1,7 m/s | WSW: prensas, E3/E4, CCM |
+| **E** | **11,9 %** | 1,7 m/s | 3,6 % | 1,4 m/s | W: **SDCD**, E1/E2 |
+| ESE | 4,1 % | 1,2 m/s | 1,6 % | 1,0 m/s | WNW: SDCD |
+ENE + E + ESE = **33 % das horas** com a pluma indo para prensas, CCM e SDCD (mais que o NNE sozinho).
+
+**Ordem proposta**
+1. **Fechar o V1a:** convergência (5 monitores planos, resíduos estáveis, balanço de cada escalar); tabela dos 10
+   receptores; mapas a 1,5 m e cortes; diluição 1/φ e "concentração máxima admissível na descarga" por limiar; ppm da
+   chaminé = 78 400·φ.
+2. **Sensibilidade barata no V1a:** Sc_t 0,5 e 0,9 com o escoamento congelado (só os escalares rodam).
+3. **V1b:** operação normal (910/920 viram parede), mesmo vento.
+4. **Direções novas (pedir aval ao Marcus):** ENE (2,9 m/s) e E (1,7 m/s), velocidade média de cada setor; tabela de
+   entradas/saídas no `08`. É o que testa os eventos E1–E4 e a exposição da sala de controle.
+5. **V2:** rajada 13,6 m/s (só `Uref`).
+6. **V3 estável:** decisão do Marcus entre perfil neutro a 1,1 m/s + régua gaussiana F, ou CLA estável completa
+   (F = 28,8 % das horas; mediana 0,9 m/s).
+7. **Malha:** independência no V1a (refino da zona da planta ÷ 1,5) antes do relatório.
+8. Renderizações (tutorial da Siemens a receber) e relatório; conversão para ppm quando a LD informar as vazões de O₃.
