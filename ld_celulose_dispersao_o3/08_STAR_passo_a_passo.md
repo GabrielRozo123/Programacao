@@ -240,7 +240,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
 - **Iteração 1018 (17/11):** máximo nos 10 receptores despencou entre as iterações 200 e 300 (rampa chegando a 100 %):
   910 de 1e-2 → 1,6e-12; 930/940 ~1e-13; chaminé 2,4e-9 (= 2e-4 ppm). Ou seja, **com os jatos na vazão cheia (~40 m/s para
   Leste) a pluma sai da esteira do prédio e não passa mais por nenhum receptor** com vento NNE; com 33–67 % da vazão ela
-  descia na esteira e passava sobre E5/E6 (φ ~1e-2). Hipótese a confirmar nas cenas. Consequências: (1) o monitor
+  descia na esteira e passava sobre E5/E6 (φ ~1e-2). **Cenas da it. ~1018 corrigem a hipótese:** a pluma continua descendo
+  ao chão (φ ~1e-2 a 1,5 m), mas **deslocada para Leste** pelos jatos e levada para SSW por cima da área dos tanques 1212;
+  os receptores ficam na **borda** da pluma, onde o φ cai várias décadas em ~10 m → muito sensíveis à direção do vento.
+  Pluma da chaminé: desce até o chão ~100 m a jusante com φ ~1e-4 (≈ 8 ppm no alívio pleno, se fosse contínuo; o alívio é
+  um sopro, a comparar com a régua gaussiana). Consequências: (1) o monitor
   "máximo nos receptores" deixou de servir para convergência → usar **máximo de cada escalar no plano z = 1,5 m**;
   (2) a quantidade de movimento do jato é decisiva → sensibilidade à velocidade de descarga (área do CAD 0,27 m² → 39 m/s ×
   área do manual 0,31 m² → 34 m/s) e ao caso de exaustor com vazão reduzida.
