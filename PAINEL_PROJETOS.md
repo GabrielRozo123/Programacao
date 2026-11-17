@@ -45,6 +45,7 @@
 | L10 | Rodar o **V1** com os prédios (STL v4, 5 escalares, setup do domínio vazio aprovado) | Gabriel |
 | L11 | Posição e altura das **tomadas de ar do ar-condicionado da SDCD e do CCM** (o modelo mede na fachada; dentro depende da tomada) | Cliente |
 | L12 | Aval para os campos de vento **ENE e Leste** (eventos da SDCD e das prensas) e decisão sobre o V3 estável | Marcus |
+| L13 | Documento da LD com janelas, venezianas e de onde cada exaustor puxa (Marcus procurando, 17/11). Pontos de vazamento internos aprovados: geradores, tubulação de O₃, PSVs | Marcus |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
 | # | pendência | com quem |

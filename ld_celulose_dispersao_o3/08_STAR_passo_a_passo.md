@@ -237,6 +237,14 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   remalhadas ≈ 0,264 m² (−2 %), ok. Plumas de 930/940 **puxadas ao chão logo atrás do prédio** (esteira) e levadas para
   SSW, sobre a área de E5/E6; pluma da chaminé também chega a 1,5 m. Monitores ainda subindo: não convergido.
 
+- **Iteração 1018 (17/11):** máximo nos 10 receptores despencou entre as iterações 200 e 300 (rampa chegando a 100 %):
+  910 de 1e-2 → 1,6e-12; 930/940 ~1e-13; chaminé 2,4e-9 (= 2e-4 ppm). Ou seja, **com os jatos na vazão cheia (~40 m/s para
+  Leste) a pluma sai da esteira do prédio e não passa mais por nenhum receptor** com vento NNE; com 33–67 % da vazão ela
+  descia na esteira e passava sobre E5/E6 (φ ~1e-2). Hipótese a confirmar nas cenas. Consequências: (1) o monitor
+  "máximo nos receptores" deixou de servir para convergência → usar **máximo de cada escalar no plano z = 1,5 m**;
+  (2) a quantidade de movimento do jato é decisiva → sensibilidade à velocidade de descarga (área do CAD 0,27 m² → 39 m/s ×
+  área do manual 0,31 m² → 34 m/s) e ao caso de exaustor com vazão reduzida.
+
 **Como variar o vento (V2, V3 e outras direções)**
 - Parametrizar: *Global Parameters* `Uref` (m/s, a 10 m) e `theta` (graus, de onde o vento vem). Usar em: *Reference
   Speed* do modelo ABL (`$Uref`), `ustar = 0.42*$Uref/log((10+0.03)/0.03)`, direção
