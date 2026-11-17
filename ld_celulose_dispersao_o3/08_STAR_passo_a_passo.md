@@ -249,6 +249,18 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   (2) a quantidade de movimento do jato é decisiva → sensibilidade à velocidade de descarga (área do CAD 0,27 m² → 39 m/s ×
   área do manual 0,31 m² → 34 m/s) e ao caso de exaustor com vazão reduzida.
 
+- **Convergência no plano z = 1,5 m (it. 1034–1450, 17/11):** máximo ao nível do chão em qualquer ponto:
+  | escalar | máximo (últimas 200 it.) | oscilação | leitura |
+  |---|---|---|---|
+  | chaminé | 2,03–2,06e-4 | 1,7 % | convergido → **≈ 16 ppm** a 1,5 m no alívio pleno (78 400·φ), teto de regime para um sopro |
+  | 930 | 3,6–3,9e-2 | 7 % | quase convergido (diluição ~27×) |
+  | 910 / 920 | 2,7–3,6e-2 / 3,1–4,1e-2 | ~25 % | oscila |
+  | 940 | 1,0–2,8e-2 | ~100 % | oscila forte |
+  Oscilação = esteira do prédio instável (desprendimento de vórtices) que o solver permanente não "assenta"; mais
+  iterações não convergem. **Solução: média nas iterações** (*Field Mean Monitor* nos 5 escalares e na velocidade, a
+  partir da it. ~1450, +1000 it.) e resultados (cenas, máximos, receptores) sobre os campos médios, com a faixa de oscilação
+  declarada. Alternativa mais cara: transiente (URANS).
+
 **Como variar o vento (V2, V3 e outras direções)**
 - Parametrizar: *Global Parameters* `Uref` (m/s, a 10 m) e `theta` (graus, de onde o vento vem). Usar em: *Reference
   Speed* do modelo ABL (`$Uref`), `ustar = 0.42*$Uref/log((10+0.03)/0.03)`, direção
