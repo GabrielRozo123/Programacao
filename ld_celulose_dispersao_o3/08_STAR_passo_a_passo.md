@@ -165,6 +165,25 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
 - No V1, conferir no *Output* que não volta "Roughness limited" perto da planta (cilindro R80 com células de 1 m ao lado do
   prisma de 2,5 m).
 
+## V1 com os prédios — montagem (17/11)
+1. *Save As* da simulação do domínio vazio aprovada (`LD_V1_oficial`): física, field functions, reports e solver herdados.
+2. *Import Surface Mesh* do `volume_ar_LD.stl` v4 → *Assign Parts to Regions* → **Use Existing Region (Ar)** + *Create a
+   Boundary for Each Part Surface*. O STAR cria um contorno por superfície **com prefixo do part** (inclusive cópias de
+   S01–S16, Solo, Topo). Correção: religar os 18 contornos antigos (que guardam as condições) às superfícies novas pelo
+   *Part Surfaces*, apagar as cópias vazias e tirar o domínio vazio da região → 90 contornos.
+3. Malha (mesma base validada no domínio vazio): Base 8 m, Maximum Cell Size 8 m, prisma único de 2,5 m no Solo,
+   `Refino_Solo` (3 m → células de 2 m até 30 m em todo o domínio). Controles novos:
+   | controle | superfícies / forma | tamanho | prismas |
+   |---|---|---|---|
+   | `Externo` | S01–S16, Topo (religar às superfícies novas) | 8 m | — |
+   | `Saidas` | 5 `Saida_*` | alvo 0,03 / mín. 0,015 m (≥ 10 células na chaminé de 12") | desligados |
+   | `PredioO3` | `O3_*`, `exaustor_*`, `chamine_offgas_*` | 0,25 / 0,05 m | desligados |
+   | `Obstaculos` | demais obstáculos | 0,5 / 0,1 m | desligados |
+   | `R80` | cilindro R 80 m, h 70 m (shape part) | 1 m | — |
+   | `R300` | cilindro R 300 m, h 120 m (shape part) | **4 m** (abaixo de 30 m vale o 2 m do `Refino_Solo`) | — |
+   Estimativa ~7 M células. Com R300 a 3 m (= 2 m no trimmer, que só usa base/2ⁿ) seriam ~10 M.
+4. Conferir na 1ª iteração que não aparece "Roughness limited" perto da planta.
+
 ## Geometria v4 (16/11)
 `volume_ar_LD.stl` com as **4 descargas horizontais para Leste** (+x) e a **chaminé do off-gás** (12", topo do bloco alto,
 saída horizontal para Leste a ~21,5 m) → 90 superfícies, fontes `Saida_910/920/930/940` e `Saida_chamine`.
