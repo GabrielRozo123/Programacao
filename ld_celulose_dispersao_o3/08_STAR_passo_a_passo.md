@@ -210,6 +210,19 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
 - Receptores (sondas a 1,5 m): SDCD, CCM, prensas e os 6 eventos marcados pela LD (coordenadas em `_privado/`).
 - Checagem: balanço de cada escalar (fluxo que sai pelas saídas = ṁ da fonte × 1).
 
+**1ª iteração do V1 (17/11):** escalares e reports funcionando, cenas em log10. "Roughness limited on **12 682 faces**" no
+Solo: é a área da planta, onde as células junto ao chão são de 1 m ou menores e o centro da 1ª célula fica abaixo de
+r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
+- **Decisão proposta:** rugosidade em duas zonas, por field function no *Roughness Height* do Solo:
+  `r_solo = (sqrt(pow($$Position[0]-15.5,2)+pow($$Position[1]-15.7,2)) < 150) ? 0.18 : 1.07`
+  - fora de R 150 m: z₀ = 0,03 m (terreno, mesmo do perfil de entrada validado) → r = 1,07 m;
+  - dentro de R 150 m (todos os obstáculos modelados, o mais distante a ~133 m): **z₀ = 0,005 m** (piso pavimentado,
+    classe "smooth" de Davenport–Wieringa) → r = 9 × 0,005 / 0,253 = 0,18 m.
+  - É a recomendação de Blocken et al. (2007): rugosidade consistente com o perfil a montante e a do chão real na zona
+    central, onde os prédios estão explícitos. Troca o corte do limitador (dependente da malha) por uma escolha declarada.
+- Máximo de velocidade na 1ª iteração 48,7 m/s (jato esperado ~39 m/s na 910/920): acompanhar; se não cair, conferir a
+  área das `Saida_*` remalhadas.
+
 **Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
 - 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
   todos conferidos fora dos obstáculos (o mais próximo a 1 m de uma fachada).
