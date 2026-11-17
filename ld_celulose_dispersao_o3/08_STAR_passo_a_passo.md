@@ -190,12 +190,25 @@ corte da rugosidade (o Output mostrava a rugosidade limitada em 268 738 faces do
 - S01–S16, Solo, Topo: herdados do domínio vazio. Obstáculos: *Wall* lisa (padrão), escalar *Zero Flux*.
 - Passive Scalar com 5 componentes, nesta ordem: `O3_910`, `O3_920`, `O3_930`, `O3_940`, `O3_chamine`; *Clip Below Min* 0;
   Sc_t 0,7; convecção de 2ª ordem.
-- Fontes (*Mass Flow Inlet*, direção normal à face = +x, Leste); ṁ = ρ·Q com ρ = 1,18415 kg/m³ (conferir no material):
+- Fontes (*Mass Flow Inlet*, direção normal à face = +x, Leste); ṁ = ρ·Q com **ρ = 1,06 kg/m³** (densidade constante do
+  ar no continuum, condição do local):
   | contorno | Q | ṁ | velocidade na face | turbulência (I / L) | escalar |
   |---|---|---|---|---|---|
-  | Saida_910 / 920 | 10,5 m³/s (LX 816) | 12,43 kg/s | ~39 m/s (0,270 m²) | 5 % / 0,03 m | próprio = 1 |
-  | Saida_930 / 940 | 4,2 m³/s (HL 4S) | 4,97 kg/s | ~25 m/s (0,171 m²) | 5 % / 0,03 m | próprio = 1 |
-  | Saida_chamine | 2 300 kg/h | 0,639 kg/s | ~7,4 m/s (0,073 m²) | 5 % / 0,02 m | próprio = 1 |
+  | Saida_910 / 920 | 10,5 m³/s (LX 816) | **11,13 kg/s** | ~39 m/s (0,270 m²) | 5 % / 0,03 m | próprio = 1 |
+  | Saida_930 / 940 | 4,2 m³/s (HL 4S) | **4,45 kg/s** | ~25 m/s (0,171 m²) | 5 % / 0,03 m | próprio = 1 |
+  | Saida_chamine | 2 300 kg/h | 0,639 kg/s | ~8,3 m/s (0,073 m²; real ~7,2 m/s, gás 15 % mais denso) | 5 % / 0,02 m | próprio = 1 |
+- Malha: válida, sem volume negativo, face validity 1,0 em 100 %, volume change mínimo 0,011.
+
+**Leitura dos escalares (conversão para ppm)**
+- φᵢ = fração mássica, no ponto, do gás que saiu da fonte i (1 na boca, dilui a jusante).
+- Exaustores (gás ≈ ar): **ppm = φᵢ · C_exaustão,i**, com C_exaustão = vazão de O₃ vazada no prédio ÷ vazão do exaustor
+  (pendência A1). Enquanto não chega: mapas de **diluição 1/φ** e "concentração máxima admissível na descarga" para não
+  passar de 0,01 / 0,2 / 0,5 / 3 ppm em cada receptor (C_máx = limiar/φ).
+- Chaminé (13 % em massa de O₃ em O₂): ppm = φ · 0,13 · (28,96/48) · 10⁶ = **78 400 · φ**. Limiares em φ: 0,01 ppm →
+  1,3e-7; 0,2 → 2,6e-6; 0,5 → 6,4e-6; 3 → 3,8e-5.
+- Superposição: ppm total = Σ φᵢ·Cᵢ, só entre escalares do **mesmo** campo de velocidade.
+- Receptores (sondas a 1,5 m): SDCD, CCM, prensas e os 6 eventos marcados pela LD (coordenadas em `_privado/`).
+- Checagem: balanço de cada escalar (fluxo que sai pelas saídas = ṁ da fonte × 1).
 - Operação normal (V1b): cópia com 910/920 desligados (só 930/940 + chaminé), porque os jatos de 12 kg/s mudam o
   escoamento local e a superposição dos escalares só vale dentro do mesmo campo de velocidade.
 

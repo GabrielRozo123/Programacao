@@ -67,7 +67,7 @@ Mostra **onde o ar fica parado** — pátios, vãos, esteiras — que é onde co
 ## Aplicação — LD Celulose (dispersão de O₃)
 | item | valor |
 |---|---|
-| Escalares | 4: `O3_910`, `O3_920`, `O3_930`, `O3_940` (um por exaustor) |
+| Escalares | 5: `O3_910`, `O3_920`, `O3_930`, `O3_940` (um por exaustor) e `O3_chamine` (alívio das PSVs, 13 % em massa de O₃ em O₂ → ppm = 78 400·φ) |
 | Clip | *Below Min*, mínimo 0 |
 | Sc_t | 0,7 (sensibilidade 0,5 · 0,9) |
 | Descargas `Saida_9x0` (*Mass Flow Inlet*) | escalar do próprio exaustor = 1, demais = 0 |
