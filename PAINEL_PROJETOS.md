@@ -4,6 +4,9 @@
 > **Atualizado: 2026-11-18.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
 > 🔒 Projetos com material confidencial (Petrobras) aparecem aqui só em nível de status.
 
+**Estilo dos textos para cliente, Marcus, legendas e figuras:** natural e curto; **sem travessão (—)** e **sem ponto
+separador (·)**. Separar com vírgula, ponto final ou quebra de linha.
+
 ## Semáforo
 | projeto | cliente | 🚦 | onde está |
 |---|---|---|---|
