@@ -260,6 +260,15 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   iterações não convergem. **Solução: média nas iterações** (*Field Mean Monitor* nos 5 escalares e na velocidade, a
   partir da it. ~1450, +1000 it.) e resultados (cenas, máximos, receptores) sobre os campos médios, com a faixa de oscilação
   declarada. Alternativa mais cara: transiente (URANS).
+- **Rodada da noite 17→18/11 (WS3):** 6 *Field Mean Monitors* (`media_O3_910…chamine`, `media_U`), região Ar, início na
+  it. 1442, frequência 1, sem parada; *Maximum Steps* 2500 (~1 060 it. de média, ~30 ciclos da oscilação de ~30 it.);
+  *Auto Save* a cada 500 it., 2 arquivos (2,35 GB cada) → a it. 2500 fica gravada.
+- **Isosuperfícies enviadas ao Marcus (17/11, campo instantâneo):** chaminé 0,2 / 0,5 / 3 ppm (φ = 2,55e-6 / 6,4e-6 / 3,8e-5;
+  a de 3 ppm passa da borda de 600 m) e 930 em diluição 100× / 1 000× / 10 000× (φ = 1e-2 / 1e-3 / 1e-4; a de 100× desce ao
+  chão a sudeste do prédio). Cores: vermelho = mais concentrado; displayers *Geometry* de cor constante com opacidade
+  0,9 / 0,5 / 0,3; vistas salvas `topo` e `lateral`.
+- **Próximo (18/11):** cenas e reports nos campos médios → números finais do V1a; V1b (910/920 desligados); ENE e Leste se
+  o Marcus aprovar.
 
 **Como variar o vento (V2, V3 e outras direções)**
 - Parametrizar: *Global Parameters* `Uref` (m/s, a 10 m) e `theta` (graus, de onde o vento vem). Usar em: *Reference

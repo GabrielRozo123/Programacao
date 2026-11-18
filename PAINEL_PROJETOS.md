@@ -1,14 +1,14 @@
 # 🗼 PAINEL DE CONTROLE — Projetos CFD (Gabriel / CAEXPERTS)
 
 > **Torre de controle.** Bata o olho aqui para saber onde está tudo e **o que está pendente com quem**.
-> **Atualizado: 2026-11-16.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
+> **Atualizado: 2026-11-18.** Cada projeto tem seu `README.md` detalhado — este painel é o resumo.
 > 🔒 Projetos com material confidencial (Petrobras) aparecem aqui só em nível de status.
 
 ## Semáforo
 | projeto | cliente | 🚦 | onde está |
 |---|---|---|---|
 | 🌀 **Ciclone — FEA/CHT** | Valgroup | ✅ | Encerrado pela Valgroup (16/11): R01 rodada, ΔP 40,5 mbar, campos térmico e mecânico com o Simas. |
-| 💨 **Dispersão de O₃** | LD Celulose | 🟡 | Etapa 3 (CFD). Geometria v4 (descargas para Leste + chaminé) pronta; **domínio vazio aprovado (16/11)** com o modelo ABL. Próximo: V1 com os prédios e as 5 fontes. |
+| 💨 **Dispersão de O₃** | LD Celulose | 🟡 | Etapa 3 (CFD). Domínio vazio aprovado (16/11). **V1a rodando** (NNE 1,9 m/s, 7,06 M células, média nas iterações na noite de 17→18/11); chaminé ≈ 16 ppm no chão no alívio pleno (preliminar, enviado ao Marcus). Interior do prédio: civil e mecânico lidos, falta o documento da LD com aberturas e tomadas dos exaustores. |
 | 🔥 **Resfriador + finos (DEM)** | Petrobras RNEST | 🟡 | Contratação em andamento (convite previsto para a semana de 20/10). Estudo de tutoriais de ebulição em curso. Detalhes no bloquinho privado. |
 | 🌊 **Misturador hiperbólico** | Nexus | ⚪ | E-mail de perguntas aguardando revisão do Marcus (desde 21/09). Sem resposta registrada. |
 | 🍺 **Tanque chiller** | GreyLogix | ✅ | Concluído. Post do blog entregue ao Otávio. Restam ajustes menores. |
