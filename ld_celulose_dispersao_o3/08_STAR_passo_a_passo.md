@@ -269,6 +269,9 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   0,9 / 0,5 / 0,3; vistas salvas `topo` e `lateral`.
 - **Próximo (18/11):** cenas e reports nos campos médios → números finais do V1a; V1b (910/920 desligados); ENE e Leste se
   o Marcus aprovar.
+- **V1a convergido na média (18/11, it. 2500):** máximos médios a 1,5 m estáveis (910/920/930 < 0,6 % nas últimas 200 it.,
+  940 ~4 %, chaminé ~2 %). Valores em `_privado/notas_interior_O3.md` (concentrações e fontes não ficam no repositório
+  público). Pós-processamento: tabela XYZ do Plano_z1.5 com os 6 campos médios → mapas, áreas e alcances por limiar.
 
 **Como variar o vento (V2, V3 e outras direções)**
 - Parametrizar: *Global Parameters* `Uref` (m/s, a 10 m) e `theta` (graus, de onde o vento vem). Usar em: *Reference
