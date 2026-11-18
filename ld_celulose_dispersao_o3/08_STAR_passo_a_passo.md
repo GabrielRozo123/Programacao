@@ -316,6 +316,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
 - Saídas: tabela XYZ do Plano_z1.5 e dos receptores (campos médios) → mesmos mapas e tabelas do V1a.
 - Os cortes verticais "ao longo do vento" precisam da normal nova: ENE [0,3827; −0,9239; 0], E [0; 1; 0].
 
+- **ENE em operação normal montado e solto (18/11, WS3)**, a partir do V1b, pelo roteiro acima. Conferência na
+  inicialização a 1,5 m: Velocity[i] ≈ −1,8 a −1,9 m/s e Velocity[j] ≈ −0,75 a −0,80 m/s (razão 0,41 = tan 22,5°) ✓.
+  Lição dos monitores: a média é feita pelos monitores de campo (ícone fx, `media_O3_…`) → *Start* 1500; os "… Monitor"
+  só registram o report para o gráfico → *Start* 0.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
