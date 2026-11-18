@@ -296,6 +296,32 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   E3/E4 de ENE (66–70°) e E1/E2, junto à SDCD, de **E–ESE (99–111°)**. Só o NNE não explica os eventos da sala de controle
   → propor ao Marcus/LD um campo **de Leste** (conferir a frequência de E/ENE/ESE na rosa da planilha meteorológica).
 
+**Roteiro: direções ENE e Leste (preparado 18/11, aguardando aval do Marcus)**
+- Velocidade = média do setor na planilha: **ENE 2,9 m/s**, **E 1,7 m/s** (a 10 m, neutro). Configuração proposta: primeiro
+  **operação normal** (930/940 + chaminé, como o V1b), porque os eventos E1–E4 aconteceram sem a emergência ligada;
+  emergência depois, se houver prazo.
+- Partir do `.sim` do V1b → *Save As* (`LD_ENE_normal`, `LD_E_normal`) e trocar:
+  | item | ENE (67,5°) | E (90°) |
+  |---|---|---|
+  | ABL *Reference Speed* | 2,9 m/s | 1,7 m/s |
+  | `ustar` | `0.42*2.9/log((10+0.03)/0.03)` | `0.42*1.7/log((10+0.03)/0.03)` |
+  | `Vel_ABL` e *Flow Direction* das entradas e do Topo | [−0,9239; −0,3827; 0] | [−1; 0; 0] |
+  | entradas (*Velocity Inlet* ABL) | S16, S01–S08 | S01–S09 |
+  | saídas (*Pressure Outlet*) | S09–S15 | S10–S16 |
+  | o que muda em relação ao NNE | S07, S08 viram entrada; S14, S15 viram saída | S07–S09 viram entrada; S14–S16 viram saída |
+  Ao virar *Velocity Inlet*, o contorno perde as condições: refazer *Turbulence Specification* K+Epsilon, *Velocity
+  Specification* Magnitude + Direction, magnitude/k/ε = *Atmospheric Boundary Layer* e a direção.
+- O resto fica igual: `r_solo`, rampa, sub-relaxação, receptores, planos, monitores no Plano_z1.5. *Clear Solution* →
+  *Initialize* (o `Vel_ABL` já sai na direção nova), média a partir da it. 1500, *Maximum Steps* 2500, *Auto Save* 500.
+- Saídas: tabela XYZ do Plano_z1.5 e dos receptores (campos médios) → mesmos mapas e tabelas do V1a.
+- Os cortes verticais "ao longo do vento" precisam da normal nova: ENE [0,3827; −0,9239; 0], E [0; 1; 0].
+
+**Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
+apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
+*Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
+(2) opcional, **plano horizontal varrendo** de 0 a 30 m (*Continuous Sweep*) com a concentração. Exportar MP4 (*Write
+Movie*), 1920 × 1080, 20–30 s. Feito sobre o `.sim` do V1a (it. 2500), em máquina livre.
+
 **Pós-processamento do V1 (pontos, cortes e cenas)** · coordenadas em `_privado/receptores_V1.csv`
 - 10 *Point Probes*: SDCD, CCM, prensas (piso e 2º nível) e os 6 eventos E1–E6 lidos da planta marcada pela LD (±1 m);
   todos conferidos fora dos obstáculos (o mais próximo a 1 m de uma fachada).
