@@ -321,6 +321,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   Lição dos monitores: a média é feita pelos monitores de campo (ícone fx, `media_O3_…`) → *Start* 1500; os "… Monitor"
   só registram o report para o gráfico → *Start* 0.
 
+- **Leste em operação normal montado e solto (18/11, máquina do Gabriel)**, a partir do `.sim` do V1a: 910/920 → parede;
+  1,7 m/s; S07–S09 → entrada, S14–S16 → saída; direção [−1; 0; 0]; cortes com normal [0; 1; 0]; médias (fx) de 930, 940,
+  chaminé e U criadas com início na it. 1500 + reports de máximo no Plano_z1.5. Inicialização a 1,5 m: Velocity[i] ≈ −1,14
+  a −1,23 m/s, Velocity[j] = 0 ✓. Roda em paralelo com o ENE (WS3).
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
