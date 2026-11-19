@@ -336,6 +336,8 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   200 it.) → continuar +1 000 it. **sem** limpar a solução e sem mexer no início da média. Com vento de Leste, a sala de
   controle e os pontos E1/E2 ficam dentro das plumas (números em `_privado/`). Os jatos saem contra o vento e caem a
   barlavento do prédio antes de voltar sobre a planta.
+  **Fechado em 19/11 com +1 000 it. (média de 2 000 it.):** máximos estáveis em ±1,5 %, iguais aos da it. 2500 dentro de
+  1–3 %.
 
 - **Próximas rodadas (19/11):** ENE em **emergência** na WS3 agora (a partir do ENE normal: `Saida_910/920` voltam a
   *Mass Flow Inlet* com `mdot_LX`, I 5 % / L 0,03 m, escalar [1,0,0,0,0] e [0,1,0,0,0]; médias fx com início 1500);
