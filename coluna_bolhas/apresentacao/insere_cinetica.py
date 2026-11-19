@@ -199,8 +199,9 @@ virg = lambda v: str(v).replace(".", ",")
 s = novo("Desvendando a equação: o que é cada termo",
          "Cada termo da equação tem um significado físico e uma origem diferente. Três vêm da hidrodinâmica "
          "(a, εL e, em parte, kL), um da termodinâmica (C*), um da cinética de laboratório (k1) e um do acoplamento "
-         "entre difusão e reação (E). É por isso que a coluna de bolhas é um problema de cinética E de escoamento.")
-w, h = eq(s, "eq_K", 0, 1.35, 0.8)  # do conjunto anterior
+         "entre difusão e reação (E). O b é a estequiometria: quantos mols de B cada mol de A consome. "
+         "É por isso que a coluna de bolhas é um problema de cinética E de escoamento.")
+w, h = eq(s, "eq_K", 0, 1.3, 0.78)  # do conjunto anterior
 sh = s.shapes[-1]
 sh.left = Inches((13.333 - w) / 2)
 linhas = [("−r_A", "taxa de consumo de A por volume de reator (mol/m³·s)", "é o que se quer calcular"),
@@ -209,8 +210,9 @@ linhas = [("−r_A", "taxa de consumo de A por volume de reator (mol/m³·s)", "
           ("a", "área de bolhas por volume de reator: a = 6ε_G/d_{32} (m²/m³)", "hidrodinâmica: correlação ou CFD"),
           ("E", "fator de aumento: quantas vezes a reação no filme acelera a absorção (E ≥ 1)", "número de Hatta e E_i (próximo slide)"),
           ("k_1 = k_2·C_B", "constante de pseudo-1ª ordem, com o reagente líquido B em excesso (1/s)", "cinética de laboratório"),
-          ("ε_L = 1 − ε_G", "fração do volume do reator ocupada por líquido", "hidrodinâmica")]
-tab = s.shapes.add_table(len(linhas) + 1, 3, Inches(0.6), Inches(2.35), Inches(12.1), Inches(4.4)).table
+          ("ε_L = 1 − ε_G", "fração do volume do reator ocupada por líquido", "hidrodinâmica"),
+          ("b", "coeficiente estequiométrico: mols de B consumidos por mol de A absorvido (A + b B → produtos)", "estequiometria da reação")]
+tab = s.shapes.add_table(len(linhas) + 1, 3, Inches(0.6), Inches(2.2), Inches(12.1), Inches(4.5)).table
 tab.columns[0].width, tab.columns[1].width, tab.columns[2].width = Inches(2.0), Inches(6.6), Inches(3.5)
 for j, t in enumerate(["Termo", "O que é", "De onde vem"]):
     c = tab.cell(0, j)
@@ -218,8 +220,8 @@ for j, t in enumerate(["Termo", "O que é", "De onde vem"]):
     c.text_frame.paragraphs[0].text = ""
     runs(c.text_frame.paragraphs[0], t, 15, COR["branco"], bold=True)
 for i, (a, b, c_) in enumerate(linhas, start=1):
-    for j, (t, kw) in enumerate([(a, dict(bold=True, italic=True, cor=COR["aqua"], size=16)),
-                                 (b, dict(cor=COR["navy"], size=15)), (c_, dict(cor=COR["dk2"], size=14))]):
+    for j, (t, kw) in enumerate([(a, dict(bold=True, italic=True, cor=COR["aqua"], size=15)),
+                                 (b, dict(cor=COR["navy"], size=14)), (c_, dict(cor=COR["dk2"], size=13))]):
         cel = tab.cell(i, j)
         cel.fill.solid(); cel.fill.fore_color.rgb = COR["card"] if i % 2 else COR["branco"]
         cel.vertical_anchor = MSO_ANCHOR.MIDDLE
@@ -276,7 +278,9 @@ s = novo("Equações de projeto em cada regime",
          "Juntando a taxa de cada regime com o modelo de escoamento, saem as equações de projeto. A altura do reator "
          "vem do balanço do gás em escoamento pistonado. O tempo de batelada vem do balanço do reagente líquido B. "
          "Note como o parâmetro hidrodinâmico muda de linha para linha: εL, kLa, a e kLa novamente. As expressões de "
-         "tempo saem integrando dC_B/dt = −b·(−rA)/εL com C* constante.")
+         "tempo saem integrando dC_B/dt = −b·(−rA)/εL com C* constante. O b é o coeficiente estequiométrico: cada mol de A "
+         "absorvido consome b mols de B (b = 2 para CO2 + 2 OH⁻ → CO3²⁻ + H2O). No instantâneo, a altura é a forma exata: "
+         "a taxa kLa(C* + D_B C_B/(b D_A)) não é proporcional a C*, então não vale a constante única kLa·Ei.")
 cols = [("Regime", 0.6, 2.75), ("Taxa −r_A", 3.45, 2.6), ("Altura do reator (gás pistonado)", 6.15, 3.2), ("Tempo de batelada para consumir B", 9.45, 3.25)]
 for t, x, w in cols:
     hdr = cartao(s, x, 1.45, w, 0.5, cor=COR["dk2"], nome="hdr")
@@ -293,9 +297,140 @@ for i, (nome, crit, cor, k) in enumerate(regs):
     eq(s, f"r_{k}", 3.45, y + 0.15, 0.55, wmax=2.6, centro=True)
     eq(s, f"H_{k}", 6.15, y + 0.08, 0.86, wmax=3.2, centro=True)
     eq(s, f"t_{k}", 9.45, y + 0.08, 0.86, wmax=3.25, centro=True)
-caixa(s, 0.6, 6.55, 12.1, 0.4, "Altura: A diluído no gás, B em excesso. Tempo: C* constante (gás puro ou em excesso), líquido bem misturado; β = b·D_A·C*/D_B.",
+caixa(s, 0.6, 6.55, 12.1, 0.4, "b = mols de B por mol de A (A + b B → produtos). Altura: A diluído, B em excesso; γ = He·D_B·C_B/(b·D_A). Tempo: C* constante, líquido bem misturado; β = b·D_A·C*/D_B.",
       size=12, cor=COR["dk2"], italic=True)
 R2 = s
+
+
+# =====================================================================================
+# G1 — estequiometria e lei de velocidade genérica
+PG = json.loads((Path(__file__).resolve().parent.parent / "resultados" / "projeto_generico.json").read_text(encoding="utf-8"))
+s = novo("Generalizando: estequiometria (o b) e lei de velocidade",
+         "Até aqui usamos uma reação de pseudo-primeira ordem. Agora a reação genérica: A vem do gás, B está no líquido, "
+         "e a reação pode ser reversível. Dividindo tudo pelo coeficiente de A, a base de cálculo passa a ser 1 mol de A "
+         "absorvido, e b = νB/νA é quantos mols de B esse mol consome. Usamos a letra ν para não confundir com a área "
+         "interfacial a. As ordens m, n, p, q só coincidem com os coeficientes se a reação for elementar.")
+cartao(s, 0.6, 1.45, 12.1, 1.45, nome="card_reacao")
+eq(s, "g_reacao", 0.9, 1.6, 0.5)
+eq(s, "g_base", 0.9, 2.2, 0.5)
+caixa(s, 7.6, 1.6, 4.9, 1.2, [[("b = mols de B consumidos por mol de A absorvido. ", dict(bold=True)),
+                               ("Usamos ν para não confundir com a área interfacial a.", {})]], size=15, cor=COR["dk2"],
+      anchor=MSO_ANCHOR.MIDDLE)
+cartao(s, 0.6, 3.05, 5.95, 2.05, nome="card_exemplos")
+caixa(s, 0.85, 3.15, 5.5, 0.4, "Exemplos de b", size=18, cor=COR["aqua"], bold=True, font=HEAD)
+caixa(s, 0.85, 3.6, 5.5, 1.45, [
+    [("CO_2 + 2 OH^{−} → CO_3^{2−} + H_{2}O", dict(bold=True)), ("   b = 2  (o 2 do E_i no estudo de caso)", dict(cor=COR["cinza"]))],
+    [("CO_2 + OH^{−} → HCO_3^{−}", dict(bold=True)), ("   b = 1", dict(cor=COR["cinza"]))],
+    [("O_2 + 2 SO_3^{2−} → 2 SO_4^{2−}", dict(bold=True)), ("   b = 2", dict(cor=COR["cinza"]))]], size=15, espaco=6)
+cartao(s, 6.75, 3.05, 5.95, 2.05, nome="card_lei")
+caixa(s, 7.0, 3.15, 5.5, 0.4, "Lei de velocidade (por volume de líquido)", size=18, cor=COR["aqua"], bold=True, font=HEAD)
+eq(s, "g_lei", 7.0, 3.65, 0.5, wmax=5.4)
+caixa(s, 7.0, 4.25, 5.5, 0.8, "m, n, p, q: ordens (iguais aos ν só se a reação for elementar). Irreversível: k' = 0. Elementar: k/k' = K_c.",
+      size=14, cor=COR["dk2"])
+cartao(s, 0.6, 5.25, 12.1, 1.45, nome="card_esteq")
+caixa(s, 0.85, 5.35, 6.0, 0.4, "Balanço estequiométrico do líquido em batelada", size=18, cor=COR["aqua"], bold=True, font=HEAD)
+eq(s, "g_esteq", 0.85, 5.85, 0.62, wmax=9.0)
+eq(s, "g_rB", 10.2, 5.85, 0.5, wmax=2.3)
+G1 = s
+
+# =====================================================================================
+# G2 — equações de projeto genéricas (integrais)
+rev = PG["rev"]
+s = novo("Projeto genérico: qualquer ordem, reversível ou não",
+         "Estas três integrais valem para qualquer cinética. O tempo de batelada vem do balanço de B no líquido, a altura "
+         "do balanço de A no gás pistonado, e o volume de um líquido contínuo e bem misturado sai algébrico. Toda a "
+         "física entra no −rA do denominador, que depende do regime. Para reação reversível, a integral diverge na "
+         "conversão de equilíbrio, onde −rA = 0: o gráfico mostra a integral resolvida numericamente para A + B ⇌ C no "
+         "regime cinético, com κ = Kc·C*.")
+itens = [("Tempo de batelada", "líquido em batelada; C* constante", "g_tint"),
+         ("Altura e volume", "gás pistonado, A diluído", "g_Hint"),
+         ("Líquido contínuo (CSTR)", "−r_A avaliado na saída", "g_cstr")]
+for i, (tt, sub, nome) in enumerate(itens):
+    y = 1.45 + i * 1.18
+    cartao(s, 0.6, y, 7.0, 1.08, nome="int" + str(i))
+    caixa(s, 0.85, y + 0.17, 2.6, 0.4, tt, size=17, cor=COR["navy"], bold=True, font=HEAD)
+    caixa(s, 0.85, y + 0.57, 2.6, 0.45, sub, size=12, cor=COR["cinza"], italic=True)
+    eq(s, nome, 3.5, y + 0.1, 0.88, wmax=3.95, centro=True)
+cartao(s, 0.6, 5.0, 7.0, 1.7, nome="card_rA")
+caixa(s, 0.85, 5.08, 6.5, 0.4, "O −r_A dentro da integral depende do regime:", size=15, cor=COR["aqua"], bold=True)
+for k, (nome, rot) in enumerate((("g_rcin", "lento, cinético"), ("g_rfilme", "geral, com filme"))):
+    pic_y = 5.5 + k * 0.58
+    w_, h_ = eq(s, nome, 0.85, pic_y, 0.45, wmax=4.6)
+    caixa(s, 5.6, pic_y + 0.05, 1.9, 0.4, rot, size=13, cor=COR["cinza"], italic=True)
+grafico(s, XL_CHART_TYPE.LINE, 7.8, 1.45, 4.95, 5.25, [virg(t) for t in PG["tau_rev"]],
+        [(k.replace("_e", "e"), v) for k, v in rev.items()], [COR["dk2"], COR["aqua"], COR["coral"]],
+        titulo="A + B ⇌ C, regime cinético: integral numérica", xt="τ = b·k·C*·t", yt="conversão de B, X_B".replace("_", ""),
+        ymin=0, ymax=1, fmt="0.0", skip=4, nome="graf_rev")
+G2 = s
+
+# =====================================================================================
+# G3 — formas fechadas para ordem (m, n)
+s = novo("Formas fechadas: ordem m em A e n em B (irreversível)",
+         "Integrando as equações do slide anterior para cada regime. Conferimos todas contra a integral numérica "
+         "(projeto_generico.py): desvio < 1e-8 para m de 0,5 a 2 e n de 0 a 3. Repare: no regime controlado por "
+         "transferência de massa a ordem desaparece; no rápido, entra pela metade (Hikita & Asai, 1964); no instantâneo, "
+         "a cinética some e só restam difusão e estequiometria. Para n = 1 ou m = 1, as expressões viram o logaritmo ln[1/(1−X)].")
+cols = [("Regime", 0.6, 2.2), ("−r_A", 2.9, 2.75), ("Tempo de batelada t(X_B)", 5.75, 3.4), ("Altura H(X_A)", 9.25, 3.45)]
+for tt, x, w in cols:
+    cartao(s, x, 1.45, w, 0.5, cor=COR["dk2"], nome="hdr")
+    caixa(s, x, 1.45, w, 0.5, tt, size=14, cor=COR["branco"], bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+regs = [("Lento, cinético", "ordem m, n", COR["verde"], "k"),
+        ("Lento, TM", "ordem some", COR["verde"], "tm"),
+        ("Rápido", "Hikita & Asai", COR["coral"], "f"),
+        ("Instantâneo", "cinética some", COR["verm"], "i")]
+for i, (nome, crit, cor, k) in enumerate(regs):
+    y = 2.05 + i * 1.12
+    cartao(s, 0.6, y, 12.1, 1.04, cor=COR["card"] if i % 2 == 0 else COR["branco"], nome="linha")
+    caixa(s, 0.75, y + 0.15, 2.1, 0.45, nome, size=16, cor=cor, bold=True, font=HEAD)
+    caixa(s, 0.75, y + 0.57, 2.1, 0.4, crit, size=13, cor=COR["cinza"], italic=True)
+    eq(s, f"{k}_r", 2.95, y + 0.1, 0.62 if k in ("k", "tm") else 0.84, wmax=2.65, centro=True)
+    eq(s, f"{k}_t", 5.8, y + 0.06, 0.9, wmax=3.3, centro=True)
+    eq(s, f"{k}_H", 9.3, y + 0.06, 0.9, wmax=3.35, centro=True)
+caixa(s, 0.6, 6.55, 12.1, 0.4, "Rápido: p = (m+1)/2. Instantâneo: β = b·D_A·C*/D_B, γ = He·D_B·C_B/(b·D_A). n = 1 (ou m, p = 1): limite ln[1/(1−X)]. "
+      "Batelada: C* constante. Altura: B em excesso, A diluído.", size=12, cor=COR["dk2"], italic=True)
+G3 = s
+
+# =====================================================================================
+# G4 — ordem aparente
+fm = PG["formas"]
+s = novo("A ordem aparente muda com o regime",
+         "Consequência prática: a mesma reação, medida num reator gás–líquido, parece ter ordens diferentes conforme o "
+         "regime. No regime rápido, uma reação de 2ª ordem em B se comporta como de 1ª ordem, e a energia de ativação "
+         "aparente cai para cerca da metade. Por isso a cinética intrínseca deve ser medida em condições de controle "
+         "cinético (ou num aparelho de área conhecida, como a célula agitada), e só depois combinada com a hidrodinâmica. "
+         "O gráfico usa m = 1, n = 2, com o tempo normalizado pelo tempo de meia conversão.")
+linhas = [("Regime", "ordem em A", "ordem em B", "E_a aparente"),
+          ("Lento, cinético", "m", "n", "E_a"),
+          ("Lento, TM", "1", "0", "baixa (difusão)"),
+          ("Rápido", "(m+1)/2", "n/2", "≈ (E_a + E_D)/2"),
+          ("Instantâneo", "0 a 1", "0 a 1", "baixa (difusão)")]
+tab = s.shapes.add_table(5, 4, Inches(0.6), Inches(1.5), Inches(6.4), Inches(3.3)).table
+for j, w in enumerate((2.0, 1.35, 1.35, 1.7)):
+    tab.columns[j].width = Inches(w)
+cores_reg = [None, COR["verde"], COR["verde"], COR["coral"], COR["verm"]]
+for i, ln in enumerate(linhas):
+    for j, tx in enumerate(ln):
+        cel = tab.cell(i, j)
+        cel.fill.solid()
+        cel.fill.fore_color.rgb = COR["dk2"] if i == 0 else (COR["card"] if i % 2 else COR["branco"])
+        cel.vertical_anchor = MSO_ANCHOR.MIDDLE
+        par = cel.text_frame.paragraphs[0]
+        par.text = ""
+        par.alignment = PP_ALIGN.LEFT if j == 0 else PP_ALIGN.CENTER
+        if i == 0:
+            runs(par, tx, 14, COR["branco"], bold=True)
+        else:
+            runs(par, tx, 15, cores_reg[i] if j == 0 else COR["navy"], bold=(j == 0), font=HEAD if j == 0 else BODY)
+cartao(s, 0.6, 5.0, 6.4, 1.7, cor=COR["navy"], nome="card_falsa")
+caixa(s, 0.85, 5.12, 5.9, 1.5, [[("Cinética “falsificada”: ", dict(bold=True, cor=COR["aqua3"])),
+                                  ("medir ordem e E_a num reator gás–líquido sem saber o regime dá valores aparentes. "
+                                   "A cinética intrínseca se mede em controle cinético, e só depois se combina com a hidrodinâmica.",
+                                   dict(cor=COR["branco"]))]], size=15, anchor=MSO_ANCHOR.MIDDLE)
+grafico(s, XL_CHART_TYPE.LINE, 7.25, 1.45, 5.5, 5.25, [virg(t) for t in PG["tau_formas"]],
+        [(k.replace("_", ""), v) for k, v in fm.items()], [COR["verde"], COR["coral"], COR["aqua3"], COR["verm"]],
+        titulo="Mesma reação (m = 1, n = 2), quatro regimes", xt="t / t½", yt="conversão de B",
+        ymin=0, ymax=1, fmt="0.0", skip=2, nome="graf_formas")
+G4 = s
 
 # =====================================================================================
 # CS1 — o caso
@@ -398,6 +533,7 @@ CS4 = s
 s = novo("Referências: cinética e estudo de caso", "Referências adicionais dos slides de cinética e do estudo de caso CO2/NaOH.")
 refs = ["Darmana, D.; Henket, R. L. B.; Deen, N. G.; Kuipers, J. A. M. (2007). Chem. Eng. Sci., 62(9), 2556–2575.",
         "Higbie, R. (1935). Trans. AIChE, 31, 365–389.",
+        "Hikita, H.; Asai, S. (1964). Gas absorption with (m, n)-th order irreversible chemical reaction. Int. Chem. Eng., 4, 332–340.",
         "Krauß, M.; Rzehak, R. (2017). Reactive absorption of CO₂ in NaOH: detailed study of enhancement factor models. Chem. Eng. Sci., 166, 193–209.",
         "Krauß, M.; Rzehak, R. (2018). Reactive absorption of CO₂ in NaOH: an Euler–Euler simulation study. Chem. Eng. Sci., 181, 199–214.",
         "Liu, J.; Zhou, P.; Liu, L.; Chen, S.; Song, Y.; Yan, H. (2021). CFD modeling of reactive absorption of CO₂ in aqueous NaOH in a rectangular bubble column. Chem. Eng. Sci., 230, 116218.",
@@ -412,8 +548,8 @@ for sh in p.slides[2].shapes:
     if sh.has_text_frame:
         for par in sh.text_frame.paragraphs:
             for r in par.runs:
-                r.text = (r.text.replace("0–12 min", "0–10 min").replace("12–30 min", "10–30 min")
-                          .replace("30–50 min", "30–52 min").replace("50–60 min", "52–60 min")
+                r.text = (r.text.replace("0–12 min", "0–8 min").replace("12–30 min", "8–33 min")
+                          .replace("30–50 min", "33–53 min").replace("50–60 min", "53–60 min")
                           .replace("O que simulamos, o que comparamos e o que aprendemos",
                                    "Simulação, validação e estudo de caso CO₂/NaOH"))
 
@@ -422,12 +558,14 @@ for sh in p.slides[2].shapes:
 lst = p.slides._sldIdLst
 ids = list(lst)
 orig, novos = ids[:26], ids[26:]
-T1i, T2i, R1i, R2i, C1, C2, C3, C4, RF = novos
-ordem = orig[:11] + [T1i, T2i] + [orig[11]] + [R1i, R2i] + orig[12:22] + [C1, C2, C3, C4] + orig[22:25] + [RF] + [orig[25]]
+T1i, T2i, R1i, R2i, G1i, G2i, G3i, G4i, C1, C2, C3, C4, RF = novos
+ordem = orig[:11] + [T1i, T2i] + [orig[11]] + [R1i, R2i, G1i, G2i, G3i, G4i] + orig[12:22] + [C1, C2, C3, C4] + orig[22:25] + [RF] + [orig[25]]
 for el in ids:
     lst.remove(el)
 for el in ordem:
     lst.append(el)
+N_CONV = 1 + next(i for i, sl in enumerate(p.slides)
+                  if any(sh.has_text_frame and sh.text_frame.text.strip() == "Da cinética à conversão" for sh in sl.shapes))
 # referência cruzada que mudou de número ("Da cinética à conversão": 14 → 18)
 for sl in p.slides:
     for sh in sl.shapes:
@@ -435,7 +573,7 @@ for sl in p.slides:
             for par in sh.text_frame.paragraphs:
                 for r in par.runs:
                     if "slide 14" in r.text:
-                        r.text = r.text.replace("slide 14", "slide 18")
+                        r.text = r.text.replace("slide 14", f"slide {N_CONV}")
 p.save(SAI)
 
 # tipo de mídia: o arquivo original declarava "image/jpg" (não padrão); padroniza para image/jpeg
