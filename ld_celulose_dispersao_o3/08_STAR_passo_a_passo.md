@@ -337,6 +337,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   controle e os pontos E1/E2 ficam dentro das plumas (números em `_privado/`). Os jatos saem contra o vento e caem a
   barlavento do prédio antes de voltar sobre a planta.
 
+- **Próximas rodadas (19/11):** ENE em **emergência** na WS3 agora (a partir do ENE normal: `Saida_910/920` voltam a
+  *Mass Flow Inlet* com `mdot_LX`, I 5 % / L 0,03 m, escalar [1,0,0,0,0] e [0,1,0,0,0]; médias fx com início 1500);
+  depois Leste em emergência; depois independência de malha e Sc_t (0,5/0,9 com escoamento congelado). V2 (rajada) e V3
+  (estável) dependem do Marcus.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
