@@ -326,6 +326,12 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   chaminé e U criadas com início na it. 1500 + reports de máximo no Plano_z1.5. Inicialização a 1,5 m: Velocity[i] ≈ −1,14
   a −1,23 m/s, Velocity[j] = 0 ✓. Roda em paralelo com o ENE (WS3).
 
+- **ENE concluído (19/11):** resíduos oscilam (esteira periódica) → resultado nos campos médios, estáveis. Com ENE a pluma
+  passa sobre os pontos de evento das prensas e do sul do prédio (E3–E6), o que confirma a leitura dos eventos por
+  direção. Números e conta inversa (fuga que já daria cheiro em cada ponto) em `_privado/notas_interior_O3.md`.
+  `analise_plano.py` e `mapas_V1a.py` (em `_privado/inventarios/`) agora aceitam o caso (V1a, V1b, ENE, E) e desenham a
+  seta do vento na direção certa.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
