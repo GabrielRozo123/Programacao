@@ -332,6 +332,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   `analise_plano.py` e `mapas_V1a.py` (em `_privado/inventarios/`) agora aceitam o caso (V1a, V1b, ENE, E) e desenham a
   seta do vento na direção certa.
 
+- **Leste rodado até 2500 (19/11), preliminar:** oscilação lenta (~400 it.) e máximos médios ainda derivando (até 6 % em
+  200 it.) → continuar +1 000 it. **sem** limpar a solução e sem mexer no início da média. Com vento de Leste, a sala de
+  controle e os pontos E1/E2 ficam dentro das plumas (números em `_privado/`). Os jatos saem contra o vento e caem a
+  barlavento do prédio antes de voltar sobre a planta.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
