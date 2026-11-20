@@ -349,6 +349,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   da chaminé junto ao prédio, como no NNE. Números em `_privado/`. Leste em emergência rodando na máquina do Gabriel
   (recomeçado depois de a máquina reiniciar).
 
+- **Independência de malha (20/11, WS3), ENE normal:** base 8 → 6 m; Refino_Solo 2 → 1,5 m; R80 1 → 0,75 m; R300 4 → 3 m;
+  controles de superfície ÷1,33; prisma de 2,5 m mantido. **16 303 367 células** (2,31× a malha de 7,06 M; razão 1,33),
+  válida, face validity 1,0 em 100 %, volume change mínimo 3,5e-3. Mesmo setup de rodada (média a partir de 1500, até 2500).
+  Comparar: máximo no chão por fonte, receptores E3–E6, prensas, CCM e áreas por limiar.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
