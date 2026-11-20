@@ -344,6 +344,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   depois Leste em emergência; depois independência de malha e Sc_t (0,5/0,9 com escoamento congelado). V2 (rajada) e V3
   (estável) dependem do Marcus.
 
+- **ENE em emergência concluído (20/11, WS3):** médias estáveis. Ligar a emergência reduz a exposição externa por
+  unidade de vazamento (mais vazão dilui o salão e os jatos levam o ar para sudeste), mas piora o rebaixamento da pluma
+  da chaminé junto ao prédio, como no NNE. Números em `_privado/`. Leste em emergência rodando na máquina do Gabriel
+  (recomeçado depois de a máquina reiniciar).
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
