@@ -174,8 +174,11 @@ md(r"""
 * **Sincronização:** os sensores Wi-Fi não compartilham relógio (veja as defasagens de R2/R3 acima). Por isso,
   como no Pulse, as fases de todos os sensores são referidas ao **eixo X** de cada um.
 * **Corpo central** (centro de gravidade): média dos fasores dos 4 cantos (L1, R1, L4, R4).
-* **Desvios:** $D = |a-b|/|a+b|$ entre grupos de fasores Y: *Pitch* (alimentação × descarga), *Roll* (esquerda ×
-  direita) e *Twist* (diagonais). Essas três fórmulas foram confirmadas. *Yaw* e *Z* são hipóteses.
+* **G-Force Z (definição Pulse):** amplitude do **maior pico do espectro**, em qualquer frequência (não o 1×).
+* **Desvios:** combinações de corpo rígido dos 4 cantos divididas por $|\Sigma Y|$:
+  *Pitch* $|(Y_{L1}+Y_{R1})-(Y_{L4}+Y_{R4})|$, *Roll* $|(Y_{L1}+Y_{L4})-(Y_{R1}+Y_{R4})|$,
+  *Twist* $|(Y_{L1}+Y_{R4})-(Y_{R1}+Y_{L4})|$ (confirmadas); *Yaw* $|(Z_{L1}+Z_{R1})-(Z_{L4}+Z_{R4})|$ e
+  *Z* $|\Sigma Z|$ (compatíveis com o relatório Pulse).
 """)
 code(r"""
 display(an.table().round(3))
@@ -188,18 +191,21 @@ REF = pv.load_reference(REF_PATH) if REF_PATH else None
 c = an.center
 print(f"Centro: Main {c['main_g']:.3f} g | stroke {c['stroke_main']:.2f} mm | ângulo {c['angle']:.2f}° | fase {c['phase']:.2f}°")
 print("Desvios (%):", {k: round(v, 2) for k, v in an.deviations.items()})
+if an.deviations_alt:
+    print("Sem o canal defeituoso:", {k: round(v, 2) for k, v in an.deviations_alt.items()})
 print(f"K_v = {an.throw['kv_horizontal_ref']:.2f} (ângulo vs horizontal) | {an.throw['kv_deck_ref']:.2f} (vs deck)")
 show(pl.fig_phase_report(an, REF))
 """)
 
 md(r"""
-## 5. Validação contra o relatório Pulse
+## 5. (Opcional) Validação contra um relatório Pulse
 
 **5.1 Consistência interna:** os números do relatório (G-Force, fases) passam pelas fórmulas e são comparados com os
 demais números do próprio relatório. Diferenças apenas de arredondamento confirmam a modelagem.
 
-**5.2 Dados brutos × relatório:** atenção, o XML recebido é **outra gravação** (outra hora e outra rotação).
-Strokes, ângulos, fases e desvios são comparados diretamente; acelerações são corrigidas por $(f_{ref}/f_{xml})^2$.
+**5.2 Dados brutos × relatório:** se o relatório for de outra gravação (outra rotação), strokes, ângulos, fases e
+desvios são comparados diretamente e as acelerações são corrigidas por $(f_{ref}/f_{xml})^2$. Sem JSON, esta seção é
+pulada.
 """)
 code(r"""
 if REF:

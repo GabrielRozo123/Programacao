@@ -164,6 +164,33 @@ def amplitude_spectrum(x: np.ndarray, fs: float):
     return np.fft.rfftfreq(n, 1 / fs), amp
 
 
+def dominant_peak_amplitude(x: np.ndarray, fs: float, fmin: float = 1.0, fmax: float | None = None,
+                            half_band_hz: float = 0.4):
+    """Estimador "G-Force" do Pulse VA: amplitude do maior pico do espectro (qualquer frequência).
+
+    Identificado por engenharia reversa do relatório Pulse (FFT sem janela; energia em ±2 bins de
+    0,195 Hz em torno do pico → ±0,4 Hz). Implementado como a amplitude equivalente da energia
+    espectral numa banda de ±``half_band_hz`` em torno do pico dominante, o que torna o resultado
+    independente do comprimento da FFT. Para uma senoide pura devolve a sua amplitude.
+
+    Retorna (amplitude em g por canal, frequência do pico em Hz por canal).
+    """
+    x = np.atleast_2d(np.asarray(x, float).T).T
+    x = x - x.mean(axis=0)
+    n = x.shape[0]
+    a = 2 * np.abs(np.fft.rfft(x, axis=0)) / n          # espectro de amplitude, janela retangular
+    f = np.fft.rfftfreq(n, 1 / fs)
+    fmax = fmax or fs / 2
+    band = np.flatnonzero((f >= fmin) & (f <= fmax))
+    amps, freqs = [], []
+    for c in range(x.shape[1]):
+        k = band[np.argmax(a[band, c])]
+        m = np.abs(f - f[k]) <= half_band_hz
+        amps.append(np.sqrt(np.sum(a[m, c] ** 2)))
+        freqs.append(f[k])
+    return np.array(amps), np.array(freqs)
+
+
 def order_spectrum(x: np.ndarray, track: RotationTrack, n_per_rev: int = 64):
     """Espectro de ordens (eixo em múltiplos da rotação) via reamostragem angular."""
     a = angle_resample(x, track, n_per_rev)

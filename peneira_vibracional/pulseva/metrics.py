@@ -30,8 +30,9 @@ Convenções
   Pitch: Y alimentação (L1+R1) × descarga (L4+R4)     — confirmado
   Roll : Y esquerdo (L1+L4) × direito (R1+R4)          — confirmado
   Twist: Y diagonais (L1+R4) × (R1+L4)                 — confirmado
-  Yaw  : X esquerdo × direito (hipótese de corpo rígido — não confirmada)
-  Z    : |Z médio| / Main G do centro (hipótese — não confirmada)
+  Yaw  : |(Z_L1+Z_R1) − (Z_L4+Z_R4)| / |ΣY|               — compatível
+  Z    : |Z_L1+Z_R1+Z_L4+Z_R4| / |ΣY|                      — compatível
+  (Z com amplitude = G-Force Z do Pulse, i.e. pico espectral dominante)
 """
 from __future__ import annotations
 
@@ -41,8 +42,8 @@ import numpy as np
 from scipy.stats import kurtosis
 
 from .io import Record
-from .tracking import (RotationTrack, estimate_lag, fractional_order_phasors, order_phasors,
-                       per_revolution_phasors, track_rotation)
+from .tracking import (RotationTrack, dominant_peak_amplitude, estimate_lag, fractional_order_phasors,
+                       order_phasors, per_revolution_phasors, track_rotation)
 
 G0 = 9.80665  # m/s²
 SIDE_SIGN = {"L": np.array([-1.0, 1.0, -1.0]), "R": np.array([1.0, 1.0, 1.0])}
@@ -50,7 +51,7 @@ CORNERS = ("L1", "R1", "L4", "R4")
 #: Níveis de aceitação impressos no relatório Pulse (Phase Report).
 PULSE_LIMITS = {"pitch": 45.0, "roll": 4.0, "yaw": 4.0, "twist": 3.0, "z": 3.0}
 DEVIATION_STATUS = {"pitch": "confirmada", "roll": "confirmada", "twist": "confirmada",
-                    "yaw": "hipótese", "z": "hipótese"}
+                    "yaw": "compatível", "z": "compatível"}
 ORDERS = (1, 2, 3, 4, 5)
 
 
@@ -129,6 +130,18 @@ class SensorResult:
     tilt_deg: float                            # inclinação estática do eixo X (referencial da máquina)
     main_g_rev_std: float                      # desvio-padrão ciclo a ciclo do Main G
     sub: np.ndarray = field(default=None, repr=False)  # (2, 3) amplitudes 0,5× e 1,5× (g)
+    g_pulse: np.ndarray = field(default=None)          # (3,) G-Force definição Pulse (pico dominante)
+    f_peak: np.ndarray = field(default=None)           # (3,) frequência do pico dominante (Hz)
+
+    @property
+    def g_report(self) -> np.ndarray:
+        """G-Force como no relatório Pulse: X e Y = 1× (rastreamento de ordem); Z = pico dominante."""
+        return np.array([self.g[0], self.g[1], self.g_pulse[2]])
+
+    @property
+    def stroke_report(self) -> np.ndarray:
+        """Stroke como no relatório Pulse (G-Force convertido na frequência de rotação)."""
+        return stroke_mm(self.g_report, self.track.f_mean)
 
     @property
     def f_mean(self) -> float:
@@ -146,6 +159,7 @@ def analyze_sensor(name: str, acc: np.ndarray, fs: float, f_guess: float | None 
     dc = raw.mean(axis=0)
     a = (raw - dc) * sign                                   # AC, referencial da máquina
     tr = track_rotation(a[:, :2], fs, f_guess=f_guess)
+    gp, fp = dominant_peak_amplitude(a, fs)
     P = order_phasors(a, tr, ORDERS)
     p1 = P[0]
     psync = p1 * np.exp(-1j * np.angle(p1[0]))
@@ -164,6 +178,7 @@ def analyze_sensor(name: str, acc: np.ndarray, fs: float, f_guess: float | None 
         tilt_deg=float(np.degrees(np.arctan2(dcm[0], -dcm[1]))),
         main_g_rev_std=float(main_rev.std(ddof=1)),
         sub=np.abs(fractional_order_phasors(a, tr, (0.5, 1.5))),
+        g_pulse=gp, f_peak=fp,
     )
 
 
@@ -183,6 +198,7 @@ class Analysis:
     lags: dict
     findings: list
     excluded: dict
+    deviations_alt: dict = field(default_factory=dict)   # sensibilidade (canal Z defeituoso substituído)
 
     @property
     def rpm(self) -> float:
@@ -196,8 +212,10 @@ class Analysis:
             rows.append({
                 "Sensor": s.name, "Main G (g)": s.main_g, "Stroke (mm)": s.stroke_main,
                 "Freq (Hz)": s.f_mean, "Force Angle (°)": s.angle, "Fase Y-X (°)": s.phase_yx,
-                "X G (g)": s.g[0], "Y G (g)": s.g[1], "Z G 1× (g)": s.g[2],
-                "X stroke (mm)": s.stroke[0], "Y stroke (mm)": s.stroke[1], "Z stroke (mm)": s.stroke[2],
+                "X G (g)": s.g[0], "Y G (g)": s.g[1], "Z G Pulse (g)": s.g_pulse[2],
+                "Z pico (Hz)": s.f_peak[2], "Z G 1× (g)": s.g[2],
+                "X stroke (mm)": s.stroke[0], "Y stroke (mm)": s.stroke[1],
+                "Z stroke Pulse (mm)": s.stroke_report[2], "Z stroke 1× (mm)": s.stroke[2],
                 "X RMS√2 (g)": s.rms_pk[0], "Y RMS√2 (g)": s.rms_pk[1], "Z RMS√2 (g)": s.rms_pk[2],
                 "Z kurtosis": s.z_kurtosis, "THD Y (%)": 100 * s.thd[1],
                 "σ ciclo Main G (g)": s.main_g_rev_std,
@@ -228,16 +246,28 @@ def _maximum_body(sensors: dict, f: float) -> dict:
             "where": {"X": gx.name, "Y": gy.name, "Main": gm.name}}
 
 
-def _deviations(sensors: dict, center: dict, z_valid: dict) -> dict:
-    X = {k: sensors[k].Psync[0] for k in CORNERS}
+def _deviations(sensors: dict, center: dict, z_valid: dict, substitute_invalid: bool = False) -> dict:
+    """Desvios de corpo rígido dos 4 cantos, todos normalizados por |ΣY| (movimento vertical).
+
+    Pitch, Roll, Twist: confirmados contra o relatório Pulse. Yaw e Z: fórmulas compatíveis com o
+    relatório (alternativas naturais excluídas por Monte Carlo), com |Z| = G-Force Z no padrão
+    Pulse (pico dominante) e fase de Z = fase 1× sincronizada por X. Como no Pulse, todos os
+    canais entram no cálculo (inclusive canal defeituoso, sinalizado no diagnóstico).
+    """
     Y = {k: sensors[k].Psync[1] for k in CORNERS}
-    zs = [sensors[k].Psync[2] for k in CORNERS if z_valid.get(k, True)]
+    Z = {k: sensors[k].g_pulse[2] * np.exp(1j * np.angle(sensors[k].Psync[2])) for k in CORNERS}
+    if substitute_invalid:   # sensibilidade: canal Z defeituoso substituído pelo par simétrico (L<->R)
+        for k in CORNERS:
+            mate = ("R" if k[0] == "L" else "L") + k[1:]
+            if not z_valid.get(k, True) and z_valid.get(mate, True):
+                Z[k] = Z[mate]
+    sy = abs(sum(Y.values()))
     dev = {
         "pitch": relative_difference(Y["L1"] + Y["R1"], Y["L4"] + Y["R4"]),
         "roll": relative_difference(Y["L1"] + Y["L4"], Y["R1"] + Y["R4"]),
         "twist": relative_difference(Y["L1"] + Y["R4"], Y["R1"] + Y["L4"]),
-        "yaw": relative_difference(X["L1"] + X["L4"], X["R1"] + X["R4"]),
-        "z": float(abs(np.mean(zs)) / center["main_g"] * 100.0) if zs else float("nan"),
+        "yaw": float(abs(Z["L1"] + Z["R1"] - Z["L4"] - Z["R4"]) / sy * 100.0),
+        "z": float(abs(sum(Z.values())) / sy * 100.0),
     }
     return dev
 
@@ -260,6 +290,7 @@ def analyze(record: Record, inclination_deg: float | None = None) -> Analysis:
     center = _center_body(sensors, f_mean, z_valid)
     maximum = _maximum_body(sensors, f_mean)
     devs = _deviations(sensors, center, z_valid)
+    devs_alt = _deviations(sensors, center, z_valid, substitute_invalid=True) if not all(z_valid.values()) else {}
 
     # rotação: perfil comum (média dos sensores) e estatística
     fi = np.array([s.track.f_inst for s in sensors.values()])
@@ -288,7 +319,7 @@ def analyze(record: Record, inclination_deg: float | None = None) -> Analysis:
     }
     return Analysis(record=record, sensors=sensors, f_mean=f_mean, center=center,
                     maximum=maximum, deviations=devs, throw=throw, speed=speed,
-                    lags=lags, findings=findings, excluded=excluded)
+                    lags=lags, findings=findings, excluded=excluded, deviations_alt=devs_alt)
 
 
 # --------------------------------------------------------------------------- #

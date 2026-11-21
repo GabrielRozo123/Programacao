@@ -86,7 +86,7 @@ def plot_orbit(ax, an, name, nrev=5, lim=4.0, show_text=True):
         ax.invert_xaxis()   # vista pelo lado externo esquerdo (igual ao Pulse)
     if show_text:
         txt = (f"Main {s.main_g:.2f} g · {s.stroke_main:.1f} mm\n"
-               f"X {s.g[0]:.2f}  Y {s.g[1]:.2f}  Z {s.g[2]:.2f} g\n"
+               f"X {s.g[0]:.2f}  Y {s.g[1]:.2f}  Z {s.g_report[2]:.2f} g\n"
                f"ângulo {s.angle:.1f}° · fase {s.phase_yx:.1f}°")
         ax.text(0.02, 0.98, txt, transform=ax.transAxes, va="top", ha="left", fontsize=6.3,
                 color=C_INK, bbox=dict(fc="white", ec="none", alpha=0.85, pad=1.5))
@@ -132,8 +132,9 @@ def fig_sensor_report(an, name, fmax=200.0):
             ["Fase Y–X", f"{s.phase_yx:.1f}° ({s.rotation_sense})"]]
     t1 = axt.table(cellText=rows, colWidths=[0.42, 0.58], loc="upper center", cellLoc="left",
                    bbox=[0.0, 0.52, 1.0, 0.46])
-    rows2 = [["Eixo", "G 1× (g)", "Curso (mm)", "RMS√2 (g)"]] + [
-        [ax, f"{s.g[i]:.2f}", f"{s.stroke[i]:.1f}", f"{s.rms_pk[i]:.2f}"] for i, ax in enumerate("XYZ")]
+    gr, sr = s.g_report, s.stroke_report
+    rows2 = [["Eixo", "G-Force (g)", "Stroke (mm)", "RMS (g)"]] + [
+        [ax, f"{gr[i]:.2f}", f"{sr[i]:.1f}", f"{s.rms_pk[i]:.2f}"] for i, ax in enumerate("XYZ")]
     t2 = axt.table(cellText=rows2, loc="lower center", cellLoc="center", bbox=[0.0, 0.0, 1.0, 0.42])
     for t in (t1, t2):
         t.auto_set_font_size(False)
@@ -143,8 +144,8 @@ def fig_sensor_report(an, name, fmax=200.0):
             if (t is t2 and r == 0) or (t is t1 and c == 0):
                 cell.set_text_props(fontweight="bold", color=C_INK)
                 cell.set_facecolor("#f2f1ee")
-    axt.text(0.0, 0.47, f"Z kurtosis {s.z_kurtosis:.2f}   ·   THD Y {100 * s.thd[1]:.1f} %   ·   "
-             f"σ ciclo Main G {s.main_g_rev_std:.3f} g", fontsize=7, transform=axt.transAxes, color=C_INK2)
+    axt.text(0.0, 0.47, f"Z kurtosis {s.z_kurtosis:.2f}  ·  Z: pico dominante em {s.f_peak[2]:.1f} Hz "
+             f"(1× = {s.g[2]:.3f} g; {s.stroke[2]:.2f} mm)", fontsize=6.6, transform=axt.transAxes, color=C_INK2)
     # espectros
     f, amp = amplitude_spectrum(a, fs)
     sl = _rev_slice(s, k0=10, nrev=3)
@@ -266,17 +267,21 @@ def _deviation_bars(ax, an, ref=None):
             vr = ref["deviations"][k]
             ax.barh(y[i] - h / 2, vr / lim * 100, height=h, color=C_MUTED, lw=0)
             txt += f"   ·   Pulse {vr:.1f} % {_status(vr, lim)[0].split()[0]}"
-        txt += f"   ·   limite {lim:.0f} %" + ("" if DEVIATION_STATUS[k] == "confirmada" else "   [fórmula: hipótese]")
+        txt += f"   ·   limite {lim:.0f} %"
+        alt = getattr(an, "deviations_alt", {}).get(k)
+        if alt is not None and abs(alt - v) > 0.05:
+            ax.plot(alt / lim * 100, y[i] + (h / 2 if ref else 0), marker="D", ms=4.5, color=C_CRIT, zorder=4)
+            txt += f"   ·   ◆ sem o canal defeituoso: {alt:.1f} % {_status(alt, lim)[0].split()[0]}"
         ax.text(148, y[i], txt, va="center", fontsize=6.8, color=C_INK)
     ax.axvline(100, color=C_INK, lw=1.0)
     ax.text(101, y[-1] - 0.55, "limite", ha="left", va="center", fontsize=6.3, color=C_INK)
     ax.set_yticks(y)
     ax.set_yticklabels([labels[k] for k in keys])
-    ax.set_xlim(0, 330)
+    ax.set_xlim(0, 360)
     ax.set_xticks([0, 25, 50, 75, 100, 125])
     ax.set_xlabel("Desvio em % do limite de aceitação do Pulse (100 = limite)")
     ax.grid(axis="y", visible=False)
-    ttl = "Desvios de corpo rígido" + (" — azul: Python (XML) · cinza: relatório Pulse" if ref else "")
+    ttl = "Desvios de corpo rígido (fórmulas do Pulse)" + (" — azul: Python (XML) · cinza: relatório Pulse" if ref else "")
     ax.set_title(ttl, loc="left")
 
 
@@ -475,7 +480,10 @@ def fig_z_spectra(an, fmax=200.0):
             for h in range(1, int(fmax / s.f_mean) + 1):
                 ax.axvline(h * s.f_mean, color=C_GRID, lw=0.6, zorder=0)
             ax.set_ylim(1e-4, 1)
-            lab = f"{n}-Z  1×: {s.g[2]:.3f} g · RMS√2: {s.rms_pk[2]:.2f} g · kurt. {s.z_kurtosis:.2f}"
+            k = np.argmin(np.abs(f - s.f_peak[2]))
+            ax.plot(f[k], amp[k, 0], "o", ms=4, color=C_INK, zorder=4)
+            lab = (f"{n}-Z  G-Force {s.g_pulse[2]:.3f} g @ {s.f_peak[2]:.1f} Hz · 1× {s.g[2]:.3f} g · "
+                   f"RMS {s.rms_pk[2]:.2f} g")
             if bad:
                 lab = f"{n}-Z  ✗ canal travado em {an.record.sensors[n][:, 2].mean():.1f} g"
             ax.set_title(lab, loc="left", fontsize=7, fontweight="normal",
