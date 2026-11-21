@@ -15,7 +15,7 @@ técnico em PDF, uma planilha Excel e figuras de engenharia.
 | Grandezas Pulse | G-Force (1×), RMS√2, stroke `2·G·g0/ω²`, Main G / Force Angle (elipse 1×), fase Y–X |
 | Corpo rígido | Sincronização pela fase de X; centro = média dos cantos L1/R1/L4/R4; máximo; desvios |
 | Diagnóstico | Canal travado/fora de faixa, calibração estática pela gravidade, montagem, kurtosis, estabilidade de rotação, sincronismo, ordens fracionárias (0,5×/1,5×) |
-| Saídas | Relatório PDF (A4), Excel multi-abas, figuras PNG, notebook Colab |
+| Saídas | Relatório PDF (A4), projeto LaTeX para Overleaf (`.zip`), Excel multi-abas, figuras PNG, notebook Colab |
 
 ## Modelagem do relatório Pulse identificada
 

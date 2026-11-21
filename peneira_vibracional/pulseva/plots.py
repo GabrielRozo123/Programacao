@@ -1,4 +1,4 @@
-"""Figuras de engenharia (matplotlib) — estilo relatório técnico.
+"""Figuras de engenharia (matplotlib) no estilo de relatório técnico.
 
 Codificação visual fixa em todas as figuras:
 * cor = lado da máquina (L = azul, R = laranja); referências/contexto em cinza;
@@ -85,9 +85,9 @@ def plot_orbit(ax, an, name, nrev=5, lim=4.0, show_text=True):
     if s.side == "L":
         ax.invert_xaxis()   # vista pelo lado externo esquerdo (igual ao Pulse)
     if show_text:
-        txt = (f"Main {s.main_g:.2f} g · {s.stroke_main:.1f} mm\n"
+        txt = (f"Main {s.main_g:.2f} g, {s.stroke_main:.1f} mm\n"
                f"X {s.g[0]:.2f}  Y {s.g[1]:.2f}  Z {s.g_report[2]:.2f} g\n"
-               f"ângulo {s.angle:.1f}° · fase {s.phase_yx:.1f}°")
+               f"ângulo {s.angle:.1f}°, fase {s.phase_yx:.1f}°")
         ax.text(0.02, 0.98, txt, transform=ax.transAxes, va="top", ha="left", fontsize=6.3,
                 color=C_INK, bbox=dict(fc="white", ec="none", alpha=0.85, pad=1.5))
     ax.set_title(name, loc="left", color=SIDE_COLOR[s.side])
@@ -105,7 +105,7 @@ def fig_orbit_summary(an):
             ax.set_ylabel("Y (g)")
     h, lab = axes[0, 1].get_legend_handles_labels()
     fig.legend(h, lab, loc="upper center", ncol=2, bbox_to_anchor=(0.5, 1.0))
-    fig.suptitle(f"Órbitas X–Y por sensor  ·  {an.rpm:.0f} RPM ({an.f_mean:.2f} Hz)",
+    fig.suptitle(f"Órbitas X–Y por sensor ({an.rpm:.0f} RPM, {an.f_mean:.2f} Hz)",
                  y=1.015, fontsize=11, fontweight="bold")
     fig.tight_layout()
     return fig
@@ -144,8 +144,8 @@ def fig_sensor_report(an, name, fmax=200.0):
             if (t is t2 and r == 0) or (t is t1 and c == 0):
                 cell.set_text_props(fontweight="bold", color=C_INK)
                 cell.set_facecolor("#f2f1ee")
-    axt.text(0.0, 0.47, f"Z kurtosis {s.z_kurtosis:.2f}  ·  Z: pico dominante em {s.f_peak[2]:.1f} Hz "
-             f"(1× = {s.g[2]:.3f} g; {s.stroke[2]:.2f} mm)", fontsize=6.6, transform=axt.transAxes, color=C_INK2)
+    axt.text(0.0, 0.47, f"Kurtosis Z {s.z_kurtosis:.2f}; pico dominante de Z em {s.f_peak[2]:.1f} Hz "
+             f"(componente 1×: {s.g[2]:.3f} g, {s.stroke[2]:.2f} mm)", fontsize=6.6, transform=axt.transAxes, color=C_INK2)
     # espectros
     f, amp = amplitude_spectrum(a, fs)
     sl = _rev_slice(s, k0=10, nrev=3)
@@ -217,10 +217,10 @@ def fig_phase_report(an, ref=None):
     axw.set_xlim(0, 360)
     axw.set_ylim(-4, 4)
     axw.set_xticks(range(0, 361, 90))
-    axw.set_xlabel("Ângulo de rotação (°) — X sincronizado")
+    axw.set_xlabel("Ângulo de rotação (°), referência no eixo X")
     axw.set_ylabel("Y 1× (g)")
     axw.set_title("Ondas Y sincronizadas pelo eixo X", loc="left")
-    axw.text(0.99, 0.02, "azul = L · laranja = R · cinza = posições 2 e 3\ncontínua = 1 · tracejada = 4",
+    axw.text(0.99, 0.02, "azul: lado L; laranja: lado R; cinza: posições 2 e 3\nlinha contínua: posição 1; tracejada: posição 4",
              transform=axw.transAxes, ha="right", va="bottom", fontsize=6, color=C_INK2)
 
     # (c) órbita do centro
@@ -240,9 +240,9 @@ def fig_phase_report(an, ref=None):
     axc.set_xlabel("X (g)")
     axc.set_ylabel("Y (g)")
     axc.set_title("Força no centro (média dos 4 cantos)", loc="left")
-    axc.text(0.02, 0.98, f"Main {c['main_g']:.2f} g · {c['stroke_main']:.1f} mm\n"
+    axc.text(0.02, 0.98, f"Main {c['main_g']:.2f} g, {c['stroke_main']:.1f} mm\n"
              f"X {c['g'][0]:.2f} g ({c['stroke'][0]:.1f} mm)\nY {c['g'][1]:.2f} g ({c['stroke'][1]:.1f} mm)\n"
-             f"ângulo {c['angle']:.1f}° · fase {c['phase']:.1f}°", transform=axc.transAxes, va="top",
+             f"ângulo {c['angle']:.1f}°, fase {c['phase']:.1f}°", transform=axc.transAxes, va="top",
              fontsize=6.3, bbox=dict(fc="white", ec="none", alpha=0.85, pad=1.5))
 
     # (d) desvios vs limites
@@ -261,17 +261,16 @@ def _deviation_bars(ax, an, ref=None):
         v = an.deviations[k]
         lim = PULSE_LIMITS[k]
         ax.barh(y[i] + (h / 2 if ref else 0), v / lim * 100, height=h, color=C_L, lw=0)
-        st, col = _status(v, lim)
-        txt = f"Python {v:.1f} % {st.split()[0]}"
+        word = lambda val: "atende" if val <= lim else "não atende"
+        txt = f"{v:.1f} % ({word(v)}; limite {lim:.0f} %)"
         if ref:
             vr = ref["deviations"][k]
             ax.barh(y[i] - h / 2, vr / lim * 100, height=h, color=C_MUTED, lw=0)
-            txt += f"   ·   Pulse {vr:.1f} % {_status(vr, lim)[0].split()[0]}"
-        txt += f"   ·   limite {lim:.0f} %"
+            txt += f"; Pulse {vr:.1f} %"
         alt = getattr(an, "deviations_alt", {}).get(k)
         if alt is not None and abs(alt - v) > 0.05:
             ax.plot(alt / lim * 100, y[i] + (h / 2 if ref else 0), marker="D", ms=4.5, color=C_CRIT, zorder=4)
-            txt += f"   ·   ◆ sem o canal defeituoso: {alt:.1f} % {_status(alt, lim)[0].split()[0]}"
+            txt += f"\n◆ sem o canal defeituoso: {alt:.1f} % ({word(alt)})"
         ax.text(148, y[i], txt, va="center", fontsize=6.8, color=C_INK)
     ax.axvline(100, color=C_INK, lw=1.0)
     ax.text(101, y[-1] - 0.55, "limite", ha="left", va="center", fontsize=6.3, color=C_INK)
@@ -281,7 +280,7 @@ def _deviation_bars(ax, an, ref=None):
     ax.set_xticks([0, 25, 50, 75, 100, 125])
     ax.set_xlabel("Desvio em % do limite de aceitação do Pulse (100 = limite)")
     ax.grid(axis="y", visible=False)
-    ttl = "Desvios de corpo rígido (fórmulas do Pulse)" + (" — azul: Python (XML) · cinza: relatório Pulse" if ref else "")
+    ttl = "Desvios de corpo rígido" + (" (azul: Python; cinza: relatório Pulse)" if ref else "")
     ax.set_title(ttl, loc="left")
 
 
@@ -290,8 +289,8 @@ def _machine_schematic(ax, an, scale=2.5):
     lado direito) com a órbita de deslocamento 1× de cada sensor ampliada ``scale`` vezes."""
     L, H, gap = 200.0, 38.0, 10.0
     xs = {1: 22.0, 2: 74.0, 3: 126.0, 4: 178.0}
-    ax.set_title(f"Órbitas de deslocamento 1× ampliadas ×{scale:.0f} (mm) — posições esquemáticas, "
-                 "ambos os lados no referencial da máquina", loc="left", fontsize=8.5)
+    ax.set_title(f"Órbitas de deslocamento 1× ampliadas {scale:.1f} vezes (posições esquemáticas, "
+                 "ambos os lados no referencial da máquina)", loc="left", fontsize=8.5)
     for side, y0 in (("L", H + gap), ("R", 0.0)):
         ax.add_patch(Polygon([[0, y0], [L, y0], [L, y0 + H], [0, y0 + H]], closed=True, fc="#f4f3f0",
                              ec=C_MUTED, lw=0.6))
@@ -340,9 +339,9 @@ def fig_speed(an):
                 label=f"{n} (defasagem {an.lags[n][0] * 1e3:+.0f} ms)")
     a1.axhline(an.rpm, color=C_INK, lw=0.7, ls=(0, (3, 2)))
     a1.text(t[i0], an.rpm, f" média {an.rpm:.1f} RPM", va="bottom", fontsize=6.5, color=C_INK)
-    a1.set_xlabel("Tempo (s) — relógio de cada sensor")
+    a1.set_xlabel("Tempo (s), relógio de cada sensor")
     a1.set_ylabel("Rotação (RPM)")
-    a1.set_title(f"Rotação instantânea — variação pico-a-pico {sp['var_pp_pct']:.1f} %  "
+    a1.set_title(f"Rotação instantânea (variação pico a pico de {sp['var_pp_pct']:.1f} %; "
                  f"(cinza: demais sensores)", loc="left")
     a1.legend(loc="lower left")
     # Main G por rotação nos cantos
@@ -381,7 +380,7 @@ def fig_method(an):
     x = np.arange(len(names))
     ax.bar(x - 0.19, fixed, 0.36, color=C_MUTED, label="ajuste senoidal com frequência fixa")
     ax.bar(x + 0.19, tracked, 0.36, color=C_L, label="rastreamento de ordem (este trabalho)")
-    ax.scatter(x, ref, marker="_", s=260, color=C_INK, zorder=3, label="√2·RMS do sinal (limite superior)")
+    ax.scatter(x, ref, marker="_", s=260, color=C_INK, zorder=3, label="√2 × RMS do sinal (limite superior)")
     for i in range(len(names)):
         ax.text(x[i] - 0.19, fixed[i] + 0.05, f"{(fixed[i] / ref[i] - 1) * 100:+.0f}%", ha="center", fontsize=6,
                 color=C_INK2)
@@ -482,23 +481,23 @@ def fig_z_spectra(an, fmax=200.0):
             ax.set_ylim(1e-4, 1)
             k = np.argmin(np.abs(f - s.f_peak[2]))
             ax.plot(f[k], amp[k, 0], "o", ms=4, color=C_INK, zorder=4)
-            lab = (f"{n}-Z  G-Force {s.g_pulse[2]:.3f} g @ {s.f_peak[2]:.1f} Hz · 1× {s.g[2]:.3f} g · "
+            lab = (f"{n}-Z: G-Force {s.g_pulse[2]:.3f} g em {s.f_peak[2]:.1f} Hz; 1× {s.g[2]:.3f} g; "
                    f"RMS {s.rms_pk[2]:.2f} g")
             if bad:
                 lab = f"{n}-Z  ✗ canal travado em {an.record.sensors[n][:, 2].mean():.1f} g"
             ax.set_title(lab, loc="left", fontsize=7, fontweight="normal",
                          color=C_CRIT if bad else C_INK)
     for ax in axes[-1]:
-        ax.set_xlabel("Frequência (Hz) — linhas verticais: harmônicas da rotação")
+        ax.set_xlabel("Frequência (Hz)")
     for ax in axes[:, 0]:
         ax.set_ylabel("Z (g pico)")
-    fig.suptitle("Eixo lateral Z — conteúdo de banda larga, 1× pequeno", x=0.02, ha="left", fontsize=11,
+    fig.suptitle("Eixo lateral Z: conteúdo de banda larga e componente 1× pequena", x=0.02, ha="left", fontsize=11,
                  fontweight="bold", y=0.995)
     return fig
 
 
 def fig_order_spectrum(an, max_order=8.0):
-    """Espectro de ordens médio (8 sensores) — evidencia as ordens fracionárias 0,5× e 1,5×."""
+    """Espectro de ordens médio dos 8 sensores, que evidencia as ordens fracionárias 0,5× e 1,5×."""
     from .metrics import KV_ONE_PERIOD
     accX, accY = [], []
     for n, s in an.sensors.items():
@@ -521,13 +520,40 @@ def fig_order_spectrum(an, max_order=8.0):
     ax.set_xlabel("Ordem (múltiplos da rotação)")
     ax.set_ylabel("Amplitude (g pico)")
     kv = an.throw["kv_horizontal_ref"]
-    ax.set_title(f"Espectro de ordens — linhas tracejadas: ordens fracionárias  ·  K_v = {kv:.2f} "
-                 f"(voo = 1 período em K_v = √(1+π²) = {KV_ONE_PERIOD:.2f})", loc="left", fontsize=8.5)
+    ax.set_title(f"Espectro de ordens médio dos 8 sensores (linhas tracejadas: ordens fracionárias; "
+                 f"K_v = {kv:.2f})", loc="left", fontsize=8.5)
     ax.legend(loc="upper right")
     return fig
 
 
+#: Em modo publicação (relatório LaTeX) os títulos gerais das figuras são omitidos (a legenda do
+#: documento cumpre esse papel) e todos os números usam vírgula decimal.
+PUBLICATION = False
+
+
+def _localize(fig):
+    """Vírgula decimal em textos, legendas e marcas dos eixos."""
+    import re
+    from matplotlib.text import Text
+    from matplotlib.ticker import FixedFormatter, FuncFormatter, ScalarFormatter
+    dec = re.compile(r"(?<=\d)\.(?=\d)")
+    for ax in fig.axes:
+        for axis in (ax.xaxis, ax.yaxis):
+            fm = axis.get_major_formatter()
+            if isinstance(fm, FixedFormatter):
+                fm.seq = [dec.sub(",", str(t)) for t in fm.seq]
+            elif isinstance(fm, ScalarFormatter):
+                axis.set_major_formatter(FuncFormatter(lambda v, p: f"{v:g}".replace(".", ",").replace("-", "−")))
+    for t in fig.findobj(Text):
+        txt = t.get_text()
+        if txt and "$" not in txt:
+            t.set_text(dec.sub(",", txt))
+
+
 def save(fig, path):
+    if PUBLICATION and getattr(fig, "_suptitle", None) is not None:
+        fig._suptitle.set_text("")
+    _localize(fig)
     fig.savefig(path, facecolor="white")
     plt.close(fig)
     return path

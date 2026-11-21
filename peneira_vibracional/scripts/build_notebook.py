@@ -243,17 +243,19 @@ code(r"""
 show(pl.fig_sensor_report(an, "R1"))
 """)
 
-md("## 7. Relatório PDF e planilha Excel")
+md("## 7. Relatório PDF, planilha Excel e projeto LaTeX (Overleaf)")
 code(r"""
 from pulseva.report_pdf import build_report
 from pulseva.export import to_excel
 out = pathlib.Path("saida"); out.mkdir(exist_ok=True)
 pdf = build_report(an, out / "Relatorio_Tecnico_Peneira.pdf", ref=REF, figdir=out / "figuras")
 xls = to_excel(an, out / "Resultados_Peneira.xlsx", ref=REF)
+from pulseva.report_latex import build_latex
+tex, zp = build_latex(an, out / "relatorio_latex", equipamento="Peneira vibratória", documento="RT-VIB-001")
 print(pdf, xls, sep="\n")
 if IN_COLAB:
     from google.colab import files
-    files.download(str(pdf)); files.download(str(xls))
+    files.download(str(pdf)); files.download(str(xls)); files.download(str(zp))   # zip: importar no Overleaf
 """)
 
 md(r"""

@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pulseva as pv  # noqa: E402
 from pulseva.export import to_excel  # noqa: E402
+from pulseva.report_latex import build_latex  # noqa: E402
 from pulseva.report_pdf import build_report  # noqa: E402
 
 
@@ -21,6 +22,7 @@ def main():
     ap.add_argument("--out", default="saida", help="pasta de saída")
     ap.add_argument("--autor", default=None, help="nome do responsável (capa do PDF)")
     ap.add_argument("--equipamento", default=None, help="identificação do equipamento")
+    ap.add_argument("--documento", default="RT-VIB-001", help="número do documento (relatório LaTeX)")
     a = ap.parse_args()
 
     out = Path(a.out)
@@ -36,7 +38,9 @@ def main():
     pdf = build_report(an, out / f"Relatorio_Tecnico_{stem}.pdf", ref=ref, figdir=out / "figuras",
                        author=a.autor, equipment=a.equipamento)
     xls = to_excel(an, out / f"Resultados_{stem}.xlsx", ref=ref)
-    print(f"\nPDF  : {pdf}\nExcel: {xls}")
+    tex, zp = build_latex(an, out / "relatorio_latex", equipamento=a.equipamento or rec.meta.get("Serial", ""),
+                          documento=a.documento)
+    print(f"\nPDF  : {pdf}\nExcel: {xls}\nLaTeX: {tex} (Overleaf: {zp})")
 
 
 if __name__ == "__main__":
