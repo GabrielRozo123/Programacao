@@ -29,11 +29,25 @@ técnico em PDF, uma planilha Excel e figuras de engenharia.
 | Center Body | média dos fasores dos 4 cantos, fases referidas ao eixo X | confirmado |
 | Maximum Body | máximo entre os 8 sensores | confirmado |
 | Pitch / Roll / Twist | `|a−b|/|a+b|` dos fasores Y (alimentação×descarga / esquerda×direita / diagonais) | confirmado |
-| Yaw / Z | fórmulas de corpo rígido implementadas como **hipótese** | não confirmado |
-| G-Force Z | estimador do Pulse não é o 1× (Z é de banda larga) | não confirmado |
+| G-Force Z | amplitude do **pico dominante** do espectro (qualquer frequência), não o 1× | identificado (8/8 dentro de ~0,01 g) |
+| Yaw | \|(Z_L1+Z_R1) − (Z_L4+Z_R4)\| / \|ΣY\| — Z alimentação × descarga | compatível (alternativa X esq.×dir. excluída) |
+| Z | \|ΣZ\| / \|ΣY\| — translação lateral dos cantos | compatível (alternativa \|Z médio\|/Main excluída) |
 
 "Confirmado" significa que, recalculado a partir dos números impressos no relatório, o valor bate dentro do
 arredondamento (ex.: Main G ±0,006 g, ângulos ±0,1°, Pitch 23,81 % × 23,8 %).
+
+### Engenharia reversa a partir do PDF vetorial
+O relatório Pulse é vetorial: ondas (sinal bruto), órbitas (sinal filtrado), órbitas Z–X e espectros
+(FFT de 4096 pontos, sem janela, dB de amplitude normalizado ao pico) estão gravados como coordenadas.
+`scripts/engenharia_reversa_pdf.py` extrai esses sinais, confere contra as tabelas do relatório e testa
+as hipóteses de G-Force Z, Yaw e Z por Monte Carlo (arredondamentos + incerteza de fase):
+
+```bash
+python scripts/engenharia_reversa_pdf.py relatorio_pulse.pdf referencia.json --out saida/
+```
+
+Yaw e Z usam os 4 cantos com o mesmo denominador |ΣY| de Pitch/Roll/Twist. São consistentes com o
+relatório, mas a prova definitiva exige o XML **da mesma gravação** do relatório.
 
 ## Como usar
 
