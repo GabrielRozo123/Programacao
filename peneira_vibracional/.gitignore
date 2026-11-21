@@ -1,0 +1,8 @@
+# dados de campo e resultados derivados (não publicar em repositório público)
+privado/
+saida/
+notebooks/saida/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
