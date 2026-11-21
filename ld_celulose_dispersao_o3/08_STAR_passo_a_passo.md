@@ -354,6 +354,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   válida, face validity 1,0 em 100 %, volume change mínimo 3,5e-3. Mesmo setup de rodada (média a partir de 1500, até 2500).
   Comparar: máximo no chão por fonte, receptores E3–E6, prensas, CCM e áreas por limiar.
 
+- **Leste em emergência concluído (21/11).** Lição: copiar um *Field Mean Monitor* cria um campo "Mean of O3_930 2" que
+  **não muda de nome** ao trocar a *Field Function*, e uma cópia ficou na 930 → as médias da 910/920/940 se perderam.
+  Solução: 910/920/940 pelo campo instantâneo, validado comparando instantâneo × média na 930 (±2–6 % nos receptores,
+  −4 % no máximo). Daqui em diante, criar cada média nova pelo menu (*New Monitor*), não por cópia.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
