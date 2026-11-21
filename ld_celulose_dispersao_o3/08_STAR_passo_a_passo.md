@@ -359,6 +359,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   Solução: 910/920/940 pelo campo instantâneo, validado comparando instantâneo × média na 930 (±2–6 % nos receptores,
   −4 % no máximo). Daqui em diante, criar cada média nova pelo menu (*New Monitor*), não por cópia.
 
+- **V2 (rajada 13,6 m/s, NNE, operação normal) solto em 21/11 na máquina do Gabriel**, a partir do V1a: 910/920 → parede;
+  `ustar` e *Reference Speed* 13,6; *Maximum Ratio* da viscosidade turbulenta 1E8 (νt/ν ~8E6 no topo); médias fx criadas
+  pelo menu (930, 940, chaminé, U) com início 1500. Inicialização a 1,5 m: Velocity[i] −3,5 a −3,75 e [j] −8,45 a −9,05 m/s ✓.
+  Prioridade da reunião de segunda (23/11, 14 h): resultados de cenário; Sc_t fica para o relatório final.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
