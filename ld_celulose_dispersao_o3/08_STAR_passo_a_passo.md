@@ -364,6 +364,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   pelo menu (930, 940, chaminé, U) com início 1500. Inicialização a 1,5 m: Velocity[i] −3,5 a −3,75 e [j] −8,45 a −9,05 m/s ✓.
   Prioridade da reunião de segunda (23/11, 14 h): resultados de cenário; Sc_t fica para o relatório final.
 
+- **Independência de malha concluída (21/11):** rodou no ENE em **emergência** (o arquivo de partida foi esse). 7,06 M ×
+  16,3 M: áreas por limiar ±10 % (uma faixa +31 %), máximo da chaminé +5 %, receptores no núcleo da pluma ±25 %; na
+  borda da pluma e no pico local do jato de 40 m/s a diferença é grande. Conclusão: malha de 7 M adequada para o estudo,
+  com incerteza declarada. Detalhes em `_privado/`.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
