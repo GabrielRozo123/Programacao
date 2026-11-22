@@ -373,6 +373,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   ÷12 em relação ao V1b), coerente com a régua gaussiana. **V3 (1,1 m/s, perfil neutro, NNE, operação normal) rodando na
   WS3**, até 3500 it., opção (a) do V3 (limitação de estabilidade declarada).
 
+- **NE (45°, 3,2 m/s), operação normal, solto em 22/11 na máquina do Gabriel**, a partir do Leste normal: S08/S09 → saída,
+  S15/S16 → entrada; direção [−0,7071; −0,7071; 0]; cortes com normal [0,7071; −0,7071; 0]. Inicialização a 1,5 m:
+  Velocity[i] = Velocity[j] ≈ −1,52 a −1,63 m/s ✓. Com NNE, NE, ENE e E (64 % das horas) dá para montar as horas por ano
+  acima de cada limiar nos receptores. Vídeo do Leste em emergência gravado (22/11).
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
