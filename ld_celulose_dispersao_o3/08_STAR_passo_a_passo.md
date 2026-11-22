@@ -378,6 +378,9 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
   Velocity[i] = Velocity[j] ≈ −1,52 a −1,63 m/s ✓. Com NNE, NE, ENE e E (64 % das horas) dá para montar as horas por ano
   acima de cada limiar nos receptores. Vídeo do Leste em emergência gravado (22/11).
 
+- **NE concluído e V3 concluído (22/11).** Atenção: o V3 rodou em **emergência** (910/920 ligados), não em operação
+  normal; compara com o V1a. Síntese por receptor e por setor (horas do ano) em `_privado/`.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
