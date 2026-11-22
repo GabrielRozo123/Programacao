@@ -381,6 +381,11 @@ r = 1,07 m. Fora dela, nenhuma face é limitada (prisma de 2,5 m).
 - **NE concluído e V3 concluído (22/11).** Atenção: o V3 rodou em **emergência** (910/920 ligados), não em operação
   normal; compara com o V1a. Síntese por receptor e por setor (horas do ano) em `_privado/`.
 
+- **Noite de 22→23/11:** WS3 com o **V3 em operação normal** (`LD_V3_normal_v2`, 910/920 → parede, 1,1 m/s); máquina do
+  Gabriel com o **Leste fraco** (1,1 m/s, normal, `LD_E_fraco_normal`). Nesse arquivo o `Vel_ABL` estava constante
+  [−1, 0, 0] (sem o perfil): corrigido para `[-1.0*${U_ABL}, 0, 0]`; inicialização conferida (Velocity[i] −0,74 a −0,79 m/s
+  a 1,5 m). Lição: conferir o `Vel_ABL` em todo *Save As* antes de inicializar.
+
 **Vídeo (decisão 18/11):** iterações de um caso permanente não são tempo → nada de vídeo "da convergência". Para a
 apresentação: (1) **linhas de corrente com traçadores** saindo das descargas e da chaminé (*Streamline* + animação
 *Tracers*) sobre as isosuperfícies translúcidas, mostrando o jato para Leste, a descida na esteira e o arrasto para SSW;
