@@ -171,9 +171,21 @@ chaminé). As 1348/1349 (13 kgf/cm², saída 2") batem com a pressão citada (~1
 **Leitura:** PSVs que chegaram **vazando** sugerem liberação **contínua e pequena** pela chaminé, além do sopro na abertura —
 coerente com os eventos relatados.
 
-**Respostas em verde no mesmo e-mail (conferidas em 23/11):** saída das PSVs a **20 m**; **saída dos exaustores do prédio a
-10 m**; dispositivos ligados ao coletor: 2 PSV de O₃ (12,8 bar), 2 válvulas de alívio (11,5 bar), 2 PSV de O₂ (14,0 bar),
-2 PSV de O₃ (0,5 bar) e 2 sistemas de pino de ruptura (4 bar). "Podem abrir ao mesmo tempo?" ficou sem resposta.
+**Respostas em verde no mesmo e-mail (conferidas em 23/11, texto completo):**
+- Saída das PSVs a **20 m**; **saída dos exaustores do prédio a 10 m**.
+- **10 pontos de alívio** no coletor: 2 PSV de O₃ (12,8 bar), 2 válvulas de alívio (11,5 bar), 2 PSV de O₂ (14,0 bar),
+  2 PSV de O₃ (0,5 bar) e 2 sistemas de pino de ruptura (4 bar). **Podem aliviar todos ao mesmo tempo.**
+- **Não há fluxo contínuo** para a chaminé e **não há destruidor de ozônio**.
+- 13 % "em concentração de gás" (massa ou volume não ficou claro), gás a **20 a 30 °C** (sem empuxo térmico; o gás é ~15 %
+  mais denso que o ar, o escalar passivo ignora isso).
+- Duração: **pior caso de 30 min** (investigação e intertravamento). Como a pluma atravessa o domínio em 1 a 10 min, o campo
+  de regime vale durante o evento: deixa de ser "teto para um sopro curto".
+- Pendências que sobram daqui (no slide de 23/11): os 2 300 kg/h (16/11) cobrem os 10 pontos abertos? 13 % em massa ou em
+  volume (em volume, os ppm da chaminé sobem ~40 %)?
+**Certificados Ibrav (conferidos em 23/11):** PSV-1219-1196 e 1197 **reprovadas na recepção por vazamento na vedação**
+(removidas do sistema), desmontadas, lapidadas e **aprovadas em 10 e 11/10/2026** (estanqueidade 0 bpm). 1348 e 1349: PSVs
+novas, abriram a 12,6 (ajuste 13,0) e vedação reprovada na recepção, só ajuste de set, aprovadas em 09/10. Pergunta-chave
+levada à reunião: **os eventos continuaram depois da manutenção de outubro?**
 ⚠️ **Divergência:** o 3D das descargas de 16/11 põe as saídas dos exaustores a ~5,7–6,0 m do piso, e o modelo usa esse
 valor (conservador: descarga mais baixa chega mais concentrada ao chão). Confirmar com a LD (L14).
 
