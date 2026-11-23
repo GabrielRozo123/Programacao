@@ -39,10 +39,16 @@ plano (25–55 MB cada) ficam com o Gabriel; os mapas e áreas se refazem a part
 | Leste em emergência, linhas de corrente (redemoinho a barlavento) | ✅ `_privado/Leste_emergencia.mp4` (23/11) |
 | Leste fraco, linhas de corrente (operação normal) | ✅ `_privado/E_fraco_linhas_de_corrente.mp4` (23/11) |
 
+## Cortes verticais (pedido do Marcus, 23/11)
+Leste fraco, planos normais a y, mesma escala (0,2 a 10 ppm, log, corte abaixo do mínimo): pela chaminé (y = 5,5), pela SDCD
+(y = 14,5), pelo CCM (y = −20), vista 3D dos três e corte de velocidade com LIC pela boca da 930 (y = 14,13, 0 a 3 m/s).
+Prints e versões anotadas em `_privado/cortes_verticais/`; anotação com `_privado/inventarios/slides_FUP2/anota_planos*.py`.
+O ENE fica para o relatório (normal [0.3827, −0.9239, 0]; origens na chaminé, em E5 e na SDCD).
+
 ## Apresentações
 | reunião | arquivo | como refazer |
 |---|---|---|
-| Andamento nº 2, resultados parciais (23/11, 14h) | `_privado/LD_O3_FUP2_23-11.pptx` (20 slides, 3 vídeos) | `_privado/inventarios/slides_FUP2/`: `mapas_slides.py` (mapas de slide, exaustores 930+940 somados), `figs_extra.py`, `build_deck.py` (modelo CAEXPERTS) |
+| Andamento nº 2, resultados parciais (23/11, 14h) | `_privado/LD_O3_FUP2_23-11.pptx` (23 slides, 3 vídeos, cortes verticais do Leste fraco) | `_privado/inventarios/slides_FUP2/`: `mapas_slides.py` (mapas de slide, exaustores 930+940 somados), `figs_extra.py`, `build_deck.py` (modelo CAEXPERTS) |
 
 ## Pendentes
 - Sensibilidade ao Sc_t (0,5 / 0,9, escoamento congelado) — para o relatório final.
