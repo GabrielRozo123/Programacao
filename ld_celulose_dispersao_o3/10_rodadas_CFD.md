@@ -22,8 +22,8 @@
 | NE | NE 45° | 3,2 m/s (média do setor) | normal | 2500 | ✅ | `LD_NE_normal` |
 | V2 | NNE | 13,6 m/s (rajada máxima medida) | normal | 2500 | ✅ | `LD_V2_normal` |
 | V3 (rodou em emergência) | NNE | 1,1 m/s (fraco; perfil neutro) | emergência | 3500 | ✅ | `LD_V3_emergencia` |
-| **V3 normal** | NNE | 1,1 m/s | normal | 3500 | 🟡 recomeçado do zero na WS3 em 23/11 (a queda de 22/11 não deixou *auto save*); inicialização conferida | `LD_V3_normal_v2` |
-| **Leste fraco** | E | 1,1 m/s | normal | 3500 | 🟡 rodando (máquina do Gabriel, 22→23/11) | `LD_E_fraco_normal` |
+| **V3 normal** | NNE | 1,1 m/s | normal | 3500 | ✅ (recomeçado em 23/11 depois da queda da WS3) | `LD_V3_normal_v2` |
+| **Leste fraco** | E | 1,1 m/s | normal | 2500 (1500–2500) | ✅ médias estáveis em ±1 % | `LD_E_fraco_normal` |
 | Malha fina | ENE | 2,9 m/s | emergência | 2500 | ✅ 16,3 M células; independência de malha (`08`) | `LD_ENE_normal_malhafina` (é emergência) |
 
 Para cada caso concluído existem em `_privado/`: CSV dos máximos médios no Plano_z1.5 (`<caso>_medias_…csv`), grade de 2 m
