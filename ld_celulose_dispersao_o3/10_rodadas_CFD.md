@@ -36,7 +36,13 @@ plano (25–55 MB cada) ficam com o Gabriel; os mapas e áreas se refazem a part
 | vídeo | situação |
 |---|---|
 | V1a, linhas de corrente (exaustores e chaminé) | ✅ `_privado/V1a_linhas_de_corrente.mp4` |
-| Leste em emergência, linhas de corrente (redemoinho a barlavento) | ✅ gravado pelo Gabriel (22/11), arquivo com ele |
+| Leste em emergência, linhas de corrente (redemoinho a barlavento) | ✅ `_privado/Leste_emergencia.mp4` (23/11) |
+| Leste fraco, linhas de corrente (operação normal) | ✅ `_privado/E_fraco_linhas_de_corrente.mp4` (23/11) |
+
+## Apresentações
+| reunião | arquivo | como refazer |
+|---|---|---|
+| Andamento nº 2, resultados parciais (23/11, 14h) | `_privado/LD_O3_FUP2_23-11.pptx` (20 slides, 3 vídeos) | `_privado/inventarios/slides_FUP2/`: `mapas_slides.py` (mapas de slide, exaustores 930+940 somados), `figs_extra.py`, `build_deck.py` (modelo CAEXPERTS) |
 
 ## Pendentes
 - Sensibilidade ao Sc_t (0,5 / 0,9, escoamento congelado) — para o relatório final.
