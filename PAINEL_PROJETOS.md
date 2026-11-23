@@ -49,6 +49,7 @@ separador (·)**. Separar com vírgula, ponto final ou quebra de linha.
 | L11 | Posição e altura das **tomadas de ar do ar-condicionado da SDCD e do CCM** (o modelo mede na fachada; dentro depende da tomada) | Cliente |
 | L12 | Aval para os campos de vento **ENE e Leste** (eventos da SDCD e das prensas) e decisão sobre o V3 estável | Marcus |
 | L13 | Documento da LD com janelas, venezianas e de onde cada exaustor puxa (Marcus procurando, 17/11). Pontos de vazamento internos aprovados: geradores, tubulação de O₃, PSVs | Marcus |
+| L14 | **Altura das descargas dos exaustores:** e-mail de 09/11 diz 10 m, o 3D de 16/11 dá ~6 m (o modelo usa 6 m, conservador). Perguntado no slide de pendências da reunião de 23/11 | Cliente |
 
 ### 🔥 Petrobras — `petrobras_coqueamento/` (🔒 detalhes só no bloquinho privado)
 | # | pendência | com quem |

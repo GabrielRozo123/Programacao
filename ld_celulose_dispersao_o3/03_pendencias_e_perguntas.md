@@ -171,6 +171,12 @@ chaminé). As 1348/1349 (13 kgf/cm², saída 2") batem com a pressão citada (~1
 **Leitura:** PSVs que chegaram **vazando** sugerem liberação **contínua e pequena** pela chaminé, além do sopro na abertura —
 coerente com os eventos relatados.
 
+**Respostas em verde no mesmo e-mail (conferidas em 23/11):** saída das PSVs a **20 m**; **saída dos exaustores do prédio a
+10 m**; dispositivos ligados ao coletor: 2 PSV de O₃ (12,8 bar), 2 válvulas de alívio (11,5 bar), 2 PSV de O₂ (14,0 bar),
+2 PSV de O₃ (0,5 bar) e 2 sistemas de pino de ruptura (4 bar). "Podem abrir ao mesmo tempo?" ficou sem resposta.
+⚠️ **Divergência:** o 3D das descargas de 16/11 põe as saídas dos exaustores a ~5,7–6,0 m do piso, e o modelo usa esse
+valor (conservador: descarga mais baixa chega mais concentrada ao chão). Confirmar com a LD (L14).
+
 **Perguntas que sobram (curtas):**
 1. Quais PSVs descarregam na chaminé: só as 1219-1196/1197, ou também as 1348/1349?
 2. Orifício (letra) ou folha de dados das PSVs — com o artigo LESER (4414.4654 e 4414.7964) dá para buscar no catálogo.
