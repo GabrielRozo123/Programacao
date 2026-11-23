@@ -49,6 +49,7 @@ separador (·)**. Separar com vírgula, ponto final ou quebra de linha.
 | L11 | Posição e altura das **tomadas de ar do ar-condicionado da SDCD e do CCM** (o modelo mede na fachada; dentro depende da tomada) | Cliente |
 | L12 | Aval para os campos de vento **ENE e Leste** (eventos da SDCD e das prensas) e decisão sobre o V3 estável | Marcus |
 | L13 | Documento da LD com janelas, venezianas e de onde cada exaustor puxa (Marcus procurando, 17/11). Pontos de vazamento internos aprovados: geradores, tubulação de O₃, PSVs | Marcus |
+| L16 | **Cenários pedidos na reunião de 23/11:** gatilho de 1,2 (ppm ou %) com alívio pela chaminé e taxas de vazamento menores. Aguardando a LD definir gatilho, vazão e duração (e-mail de envio da apresentação) | Cliente |
 | L15 | **Planos verticais pedidos pelo Marcus (23/11, vídeo):** cerca de 3 fatias alinhadas ao vento passando pelos prédios, cada uma em 2D + vista 3D mostrando onde está, escala fixa (mínimo e máximo), no estilo do relatório Syngenta/Formulação. Começar por Leste e ENE | Gabriel |
 | L14 | **Altura das descargas dos exaustores:** e-mail de 09/11 diz 10 m, o 3D de 16/11 dá ~6 m (o modelo usa 6 m, conservador). Perguntado no slide de pendências da reunião de 23/11 | Cliente |
 

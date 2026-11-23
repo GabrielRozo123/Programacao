@@ -215,10 +215,20 @@ valor (conservador: descarga mais baixa chega mais concentrada ao chão). Confir
    prensas e CCM (~70 m), ao sul das prensas e junto à **sala de controle (SDCD), a ~125–135 m**. Servem de validação
    qualitativa das direções de vento simuladas (coordenadas em `_privado/`).
 
+## 📥 Reunião de andamento nº 2 — 23/11 (resultados parciais)
+- **13 % de O₃ em massa: confirmado.** A conversão da chaminé (ppm = 78 430 · φ) fica como está.
+- A LD pediu **rosa dos ventos em todas as imagens** (mapas, cortes e vídeos): feito na versão `_2` da apresentação.
+- **Novos cenários pedidos no fim da reunião** (a gravação ficou sem áudio; registro pelo relato do Gabriel, a confirmar por
+  e-mail): (1) situação em que a concentração atinge **1,2 (ppm ou %, a confirmar)** e a chaminé passa a aliviar;
+  (2) **taxas de vazamento menores**. Pedido de definição enviado junto com a apresentação.
+- Continuam em aberto: os 2 300 kg/h com os 10 pontos abertos; documento de aberturas e tomadas (L13); altura das descargas
+  (L14); tomadas do ar-condicionado da SDCD e do CCM (L11); decisão sobre o modelo interno.
+
 ## Log de respostas
 
 | data | item | resposta |
 |---|---|---|
+| 23/11 | Reunião de andamento nº 2 | 13 % em massa confirmado; rosa dos ventos nas imagens; novos cenários (gatilho de 1,2 e vazamentos menores) a definir por e-mail. |
 | 16/11 | Descargas e chaminé para Leste, capacidade das PSVs, eventos marcados | Ver seção 16/11 acima. |
 | 09/11 | Planta marcada + 4 certificados de PSV | Ver seção acima: papéis dos exaustores, chaminé no topo do bloco alto, PSVs 1219-1196/1197 (3"×4", 0,51 kgf/cm², vazando). |
 | 26/10 | Reunião de acompanhamento | Geometria aceita. **Nova fonte: chaminé do off-gás** (alívio das PSVs, 4" → coletor 10", ~12,5–13 % de O₃, PSV ~12–12,8 bar). Oeste do modelo = SDCD (sala de controle) e CCM: receptores. Eventos já percebidos além do CCM, no 2º nível. Detalhes: `09` |
