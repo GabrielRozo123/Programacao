@@ -1,0 +1,16 @@
+! Mecanismo do CO2 em NaOH aquoso (fase liquida), 25 C. Constantes: Krauss & Rzehak (2018), Ap. A
+! Ions como pseudo-especies neutras (a carga se conserva em cada reacao).
+! Unidades: A em mol, cm, s; Ea em cal/mol (Ea = 0, caso isotermico).
+ELEMENTS
+C H O NA
+END
+SPECIES
+H2O CO2L OHM HCO3M CO3MM NAP
+END
+REACTIONS
+CO2L+OHM=HCO3M                 8.288E+06   0.0   0.0
+ REV / 1.813E-04   0.0   0.0 /
+HCO3M+OHM=CO3MM+H2O            1.000E+07   0.0   0.0
+ REV / 1.548E+00   0.0   0.0 /
+ RORD / H2O 0.0 /
+END
