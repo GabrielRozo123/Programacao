@@ -19,8 +19,71 @@ como um canal plano bidimensional, preservando-se contudo a formulação
 tridimensional do solver. A parede superior é catalítica; a inferior é tratada
 como parede lisa inerte.
 
-\pendente{inserir figura esquemática do domínio com dimensões e identificação
-das condições de contorno}
+\begin{figure}[htb]
+\centering
+\begin{tikzpicture}[>=latex, x=1cm, y=1cm]
+
+  % --- perfil de velocidade na entrada ------------------------------------
+  \draw[gray!60] (-1.6,0) -- (-1.6,2.2);
+  \draw[blue!65!black, line width=0.9pt]
+    plot[domain=0:2.2, samples=60] ({-1.6 + 1.25*4*(\x/2.2)*(1-\x/2.2)}, {\x});
+  \foreach \y in {0.25,0.55,0.85,1.1,1.35,1.65,1.95}{
+    \draw[->, blue!65!black, line width=0.6pt]
+      (-1.6,{\y}) -- ({-1.6 + 1.25*4*(\y/2.2)*(1-\y/2.2)}, {\y});
+  }
+  \node[blue!65!black, font=\small] at (-0.85,-0.75) {$\bar{u}$};
+
+  % --- canal ---------------------------------------------------------------
+  \fill[gray!8] (0,0) rectangle (11,2.2);
+
+  % --- parede catalitica (superior) ---------------------------------------
+  \fill[orange!45] (0,2.2) rectangle (11,2.46);
+  \draw[line width=0.9pt] (0,2.2) -- (11,2.2);
+  \draw[line width=0.9pt] (0,2.46) -- (11,2.46);
+  \node[font=\small, anchor=south] at (5.5,2.56)
+    {parede catalítica \ -- \ \textit{washcoat} de CaO, $\delta_{wc} = 10$ µm};
+
+  % --- parede inerte (inferior) -------------------------------------------
+  \fill[gray!40] (0,-0.26) rectangle (11,0);
+  \draw[line width=0.9pt] (0,0) -- (11,0);
+  \draw[line width=0.9pt] (0,-0.26) -- (11,-0.26);
+  \node[font=\small, anchor=north] at (5.5,-0.36) {parede lisa inerte};
+
+  % --- entrada e saida -----------------------------------------------------
+  \draw[line width=0.9pt, blue!65!black] (0,0) -- (0,2.2);
+  \draw[line width=0.9pt, blue!65!black] (11,0) -- (11,2.2);
+  \node[font=\small, rotate=90, anchor=south] at (-0.22,1.1) {entrada};
+  \node[font=\small, rotate=90, anchor=north] at (11.22,1.1) {saída};
+
+  % --- cotas ---------------------------------------------------------------
+  \draw[<->, gray!70] (0,-1.05) -- (11,-1.05);
+  \node[font=\small, fill=white, inner sep=1.5pt] at (5.5,-1.05) {$L = 50$ mm};
+
+  \draw[<->, gray!70] (11.75,0) -- (11.75,2.2);
+  \node[font=\small, rotate=90, fill=white, inner sep=1.5pt] at (11.75,1.1)
+    {$H = 1{,}1$ mm};
+
+  % --- fluxo de especies na parede ----------------------------------------
+  \foreach \x in {2,4,6,8}{
+    \draw[->, orange!75!black, line width=0.7pt] ({\x},1.75) -- ({\x},2.15);
+    \draw[->, orange!75!black, line width=0.7pt] ({\x+0.55},2.15) -- ({\x+0.55},1.75);
+  }
+  \node[orange!70!black, font=\small, anchor=west] at (9.2,1.55) {$J_i$};
+
+  % --- nota de simetria ----------------------------------------------------
+  \node[font=\small, anchor=north west, text width=11cm, align=left]
+    at (0,-1.55)
+    {Faces normais a $z$: condição de simetria; espessura de
+     \SI{50}{\micro\meter} com uma única célula.};
+
+\end{tikzpicture}
+\caption{Representação esquemática do domínio computacional, fora de escala. O
+escoamento entra à esquerda com perfil de Poiseuille plenamente desenvolvido; a
+reação heterogênea é imposta como fluxo de espécies $J_i$ na parede superior}
+\label{fig:dominio}
+\end{figure}
+
+A Figura~\ref{fig:dominio} apresenta o domínio esquematicamente.
 
 As hipóteses adotadas são as seguintes:
 
@@ -146,13 +209,32 @@ $\delta_{wc} = \SI{10}{\micro\meter}$, obtém-se
 \end{equation}
 
 Ou seja, pouco menos de \SI{40}{\percent} da atividade nominal do catalisador
-depositado é perdida por limitação difusional interna já nessa espessura. Como
-$\eta$ decresce monotonicamente com $\delta_{wc}$ enquanto a massa de
-catalisador cresce linearmente, existe uma espessura além da qual acrescentar
-material deixa de compensar. A análise indica
-$\delta_{wc} \lesssim \SI{10}{\micro\meter}$ como faixa de trabalho
-recomendável, resultado que foi repassado à equipe responsável pelas
-impregnações.
+depositado é perdida por limitação difusional interna já nessa espessura.
+
+O comportamento da taxa observada com a espessura da camada merece ser
+explicitado, por ter consequência direta sobre o procedimento de impregnação.
+Substituindo-se a Equação~\eqref{eq:efetividade} na taxa por área de parede,
+
+\begin{equation}
+r_{obs} = \eta\, k_v\, \delta_{wc}\, C
+        = C \sqrt{k_v D_p}\, \tanh \phi
+\label{eq:saturacao}
+\end{equation}
+
+\noindent
+de modo que a taxa não passa por máximo: ela cresce monotonicamente e satura em
+$C\sqrt{k_v D_p}$, valor que independe da espessura depositada. O que se perde
+ao engrossar a camada não é taxa, e sim material, que passa a ser depositado sem
+contribuir.
+
+Com a calibração adotada, $\phi = \num{1.44}$ a \SI{10}{\micro\meter}
+corresponde a $\tanh\phi = \num{0.894}$, ou seja, \SI{89}{\percent} da taxa
+máxima alcançável. Aos \SI{15}{\micro\meter} chega-se a \SI{97}{\percent}, e
+aos \SI{20}{\micro\meter} a \SI{99}{\percent}. A faixa de trabalho
+recomendada é, portanto, de \SIrange{10}{15}{\micro\meter}: abaixo disso
+perde-se taxa de forma apreciável, e acima disso acrescenta-se catalisador cujo
+retorno é inferior a três pontos percentuais. Essa recomendação foi repassada à
+equipe responsável pelas impregnações.
 
 \section{Propriedades físicas e difusividades}
 \label{sec:difusividades}

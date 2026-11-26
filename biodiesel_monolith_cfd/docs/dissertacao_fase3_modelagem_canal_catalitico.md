@@ -128,10 +128,20 @@ obtém-se φ = 1,44 e
 ```
 
 Ou seja, 38% da atividade nominal do washcoat é perdida por limitação difusional
-interna nessa espessura. Como η decresce monotonicamente com δ_wc enquanto a
-massa de catalisador cresce linearmente, existe uma espessura além da qual
-acrescentar washcoat deixa de compensar. A análise indica **δ_wc ≲ 10 µm** como
-faixa de trabalho — recomendação repassada à equipe de impregnação.
+interna nessa espessura. A taxa observada por área de parede, entretanto, não passa por máximo com a
+espessura. Substituindo-se η na taxa,
+
+```
+r_obs = η · k_v · δ_wc · C = C · √(k_v·D_p) · tanh(φ)
+```
+
+ela cresce monotonicamente e **satura** em C√(k_v·D_p), valor independente da
+espessura depositada. Com a calibração adotada, φ = 1,44 a 10 µm corresponde a
+tanh φ = 0,894, ou 89 % da taxa máxima alcançável; aos 15 µm chega-se a 97 % e
+aos 20 µm a 99 %. A faixa de trabalho recomendada é de **10 a 15 µm**: abaixo
+perde-se taxa de forma apreciável, acima acrescenta-se catalisador cujo retorno
+é inferior a três pontos percentuais. Recomendação repassada à equipe de
+impregnação.
 
 ### 1.5 Propriedades físicas
 

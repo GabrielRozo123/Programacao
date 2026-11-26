@@ -117,12 +117,15 @@ Com D_h na faixa reportada por Fonseca (2026) para CaO e CaO/Al₂O₃
 (3 × 10⁻¹³ a 4,4 × 10⁻¹² m² s⁻¹), **38% da atividade nominal já se perde por
 limitação difusional interna a 10 µm de espessura**.
 
-Como η decresce monotonicamente com δ_wc enquanto a massa de catalisador cresce
-apenas linearmente, existe espessura além da qual acrescentar washcoat deixa de
-compensar:
+A taxa observada por área de parede não passa por máximo com a espessura:
+substituindo-se η, obtém-se `r_obs = C·√(k_v·D_p)·tanh(φ)`, que **satura** em
+`C√(k_v·D_p)`. Com a calibração adotada, 10 µm já entregam 89 % da taxa máxima
+alcançável, 15 µm entregam 97 % e 20 µm entregam 99 %.
 
 ```
-RECOMENDAÇÃO:  δ_washcoat ≲ 10 µm
+RECOMENDAÇÃO:  δ_washcoat entre 10 e 15 µm
+               abaixo, perde-se taxa; acima, deposita-se catalisador que
+               contribui com menos de 3 pontos percentuais
 ```
 
 Repassar à equipe de IC responsável pelas impregnações. O resultado do modelo é

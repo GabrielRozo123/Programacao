@@ -173,12 +173,32 @@ efetivamente aproveitada é dada pelo fator de efetividade,
 \noindent
 que tende à unidade para $\phi \ll 1$ e decai como $1/\phi$ para $\phi \gg 1$.
 
-A consequência prática dessa dependência merece ser explicitada. A massa de
-catalisador por área de parede cresce linearmente com $\delta_{wc}$, ao passo
-que $\eta$ decai; o produto $\eta\,\delta_{wc}$, que é o que efetivamente
-determina a taxa observada, passa por um máximo. Engrossar o \textit{washcoat}
-além dessa espessura adiciona material que não trabalha, e que ainda assim
-ocupa volume de canal e aumenta a perda de carga.
+A consequência prática dessa dependência merece ser explicitada, por ser
+frequentemente mal interpretada. A massa de catalisador por área de parede
+cresce linearmente com $\delta_{wc}$, ao passo que $\eta$ decai; o produto dos
+dois, que é o que determina a taxa observada, não passa por máximo. Substituindo
+$\eta$ na taxa por área,
+
+\begin{equation}
+r_{obs} = \eta\, k_v\, \delta_{wc}\, C = C \sqrt{k_v D_p}\, \tanh \phi
+\label{eq:rsat}
+\end{equation}
+
+\noindent
+verifica-se que a taxa cresce monotonicamente e satura em $C\sqrt{k_v D_p}$,
+valor independente da espessura. A Figura~\ref{fig:thiele} ilustra os dois
+comportamentos. O que se perde ao engrossar a camada além do joelho da curva não
+é taxa, e sim material: o catalisador é depositado, ocupa volume e custa, mas não
+contribui para a conversão.
+\begin{figure}[htb]
+\centering
+\includegraphics[width=\textwidth]{fig5_thiele_washcoat.pdf}
+\caption{Resistência difusional interna ao \textit{washcoat}.
+(a)~fator de efetividade em função do módulo de Thiele, com o ponto de operação
+adotado neste trabalho; (b)~taxa observada em função da espessura da camada,
+normalizada pela assíntota $C\sqrt{k_v D_p}$}
+\label{fig:thiele}
+\end{figure}
 
 \section{Resistência externa: a camada-limite de concentração}
 \label{sec:leveque}
