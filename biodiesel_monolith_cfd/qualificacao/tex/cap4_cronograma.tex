@@ -1,0 +1,129 @@
+\chapter{Resultados Esperados e Cronograma de Atividades}
+\label{cap:cronograma}
+
+\section{Resultados esperados}
+
+O modelo descrito no Capítulo~\ref{cap:modelagem} encontra-se verificado e
+operacional, e os resultados do Capítulo~\ref{cap:resultados} estabelecem o
+regime de operação do sistema. As etapas restantes do trabalho destinam-se a
+substituir as estimativas ainda empregadas por dados medidos, a explorar o
+espaço de parâmetros de projeto e a confrontar o modelo com a resposta
+experimental do reator.
+
+\subsection{Substituição dos parâmetros estimados}
+
+Três grandezas do modelo são hoje estimativas, e cada uma delas será substituída
+por medida experimental assim que disponível.
+
+A massa específica e a espessura do \textit{washcoat} entram no modelo apenas
+pelo produto $\rho_{wc}\,\delta_{wc}$, ao qual a taxa de reação é linearmente
+proporcional, conforme as Equações~\eqref{eq:rw} e~\eqref{eq:w}. Sua
+caracterização é, por essa razão, a medida de maior retorno imediato para a
+acurácia do modelo, e espera-se que a incerteza associada ao número de Damköhler
+caia proporcionalmente.
+
+As dimensões do canal, hoje tomadas de valores típicos de monólitos comerciais,
+serão medidas nas peças efetivamente disponíveis no laboratório. A altura e o
+comprimento do canal deixaram de ser parâmetros secundários a partir do momento
+em que se verificou que o comprimento de entrada mássica supera o comprimento
+físico em quase duas ordens de grandeza; espera-se que a razão $L_e/L$ se
+mantenha elevada, mas seu valor exato determina a magnitude da limitação
+geométrica discutida no Capítulo~\ref{cap:resultados}.
+
+As propriedades físicas do meio reacional, por fim, serão obtidas para a carga
+efetivamente empregada, em lugar dos valores de literatura hoje adotados.
+
+\subsection{Varredura paramétrica}
+
+Com o modelo calibrado, pretende-se realizar varreduras em três direções.
+
+A espessura do \textit{washcoat} será variada de modo a localizar o máximo do
+produto $\eta\,\delta_{wc}$, que define a espessura ótima de deposição. A
+análise preliminar da Seção~\ref{sec:thiele} indica
+$\delta_{wc} \lesssim \SI{10}{\micro\meter}$, e espera-se que a varredura
+confirme essa ordem de grandeza e forneça um valor quantitativo que possa
+orientar o procedimento de impregnação.
+
+A temperatura será varrida na faixa compatível com a operação em metanol à
+pressão atmosférica. Essa varredura exige a substituição da constante cinética
+por uma expressão de Arrhenius, o que depende da energia de ativação a ser
+obtida experimentalmente. Espera-se observar o deslocamento do número de
+Damköhler com a temperatura, dado que a cinética é mais sensível a $T$ do que a
+difusividade, e portanto a transição gradual do regime misto em direção ao
+controle por transporte à medida que a temperatura se eleva.
+
+A geometria do canal será variada em comprimento e em diâmetro hidráulico, com o
+objetivo de avaliar configurações capazes de elevar a conversão por passe. À luz
+do resultado de $L_e/L = \num{69}$, espera-se que a conversão responda de forma
+mais acentuada ao comprimento do canal e à redução da velocidade superficial do
+que ao aumento da carga de catalisador.
+
+\subsection{Calibração e confronto com dados experimentais}
+
+Os ensaios em condução no laboratório fornecerão conversões medidas em condições
+controladas de temperatura, razão molar e vazão. O confronto entre essas
+conversões e as previstas pelo modelo permitirá ajustar os parâmetros ainda
+incertos, em particular a difusividade efetiva do triglicerídeo no meio e no
+poro, e estabelecer a faixa de validade do modelo.
+
+Espera-se que o modelo reproduza a tendência experimental de conversão com a
+vazão, dado que essa dependência é governada pelo transporte externo, que o
+modelo resolve explicitamente. Discrepâncias sistemáticas, caso ocorram, serão
+examinadas à luz das hipóteses listadas na Seção~\ref{sec:difusividades},
+notadamente a de difusividades iguais entre espécies, cuja substituição pela
+formulação de Maxwell-Stefan constitui a alternativa prevista.
+
+\subsection{Decisão quanto à rota alcoólica}
+
+Permanece em aberto a definição da rota a ser modelada em definitivo. A rota
+metílica, à qual correspondem os parâmetros de \citeonline{Melo2023} empregados
+até aqui, opera a \SI{65}{\celsius} com razão molar de \num{6}:\num{1}. A rota
+etílica, estudada por \citeonline{Fonseca2026} a \SI{70}{\celsius} e razão de
+\num{1}:\num{9}, apresenta vantagens de origem da matéria-prima no contexto
+brasileiro, mas cinética mais lenta e separação mais difícil. A decisão será
+tomada em conjunto com a orientação, e o modelo está estruturado de modo a
+acomodar qualquer das duas sem alteração de sua formulação.
+
+\section{Cronograma de atividades}
+
+A Tabela~\ref{tab:cronograma} apresenta o cronograma proposto para a execução do
+trabalho, considerando-se o período integral do mestrado.
+
+\begin{table}[htb]
+\centering
+\caption{Cronograma proposto para as atividades do presente estudo}
+\label{tab:cronograma}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|c|c|c|c|c|}
+\hline
+\multirow{2}{*}{\textbf{Atividade}} & \multicolumn{6}{c|}{\textbf{Semestre / Ano}} \\
+\cline{2-7}
+ & \textbf{1º/25} & \textbf{2º/25} & \textbf{1º/26} & \textbf{2º/26} & \textbf{1º/27} & \textbf{2º/27} \\
+\hline
+Disciplinas obrigatórias        & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} &  &  \\
+\hline
+Revisão bibliográfica           & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} &  \\
+\hline
+Desenvolvimento do modelo CFD   &  & \cellcolor{gray!55} & \cellcolor{gray!55} & \cellcolor{gray!55} &  &  \\
+\hline
+Verificação do modelo           &  &  & \cellcolor{gray!55} & \cellcolor{gray!55} &  &  \\
+\hline
+Exame de qualificação           &  &  &  & \cellcolor{gray!55} &  &  \\
+\hline
+Caracterização do catalisador   &  &  &  & \cellcolor{gray!55} & \cellcolor{gray!55} &  \\
+\hline
+Ensaios experimentais           &  &  &  & \cellcolor{gray!55} & \cellcolor{gray!55} &  \\
+\hline
+Calibração do modelo            &  &  &  &  & \cellcolor{gray!55} &  \\
+\hline
+Varredura paramétrica           &  &  &  &  & \cellcolor{gray!55} & \cellcolor{gray!55} \\
+\hline
+Análise dos resultados          &  &  &  &  & \cellcolor{gray!55} & \cellcolor{gray!55} \\
+\hline
+Redação e defesa da dissertação &  &  &  &  &  & \cellcolor{gray!55} \\
+\hline
+\end{tabular}
+\end{table}
+
+\pendente{conferir as datas de início do mestrado e de integralização dos
+créditos, e ajustar o cronograma à previsão de defesa acordada com a orientação}

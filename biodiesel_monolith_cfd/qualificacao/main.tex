@@ -1,0 +1,165 @@
+% =============================================================================
+%  Redação para o Exame de Qualificação de Mestrado
+%  Gabriel Hernandez Rozo — FEQ/UNICAMP
+%
+%  Formatação reproduzindo o padrão da qualificação do Prof. Raphael Suppino
+%  (2008), com citações e referências em ABNT (NBR 10520 / NBR 6023) via
+%  abntex2cite.
+%
+%  Compilar: pdflatex -> bibtex -> pdflatex -> pdflatex
+%  No Overleaf: selecionar pdfLaTeX e compilador de bibliografia BibTeX.
+% =============================================================================
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+% --- Codificação e idioma ----------------------------------------------------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+
+% --- Tipografia --------------------------------------------------------------
+\usepackage{mathptmx}                 % Times New Roman (texto e matemática)
+\usepackage[scaled=0.90]{helvet}
+\usepackage{courier}
+\usepackage{microtype}
+
+% --- Página ------------------------------------------------------------------
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=3.0cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+
+% --- Matemática e tabelas ----------------------------------------------------
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}, per-mode=symbol, group-separator={\,}}
+
+% --- Figuras -----------------------------------------------------------------
+\usepackage{graphicx}
+\graphicspath{{figuras/}}
+\usepackage[font=normalsize,labelfont=bf,labelsep=endash,justification=centering]{caption}
+
+% --- Cabeçalhos --------------------------------------------------------------
+\usepackage{fancyhdr}
+\usepackage{emptypage}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\itshape\nouppercase{\leftmark}}
+\fancyhead[R]{\itshape\thepage}
+\renewcommand{\headrulewidth}{0.8pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyhead[L]{\itshape\nouppercase{\leftmark}}%
+  \fancyhead[R]{\itshape\thepage}%
+  \renewcommand{\headrulewidth}{0.8pt}%
+}
+
+% --- Títulos de capítulo e seção ---------------------------------------------
+\usepackage{titlesec}
+
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\centering}
+  {\large Capítulo \thechapter}
+  {0.4em}
+  {\large}
+\titlespacing*{\chapter}{0pt}{-20pt}{30pt}
+
+\titleformat{name=\chapter,numberless}[display]
+  {\normalfont\bfseries\centering}
+  {}
+  {0pt}
+  {\large}
+\titlespacing*{name=\chapter,numberless}{0pt}{-20pt}{30pt}
+
+\titleformat{\section}
+  {\normalfont\bfseries}
+  {\thesection\ --}
+  {0.4em}
+  {}
+\titlespacing*{\section}{0pt}{18pt}{10pt}
+
+\titleformat{\subsection}
+  {\normalfont\bfseries}
+  {\thesubsection\ --}
+  {0.4em}
+  {}
+\titlespacing*{\subsection}{0pt}{14pt}{8pt}
+
+\renewcommand{\thesection}{\thechapter.\arabic{section}}
+
+% --- Sumário e listas --------------------------------------------------------
+\usepackage[titles]{tocloft}
+\renewcommand{\cfttoctitlefont}{\hfill\bfseries\large}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftchapfont}{\bfseries}
+\renewcommand{\cftchappagefont}{\bfseries}
+\renewcommand{\cftchapdotsep}{\cftdotsep}
+\setlength{\cftbeforechapskip}{8pt}
+
+% --- Referências e citações (ABNT) -------------------------------------------
+\usepackage[alf]{abntex2cite}
+
+% --- Links -------------------------------------------------------------------
+\usepackage[hidelinks,breaklinks]{hyperref}
+\usepackage{url}
+
+% --- Marcador de pendência ---------------------------------------------------
+% Trechos que ainda dependem de dado experimental ou de referência a confirmar.
+% Para a versão final, trocar a definição por \newcommand{\pendente}[1]{}
+\usepackage[table]{xcolor}
+\newcommand{\pendente}[1]{\textcolor{red}{\textbf{[PENDENTE:} #1\textbf{]}}}
+
+% --- Ajustes finais ----------------------------------------------------------
+\renewcommand{\chaptermark}[1]{\markboth{Capítulo \thechapter\ -- #1}{}}
+\renewcommand{\bibname}{Referências Bibliográficas}
+
+\begin{document}
+
+% =============================== PRÉ-TEXTUAL =================================
+\pagenumbering{roman}
+\pagestyle{empty}
+\input{tex/folharosto}
+
+\pagestyle{fancy}
+\cleardoublepage
+\markboth{Sumário}{}
+\tableofcontents
+
+\cleardoublepage
+\markboth{Lista de Figuras}{}
+\addcontentsline{toc}{chapter}{Lista de Figuras}
+\listoffigures
+
+\cleardoublepage
+\markboth{Lista de Tabelas}{}
+\addcontentsline{toc}{chapter}{Lista de Tabelas}
+\listoftables
+
+\cleardoublepage
+\input{tex/nomenclatura}
+
+\cleardoublepage
+\input{tex/resumo}
+
+% ================================ TEXTUAL ====================================
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{tex/introducao}
+\input{tex/cap1_revisao}
+\input{tex/cap2_modelagem}
+\input{tex/cap3_resultados}
+\input{tex/cap4_cronograma}
+
+% ============================== REFERÊNCIAS ==================================
+\cleardoublepage
+\markboth{Referências Bibliográficas}{}
+\addcontentsline{toc}{chapter}{Referências Bibliográficas}
+\bibliographystyle{abntex2-alf}
+\bibliography{referencias}
+
+\end{document}

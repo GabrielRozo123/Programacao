@@ -1,0 +1,101 @@
+\chapter*{Introdução}
+\addcontentsline{toc}{chapter}{Introdução}
+\markboth{Introdução}{}
+
+O biodiesel é obtido industrialmente pela transesterificação de óleos vegetais
+ou gorduras animais com um álcool de cadeia curta, quase sempre o metanol, na
+presença de um catalisador básico dissolvido no meio reacional. A rota é madura
+e opera com rendimentos elevados em tempos de reação curtos, mas carrega
+dificuldades que são bem conhecidas de quem a pratica. O catalisador homogêneo
+não pode ser recuperado ao fim da reação e precisa ser neutralizado, o que
+consome ácido e gera sais. A separação da glicerina exige lavagens sucessivas, e
+a água empregada nessas lavagens retorna ao processo como efluente. Quando a
+matéria-prima contém ácidos graxos livres em teor apreciável, parte do
+catalisador é consumida na formação de sabões, que estabilizam emulsões e
+dificultam ainda mais a separação das fases.
+
+A substituição do catalisador dissolvido por um sólido resolve a maior parte
+desses problemas de uma só vez. O catalisador deixa de contaminar os produtos,
+pode ser retido no reator e reutilizado, e a etapa de neutralização desaparece.
+Entre os sólidos básicos estudados para essa finalidade, o óxido de cálcio tem
+recebido atenção particular por reunir basicidade adequada, baixo custo e
+disponibilidade a partir de fontes residuais, como cascas de ovo e conchas
+calcinadas. O preço dessa substituição, entretanto, é a introdução de uma
+resistência que a rota homogênea não possui: os reagentes precisam alcançar a
+superfície ativa por difusão, e só então reagir.
+
+Essa resistência não é desprezível no caso em questão. Óleos vegetais são
+líquidos viscosos cujas moléculas de triglicerídeo têm massa molar próxima de
+\SI{870}{\gram\per\mole}, e a difusividade mássica correspondente é da ordem de
+\SI{1e-11}{\meter\squared\per\second}. Comparada à difusividade de momento do
+mesmo meio, essa grandeza é cerca de cem mil vezes menor, o que coloca o sistema
+em uma faixa de número de Schmidt incomum na prática de engenharia de reatores.
+Em termos operacionais, isso significa que o transporte de reagente até a parede
+catalítica pode se tornar a etapa mais lenta do conjunto, independentemente de
+quão ativo seja o catalisador empregado.
+
+É nesse ponto que a configuração do reator deixa de ser um detalhe de projeto.
+Reatores monolíticos de parede catalítica, formados por um feixe de canais
+paralelos de pequeno diâmetro cujas paredes são recobertas por uma camada fina
+de catalisador, oferecem razão entre área superficial e volume muito superior à
+de um leito fixo convencional, com perda de carga substancialmente menor. A
+área adicional, contudo, só se traduz em desempenho quando existe de fato um
+gradiente de concentração a ser vencido. Se o sistema estiver sob controle
+cinético estrito, a reação é lenta o bastante para que o reagente alcance a
+parede sem dificuldade, e a geometria do monólito não cumpre função alguma que
+justifique sua complexidade de fabricação.
+
+Decidir em qual desses regimes o sistema opera não é algo que se resolva por
+inspeção. A resposta depende simultaneamente da atividade do catalisador, da
+espessura e da porosidade da camada depositada, da geometria do canal e da
+velocidade de escoamento, e as grandezas envolvidas percorrem várias ordens de
+grandeza. A fluidodinâmica computacional permite tratar esse acoplamento de
+forma explícita, resolvendo o campo de concentração no interior do canal com a
+reação heterogênea imposta como condição de contorno na parede, e extraindo daí
+os grupos adimensionais que caracterizam o regime.
+
+No grupo de pesquisa em que este trabalho se insere, a transesterificação
+heterogênea com óxido de cálcio vem sendo investigada experimentalmente há
+alguns anos. \citeonline{Melo2023} determinou parâmetros cinéticos para a
+metanólise de óleo de soja sobre CaO suportado em biochar a \SI{65}{\celsius},
+e \citeonline{Fonseca2026} estendeu o estudo à rota etílica com CaO e
+CaO/Al$_2$O$_3$, reportando difusividades efetivas no interior de catalisadores
+dessa natureza. Esses dois conjuntos de dados fornecem os parâmetros necessários
+para alimentar um modelo de reator, e é sobre eles que o presente trabalho se
+apoia.
+
+O objetivo geral desta dissertação é avaliar, por meio de simulação
+fluidodinâmica computacional, o desempenho de um reator monolítico de parede
+catalítica aplicado à transesterificação heterogênea de óleo de soja com óxido
+de cálcio, identificando o regime de operação do sistema e as variáveis de
+projeto que o governam. São objetivos específicos:
+
+\begin{itemize}
+\itemsep2pt
+\item construir um modelo de canal representativo do monólito que resolva
+      simultaneamente o escoamento e o transporte multicomponente de espécies,
+      com a reação heterogênea tratada como condição de contorno de parede;
+\item incorporar a resistência difusional interna ao \textit{washcoat} por meio
+      de um fator de efetividade, evitando a discretização da camada porosa;
+\item verificar o modelo quanto à conservação de massa, à independência de
+      malha e ao fechamento do balanço global por espécie;
+\item determinar o número de Damköhler de parede e classificar o regime de
+      operação do sistema com os parâmetros cinéticos do catalisador
+      efetivamente empregado no laboratório;
+\item avaliar a influência da espessura do \textit{washcoat}, da temperatura e
+      da geometria do canal sobre a conversão por passe;
+\item calibrar o modelo contra os dados experimentais obtidos no laboratório.
+\end{itemize}
+
+Nesta redação para o Exame de Qualificação, o Capítulo~\ref{cap:revisao}
+apresenta uma revisão da literatura sobre a transesterificação heterogênea, os
+catalisadores sólidos básicos empregados na reação e a modelagem de reatores de
+parede catalítica, com atenção particular aos grupos adimensionais que
+caracterizam a competição entre reação e transporte. O Capítulo~\ref{cap:modelagem}
+descreve o modelo matemático construído, as hipóteses adotadas, a implementação
+numérica e os testes de verificação aplicados. No Capítulo~\ref{cap:resultados}
+reúnem-se os resultados preliminares já obtidos, que incluem a validação
+hidrodinâmica do modelo, a determinação do regime de operação e a caracterização
+da camada-limite de concentração. O Capítulo~\ref{cap:cronograma} apresenta os
+resultados esperados para as etapas restantes e o cronograma previsto para sua
+execução.

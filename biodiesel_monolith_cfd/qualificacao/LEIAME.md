@@ -1,0 +1,112 @@
+# Redação de Qualificação — projeto LaTeX
+
+Gabriel Hernandez Rozo · FEQ/UNICAMP · Dezembro de 2026
+
+Formatação reproduzindo o padrão da qualificação do Prof. Raphael Suppino
+(2008), com citações e referências em ABNT (NBR 10520 / NBR 6023).
+
+---
+
+## Como compilar
+
+**No Overleaf**
+
+1. Compacte a pasta `qualificacao/` inteira e faça upload como novo projeto.
+2. Em *Menu → Settings*: compilador **pdfLaTeX**, documento principal `main.tex`.
+3. Compile. O Overleaf roda BibTeX automaticamente.
+
+Se a Unicamp tiver licença institucional do Overleaf com sincronia de GitHub,
+vale conectar o repositório em vez de subir o zip — o texto passa a versionar
+junto com o resto do projeto.
+
+**Localmente**
+
+```bash
+pdflatex main
+bibtex   main
+pdflatex main
+pdflatex main
+```
+
+---
+
+## Estrutura
+
+```
+main.tex                  preâmbulo e inclusões
+referencias.bib           bibliografia
+figuras/                  figuras em PDF vetorial
+tex/
+  folharosto.tex          folha de rosto
+  nomenclatura.tex        lista de símbolos
+  resumo.tex              resumo e palavras-chave
+  introducao.tex          introdução e objetivos
+  cap1_revisao.tex        Capítulo 1 — Revisão Bibliográfica
+  cap2_modelagem.tex      Capítulo 2 — Modelagem Matemática e Métodos Numéricos
+  cap3_resultados.tex     Capítulo 3 — Resultados Preliminares
+  cap4_cronograma.tex     Capítulo 4 — Resultados Esperados e Cronograma
+```
+
+---
+
+## Trechos pendentes
+
+Tudo o que ainda depende de dado experimental, de referência a confirmar ou de
+decisão da orientação está marcado no texto com o comando `\pendente{...}`, que
+aparece **em vermelho** no PDF compilado. Para localizar todos:
+
+```bash
+grep -rn 'pendente{' tex/
+```
+
+Para gerar a versão final, sem os marcadores, basta trocar a definição no
+`main.tex`:
+
+```latex
+\newcommand{\pendente}[1]{}
+```
+
+### Lista do que falta
+
+| Onde | O que |
+|---|---|
+| `folharosto.tex` | área de concentração do programa |
+| `cap1_revisao.tex` §1.2 | dados quantitativos de insumos e efluentes da rota homogênea |
+| `cap1_revisao.tex` §1.3 | referências sobre lixiviação de cálcio e estabilização do CaO |
+| `cap1_revisao.tex` §1.4 | trabalhos que aplicaram monólitos a biodiesel (teses de Bath) |
+| `cap1_revisao.tex` §1.8 | trabalhos recentes de CFD em reatores de biodiesel |
+| `cap2_modelagem.tex` §2.1 | figura esquemática do domínio |
+| `cap2_modelagem.tex` §2.3 | ρ e δ do washcoat medidos |
+| `cap3_resultados.tex` §3.1 | figura do perfil de Poiseuille |
+| `cap4_cronograma.tex` §4.2 | datas reais de ingresso e previsão de defesa |
+| `referencias.bib` | entradas marcadas `VERIFICAR` e a lista no rodapé do arquivo |
+
+O **Capítulo 1 é o mais curto** e é onde está o grosso do trabalho restante. A
+estrutura das seções está montada e o fio condutor está escrito; o que falta é
+povoar as seções de revisão com o material já reunido no repositório
+`Literatura`.
+
+---
+
+## Sobre o texto
+
+Este é um **rascunho para você reescrever na sua voz**, não um texto para
+entregar como está. Leia cada parágrafo e ajuste o que não soar como você — a
+dissertação é sua e a banca vai conversar com você sobre ela, não com o
+documento.
+
+Os números, equações e resultados estão todos verificados contra as simulações
+e contra os documentos em `docs/`. O que precisa de revisão crítica é a
+redação e, sobretudo, a revisão bibliográfica do Capítulo 1.
+
+---
+
+## Fontes do conteúdo
+
+| Seção do texto | Origem no repositório |
+|---|---|
+| Cap. 2 inteiro | `docs/dissertacao_fase3_modelagem_canal_catalitico.md` |
+| Cap. 3 §3.1–3.5 | idem, mais `docs/starccm_fase3_CaO_procedimento.md` |
+| Cap. 3 §3.6 | `docs/notas_metodologicas_cfd_especies.md` |
+| Figura 3.2 | `results/fig4_camada_limite_x49mm.pdf` |
+| Dados do perfil | `results/perfil_camada_limite_x49mm.csv` |

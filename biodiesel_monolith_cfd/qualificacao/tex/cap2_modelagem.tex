@@ -1,0 +1,323 @@
+\chapter{Modelagem Matemática e Métodos Numéricos}
+\label{cap:modelagem}
+
+Este capítulo descreve o modelo construído para representar um canal do reator
+monolítico, as hipóteses que o sustentam, a forma como a reação heterogênea foi
+incorporada e os procedimentos adotados para verificar a solução numérica. As
+simulações foram conduzidas no código comercial Simcenter STAR-CCM+
+\cite{StarCCMUserGuide}.
+
+\section{Domínio e hipóteses}
+
+O domínio computacional representa um único canal do monólito, tratado como
+representativo do feixe pelas razões discutidas no Capítulo~\ref{cap:revisao}.
+Adotou-se um paralelepípedo de \SI{50}{\milli\meter} de comprimento por
+\SI{1.1}{\milli\meter} de altura e \SI{50}{\micro\meter} de espessura, com
+condição de simetria imposta nas duas faces normais à direção de menor dimensão.
+A malha contém uma única célula nessa direção, de modo que o domínio se comporta
+como um canal plano bidimensional, preservando-se contudo a formulação
+tridimensional do solver. A parede superior é catalítica; a inferior é tratada
+como parede lisa inerte.
+
+\pendente{inserir figura esquemática do domínio com dimensões e identificação
+das condições de contorno}
+
+As hipóteses adotadas são as seguintes:
+
+\begin{enumerate}
+\itemsep2pt
+\item escoamento laminar, incompressível e isotérmico a \SI{65}{\celsius};
+\item propriedades físicas constantes, de modo que o campo de velocidade fica
+      desacoplado do campo de concentrações;
+\item reação restrita à superfície da parede recoberta, sem discretização da
+      camada de \textit{washcoat};
+\item transporte difusivo descrito pela lei de Fick com difusividades efetivas
+      iguais para todas as espécies, pelas razões expostas na
+      Seção~\ref{sec:difusividades};
+\item cinética irreversível de pseudo-primeira ordem no triglicerídeo, com
+      metanol em excesso.
+\end{enumerate}
+
+A primeira hipótese se justifica pelo número de Reynolds do escoamento, da ordem
+de \num{0.2}, e pela condução do processo em banho termostatizado. A segunda
+decorre das faixas estreitas de composição percorridas pelo meio reacional ao
+longo do canal, dada a conversão por passe baixa que se verifica no
+Capítulo~\ref{cap:resultados}. A quinta é sustentada pela razão molar de
+\num{6}:\num{1} entre metanol e óleo, que mantém a concentração de álcool
+praticamente inalterada ao longo da reação.
+
+\section{Equações governantes}
+
+Com massa específica e viscosidade constantes, a continuidade e a quantidade de
+movimento assumem a forma
+
+\begin{align}
+\nabla \cdot \mathbf{u} &= 0 \label{eq:continuidade}\\[4pt]
+\rho \left( \frac{\partial \mathbf{u}}{\partial t} + \mathbf{u} \cdot \nabla \mathbf{u} \right)
+&= -\nabla p + \mu \nabla^2 \mathbf{u} \label{eq:momento}
+\end{align}
+
+O transporte das $N = 4$ espécies consideradas, a saber TG, MeOH, FAME e GL, é
+descrito por
+
+\begin{equation}
+\frac{\partial (\rho Y_i)}{\partial t} + \nabla \cdot (\rho\, \mathbf{u}\, Y_i)
+= \nabla \cdot \left( \rho\, D_i\, \nabla Y_i \right),
+\qquad i = 1, \ldots, N
+\label{eq:especies}
+\end{equation}
+
+\noindent
+sem termo fonte volumétrico, uma vez que toda a reação é imposta pela condição
+de contorno de parede. O solver garante $\sum_i Y_i = 1$ por normalização, o que
+tem implicações discutidas na Seção~\ref{sec:difusividades}.
+
+\section{Cinética e condição de contorno catalítica}
+\label{sec:bc}
+
+A taxa de reação por área de parede foi escrita como de primeira ordem aparente
+no triglicerídeo, corrigida pelo fator de efetividade que contabiliza a
+resistência interna ao \textit{washcoat}:
+
+\begin{equation}
+r_w = \eta\, k_{cat}\, w\, C_{TG}\big|_{\text{parede}}
+\label{eq:rw}
+\end{equation}
+
+\noindent
+em que $C_{TG} = \rho\, Y_{TG}/M_{TG}$ é a concentração molar de triglicerídeo
+avaliada junto à superfície, $k_{cat}$ a constante cinética por massa de
+catalisador e $w$ a massa de catalisador por área de parede, dada por
+
+\begin{equation}
+w = \rho_{wc}\, \delta_{wc}
+\label{eq:w}
+\end{equation}
+
+A constante cinética foi tomada de \citeonline{Melo2023}, que a determinou para
+CaO suportado em biochar na metanólise de óleo de soja a \SI{65}{\celsius}:
+
+\begin{equation}
+k_{cat} = \SI{5.302e-5}{\meter\cubed\per\kilogram\per\second}
+\end{equation}
+
+Na ausência de medidas da camada depositada, adotaram-se
+$\rho_{wc} = \SI{1700}{\kilogram\per\meter\cubed}$ e
+$\delta_{wc} = \SI{10}{\micro\meter}$, o que resulta em
+$w = \SI{1.70e-2}{\kilogram\per\meter\squared}$. Convém registrar que a taxa da
+Equação~\eqref{eq:rw} é linear no produto $\rho_{wc}\,\delta_{wc}$, de modo que
+a caracterização experimental dessas duas grandezas é a medida de maior retorno
+imediato para a acurácia do modelo.
+
+\pendente{substituir $\rho_{wc}$ e $\delta_{wc}$ pelos valores medidos assim que
+as caracterizações do \textit{washcoat} estiverem concluídas}
+
+Os fluxos mássicos de cada espécie na parede decorrem da estequiometria da
+Equação~\eqref{eq:global}, com sinal negativo para os reagentes e positivo para
+os produtos:
+
+\begin{align}
+J_{TG}   &= -M_{TG}\, r_w        &&= -872{,}00\, r_w \label{eq:fluxTG}\\
+J_{MeOH} &= -3\,M_{MeOH}\, r_w   &&= -\phantom{0}96{,}12\, r_w \label{eq:fluxMeOH}\\
+J_{FAME} &= +3\,M_{FAME}\, r_w   &&= +876{,}00\, r_w \label{eq:fluxFAME}\\
+J_{GL}   &= +M_{GL}\, r_w        &&= +\phantom{0}92{,}09\, r_w \label{eq:fluxGL}
+\end{align}
+
+A soma dos quatro coeficientes vale $-0{,}03$ quilogramas por quilomol de
+triglicerídeo consumido, ou \num{3e-5} da massa envolvida, resíduo que decorre
+apenas do arredondamento das massas molares. Essa verificação não é
+dispensável: coeficientes que não se cancelam injetam ou removem massa total na
+parede, e o solver redistribui o desvio pela normalização de $\sum_i Y_i$,
+produzindo um erro que não se manifesta em nenhum dos indicadores usuais de
+convergência.
+
+\section{Resistência interna ao \textit{washcoat}}
+
+A difusão no interior da camada porosa foi tratada pelo módulo de Thiele para
+placa plana, Equações~\eqref{eq:thiele} e~\eqref{eq:efetividade}. Com a
+difusividade efetiva no poro tomada da faixa reportada por
+\citeonline{Fonseca2026} para CaO e CaO/Al$_2$O$_3$, e com
+$\delta_{wc} = \SI{10}{\micro\meter}$, obtém-se
+
+\begin{equation}
+\phi = 1{,}44
+\qquad \Longrightarrow \qquad
+\eta = 0{,}62
+\end{equation}
+
+Ou seja, pouco menos de \SI{40}{\percent} da atividade nominal do catalisador
+depositado é perdida por limitação difusional interna já nessa espessura. Como
+$\eta$ decresce monotonicamente com $\delta_{wc}$ enquanto a massa de
+catalisador cresce linearmente, existe uma espessura além da qual acrescentar
+material deixa de compensar. A análise indica
+$\delta_{wc} \lesssim \SI{10}{\micro\meter}$ como faixa de trabalho
+recomendável, resultado que foi repassado à equipe responsável pelas
+impregnações.
+
+\section{Propriedades físicas e difusividades}
+\label{sec:difusividades}
+
+As propriedades adotadas estão reunidas na Tabela~\ref{tab:propriedades}. A
+composição de entrada corresponde à razão molar de \num{6}:\num{1} entre metanol
+e triglicerídeo,
+
+\begin{equation}
+Y_{TG} = \frac{872}{872 + 6 \times 32{,}04} = 0{,}8194,
+\qquad Y_{MeOH} = 0{,}1806
+\end{equation}
+
+\begin{table}[htb]
+\centering
+\caption{Propriedades físicas e condições operacionais adotadas}
+\label{tab:propriedades}
+\begin{tabular}{l c c l}
+\toprule
+Propriedade & Símbolo & Valor & Unidade \\
+\midrule
+Massa específica do meio      & $\rho$      & \num{868}      & \si{\kilogram\per\meter\cubed} \\
+Viscosidade dinâmica          & $\mu$       & \num{1.05e-2}  & \si{\pascal\second} \\
+Difusividade efetiva          & $D_i$       & \num{7.0e-11}  & \si{\meter\squared\per\second} \\
+Temperatura                   & $T$         & \num{65}       & \si{\celsius} \\
+Velocidade média              & $\bar{u}$   & \num{1.0e-3}   & \si{\meter\per\second} \\
+Altura do canal               & $H$         & \num{1.1}      & \si{\milli\meter} \\
+Comprimento do canal          & $L$         & \num{50}       & \si{\milli\meter} \\
+Massa específica do washcoat  & $\rho_{wc}$ & \num{1700}     & \si{\kilogram\per\meter\cubed} \\
+Espessura do washcoat         & $\delta_{wc}$ & \num{10}     & \si{\micro\meter} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A igualdade imposta entre as difusividades das quatro espécies não é uma
+simplificação cosmética, e merece ser justificada com algum cuidado. Na
+formulação de Fick, o fluxo difusivo de cada espécie é escrito como
+$\mathbf{j}_i = -\rho D_i \nabla Y_i$. A conservação da massa total exige que a
+soma desses fluxos se anule,
+
+\begin{equation}
+\sum_i \mathbf{j}_i = -\rho \sum_i D_i \nabla Y_i = 0
+\label{eq:somafluxos}
+\end{equation}
+
+\noindent
+e, como $\sum_i Y_i = 1$ implica $\sum_i \nabla Y_i = 0$, a
+Equação~\eqref{eq:somafluxos} só é satisfeita identicamente quando todas as
+difusividades forem iguais entre si. Com difusividades distintas, a soma das
+frações mássicas deriva da unidade a cada passo de tempo, e o solver a
+restabelece por normalização, distribuindo o desvio proporcionalmente a $Y_i$.
+O erro recai, portanto, quase integralmente sobre a espécie majoritária.
+
+No sistema estudado o triglicerídeo responde por \SI{82}{\percent} da massa e o
+metanol possui difusividade cerca de noventa vezes maior, dada a diferença de
+tamanho molecular. Nessas condições, simulações preliminares conduzidas com
+difusividades individuais apresentaram erro de \SI{374}{\percent} no balanço de
+massa do triglicerídeo, sem que resíduos, somas de frações mássicas ou fluxos de
+parede indicassem qualquer anormalidade. A adoção de um valor efetivo único,
+$D_i = \SI{7.0e-11}{\meter\squared\per\second}$, reduziu esse erro a
+\SI{0.013}{\percent}.
+
+A perda física associada à simplificação é real e deve ser declarada: a
+seletividade difusional entre espécies é suprimida. No presente caso a
+simplificação é defensável, pois o reagente limitante é o triglicerídeo, o
+metanol se encontra em excesso e o objeto de interesse é a competição entre
+cinética de parede e transporte externo do próprio triglicerídeo. Caso a
+seletividade entre espécies venha a se tornar relevante, a alternativa correta é
+a formulação de Maxwell-Stefan, condicionada à obtenção de difusividades
+binárias para todos os pares.
+
+\section{Malha}
+
+Empregou-se malha do tipo \textit{trimmer} com dimensão de base de
+\SI{50}{\micro\meter}, igual à espessura do domínio na direção de simetria, o
+que força uma única célula nessa direção. Junto às duas paredes foram geradas
+camadas prismáticas com os parâmetros da Tabela~\ref{tab:malha}, resultando em
+\num{88000} células.
+
+\begin{table}[htb]
+\centering
+\caption{Parâmetros da malha}
+\label{tab:malha}
+\begin{tabular}{l c}
+\toprule
+Parâmetro & Valor \\
+\midrule
+Dimensão de base                      & \SI{50}{\micro\meter} \\
+Número de camadas prismáticas         & \num{15} \\
+Espessura total das camadas           & \SI{200}{\micro\meter} \\
+Razão de crescimento                  & \num{1.2} \\
+Espessura da primeira camada          & \SI{2.8}{\micro\meter} \\
+Número total de células               & \num{88000} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O refino junto à parede não é opcional neste problema. Com $Sc = \num{1.7e5}$, o
+gradiente de fração mássica na superfície catalítica atinge
+
+\begin{equation}
+\left. \frac{\partial Y}{\partial n} \right|_{\text{parede}}
+= \frac{J}{\rho D} \approx \SI{3.9e3}{\per\meter}
+\end{equation}
+
+\noindent
+o que corresponde a uma variação de $\Delta Y \approx 0{,}20$ ao longo de uma
+célula de \SI{50}{\micro\meter}, ou \SI{40}{\percent} do valor de parede. Sem as
+camadas prismáticas, o valor de face lido pela condição de contorno é uma
+extrapolação sem significado físico, e o balanço global de massa apresenta
+desvios de dezenas de pontos percentuais já nos primeiros segundos de simulação.
+
+\section{Discretização e marcha temporal}
+
+Adotou-se formulação implícita transiente com \num{30} iterações internas por
+passo de tempo. O erro de discretização temporal escala linearmente com o passo,
+dada a ordem do esquema de Euler implícito; mediu-se contribuição de
+aproximadamente \num{4.5} pontos percentuais no balanço de massa com
+$\Delta t = \SI{0.05}{\second}$, reduzida a cerca de \num{0.45} ponto com
+$\Delta t = \SI{5e-3}{\second}$. A marcha foi conduzida com
+$\Delta t = \SI{5e-3}{\second}$ na partida e $\Delta t = \SI{2e-2}{\second}$ no
+trecho longo, com refinamento final antes da extração dos resultados.
+
+\section{Procedimento de verificação}
+\label{sec:verificacao}
+
+A verificação apoia-se em três testes independentes, todos necessários. A
+experiência acumulada ao longo do trabalho mostrou que nenhum deles,
+isoladamente, é suficiente para detectar os modos de falha encontrados.
+
+O primeiro é a \textbf{consistência estequiométrica}. A razão entre as taxas de
+acúmulo de FAME e de consumo de triglicerídeo no domínio deve igualar a razão
+mássica estequiométrica,
+
+\begin{equation}
+\frac{\mathrm{d}M_{FAME}/\mathrm{d}t}{\mathrm{d}M_{TG}/\mathrm{d}t}
+= \frac{876}{872} = 1{,}004587
+\label{eq:esteq}
+\end{equation}
+
+\noindent
+restrição exata, independente da malha, do passo de tempo e do estado de
+convergência. É o único teste que flagra a violação de conservação descrita na
+Seção~\ref{sec:difusividades}.
+
+O segundo é a \textbf{independência de malha}, verificada pela reprodução do
+resultado central em configurações distintas de discretização.
+
+O terceiro é o \textbf{balanço global de massa} por espécie, escrito como
+
+\begin{equation}
+\frac{\mathrm{d}}{\mathrm{d}t} \int_V \rho\, Y_i\, \mathrm{d}V
+= \dot{m}\left( Y_{i,\text{ent}} - Y_{i,\text{sai}} \right) + \oint_{A_p} J_i\, \mathrm{d}A
+\label{eq:balanco}
+\end{equation}
+
+\noindent
+com todos os termos medidos de forma independente. É o teste mais trabalhoso e o
+mais importante, pois resíduos, somas de frações mássicas e fluxos de parede
+podem apresentar-se simultaneamente corretos enquanto o balanço falha por ordens
+de grandeza.
+
+Uma observação de ordem prática, decorrente da experiência deste trabalho, deve
+acompanhar a Equação~\eqref{eq:balanco}. O termo convectivo não pode ser
+avaliado pela média de fração mássica ponderada por vazão na fronteira de saída,
+pelas razões documentadas na Seção~\ref{sec:reports}. Em seu lugar, emprega-se a
+integração numérica de um perfil transversal medido por sonda de linha, ou
+calcula-se a conversão diretamente pela integral do fluxo de parede.

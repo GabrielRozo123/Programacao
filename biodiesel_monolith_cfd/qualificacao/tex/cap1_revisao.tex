@@ -1,0 +1,297 @@
+\chapter{Revisão Bibliográfica}
+\label{cap:revisao}
+
+\section{A reação de transesterificação}
+
+A transesterificação de um triglicerídeo com um álcool de cadeia curta produz
+ésteres alquílicos de ácidos graxos e glicerol. Empregando-se metanol, a reação
+global é escrita como
+
+\begin{equation}
+\mathrm{TG} + 3\,\mathrm{MeOH} \rightleftharpoons 3\,\mathrm{FAME} + \mathrm{GL}
+\label{eq:global}
+\end{equation}
+
+\noindent
+em que TG designa o triglicerídeo, FAME o éster metílico e GL o glicerol. A
+estequiometria global, contudo, esconde o que de fato ocorre no meio reacional.
+A conversão se dá por três etapas consecutivas e reversíveis, nas quais o
+triglicerídeo é sucessivamente convertido a diglicerídeo, monoglicerídeo e
+glicerol, liberando uma molécula de éster a cada passagem
+\cite{Noureddini1997}:
+
+\begin{align}
+\mathrm{TG}  + \mathrm{MeOH} &\rightleftharpoons \mathrm{DG} + \mathrm{FAME} \label{eq:etapa1}\\
+\mathrm{DG}  + \mathrm{MeOH} &\rightleftharpoons \mathrm{MG} + \mathrm{FAME} \label{eq:etapa2}\\
+\mathrm{MG}  + \mathrm{MeOH} &\rightleftharpoons \mathrm{GL} + \mathrm{FAME} \label{eq:etapa3}
+\end{align}
+
+O caráter reversível das três etapas impõe o emprego de excesso de álcool para
+deslocar o equilíbrio na direção dos produtos. Razões molares entre
+\num{6}:\num{1} e \num{12}:\num{1} de álcool para óleo são as mais comuns na
+prática, contra o valor estequiométrico de \num{3}:\num{1}
+\cite{Freedman1986}. O excesso cumpre ainda uma segunda função, menos evidente:
+ao manter a concentração de metanol praticamente constante ao longo da reação,
+permite que a cinética seja tratada como de pseudo-primeira ordem no
+triglicerídeo, simplificação de que este trabalho faz uso no
+Capítulo~\ref{cap:modelagem}.
+
+Entre os fatores que governam o rendimento da reação, \citeonline{Freedman1986}
+identificaram a razão molar álcool/óleo, a temperatura, o teor de catalisador e
+a presença de água e de ácidos graxos livres na matéria-prima. A temperatura de
+operação é limitada superiormente pelo ponto de ebulição do metanol, de
+\SI{64.7}{\celsius} à pressão atmosférica, de modo que a maior parte dos
+trabalhos opera próximo a \SI{60}{\celsius} em sistema aberto, ou em pressões
+moderadas quando se deseja ultrapassar esse limite.
+
+\section{Limitações da rota homogênea}
+
+A catálise alcalina homogênea, conduzida com hidróxido ou metóxido de sódio ou
+potássio dissolvidos no metanol, continua a ser a rota predominante na indústria
+por razões de desempenho. As velocidades de reação são elevadas, e conversões
+superiores a \SI{95}{\percent} são alcançadas em menos de uma hora a
+\SI{60}{\celsius}.
+
+As dificuldades aparecem a jusante do reator. O catalisador permanece dissolvido
+nos produtos e precisa ser neutralizado com ácido, operação que consome insumo e
+gera uma corrente salina. A glicerina obtida carrega sais e metanol residual, o
+que reduz seu valor comercial e exige purificação adicional. A separação das
+fases demanda lavagens sucessivas com água, cuja corrente de saída retorna ao
+processo como efluente a ser tratado.
+
+Matérias-primas de menor custo agravam o quadro. Óleos residuais e gorduras
+animais contêm ácidos graxos livres em teores que podem superar
+\SI{5}{\percent}, e esses ácidos consomem o catalisador básico na formação de
+sabões. Além de reduzir a quantidade de catalisador disponível para a reação
+pretendida, os sabões formados estabilizam emulsões entre as fases éster e
+glicerol, dificultando a separação e reduzindo o rendimento efetivo do processo.
+
+\pendente{ampliar esta seção com dados quantitativos de consumo de insumos e
+geração de efluentes, a partir das referências reunidas no repositório
+Literatura, pasta 01}
+
+\section{Catálise heterogênea com óxido de cálcio}
+
+A imobilização do catalisador em uma fase sólida elimina, de uma só vez, a
+neutralização, a contaminação da glicerina e boa parte das lavagens. O
+catalisador pode ser recuperado por filtração ou, no caso de um reator de leito
+fixo ou de parede catalítica, simplesmente permanece no equipamento.
+
+Entre os sólidos básicos investigados para a reação, o óxido de cálcio reúne
+características que explicam sua posição de destaque na literatura: basicidade
+suficiente para catalisar a reação em temperaturas brandas, custo baixo,
+toxicidade reduzida e possibilidade de obtenção a partir de resíduos
+carbonáticos, como cascas de ovo, conchas e carapaças, por calcinação. A
+atividade do CaO está associada aos sítios básicos de Lewis formados pelos
+pares O$^{2-}$ na superfície, que abstraem o próton do metanol e geram o íon
+metóxido, espécie que efetivamente ataca o carbono carbonílico do
+triglicerídeo.
+
+Duas limitações do CaO são recorrentemente apontadas. A primeira é a lixiviação
+de cálcio para o meio reacional, que introduz uma contribuição homogênea à
+conversão observada e reduz a vida útil do catalisador ao longo de ciclos
+sucessivos. A segunda é a sensibilidade à água e ao dióxido de carbono
+atmosféricos, que convertem a superfície a hidróxido e a carbonato,
+desativando-a; por essa razão o catalisador é normalmente calcinado
+imediatamente antes do uso.
+
+\pendente{incluir referências específicas sobre lixiviação de cálcio e sobre
+métodos de estabilização do CaO; material reunido no repositório Literatura,
+pasta 02}
+
+No grupo de pesquisa em que este trabalho se desenvolve, duas dissertações
+recentes forneceram os parâmetros empregados na presente modelagem.
+\citeonline{Melo2023} estudou a metanólise de óleo de soja sobre CaO suportado
+em biochar a \SI{65}{\celsius}, obtendo a constante cinética por massa de
+catalisador adotada no Capítulo~\ref{cap:modelagem}. \citeonline{Fonseca2026}
+investigou a rota etílica com CaO e CaO/Al$_2$O$_3$ a \SI{70}{\celsius} e razão
+molar óleo:etanol de \num{1}:\num{9}, reportando difusividades efetivas no
+interior do catalisador na faixa de \SIrange{3e-13}{4.4e-12}{\meter\squared\per\second},
+valores que sustentam a estimativa do fator de efetividade apresentada na
+Seção~\ref{sec:thiele}.
+
+\section{Reatores monolíticos de parede catalítica}
+
+Um monólito catalítico consiste em um bloco cerâmico ou metálico atravessado por
+um grande número de canais paralelos de seção reta pequena, cujas paredes são
+recobertas por uma camada fina de material catalítico, denominada
+\textit{washcoat}. A densidade de canais é expressa em células por polegada
+quadrada, e valores entre \num{200} e \num{600}~cpsi são usuais.
+
+A geometria oferece duas vantagens sobre o leito fixo convencional. A razão
+entre área superficial e volume é consideravelmente maior, o que aumenta a área
+disponível para reação por unidade de volume de reator. E, como o escoamento se
+dá em canais retos e abertos, a perda de carga é muito inferior à de um leito de
+partículas, o que reduz o custo de bombeamento e viabiliza vazões elevadas.
+
+A simulação de um monólito completo é inviável e, felizmente, desnecessária. A
+simetria do arranjo permite tratar um único canal como representativo do
+conjunto, hipótese consagrada na modelagem de conversores catalíticos e
+discutida em detalhe por \citeonline{HayesKolaczkowski1997}. A condição que a
+justifica é que a distribuição de vazão entre os canais seja razoavelmente
+uniforme e que não haja gradientes térmicos relevantes na direção transversal ao
+feixe. Em um reator isotérmico operando em regime laminar, como o deste
+trabalho, ambas as condições são satisfeitas com folga.
+
+A deposição do \textit{washcoat} é a etapa crítica da fabricação. A camada deve
+ser espessa o suficiente para comportar massa útil de catalisador, mas fina o
+bastante para que o reagente alcance os sítios ativos no interior do poro antes
+de ser consumido na entrada deles. Esse compromisso é quantificado pelo módulo
+de Thiele e discutido na Seção~\ref{sec:thiele}.
+
+\pendente{incluir referências de trabalhos que aplicaram monólitos à produção
+de biodiesel, incluindo as teses da University of Bath citadas no repositório;
+confirmar autoria e dados bibliográficos}
+
+\section{Resistência interna: módulo de Thiele e fator de efetividade}
+\label{sec:thiele}
+
+Dentro da camada porosa, reação e difusão competem. Se a reação for lenta em
+relação à difusão, o reagente penetra toda a espessura do \textit{washcoat} e
+todo o catalisador depositado trabalha na concentração da superfície externa. Se
+a reação for rápida, o reagente é consumido nas primeiras camadas e o interior
+permanece ocioso.
+
+Para uma camada plana de espessura $\delta_{wc}$ com reação de primeira ordem, a
+razão entre as duas escalas de tempo é medida pelo módulo de Thiele,
+
+\begin{equation}
+\phi = \delta_{wc}\sqrt{\frac{k_v}{D_p}}
+\label{eq:thiele}
+\end{equation}
+
+\noindent
+em que $k_v$ é a constante cinética por volume de \textit{washcoat} e $D_p$ a
+difusividade efetiva no interior do poro. A fração da atividade nominal
+efetivamente aproveitada é dada pelo fator de efetividade,
+
+\begin{equation}
+\eta = \frac{\tanh \phi}{\phi}
+\label{eq:efetividade}
+\end{equation}
+
+\noindent
+que tende à unidade para $\phi \ll 1$ e decai como $1/\phi$ para $\phi \gg 1$.
+
+A consequência prática dessa dependência merece ser explicitada. A massa de
+catalisador por área de parede cresce linearmente com $\delta_{wc}$, ao passo
+que $\eta$ decai; o produto $\eta\,\delta_{wc}$, que é o que efetivamente
+determina a taxa observada, passa por um máximo. Engrossar o \textit{washcoat}
+além dessa espessura adiciona material que não trabalha, e que ainda assim
+ocupa volume de canal e aumenta a perda de carga.
+
+\section{Resistência externa: a camada-limite de concentração}
+\label{sec:leveque}
+
+Fora do \textit{washcoat}, o reagente precisa atravessar a camada de fluido que
+se empobrece junto à parede. Em escoamento laminar plenamente desenvolvido, com
+reação iniciando-se em $x = 0$, a espessura dessa camada é dada pela solução de
+Lévêque,
+
+\begin{equation}
+\delta_c(x) = \left( \frac{9\,D\,x}{\gamma} \right)^{1/3},
+\qquad \gamma = \frac{6\,\bar{u}}{H}
+\label{eq:leveque}
+\end{equation}
+
+\noindent
+em que $\gamma$ é a taxa de cisalhamento junto à parede e $H$ a altura do canal.
+A dependência com $x^{1/3}$ é lenta, o que significa que a camada demora a
+crescer e que o comprimento necessário para que ela preencha a seção pode ser
+muito maior do que a intuição sugere.
+
+Esse comprimento é o comprimento de entrada mássica, estimado por
+
+\begin{equation}
+L_e \approx 0{,}05\, D_h\, Re\, Sc
+\label{eq:entrada}
+\end{equation}
+
+\noindent
+com $Re = \rho\,\bar{u}\,D_h/\mu$ e $Sc = \mu/(\rho D)$. O produto $Re\,Sc$ é o
+número de Péclet mássico, e é nele que reside a particularidade do sistema
+estudado: enquanto o número de Reynolds é pequeno, da ordem de \num{0.2}, o
+número de Schmidt de um óleo vegetal ultrapassa \num{1e5}, de modo que o produto
+permanece elevado. O Capítulo~\ref{cap:resultados} mostra as consequências
+disso para a geometria simulada.
+
+\section{Número de Damköhler e regimes de operação}
+\label{sec:damkohler}
+
+A competição entre a reação na parede e o transporte até ela é medida pelo
+número de Damköhler de parede, definido como a razão entre a taxa de reação
+avaliada na concentração do seio do fluido e o fluxo máximo que o transporte
+externo é capaz de sustentar,
+
+\begin{equation}
+Da = \frac{r_w(C_b)}{k_m\,C_b}
+\label{eq:damkohler}
+\end{equation}
+
+\noindent
+em que $k_m$ é o coeficiente de transferência de massa. Para reação de primeira
+ordem na parede, o balanço em regime permanente entre o que o transporte entrega
+e o que a reação consome conduz a uma relação direta entre $Da$ e as
+concentrações medidas,
+
+\begin{equation}
+\frac{C_w}{C_b} = \frac{1}{1 + Da}
+\qquad \Longleftrightarrow \qquad
+Da = \frac{C_b}{C_w} - 1
+\label{eq:cwcb}
+\end{equation}
+
+\noindent
+expressão que será empregada no Capítulo~\ref{cap:resultados} para extrair $Da$
+diretamente do campo simulado, sem a necessidade de estimar $k_m$ por correlação.
+
+Três regimes são distinguidos. Quando $Da \ll 1$, a reação é lenta em comparação
+com o transporte, a concentração junto à parede é praticamente igual à do seio
+do fluido e o sistema opera sob controle cinético; nessa situação não há
+gradiente apreciável a vencer, e aumentar a área de contato não altera o
+desempenho. Quando $Da \gg 1$, a reação consome o reagente assim que ele chega,
+a concentração na parede tende a zero e o desempenho passa a ser ditado
+exclusivamente pelo transporte. Entre os dois extremos situa-se o regime misto,
+no qual as duas resistências são comparáveis e ambas precisam ser consideradas
+no projeto.
+
+A classificação do sistema em um desses regimes é, do ponto de vista deste
+trabalho, a questão central. É dela que depende a resposta sobre se a geometria
+monolítica se justifica para a aplicação pretendida.
+
+\section{Modelagem CFD de reatores de parede catalítica}
+
+A simulação de um canal catalítico requer a solução simultânea das equações de
+continuidade e de quantidade de movimento, que fornecem o campo de velocidade, e
+das equações de transporte das espécies químicas, acopladas à cinética na
+superfície. A reação heterogênea pode ser incorporada de duas formas.
+
+A primeira consiste em discretizar o \textit{washcoat} como uma região porosa
+adicional, com suas próprias equações de transporte e um termo fonte
+volumétrico. A abordagem é rigorosa, mas impõe custo computacional elevado: a
+camada tem espessura da ordem de dezenas de micrômetros, contra milímetros do
+canal, e resolvê-la exige malha muito refinada em uma região de pouco interesse
+direto.
+
+A segunda trata a reação como condição de contorno de fluxo de espécies na
+parede, incorporando a resistência interna por meio do fator de efetividade da
+Equação~\eqref{eq:efetividade}. O custo é modesto e a perda de informação é
+limitada ao perfil de concentração no interior do poro, que raramente é o objeto
+de interesse. Foi esta a abordagem adotada no presente trabalho, e sua
+implementação é descrita na Seção~\ref{sec:bc}.
+
+A formulação do transporte multicomponente merece atenção. A lei de Fick, na
+qual o fluxo difusivo de cada espécie é proporcional ao seu próprio gradiente,
+é a opção padrão dos códigos comerciais e adequada à maior parte das aplicações.
+Ela carrega, entretanto, uma restrição pouco discutida: a conservação da massa
+total exige que a soma dos fluxos difusivos se anule, condição que só é
+satisfeita quando todas as difusividades são iguais entre si. A formulação de
+Maxwell-Stefan não tem essa limitação, por satisfazer a restrição de soma por
+construção, mas exige difusividades binárias para todos os pares de espécies,
+dado raramente disponível para sistemas contendo triglicerídeos. As implicações
+dessa escolha para o presente trabalho são tratadas na
+Seção~\ref{sec:difusividades}.
+
+\pendente{ampliar esta seção com trabalhos recentes de CFD aplicados a reatores
+de biodiesel; verificar os dados bibliográficos da referência Pinheiro (2024)
+listada no repositório}
