@@ -130,7 +130,7 @@ menor que a do seio do fluido. Existe um gradiente substancial a ser vencido, e
 é esse gradiente que confere função à geometria monolítica.
 
 Convém contrastar esse valor com o que se obtinha na etapa anterior do trabalho.
-Utilizando-se os parâmetros cinéticos de \textcite{Allain2015}, determinados
+Utilizando-se os parâmetros cinéticos de \textcite{Allain2016}, determinados
 para ZnAl$_2$O$_4$ e extrapolados para as condições do canal, o número de
 Damköhler resultava em \num{0.003}, valor que situa o sistema sob controle
 cinético estrito. Nesse regime não há gradiente apreciável de concentração entre
@@ -145,11 +145,20 @@ converte em desempenho. A Tabela~\ref{tab:regimes} resume a comparação.
 \toprule
 Etapa & Catalisador & $Da$ & Regime \\
 \midrule
-Anterior & ZnAl$_2$O$_4$ \parencite{Allain2015}, extrapolado & \num{0.003} & controle cinético \\
+Anterior & ZnAl$_2$O$_4$ \parencite{Allain2016}, extrapolado & \num{0.003} & controle cinético \\
 Atual    & CaO \parencite{Melo2023}, medido no laboratório   & \num{0.76}  & misto \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+Uma ressalva de leitura é necessária. O valor de $Da = \num{0.003}$ da primeira
+linha não descreve o sistema de \textcite{Allain2016}, e sim o canal monolítico
+aqui simulado operando com os parâmetros cinéticos daqueles autores
+extrapolados para \SI{65}{\celsius}. No sistema que eles próprios estudaram,
+um leito fixo de partículas em temperatura muito superior, a conclusão foi de
+limitação conjunta por difusão e cinética. A discrepância, portanto, não é
+entre este trabalho e a fonte, e sim entre duas configurações de reator
+distintas alimentadas pela mesma cinética.
 
 A diferença entre as duas linhas da Tabela~\ref{tab:regimes} é de mais de duas
 ordens de grandeza, e dela depende a própria justificativa da configuração de

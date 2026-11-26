@@ -38,7 +38,7 @@ Literatura/
 | 3 | Asli, Umi Aisah (Bath, Tese PhD) | Catalytic Monoliths for Biodiesel Production | Tese | Reator Monolítico | 2011 | [Bath Research Portal](https://researchportal.bath.ac.uk/en/studentTheses/catalytic-monoliths-for-biodiesel-production) | ✅ Fichado |
 | 4 | Omranpour & Larimi | Modeling and Simulation of Biodiesel: FBR vs PBMR (Sci. Rep.) | Artigo | CFD + Biodiesel | 2024 | [10.1038/s41598-024-60757-5](https://doi.org/10.1038/s41598-024-60757-5) | ✅ Fichado |
 | 5 | Ezzati et al. | Kinetics Models of Transesterification (Ren. Energy) | Revisão | Cinética | 2021 | [10.1016/j.renene.2020.12.055](https://doi.org/10.1016/j.renene.2020.12.055) | ✅ Fichado |
-| 6 | Allain et al. | Kinetic Parameters & Diffusion Coefficients — Triolein/MeOH/ZnAl₂O₄ | Artigo | Cinética LHHW | 2015 | [10.1016/j.cej.2015.07.075](https://doi.org/10.1016/j.cej.2015.07.075) | ⚠️ Superada |
+| 6 | Allain, F.; Portha, J.-F.; Girot, E.; Falk, L.; Dandeu, A.; Coupard, V. | Estimation of Kinetic Parameters and Diffusion Coefficients — Triolein/MeOH/ZnAl₂O₄ | Artigo | Cinética | **2016** | [CEJ 283:833–845](https://doi.org/10.1016/j.cej.2015.07.075) | ⚠️ Superada |
 | 7 | Subramaniam, K. et al. | Enhancing Biodiesel Production: A Review of Microchannel Reactor Technologies | Revisão | CFD + Microcanais | 2024 | [10.3390/en17071652](https://doi.org/10.3390/en17071652) | ✅ Fichado |
 | 8 | Mohd Laziz, A. et al. | Rapid Production of Biodiesel in a Microchannel Reactor at Room Temperature (CES) | Artigo | CFD | 2020 | [10.1016/j.ces.2020.115532](https://doi.org/10.1016/j.ces.2020.115532) | ✅ Fichado |
 | 9 | Melo, V. M. (FEQ, Dissertação) | Metanólise de óleo de soja com CaO suportado em biochar | Dissertação | Cinética CaO | 2023 | — | ⭐ Ref. principal |
@@ -52,9 +52,12 @@ Literatura/
 - ⚠️ Usada em fase anterior, substituída por dado próprio
 - ❌ Descartado (justificar no README da pasta)
 
-> **Pendência bibliográfica.** A referência 6 aparece neste README como
-> *CEJ v. 283, p. 833* e no `references.bib` como *v. 281, p. 654–664*, com o
-> mesmo DOI nos dois. Conferir no PDF e unificar.
+> **Resolvido para a ref. 6.** Confirmado pelo PDF e pelo Crossref:
+> *Chemical Engineering Journal*, **v. 283, p. 833–845, 2016**. Este README
+> estava certo quanto a volume e página; o `references.bib` estava errado
+> (v. 281, p. 654–664) e trazia ainda título incorreto, o ano como 2015,
+> "Girot, Luc" no lugar de **Emilien Girot**, e faltavam dois autores
+> (Aurélie Dandeu e Vincent Coupard). Tudo corrigido.
 >
 > **Resolvido para a ref. 3.** Os anos de 2015 e 2017 que constavam do
 > `references.bib` estavam errados. O PDF confirma: Asli, Umi Aisah,
