@@ -101,7 +101,12 @@
 \setlength{\cftbeforechapskip}{8pt}
 
 % --- Referências e citações (ABNT) -------------------------------------------
-\usepackage[alf]{abntex2cite}
+% biblatex-abnt implementa a NBR 6023:2018 e a NBR 10520:2002 e funciona com
+% qualquer classe de documento. No Overleaf, o backend biber e detectado
+% automaticamente a partir do \addbibresource.
+\usepackage{csquotes}
+\usepackage[backend=biber, style=abnt, giveninits=true]{biblatex}
+\addbibresource{referencias.bib}
 
 % --- Links -------------------------------------------------------------------
 \usepackage[hidelinks,breaklinks]{hyperref}
@@ -160,7 +165,6 @@
 \cleardoublepage
 \markboth{Referências Bibliográficas}{}
 \addcontentsline{toc}{chapter}{Referências Bibliográficas}
-\bibliographystyle{abntex2-alf}
-\bibliography{referencias}
+\printbibliography[title=Referências Bibliográficas]
 
 \end{document}

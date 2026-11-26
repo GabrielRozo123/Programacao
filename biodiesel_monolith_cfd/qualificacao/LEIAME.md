@@ -3,7 +3,8 @@
 Gabriel Hernandez Rozo · FEQ/UNICAMP · Dezembro de 2026
 
 Formatação reproduzindo o padrão da qualificação do Prof. Raphael Suppino
-(2008), com citações e referências em ABNT (NBR 10520 / NBR 6023).
+(2008), com citações e referências em ABNT via **biblatex-abnt**
+(NBR 6023:2018 e NBR 10520:2002).
 
 ---
 
@@ -13,7 +14,17 @@ Formatação reproduzindo o padrão da qualificação do Prof. Raphael Suppino
 
 1. Compacte a pasta `qualificacao/` inteira e faça upload como novo projeto.
 2. Em *Menu → Settings*: compilador **pdfLaTeX**, documento principal `main.tex`.
-3. Compile. O Overleaf roda BibTeX automaticamente.
+3. Compile. O Overleaf detecta o `\addbibresource` e roda o **biber** sozinho.
+
+> **Nota sobre a bibliografia.** A primeira versão deste projeto usava
+> `abntex2cite` + `abntex2-alf.bst`. O BibTeX rodava e gerava o `.bbl`, mas o
+> LaTeX não reconhecia os comandos `\abntrefinfo` e `\abntnextkey` que esse
+> `.bbl` contém — ou seja, o estilo `.bst` estava instalado e o pacote `.sty`
+> não. Trocou-se por `biblatex-abnt`, que é mantido, independe da classe de
+> documento e implementa as normas mais recentes.
+>
+> Comandos de citação: `\textcite{chave}` para "Autor (ano)" no meio da frase,
+> e `\parencite{chave}` para "(AUTOR, ano)" entre parênteses.
 
 Se a Unicamp tiver licença institucional do Overleaf com sincronia de GitHub,
 vale conectar o repositório em vez de subir o zip — o texto passa a versionar
@@ -23,7 +34,7 @@ junto com o resto do projeto.
 
 ```bash
 pdflatex main
-bibtex   main
+biber    main
 pdflatex main
 pdflatex main
 ```
