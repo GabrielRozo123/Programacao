@@ -101,7 +101,7 @@ de \num{0.2}, e pela condução do processo em banho termostatizado. A segunda
 decorre das faixas estreitas de composição percorridas pelo meio reacional ao
 longo do canal, dada a conversão por passe baixa que se verifica no
 Capítulo~\ref{cap:resultados}. A quinta é sustentada pela razão molar de
-\num{6}:\num{1} entre metanol e óleo, que mantém a concentração de álcool
+\num{4}:\num{1} entre metanol e óleo, que mantém a concentração de álcool
 praticamente inalterada ao longo da reação, e pela baixa conversão por passe,
 condição sob a qual \textcite{Ezzati2021} demonstram que a aproximação de
 pseudo-primeira ordem é acurada.
@@ -237,13 +237,33 @@ equipe responsável pelas impregnações.
 \label{sec:difusividades}
 
 As propriedades adotadas estão reunidas na Tabela~\ref{tab:propriedades}. A
-composição de entrada corresponde à razão molar de \num{6}:\num{1} entre metanol
+composição de entrada corresponde à razão molar de \num{4}:\num{1} entre metanol
 e triglicerídeo,
 
 \begin{equation}
-Y_{TG} = \frac{872}{872 + 6 \times 32{,}04} = 0{,}8194,
-\qquad Y_{MeOH} = 0{,}1806
+Y_{TG} = \frac{872}{872 + 4 \times 32{,}04} = 0{,}8719,
+\qquad Y_{MeOH} = 0{,}1281
+\label{eq:composicao}
 \end{equation}
+
+\noindent
+escolha que merece justificativa, por divergir da razão de \num{6}:\num{1} usual
+na prática industrial. A constante cinética adotada na Equação~\eqref{eq:rw} foi
+determinada por \textcite{Melo2023} em ensaios conduzidos com
+\SI{1}{\percent} em massa de CaO, razão molar metanol:óleo de \num{4}:\num{1} e
+\SI{65}{\celsius}. Alimentar o modelo com razão diferente daquela em que a
+cinética foi ajustada introduziria inconsistência entre o parâmetro e a condição
+de contorno, ainda que o efeito numérico seja pequeno: por se tratar de cinética
+de pseudo-primeira ordem, tanto o número de Damköhler quanto a conversão
+fracionária são razões e independem, em primeira aproximação, do valor absoluto
+da concentração de entrada.
+
+A escolha tem ainda um benefício colateral. Segundo as medidas de solubilidade
+de \textcite{Firth2014}, a \SI{65}{\celsius} o óleo vegetal dissolve metanol até
+a razão de \num{3}:\num{1}; uma alimentação de \num{4}:\num{1} está, portanto,
+mais próxima do limite de miscibilidade do que uma de \num{6}:\num{1}, o que
+atenua --- sem eliminar --- a fragilidade discutida na
+Seção~\ref{sec:limitacoes}.
 
 \begin{table}[htb]
 \centering
@@ -412,8 +432,12 @@ texto.
 líquida homogênea. As medidas de solubilidade de \textcite{Firth2014} indicam,
 porém, que a \SI{65}{\celsius} o óleo vegetal dissolve metanol apenas até a
 razão molar de \num{3}:\num{1}, ao passo que a alimentação aqui adotada é de
-\num{6}:\num{1}. Na entrada do canal, portanto, parte do álcool deve constituir
-fase separada, e o sistema seria bifásico. Dois atenuantes se aplicam. O
+\num{4}:\num{1}. Na entrada do canal, portanto, parte do álcool pode constituir
+fase separada, e o sistema seria bifásico. O excesso em questão é de um mol de
+metanol por mol de triglicerídeo, próximo do limite de miscibilidade, e não a
+duplicata dele que uma alimentação de \num{6}:\num{1} implicaria.
+
+Dois atenuantes se aplicam. O
 primeiro é que o éster formado atua como cossolvente, de modo que a
 miscibilidade aumenta à medida que a reação avança. O segundo é que o reagente
 limitante e o objeto de interesse deste trabalho é o triglicerídeo, cuja

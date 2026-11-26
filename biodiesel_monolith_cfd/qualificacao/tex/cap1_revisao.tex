@@ -124,12 +124,33 @@ atmosféricos, que convertem a superfície a hidróxido e a carbonato,
 desativando-a; por essa razão o catalisador é normalmente calcinado
 imediatamente antes do uso.
 
-\pendente{incluir referências específicas sobre lixiviação de cálcio e sobre
-métodos de estabilização do CaO; material reunido no repositório Literatura,
-pasta 02}
+A lixiviação foi quantificada por \textcite{Melo2023} em condições próximas das
+aqui simuladas. Medindo o teor de Ca$^{2+}$ no biodiesel produzido, o autor
+obteve \SI{585(375)}{\milli\gram\per\kilogram} para o CaO não suportado e
+\SI{40(26)}{\milli\gram\per\kilogram} para o CaO depositado em biochar de bagaço
+de cana. Os dois valores excedem o limite de \num{5} ppm fixado pela
+ANP n\textsuperscript{o} 45/2014, pela ASTM D6751 e pela EN 14214, mas o suporte
+reduz o arraste de cálcio por um fator próximo de quinze. O autor atribui essa
+retenção aos grupos funcionais oxigenados do biochar ativado, que ancorariam o
+cálcio à matriz carbonácea, possivelmente por ligações O--Ca--O.
 
-No grupo de pesquisa em que este trabalho se desenvolve, duas dissertações
-recentes forneceram os parâmetros empregados na presente modelagem.
+A desativação ao longo de ciclos sucessivos tem origem distinta da lixiviação, e
+igualmente relevante para a operação contínua. \textcite{Melo2023} observou
+queda acentuada de atividade entre ciclos, chegando a \SI{49.4}{\percent} de
+conversão no segundo e a conversão nula no terceiro, a depender do procedimento
+de lavagem empregado, e atribuiu o efeito ao acúmulo de glicerídeos e glicerol
+aderidos à superfície do catalisador, confirmado por microscopia eletrônica.
+Nenhum dos cinco procedimentos de lavagem ensaiados restabeleceu plenamente a
+atividade.
+
+Esses dois mecanismos, arraste de cálcio e bloqueio da superfície, não são
+tratados pelo modelo desenvolvido neste trabalho, que é isotérmico e de estado
+quase-estacionário. Condicionam, porém, a viabilidade prática da configuração e
+definem o horizonte de operação que o reator pode sustentar antes de exigir
+regeneração.
+
+Duas dissertações recentes do mesmo programa de pós-graduação forneceram os
+parâmetros empregados na presente modelagem.
 \textcite{Melo2023} estudou a metanólise de óleo de soja sobre CaO suportado
 em biochar a \SI{65}{\celsius}, obtendo a constante cinética por massa de
 catalisador adotada no Capítulo~\ref{cap:modelagem}. \textcite{Fonseca2026}
