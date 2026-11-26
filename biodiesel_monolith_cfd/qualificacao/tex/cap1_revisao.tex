@@ -36,6 +36,26 @@ permite que a cinética seja tratada como de pseudo-primeira ordem no
 triglicerídeo, simplificação de que este trabalho faz uso no
 Capítulo~\ref{cap:modelagem}.
 
+A escolha do modelo cinético empregado para descrever essa sequência não é
+arbitrária, e \textcite{Ezzati2021} a sistematizaram em bases teóricas. Partindo
+do mecanismo de três etapas, os autores derivaram uma equação de taxa geral,
+válida ao longo de todo o tempo de reação, e mostraram a quais condições cada
+modelo simplificado corresponde: a equação geral reduz-se ao modelo de segunda
+ordem nos tempos iniciais de reação, e ao modelo de pseudo-primeira ordem nos
+tempos iniciais com álcool em alta concentração. A conclusão que interessa
+diretamente a este trabalho é a restrição: ao contrário do que a prática
+corrente sugere, os modelos de pseudo-primeira e de segunda ordem são acurados
+apenas nos tempos iniciais de reação, e não ao longo de toda ela.
+
+Essa restrição é satisfeita no sistema aqui estudado, e por uma razão que
+decorre do próprio resultado obtido. Como se mostra no
+Capítulo~\ref{cap:resultados}, a conversão por passe no canal monolítico é de
+\SI{1.4}{\percent}, de modo que o fluido percorre o reator permanecendo no
+regime de tempos iniciais a que a aproximação de pseudo-primeira ordem se
+aplica. A hipótese adotada na Seção~\ref{sec:bc} apoia-se nessa coincidência, e
+deixaria de valer caso configurações de conversão elevada viessem a ser
+simuladas.
+
 Entre os fatores que governam o rendimento da reação, \textcite{Freedman1986}
 identificaram a razão molar álcool/óleo, a temperatura, o teor de catalisador e
 a presença de água e de ácidos graxos livres na matéria-prima. A temperatura de
@@ -71,6 +91,7 @@ geração de efluentes, a partir das referências reunidas no repositório
 Literatura, pasta 01}
 
 \section{Catálise heterogênea com óxido de cálcio}
+\label{sec:cao}
 
 A imobilização do catalisador em uma fase sólida elimina, de uma só vez, a
 neutralização, a contaminação da glicerina e boa parte das lavagens. O
@@ -144,33 +165,53 @@ de Thiele e discutido na Seção~\ref{sec:thiele}.
 A transposição da configuração monolítica para a transesterificação é recente e
 ainda pouco explorada em comparação com suas aplicações consagradas em
 tratamento de gases de exaustão. Dois trabalhos desenvolvidos na University of
-Bath constituem a referência mais direta para o presente estudo:
-\textcite{Asli2011} investigou monólitos catalíticos para a produção de
-biodiesel, e \textcite{Firth2014} tratou da produção em reatores monolíticos de
+Bath constituem a referência mais direta para o presente estudo.
+
+\textcite{Asli2011} recobriu monólitos de cordierita de \SI{62}{\per\centi\meter\squared}
+com prolinato de zinco e avaliou o desempenho tanto em reator batelada quanto
+em escoamento contínuo. Em batelada, com razão molar metanol:óleo de colza de
+\num{12}:\num{1} a \SI{195}{\celsius} e \SI{20}{\bar} por duas horas, obteve
+conversões elevadas, mas observou perda progressiva de atividade. No reator
+contínuo, com tubo de \SI{6.2}{\milli\meter} de diâmetro interno carregado com
+segmentos de monólito recobertos e comprimentos empacotados de \SI{200}{\milli\meter} e
+\SI{400}{\milli\meter}, as conversões se mantiveram altas por \SIrange{100}{200}{\minute},
+mas a desativação persistiu. A causa foi identificada por medida direta: o zinco
+lixiviava para o meio reacional ao longo do ensaio. O trabalho registra ainda
+que o próprio suporte de cordierita apresentou atividade catalítica, o que
+complica a atribuição da conversão observada ao recobrimento, e encerra com
+ensaios exploratórios empregando SrO sobre o mesmo suporte.
+
+\textcite{Firth2014} tratou da produção de biodiesel em reatores monolíticos de
 leito fixo.
 
-\pendente{completar esta subseção com os resultados específicos de Firth (2014),
-que consta como fichado no repositório, e de Asli (2011), ainda na fila de
-leitura: catalisadores empregados, faixas de conversão obtidas, condições
-operacionais e limitações apontadas}
+\pendente{completar com os resultados de Firth (2014), cujo PDF ainda não foi
+obtido: catalisador empregado, faixas de conversão, condições operacionais e
+limitações apontadas}
 
-É dessa linha de trabalhos que provém a geometria adotada no
-Capítulo~\ref{cap:modelagem}. O canal de \SI{1.1}{\milli\meter} de altura
-corresponde a um monólito de aproximadamente \num{400} células por polegada
-quadrada, densidade usual em substratos comerciais e empregada como referência
-nos estudos citados.
+Dois pontos desses trabalhos merecem ser retidos.
 
-\pendente{confirmar a atribuição da geometria de referência. O arquivo
-\texttt{references.bib} do repositório registra as teses de Bath com os anos de
-2015 e 2017, ao passo que a tabela do README registra 2011 e 2014. Verificar se
-são os mesmos trabalhos e corrigir os anos}
+O primeiro é a origem da geometria adotada no Capítulo~\ref{cap:modelagem}. A
+densidade de \SI{62}{\per\centi\meter\squared} empregada por
+\textcite{Asli2011} equivale a \num{400} células por polegada quadrada, valor
+usual em substratos comerciais de cordierita. A essa densidade corresponde um
+passo de célula de \SI{1.27}{\milli\meter} e, descontada a espessura típica de
+parede do substrato, uma abertura de canal próxima de \SI{1.1}{\milli\meter} ---
+que é a altura adotada neste trabalho.
 
-Convém registrar o que distingue o presente trabalho dos anteriores. Os estudos
-citados abordam o reator monolítico predominantemente pela via experimental,
-medindo conversões em função das condições operacionais. A contribuição
-pretendida aqui é de outra natureza: trata-se de resolver o campo de
-concentração no interior do canal e extrair dele o regime de operação, de modo a
-responder não apenas quanto se converte, mas qual resistência governa a
+O segundo é a desativação por lixiviação. O zinco lixiviado reportado por
+\textcite{Asli2011} é o mesmo fenômeno descrito na Seção~\ref{sec:cao} para o
+cálcio em catalisadores de CaO, e aparece ali em uma configuração monolítica,
+isto é, exatamente na geometria aqui investigada. Trata-se de limitação de
+estabilidade que o presente modelo não aborda, por ser isotérmico e de estado
+quase-estacionário, mas que condiciona a viabilidade prática da configuração e
+precisa ser enfrentada experimentalmente.
+
+Convém, por fim, registrar o que distingue o presente trabalho dos anteriores.
+Os estudos citados abordam o reator monolítico predominantemente pela via
+experimental, medindo conversões em função das condições operacionais. A
+contribuição pretendida aqui é de outra natureza: trata-se de resolver o campo
+de concentração no interior do canal e extrair dele o regime de operação, de
+modo a responder não apenas quanto se converte, mas qual resistência governa a
 conversão e, por consequência, sobre qual variável de projeto atuar.
 
 \section{Resistência interna: módulo de Thiele e fator de efetividade}
@@ -348,39 +389,43 @@ A literatura de simulação aplicada à produção de biodiesel tem se concentra
 duas frentes, ambas distintas do presente estudo.
 
 A primeira compara configurações de reator quanto ao desempenho global.
-\textcite{Omranpour2024} modelaram e simularam a produção de biodiesel
-confrontando reator de leito fixo e reator de membrana de leito empacotado,
-avaliando o efeito da configuração sobre a conversão.
+\textcite{Omranpour2024} modelaram a transesterificação de óleo de canola com
+metanol sobre ácido tungstofosfórico sólido, confrontando um reator de leito
+fixo com um reator de membrana de leito empacotado. O modelo é bidimensional e
+heterogêneo, resolvido numericamente. Nas melhores condições identificadas,
+\SI{180}{\celsius}, razão molar de \num{15}:\num{1} e vazão de alimentação de
+\SI{0.5}{\milli\liter\per\minute}, a conversão de \SI{99.94}{\percent} foi
+atingida com \SI{86}{\centi\meter} de reator de membrana contra
+\SI{2.75}{\meter} de leito fixo --- uma redução de comprimento por um fator
+próximo de três para a mesma conversão. O consumo energético estimado para uma
+planta de \SI{8000}{\tonne} por ano resultou em \SI{1313}{\kilo\watt} contra
+\SI{1352}{\kilo\watt}, diferença bem menor que a de comprimento.
 
-\pendente{completar com os resultados de Omranpour e Larimi (2024), que consta
-como fichado no repositório: modelo adotado, conversões obtidas e conclusão
-sobre qual configuração se mostrou superior e por quê}
+Esse resultado é instrutivo para o presente trabalho por tratar justamente da
+relação entre comprimento de reator e conversão, que o
+Capítulo~\ref{cap:resultados} identifica como a limitação dominante do canal
+monolítico simulado.
 
-A segunda frente trata de reatores de microcanal, nos quais a intensificação do
-transporte decorre da redução da escala característica.
-\textcite{Laziz2020} reportaram produção de biodiesel em microcanal à
-temperatura ambiente, e \textcite{Subramaniam2024} revisaram o estado da arte
-dessas tecnologias.
-
-\pendente{completar com os dados de Mohd Laziz et al. (2020) e Subramaniam et
-al. (2024), ambos na fila de leitura: dimensões dos canais, tempos de residência,
-conversões e mecanismo de intensificação invocado}
+A segunda frente trata de reatores de microcanal. \textcite{Laziz2020}
+reportaram conversão de \SI{98.6}{\percent} em \SI{40}{\second} de reação à
+temperatura ambiente, em microcanal de \SI{690}{\micro\meter} de diâmetro
+alimentado por junção em T, empregando óleo de palma e hidróxido de potássio.
+A simulação tridimensional com modelo de volume de fluido revelou uma estrutura
+de recirculação toroidal no interior do pistão de metanol, à qual os autores
+atribuem a intensificação da transferência de massa através da interface
+líquido-líquido. \textcite{Subramaniam2024} revisaram o estado da arte dessas
+tecnologias, destacando a razão área/volume elevada, a intensificação da mistura
+por geometria de canal, micromisturadores e padrões de escoamento em pistão, e o
+aquecimento por irradiação de micro-ondas como vias de intensificação.
 
 A aproximação entre microcanais e monólitos merece comentário, por não ser
 imediata. Ambas as configurações reduzem a distância que o reagente percorre até
-a superfície, mas o fazem em regimes distintos. Em reatores de microcanal o
-objetivo usual é intensificar a mistura entre fases imiscíveis, óleo e álcool, e
-a reação costuma ser homogênea; no monólito de parede catalítica a reação é
-heterogênea e a fase é única, de modo que o que se intensifica é o transporte até
-a superfície sólida. As conclusões de uma literatura não se transferem
+onde a reação ocorre, mas o fazem em regimes distintos. No trabalho de
+\textcite{Laziz2020} o catalisador é hidróxido de potássio dissolvido, isto é, a
+catálise é homogênea, e a resistência a vencer é a transferência de massa
+através da interface entre duas fases imiscíveis; o que se intensifica é a
+mistura. No monólito de parede catalítica a fase é única e a reação é
+heterogênea, de modo que a resistência a vencer é o transporte difusivo até uma
+superfície sólida. As conclusões de uma literatura não se transferem
 automaticamente à outra, e a comparação precisa ser feita pelos grupos
 adimensionais, e não pela semelhança geométrica.
-
-No que diz respeito à cinética empregada nessas simulações,
-\textcite{Ezzati2021} reuniram e compararam os modelos cinéticos disponíveis
-para a transesterificação, trabalho que serve de referência para a escolha
-adotada no Capítulo~\ref{cap:modelagem}.
-
-\pendente{completar com a classificação de modelos cinéticos de Ezzati et al.
-(2021), que consta como fichado, situando a cinética de pseudo-primeira ordem
-adotada neste trabalho dentro dessa classificação}

@@ -35,12 +35,12 @@ Literatura/
 |---|---------|-------------------|------|------|-----|----------|--------|
 | 1 | Noureddini & Zhu | Kinetics of Transesterification of Soybean Oil | Artigo | Cinética | 1997 | [JAOCS 74:1457](https://doi.org/10.1007/s11746-997-0040-8) | ✅ Lido |
 | 2 | Firth (Bath, Tese) | Biodiesel Production in Fixed-Bed Monolithic Reactors | Tese | Reator Monolítico | 2014 | [Bath Research Portal](https://researchportal.bath.ac.uk/en/studentTheses/biodiesel-production-in-fixed-bed-monolithic-reactors) | ✅ Fichado |
-| 3 | Asli (Bath, Tese) | Catalytic Monoliths for Biodiesel Production | Tese | Reator Monolítico | 2011 | [Bath Research Portal](https://researchportal.bath.ac.uk/en/studentTheses/catalytic-monoliths-for-biodiesel-production) | 🔲 Na fila |
+| 3 | Asli, Umi Aisah (Bath, Tese PhD) | Catalytic Monoliths for Biodiesel Production | Tese | Reator Monolítico | 2011 | [Bath Research Portal](https://researchportal.bath.ac.uk/en/studentTheses/catalytic-monoliths-for-biodiesel-production) | ✅ Fichado |
 | 4 | Omranpour & Larimi | Modeling and Simulation of Biodiesel: FBR vs PBMR (Sci. Rep.) | Artigo | CFD + Biodiesel | 2024 | [10.1038/s41598-024-60757-5](https://doi.org/10.1038/s41598-024-60757-5) | ✅ Fichado |
 | 5 | Ezzati et al. | Kinetics Models of Transesterification (Ren. Energy) | Revisão | Cinética | 2021 | [10.1016/j.renene.2020.12.055](https://doi.org/10.1016/j.renene.2020.12.055) | ✅ Fichado |
 | 6 | Allain et al. | Kinetic Parameters & Diffusion Coefficients — Triolein/MeOH/ZnAl₂O₄ | Artigo | Cinética LHHW | 2015 | [10.1016/j.cej.2015.07.075](https://doi.org/10.1016/j.cej.2015.07.075) | ⚠️ Superada |
-| 7 | Subramaniam et al. | Enhancing Biodiesel Production: A Review of Microchannel Reactor Technologies | Revisão | CFD + Microcanais | 2024 | [10.3390/en17071652](https://doi.org/10.3390/en17071652) | 🔲 Na fila |
-| 8 | Mohd Laziz et al. | Rapid Production of Biodiesel in a Microchannel Reactor at Room Temperature (CES) | Artigo | CFD | 2020 | [10.1016/j.ces.2020.115532](https://doi.org/10.1016/j.ces.2020.115532) | 🔲 Na fila |
+| 7 | Subramaniam, K. et al. | Enhancing Biodiesel Production: A Review of Microchannel Reactor Technologies | Revisão | CFD + Microcanais | 2024 | [10.3390/en17071652](https://doi.org/10.3390/en17071652) | ✅ Fichado |
+| 8 | Mohd Laziz, A. et al. | Rapid Production of Biodiesel in a Microchannel Reactor at Room Temperature (CES) | Artigo | CFD | 2020 | [10.1016/j.ces.2020.115532](https://doi.org/10.1016/j.ces.2020.115532) | ✅ Fichado |
 | 9 | Melo, V. M. (FEQ, Dissertação) | Metanólise de óleo de soja com CaO suportado em biochar | Dissertação | Cinética CaO | 2023 | — | ⭐ Ref. principal |
 | 10 | Fonseca, R. V. S. (FEQ, Dissertação) | Transesterificação etílica com CaO e CaO/Al₂O₃ | Dissertação | Difusividade no poro | 2026 | — | ✅ Lido |
 
@@ -56,8 +56,12 @@ Literatura/
 > *CEJ v. 283, p. 833* e no `references.bib` como *v. 281, p. 654–664*, com o
 > mesmo DOI nos dois. Conferir no PDF e unificar.
 >
-> As referências 2 e 3 aparecem no `references.bib` com os anos de 2015 e 2017.
-> Verificar se são os mesmos trabalhos desta tabela e corrigir.
+> **Resolvido para a ref. 3.** Os anos de 2015 e 2017 que constavam do
+> `references.bib` estavam errados. O PDF confirma: Asli, Umi Aisah,
+> *Catalytic Monoliths for Biodiesel Production*, PhD, Department of Chemical
+> Engineering, University of Bath, fevereiro de 2011. As notas de geometria que
+> estavam associadas a "Bath2015" (400 cpsi, SrO) pertencem a este trabalho.
+> Falta obter o PDF de Firth (2014).
 
 ---
 
