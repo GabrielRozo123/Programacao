@@ -295,7 +295,7 @@ A escolha tem ainda um benefício colateral. Segundo as medidas de solubilidade
 de \textcite{Firth2014}, a \SI{65}{\celsius} o óleo vegetal dissolve metanol até
 a razão de \num{3}:\num{1}; uma alimentação de \num{4}:\num{1} está, portanto,
 mais próxima do limite de miscibilidade do que uma de \num{6}:\num{1}, o que
-atenua --- sem eliminar --- a fragilidade discutida na
+atenua, sem eliminar, a fragilidade discutida na
 Seção~\ref{sec:limitacoes}.
 
 \begin{table}[htb]
@@ -459,54 +459,65 @@ calcula-se a conversão diretamente pela integral do fluxo de parede.
 
 Três hipóteses do modelo merecem ser explicitadas como limitações, por terem
 sido confrontadas com dados experimentais da literatura durante a redação deste
-texto.
+texto. São enumeradas a seguir em ordem decrescente de gravidade.
 
-\textbf{Fase única.} O modelo trata o meio reacional como uma única fase
-líquida homogênea. As medidas de solubilidade de \textcite{Firth2014} indicam,
-porém, que a \SI{65}{\celsius} o óleo vegetal dissolve metanol apenas até a
-razão molar de \num{3}:\num{1}, ao passo que a alimentação aqui adotada é de
-\num{4}:\num{1}. Na entrada do canal, portanto, parte do álcool pode constituir
-fase separada, e o sistema seria bifásico. O excesso em questão é de um mol de
-metanol por mol de triglicerídeo, próximo do limite de miscibilidade, e não a
-duplicata dele que uma alimentação de \num{6}:\num{1} implicaria.
+\begin{enumerate}
+\itemsep10pt
 
-O quadro é, na verdade, mais
-desfavorável do que a comparação com o limite de solubilidade sugere.
+\item \textbf{Hipótese de fase única.}
+
+O modelo trata o meio reacional como uma única fase líquida homogênea. As
+medidas de solubilidade de \textcite{Firth2014} indicam, porém, que a
+\SI{65}{\celsius} o óleo vegetal dissolve metanol apenas até a razão molar de
+\num{3}:\num{1}, ao passo que a alimentação aqui adotada é de \num{4}:\num{1}.
+Na entrada do canal, portanto, parte do álcool pode constituir fase separada, e
+o sistema seria bifásico.
+
+O quadro é, na verdade, mais desfavorável do que essa comparação sugere.
 \textcite{Muller2019} registra que a mistura de óleo e metanol só se torna
 homogênea a partir de \SIrange{15}{20}{\percent} de conversão, patamar muito
 acima da conversão por passe de \SI{1.4}{\percent} obtida neste trabalho. O
-canal simulado operaria, portanto, em regime bifásico em toda a sua extensão.
+canal simulado operaria, assim, em regime bifásico em toda a sua extensão.
 
-Dois atenuantes se aplicam, e convém dimensioná-los com honestidade. O
-primeiro é que o éster formado atua como cossolvente, de modo que a
-miscibilidade aumenta à medida que a reação avança --- o que importa pouco em
-um único passe, mas passa a importar em configurações com reciclo ou com várias
-peças em série, nas quais a conversão acumulada pode ultrapassar aquele
-patamar. O segundo é que o reagente
+Dois atenuantes se aplicam, e convém dimensioná-los com honestidade. O primeiro
+é que o éster formado atua como cossolvente, de modo que a miscibilidade aumenta
+à medida que a reação avança; isso importa pouco em um único passe, mas passa a
+importar em configurações com reciclo ou com várias peças em série, nas quais a
+conversão acumulada pode ultrapassar aquele patamar. O segundo é que o reagente
 limitante e o objeto de interesse deste trabalho é o triglicerídeo, cuja
-concentração na fase oleosa é a que governa a taxa de parede; o metanol,
-estando em excesso, não limita. Ainda assim, a hipótese de fase única é a mais
-frágil do modelo. O que ele descreve com rigor é o transporte de triglicerídeo
-no interior da fase oleosa até a parede catalítica; a disponibilidade de metanol
-nessa parede, governada pela transferência entre fases, fica fora de seu
-alcance. A verificação experimental dessa hipótese consta das atividades
-previstas no Capítulo~\ref{cap:cronograma}, e a extensão do modelo a duas fases
-é a principal direção de trabalho futuro que dela decorre.
+concentração na fase oleosa é a que governa a taxa de parede, ao passo que o
+metanol, estando em excesso, não limita.
 
-\textbf{Propriedades constantes.} A massa específica e a viscosidade foram
-tomadas como constantes. \textcite{Firth2014} atribui à viscosidade elevada do
-meio rico em triglicerídeo uma fase inicial de inibição da reação, o que
-indicaria dependência da taxa com a composição. No presente caso a hipótese é
-defensável precisamente pelo resultado obtido: com conversão por passe de
-\SI{1.4}{\percent}, a composição do meio percorre faixa estreita ao longo do
-canal, e as propriedades não chegam a variar de forma apreciável. A hipótese
-deixaria de valer em configurações de conversão elevada.
+Ainda assim, esta é a hipótese mais frágil do modelo, e convém delimitar com
+precisão o que ele descreve. O que o modelo resolve com rigor é o transporte de
+triglicerídeo no interior da fase oleosa até a parede catalítica. A
+disponibilidade de metanol nessa parede, governada pela transferência entre
+fases, fica fora de seu alcance. A verificação experimental dessa hipótese
+consta das atividades previstas no Capítulo~\ref{cap:cronograma}, e a extensão
+do modelo a duas fases é a principal direção de trabalho futuro que dela
+decorre.
 
-\textbf{Cinética irreversível.} A reação global é reversível, e o modelo a trata
-como irreversível. A aproximação é válida enquanto a composição estiver longe do
-equilíbrio, condição também assegurada pela baixa conversão por passe.
+\item \textbf{Propriedades físicas constantes.}
 
-As três limitações têm a mesma origem e o mesmo remédio. Todas são
-consequência de se extrapolar um modelo construído para conversão baixa, e
-todas serão reexaminadas quando a calibração experimental do
-Capítulo~\ref{cap:cronograma} fornecer dados em faixas mais amplas.
+A massa específica e a viscosidade foram tomadas como constantes.
+\textcite{Firth2014} atribui à viscosidade elevada do meio rico em
+triglicerídeo uma fase inicial de inibição da reação, o que indicaria
+dependência da taxa com a composição.
+
+No presente caso a hipótese é defensável precisamente pelo resultado obtido:
+com conversão por passe de \SI{1.4}{\percent}, a composição do meio percorre
+faixa estreita ao longo do canal, e as propriedades não chegam a variar de forma
+apreciável. A hipótese deixaria de valer em configurações de conversão elevada.
+
+\item \textbf{Cinética irreversível.}
+
+A reação global é reversível, e o modelo a trata como irreversível. A
+aproximação é válida enquanto a composição estiver longe do equilíbrio,
+condição também assegurada pela baixa conversão por passe.
+
+\end{enumerate}
+
+As três limitações têm a mesma origem e o mesmo remédio. Todas decorrem de se
+extrapolar um modelo construído para conversão baixa, e todas serão reexaminadas
+quando a calibração experimental prevista no Capítulo~\ref{cap:cronograma}
+fornecer dados em faixas mais amplas.
