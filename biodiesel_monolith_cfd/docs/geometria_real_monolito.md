@@ -6,9 +6,28 @@ Prof. Raphael Suppino em 26/11/2026.
 ```
 altura da peça (comprimento do canal)   29,15 mm
 abertura de célula                       0,55 mm
-arranjo                                  canais quadrados, 2 × 2 na peça fotografada
+espessura de parede do substrato         0,10 mm
+arranjo                                  4 canais quadrados, 2 × 2
 uso previsto                             várias peças empilhadas, recheando o leito
+alocação                                 pode ser alinhada ou randômica
+tamanho do reator                        ainda não definido
 ```
+
+Dimensões derivadas:
+
+```
+seção externa da peça        1,40 × 1,40 mm
+passo de célula              0,65 mm
+densidade de células         1527 cpsi   (237 células/cm²)
+fração aberta na seção       61,7 %
+área catalítica por peça     2,565 cm²
+área/volume de peça          4490 1/m
+área/volume de canal         7273 1/m
+```
+
+A densidade de **1527 cpsi** é quase quatro vezes a dos 400 cpsi de
+Asli (2011), que foi a referência de onde saiu a altura de 1,1 mm usada nas
+Fases 1 a 3.
 
 ---
 
@@ -86,7 +105,30 @@ Perda de carga estimada para 30 peças: ≈ 364 Pa. Desprezível.
 **A condição para que isso valha é que haja mistura entre as peças.** Se elas
 forem empilhadas com os canais alinhados e sem folga, o escoamento enxerga um
 canal contínuo, a camada-limite não reinicia, e o ganho de $N^{1/3}$ desaparece.
-Um pequeno espaçamento, ou rotação de 45° entre peças sucessivas, basta.
+
+A diferença é grande o bastante para decidir o projeto:
+
+```
+  N    leito       alinhado     randômico
+  10   292 mm       30,5 %        55,1 %
+  20   583 mm       43,8 %        79,9 %
+  30   874 mm       52,9 %        91,0 %
+  60  1749 mm       69,6 %        99,2 %
+```
+
+### O risco do empilhamento randômico: bypass
+
+A peça tem seção externa de 1,40 mm. Empilhadas randomicamente num tubo, as
+peças deixam vazios intersticiais entre si cujo diâmetro hidráulico é da mesma
+ordem que os 0,55 mm dos canais. O escoamento se reparte entre os dois caminhos
+conforme a resistência de cada um, e uma fração apreciável pode **contornar os
+canais catalíticos** em vez de atravessá-los.
+
+Uma alternativa que preserva o ganho sem o risco: empilhar as peças de forma
+**ordenada na seção, mas com rotação entre camadas sucessivas**. A seção fica
+preenchida, eliminando os vazios intersticiais, e os canais de uma camada não
+se alinham com os da seguinte, de modo que a camada-limite reinicia do mesmo
+jeito. Uma rotação de 45°, ou um deslocamento de meio passo, já basta.
 
 ---
 
