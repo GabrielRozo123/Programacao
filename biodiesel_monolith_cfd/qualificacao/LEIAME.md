@@ -75,9 +75,7 @@ Para gerar a versão final, sem os marcadores, basta trocar a definição no
 | `cap1_revisao.tex` §1.3 | referências sobre lixiviação de cálcio e estabilização do CaO |
 | `cap1_revisao.tex` §1.4 | trabalhos que aplicaram monólitos a biodiesel (teses de Bath) |
 | `cap1_revisao.tex` §1.8 | trabalhos recentes de CFD em reatores de biodiesel |
-| `cap2_modelagem.tex` §2.1 | figura esquemática do domínio |
 | `cap2_modelagem.tex` §2.3 | ρ e δ do washcoat medidos |
-| `cap3_resultados.tex` §3.1 | figura do perfil de Poiseuille |
 | `cap4_cronograma.tex` §4.2 | datas reais de ingresso e previsão de defesa |
 | `referencias.bib` | entradas marcadas `VERIFICAR` e a lista no rodapé do arquivo |
 
@@ -108,5 +106,9 @@ redação e, sobretudo, a revisão bibliográfica do Capítulo 1.
 | Cap. 2 inteiro | `docs/dissertacao_fase3_modelagem_canal_catalitico.md` |
 | Cap. 3 §3.1–3.5 | idem, mais `docs/starccm_fase3_CaO_procedimento.md` |
 | Cap. 3 §3.6 | `docs/notas_metodologicas_cfd_especies.md` |
+| Figura 1.1 | `results/fig5_thiele_washcoat.pdf` |
+| Figura 2.1 | TikZ, definida no próprio `cap2_modelagem.tex` |
+| Figura 3.1 | `results/fig6_poiseuille_fase3.pdf` |
 | Figura 3.2 | `results/fig4_camada_limite_x49mm.pdf` |
-| Dados do perfil | `results/perfil_camada_limite_x49mm.csv` |
+| Dados do perfil de concentração | `results/perfil_camada_limite_x49mm.csv` |
+| Dados do perfil de velocidade | `results/perfil_velocidade_x49mm_raw.csv` |

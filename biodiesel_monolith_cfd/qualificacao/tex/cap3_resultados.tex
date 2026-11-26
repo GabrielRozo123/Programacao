@@ -10,31 +10,59 @@ constitui o resultado central do trabalho até o momento.
 \section{Verificação hidrodinâmica}
 
 O campo de velocidade foi verificado contra a solução analítica de Poiseuille
-para canal plano. A perda de carga calculada pelo modelo foi de
-\SI{5.463}{\pascal}, contra
+para canal plano,
 
 \begin{equation}
-\Delta P = \frac{12\,\mu\,\bar{u}\,L}{H^2} = \SI{5.207}{\pascal}
+u(y) = 6\,\bar{u}\,\frac{y}{H}\left(1 - \frac{y}{H}\right)
+\label{eq:poiseuille}
 \end{equation}
 
 \noindent
-o que corresponde a uma diferença de \SI{4.9}{\percent}.
+por meio de um perfil transversal medido a \SI{49}{\milli\meter} da entrada,
+apresentado na Figura~\ref{fig:poiseuille}.
 
-Registre-se uma observação de caráter prático a respeito dessa grandeza. A
-perda de carga não constitui indicador de qualidade de malha neste problema: a
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.74\textwidth]{fig6_poiseuille_fase3.pdf}
+\caption{Perfil transversal de velocidade axial em $x = \SI{49}{\milli\meter}$,
+comparado à solução analítica de Poiseuille para canal plano}
+\label{fig:poiseuille}
+\end{figure}
+
+A concordância é satisfatória nas três grandezas integrais verificadas. A
+velocidade máxima medida vale \SI{1.5001}{\milli\meter\per\second}, contra
+$1{,}5\,\bar{u} = \SI{1.5000}{\milli\meter\per\second}$ previstos, diferença de
+\SI{0.005}{\percent}. A integração do perfil fornece velocidade média de
+\SI{0.9985}{\milli\meter\per\second}, \SI{0.15}{\percent} abaixo do valor
+imposto na entrada, e vazão mássica de
+\SI{4.767e-8}{\kilogram\per\second}, também \SI{0.15}{\percent} abaixo da
+registrada pelo solver nas duas fronteiras.
+
+Ponto a ponto, os valores junto às paredes apresentam dispersão maior, da ordem
+de \SI{20}{\percent} nas primeiras células. O exame dessa dispersão mostra que
+ela corresponde a um deslocamento aparente de aproximadamente
+\SI{9}{\micro\meter} entre a coordenada reportada pela sonda de linha e a
+posição física das células da malha, e não a um erro da solução: um ajuste
+parabólico aos valores de célula fornece raízes em \SI{7.9}{\micro\meter} e
+\SI{1109.5}{\micro\meter}, ou seja, altura de canal de
+\SI{1101.6}{\micro\meter} contra os \SI{1100}{\micro\meter} nominais. Como as
+três grandezas integrais concordam dentro de \SI{0.15}{\percent}, considera-se
+o campo de velocidade verificado.
+
+A perda de carga calculada foi de \SI{5.463}{\pascal}, contra
+\SI{5.207}{\pascal} da solução de Hagen-Poiseuille,
+$\Delta P = 12\,\mu\,\bar{u}\,L/H^2$, diferença de \SI{4.9}{\percent}. Essa
+discrepância convive com a concordância de \SI{0.15}{\percent} nas grandezas
+cinemáticas, e não compromete o transporte de espécies, que depende do campo de
+velocidade e não da pressão.
+
+Registre-se, por fim, uma observação de caráter prático a respeito da perda de
+carga. Ela não constitui indicador de qualidade de malha neste problema: a
 solução plenamente desenvolvida é um perfil parabólico, que um esquema de
 volumes finitos de segunda ordem integra exatamente em qualquer discretização.
 Obteve-se, de fato, valor idêntico até a sétima casa decimal em malhas com e sem
-camadas prismáticas. O teste confirma que o campo de velocidade está correto e
-convergido, mas é insensível ao refino junto à parede, e não serve para avaliá-lo.
-
-\pendente{figura do perfil de velocidade. A figura existente em
-\texttt{results/fig0\_fase1\_poiseuille.pdf} é da Fase 1, com propriedades e
-velocidade diferentes ($\Delta P = \SI{2.98}{\pascal}$,
-$Re = \num{0.160}$), e não corresponde ao caso deste capítulo. Exportar do
-Star-CCM+ uma Line Probe de \texttt{Velocity[i]} em $x = \SI{49}{\milli\meter}$,
-de $(0{,}049;\,0;\,0{,}000025)$ a $(0{,}049;\,0{,}0011;\,0{,}000025)$, para
-gerar a figura com os dados corretos}
+camadas prismáticas. O refino junto à parede, indispensável ao transporte de
+espécies pelas razões da Seção~\ref{sec:verificacao}, é invisível a esse teste.
 
 \section{Conservação de massa e independência de malha}
 
