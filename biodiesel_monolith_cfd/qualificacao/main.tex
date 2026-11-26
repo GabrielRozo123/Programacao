@@ -41,7 +41,11 @@
 \usepackage{graphicx}
 \usepackage{tikz}
 \graphicspath{{figuras/}}
-\usepackage[font=normalsize,labelfont=bf,labelsep=endash,justification=centering]{caption}
+\usepackage{caption}
+% Padrao Suppino (2008): legenda inteira em negrito, centralizada,
+% separador em travessao. Figura com legenda abaixo; tabela, acima.
+\captionsetup{font=bf, labelsep=endash, justification=centering,
+               skip=10pt, singlelinecheck=false}
 
 % --- Cabeçalhos --------------------------------------------------------------
 \usepackage{fancyhdr}
