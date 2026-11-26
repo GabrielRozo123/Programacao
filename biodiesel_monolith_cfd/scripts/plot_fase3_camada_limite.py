@@ -139,7 +139,7 @@ def main():
     fig.suptitle("Camada-limite de concentração no canal monolítico de CaO",
                  fontsize=12.5, color=TINTA, x=0.055, ha="left", y=0.975)
     fig.text(0.055, 0.905,
-             f"Star-CCM+, x = 49 mm, t = 150 s · Da = 0,74 · Sc = 1,7×10⁵ · "
+             f"Star-CCM+, x = 49 mm, t = 150 s, Da = 0,74, Sc = 1,7×10⁵, "
              f"camada empobrecida {delta:.0f} µm",
              fontsize=9, color=TINTA2, ha="left")
 

@@ -87,8 +87,8 @@ def main():
     fig.suptitle("Verificação hidrodinâmica do canal monolítico",
                  fontsize=12, color=TINTA, x=0.03, ha="left", y=0.975)
     fig.text(0.03, 0.918,
-             "Star-CCM+ · $Re = 0{,}182$ · "
-             "$u(y) = 6\\,\\bar{u}\\,(y/H)(1-y/H)$",
+             "Star-CCM+,   $Re = 0{,}182$,   "
+             "perfil $u(y) = 6\\,\\bar{u}\\,(y/H)(1-y/H)$",
              fontsize=8.8, color=TINTA2, ha="left")
 
     fig.tight_layout(rect=(0.0, 0.135, 1.0, 0.90))

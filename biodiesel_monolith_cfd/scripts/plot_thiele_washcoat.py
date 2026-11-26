@@ -103,9 +103,9 @@ def main():
     fig.suptitle("Resistência difusional interna ao washcoat de CaO",
                  fontsize=12.5, color=TINTA, x=0.055, ha="left", y=0.975)
     fig.text(0.055, 0.905,
-             "$\\phi = \\delta_{wc}\\sqrt{k_v/D_p}$ · "
-             "$\\eta = \\tanh\\phi/\\phi$ · "
-             "$D_p$ de Fonseca (2026) para CaO e CaO/Al$_2$O$_3$",
+             "$\\phi = \\delta_{wc}\\sqrt{k_v/D_p}$,   "
+             "$\\eta = \\tanh\\phi/\\phi$,   "
+             "com $D_p$ de Fonseca (2026) para CaO e CaO/Al$_2$O$_3$",
              fontsize=9, color=TINTA2, ha="left")
 
     fig.tight_layout(rect=(0.0, 0.0, 1.0, 0.865))
