@@ -33,6 +33,55 @@ geométrica discutida no Capítulo~\ref{cap:resultados}.
 As propriedades físicas do meio reacional, por fim, serão obtidas para a carga
 efetivamente empregada, em lugar dos valores de literatura hoje adotados.
 
+\subsection{A geometria do monólito disponível}
+\label{sec:geomreal}
+
+Durante a redação deste texto, as dimensões das peças de suporte efetivamente
+disponíveis no laboratório foram medidas e repassadas pela orientação. Diferem
+de forma apreciável da geometria de referência adotada nas simulações
+apresentadas, e merecem registro por condicionarem as etapas seguintes.
+
+\begin{table}[htb]
+\centering
+\caption{Geometria simulada e geometria das peças disponíveis}
+\label{tab:geomreal}
+\begin{tabular}{l c c}
+\toprule
+ & Simulado & Peça disponível \\
+\midrule
+Seção do canal          & plano          & quadrado \\
+Abertura                & \SI{1.1}{\milli\meter} & \SI{0.55}{\milli\meter} \\
+Comprimento             & \SI{50}{\milli\meter}  & \SI{29.15}{\milli\meter} \\
+Paredes catalíticas     & \num{1}        & \num{4} \\
+Espessura de parede     & ---            & \SI{0.10}{\milli\meter} \\
+Densidade de células    & \num{400} cpsi & \num{1527} cpsi \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A geometria simulada derivou de \textcite{Asli2011}, como exposto no
+Capítulo~\ref{cap:revisao}. A peça disponível tem metade da abertura, seção
+quadrada com as quatro paredes recobertas e densidade de células quase quatro
+vezes maior.
+
+Estimativas preliminares, obtidas por extrapolação do modelo verificado através
+da solução de Lévêque e do balanço de área, indicam que o canal menor engrossa
+menos a camada-limite e eleva o coeficiente de transferência de massa em cerca
+de \SI{50}{\percent}. O número de Damköhler cairia de \num{0.76} para
+aproximadamente \num{0.51}, permanecendo em regime misto, e a conversão por
+passe de uma peça subiria de \SI{1.4}{\percent} para algo próximo de
+\SI{7.7}{\percent}, sobretudo pelo aumento de oito vezes na razão entre área de
+parede e volume. O comprimento de entrada mássica cairia para
+\SI{216}{\milli\meter}, ainda sete vezes o comprimento da peça.
+
+Dessa última razão decorre uma consequência de projeto. Operando na região de
+entrada, o coeficiente de transferência de massa decai com $x^{-1/3}$, de modo
+que empilhar peças curtas com desalinhamento entre elas, de forma que a
+camada-limite se reinicie a cada peça, eleva o coeficiente médio por um fator
+$N^{1/3}$ em relação a um canal contínuo de mesmo comprimento total. Para trinta
+peças, fator próximo de três. A verificação dessa estimativa por simulação da
+geometria real consta das atividades previstas.
+
 \subsection{Varredura paramétrica}
 
 Com o modelo calibrado, pretende-se realizar varreduras em três direções.
@@ -52,11 +101,13 @@ Damköhler com a temperatura, dado que a cinética é mais sensível a $T$ do qu
 difusividade, e portanto a transição gradual do regime misto em direção ao
 controle por transporte à medida que a temperatura se eleva.
 
-A geometria do canal será variada em comprimento e em diâmetro hidráulico, com o
-objetivo de avaliar configurações capazes de elevar a conversão por passe. À luz
-do resultado de $L_e/L = \num{69}$, espera-se que a conversão responda de forma
-mais acentuada ao comprimento do canal e à redução da velocidade superficial do
-que ao aumento da carga de catalisador.
+A geometria do canal será reconstruída segundo as dimensões da
+Tabela~\ref{tab:geomreal}, o que exige abandonar a formulação pseudo-bidimensional
+em favor de um quarto de duto quadrado, aproveitando os dois planos de simetria.
+A física, as funções de campo e o protocolo de verificação do
+Capítulo~\ref{cap:modelagem} transferem-se sem alteração; mudam a geometria e a
+malha. Em seguida, comprimento e abertura serão variados em torno desses valores,
+e o efeito do desalinhamento entre peças sucessivas será avaliado.
 
 \subsection{Calibração e confronto com dados experimentais}
 
