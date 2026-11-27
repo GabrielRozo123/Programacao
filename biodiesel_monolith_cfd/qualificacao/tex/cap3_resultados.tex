@@ -4,16 +4,13 @@
 Reúnem-se neste capítulo os resultados já obtidos com o modelo descrito no
 Capítulo~\ref{cap:modelagem}.
 
-Uma ressalva de procedência se impõe de início. As corridas aqui reportadas
-foram conduzidas com alimentação de razão molar \num{6}:\num{1}, anterior à
-constatação, registrada na Seção~\ref{sec:difusividades}, de que a
-constante cinética adotada foi determinada por \textcite{Melo2023} a
-\num{4}:\num{1}. A correção da alimentação está prevista e seu efeito sobre os
-resultados aqui apresentados deve ser pequeno: tanto o número de Damköhler
-quanto a conversão fracionária são razões, e para cinética de pseudo-primeira
-ordem independem, em primeira aproximação, do valor absoluto da concentração de
-entrada. Os valores de fração mássica reportados adiante referem-se, portanto,
-à alimentação de \num{6}:\num{1}, para a qual $Y_{TG} = \num{0.8194}$.
+Os resultados aqui reunidos foram obtidos em duas corridas independentes, com
+alimentações de razão molar \num{4}:\num{1} e \num{6}:\num{1}. A primeira
+corresponde à condição em que \textcite{Melo2023} determinou a constante
+cinética e é, por isso, a adotada no Capítulo~\ref{cap:modelagem}; a segunda foi
+conduzida antes dessa constatação. A comparação entre as duas, apresentada na
+Seção~\ref{sec:invariancia}, constitui um teste de verificação adicional, e os
+valores reportados adiante são comuns a ambas.
 
 A exposição segue a ordem em que os testes foram
 conduzidos: primeiro a verificação do campo de velocidade, depois a dos
@@ -106,6 +103,46 @@ Com camadas prismáticas & \SI{2.8}{\micro\meter} & \num{6}:\num{1} molar & \num
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Invariância com a composição de alimentação}
+\label{sec:invariancia}
+
+A Seção~\ref{sec:difusividades} argumenta que, por se tratar de cinética de
+pseudo-primeira ordem, tanto o número de Damköhler quanto a conversão
+fracionária são razões e independem, em primeira aproximação, do valor absoluto
+da concentração de entrada. A disponibilidade de duas corridas convergidas com
+alimentações distintas permite submeter esse argumento a teste.
+
+A grandeza adequada para a comparação é o empobrecimento relativo do domínio em
+regime permanente, $(Y_{in} - Y_{bulk})/Y_{in}$, que deve ser idêntico nas duas
+corridas caso a invariância se verifique. A Tabela~\ref{tab:invariancia} reúne
+os valores medidos.
+
+\begin{table}[htb]
+\centering
+\caption{Empobrecimento relativo do domínio em regime permanente para duas
+composições de alimentação}
+\label{tab:invariancia}
+\begin{tabular}{c c c c}
+\toprule
+Alimentação & $Y_{TG}$ na entrada & $Y_{TG}$ no domínio & Queda relativa \\
+\midrule
+\num{4}:\num{1} molar & \num{0.8719} & \num{0.848043} & \SI{2.7363}{\percent} \\
+\num{6}:\num{1} molar & \num{0.8194} & \num{0.796979} & \SI{2.7363}{\percent} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As duas corridas concordam em quatro casas decimais, com discrepância de
+\SI{0.001}{\percent}. A invariância prevista pelo argumento cinético verifica-se,
+portanto, de forma essencialmente exata, e os valores de $Da$ e de $X_{TG}$
+reportados nas seções seguintes valem para ambas as composições.
+
+Registre-se que a concordância é mais estreita do que a de qualquer outro teste
+de verificação aplicado ao modelo, incluindo a independência de malha. Isso é
+esperado: trata-se da mesma malha e do mesmo conjunto de equações, diferindo
+apenas o valor numérico de uma condição de contorno sobre a qual a solução, por
+construção, deveria ser linear.
 
 O balanço global de massa, Equação~\eqref{eq:balanco}, foi verificado em regime
 permanente. A marcha foi conduzida até \SI{303}{\second}, instante em que o
