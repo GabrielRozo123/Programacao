@@ -162,16 +162,36 @@ Seção~\ref{sec:camadalimite}.
 
 O resultado central do trabalho decorre da leitura das concentrações de
 triglicerídeo junto à parede catalítica e no seio do fluido, e da aplicação da
-Equação~\eqref{eq:cwcb}. Em regime permanente,
+Equação~\eqref{eq:cwcb}. A Tabela~\ref{tab:daresultado} reúne os valores
+medidos em regime permanente nas duas corridas.
 
-\begin{align}
-Y_{TG}\big|_{\text{parede}} &= 0{,}4521 \nonumber\\
-Y_{TG}\big|_{\text{domínio}} &= 0{,}7970 \nonumber\\[4pt]
-\frac{C_w}{C_b} &= 0{,}567
-\qquad \Longrightarrow \qquad
+\begin{table}[htb]
+\centering
+\caption{Concentrações em regime permanente e número de Damköhler resultante}
+\label{tab:daresultado}
+\begin{tabular}{l c c}
+\toprule
+ & \num{4}:\num{1} molar & \num{6}:\num{1} molar \\
+\midrule
+$Y_{TG}$ na entrada             & \num{0.8719}   & \num{0.8194}   \\
+$Y_{TG}$ na parede              & \num{0.481093} & \num{0.452120} \\
+$Y_{TG}$ no domínio             & \num{0.848043} & \num{0.796979} \\
+\midrule
+$C_w/C_b$                       & \num{0.567299} & \num{0.567292} \\
+$Da$                            & \num{0.7627}   & \num{0.7628}   \\
+$X_{TG}$                        & \SI{1.4016}{\percent} & \SI{1.4016}{\percent} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As duas corridas concordam em cinco a seis algarismos significativos, o que
+confirma a invariância discutida na Seção~\ref{sec:invariancia}. Adota-se
+daqui em diante
+
+\begin{equation}
 \boxed{Da = 0{,}76}
 \label{eq:daresultado}
-\end{align}
+\end{equation}
 
 O sistema opera, portanto, em \textbf{regime misto}. A resistência cinética e a
 resistência ao transporte externo são da mesma ordem de grandeza, e a
@@ -357,6 +377,14 @@ fragilidade de natureza física já antecipada na Seção~\ref{sec:camadalimite}
 fluido mais empobrecido é o mais lento, de modo que a região portadora da
 informação de conversão quase não pesa na média, e o resultado fica à mercê de
 qualquer contaminação pela composição especificada na fronteira.
+
+Uma distinção útil emergiu da última corrida. O monitor de média de superfície
+sobre a parede, isto é, a série temporal registrada a cada passo, permaneceu
+cravado no valor da alimentação do primeiro ao último instante, ao passo que o
+relatório instantâneo da mesma grandeza, consultado ao fim da corrida, forneceu
+o valor correto de \num{0.481093}, confirmado pela integral do fluxo em seis
+algarismos. Monitor e relatório podem, portanto, divergir, e a verificação
+cruzada da Equação~\eqref{eq:cruzada} deve ser aplicada a ambos.
 
 O caso da média de superfície sobre a parede é inequívoco. Ao retomar-se a
 marcha a partir de um arquivo salvo, o relatório passou a retornar o valor exato
