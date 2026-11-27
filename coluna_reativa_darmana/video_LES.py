@@ -46,10 +46,12 @@ def lista_pngs(pasta: Path):
     return arqs
 
 
-def recorta_branco(img: np.ndarray, tol=245, margem=6) -> np.ndarray:
-    """Remove a borda branca do hardcopy (mantém coluna + barra de cores)."""
-    cinza = img[..., :3].mean(axis=2)
-    ys, xs = np.where(cinza < tol)
+def recorta_fundo(img: np.ndarray, tol=12, margem=6) -> np.ndarray:
+    """Remove a borda do hardcopy (mantém coluna + barra de cores). A cor de fundo é a do canto
+    superior esquerdo, então funciona com fundo branco ou preto."""
+    fundo = img[0, 0, :3].astype(float)
+    dif = np.abs(img[..., :3].astype(float) - fundo).max(axis=2)
+    ys, xs = np.where(dif > tol)
     if ys.size == 0:
         return img
     y0, y1 = max(ys.min() - margem, 0), min(ys.max() + margem, img.shape[0])
@@ -79,6 +81,7 @@ def main():
     ap.add_argument("--fps", type=int, default=30)
     ap.add_argument("--saida", type=Path, default=Path("darmana_LES.mp4"))
     ap.add_argument("--gif", action="store_true", help="também gera um GIF (1 a cada 3 quadros, 540 px)")
+    ap.add_argument("--escuro", action="store_true", help="fundo preto (use com hardcopies de fundo preto)")
     ap.add_argument("--legenda", default="Coluna de bolhas reativa CO$_2$/NaOH  ·  LES Euler–Euler (WALE)  ·  STAR-CCM+")
     a = ap.parse_args()
 
@@ -93,7 +96,11 @@ def main():
     ph_rans = le_csv_2col(a.ph_rans_csv) if a.ph_rans_csv else None
     exp = le_csv_2col(EXP_PH) if EXP_PH.exists() else None
 
-    fig = plt.figure(figsize=(10.8, 13.5), dpi=100, facecolor="white")
+    if a.escuro:
+        plt.style.use("dark_background")
+    cor_txt = "#ddd" if a.escuro else "#333"
+    cor_les = "#5fa8ff" if a.escuro else "#1f5fbf"
+    fig = plt.figure(figsize=(10.8, 13.5), dpi=100, facecolor="black" if a.escuro else "white")
     tem_curva = ph is not None
     gs = fig.add_gridspec(2 if tem_curva else 1, len(listas),
                           height_ratios=[3.2, 1] if tem_curva else [1],
@@ -103,7 +110,7 @@ def main():
         ax.set_axis_off()
         ax.set_title(tit, fontsize=15, pad=8)
     fig.text(0.5, 0.965, a.legenda, ha="center", va="center", fontsize=15, weight="bold")
-    txt_t = fig.text(0.5, 0.937, "", ha="center", va="center", fontsize=14, color="#333")
+    txt_t = fig.text(0.5, 0.937, "", ha="center", va="center", fontsize=14, color=cor_txt)
 
     if tem_curva:
         axc = fig.add_subplot(gs[1, :])
@@ -111,8 +118,8 @@ def main():
             axc.plot(exp[:, 0], exp[:, 1], "o", ms=3, color="#888", label="Experimento (Darmana et al., 2007)")
         if ph_rans is not None:
             axc.plot(ph_rans[:, 0] - a.t_troca_rans, ph_rans[:, 1], "--", lw=1.6, color="#d08c2a", label="RANS k-ε")
-        (linha,) = axc.plot([], [], lw=2.4, color="#1f5fbf", label="LES WALE")
-        (ponto,) = axc.plot([], [], "o", ms=7, color="#1f5fbf")
+        (linha,) = axc.plot([], [], lw=2.4, color=cor_les, label="LES WALE")
+        (ponto,) = axc.plot([], [], "o", ms=7, color=cor_les)
         tmax = max(ph[-1, 0] - a.t_troca, exp[-1, 0] if exp is not None else 0)
         axc.set_xlim(0, tmax * 1.02)
         axc.set_ylim(7.5, 13)
@@ -128,7 +135,7 @@ def main():
     for j, i in enumerate(idx):
         t = a.t0 + i * a.dt
         for k, (ax, lst) in enumerate(zip(eixos, listas)):
-            img = recorta_branco(np.asarray(Image.open(lst[i]).convert("RGB")))
+            img = recorta_fundo(np.asarray(Image.open(lst[i]).convert("RGB")))
             if imagens[k] is None:
                 imagens[k] = ax.imshow(img)
             else:
