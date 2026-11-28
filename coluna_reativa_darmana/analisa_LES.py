@@ -108,7 +108,7 @@ def main():
     res["pH_tempo_s"] = atrasos
 
     # ---------- figura ----------
-    fig, ax = plt.subplots(2, 2, figsize=(12, 9))
+    fig, ax = plt.subplots(2, 3, figsize=(17, 9))
     a = ax[0, 0]
     a.plot(exp[:, 0], exp[:, 1], "o", ms=3, color=COR["exp"], label="Experimento (Darmana et al., 2007)")
     if "pH_sensor" in rans:
@@ -145,6 +145,38 @@ def main():
            transform=a.transAxes, ha="right", fontsize=10)
     a.legend(frameon=False, fontsize=9, loc="upper right")
     a.set_title("Taxa de absorção na coluna")
+
+    # ---------- perfis médios (Field Mean, 20 s após a troca até ~95 s) ----------
+    lat = np.genfromtxt(LES / "lateral_750.csv", delimiter=",", skip_header=1)
+    eixo = np.genfromtxt(LES / "eixo.csv", delimiter=",", skip_header=1)
+    eixo = eixo[np.argsort(eixo[:, 0])]
+    vexp = np.genfromtxt(LIT / "vG_lateral_750_CO2_experimento_E2.csv", delimiter=",", skip_header=1)
+    a = ax[0, 2]
+    a.plot(vexp[:, 0], vexp[:, 1], "o", ms=5, color=COR["exp"], label="Experimento (PIV, CO$_2$)")
+    a.plot(lat[:, 0] + 0.1, lat[:, 1], color=COR["les"], lw=2, label="LES WALE")
+    a.set(xlim=(0, 0.2), ylim=(0, None), xlabel="x a partir da parede (m)", ylabel="v$_G$ médio (m/s)")
+    a.legend(frameon=False, fontsize=9)
+    a.set_title("Velocidade vertical do gás em y = 750 mm")
+    res["vG_750_centro"] = {"LES": float(np.interp(0.1, lat[:, 0] + 0.1, lat[:, 1])),
+                            "exp_max": float(vexp[:, 1].max())}
+    k_res = 0.5 * (lat[:, 5] + lat[:, 7] + lat[:, 9])
+    res["k_resolvida_750_J_kg"] = {"centro": float(np.interp(0.0, lat[:, 0], k_res)), "media": float(k_res.mean())}
+
+    a = ax[1, 2]
+    a.errorbar(d32_exp[:, 0], d32_exp[:, 1], yerr=d32_exp[:, 2], fmt="o", ms=4, color=COR["exp"], capsize=2,
+               label="Experimento")
+    a.plot(d32_rans[:, 0], d32_rans[:, 1] / D0, "--", color=COR["rans"], lw=1.8, label="RANS k-ε")
+    a.plot(eixo[:, 0], eixo[:, 1] * 1e3 / D0, color=COR["les"], lw=2, label="LES WALE")
+    a.axvspan(0, 0.4, color="#999", alpha=0.08)
+    a.text(0.2, 0.52, "região do aspersor:\nmedida pouco confiável", ha="center", fontsize=8, color="#666")
+    a.set(xlim=(0, 1), ylim=(0.5, 1.05), xlabel="z/H", ylabel="d$_{32}$/d$_0$ médio no eixo")
+    a.legend(frameon=False, fontsize=9, loc="upper right")
+    a.set_title("Diâmetro de Sauter ao longo da altura")
+    m = (eixo[:, 0] >= 0.4)
+    dexp = np.interp(eixo[m, 0], d32_exp[:, 0], d32_exp[:, 1])
+    drans = np.interp(eixo[m, 0], d32_rans[:, 0], d32_rans[:, 1] / D0)
+    res["d32_rmse_z>0.4"] = {"LES": float(np.sqrt(np.mean((eixo[m, 1] * 1e3 / D0 - dexp) ** 2))),
+                             "RANS": float(np.sqrt(np.mean((drans - dexp) ** 2)))}
 
     for a in ax.flat:
         a.grid(alpha=0.3)
